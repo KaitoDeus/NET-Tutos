@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - .NET DevMaster (Học .NET từ Cơ Bản đến Nâng Cao)</title>
+    <title>@ViewData["Title"] - .NET Tutos (Học .NET từ Cơ Bản đến Nâng Cao)</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,14 +30,10 @@
     <!-- Navigation Header -->
     <header class="sticky-top">
         <nav class="navbar navbar-expand-lg border-bottom shadow-sm bg-body">
-            <div class="container">
-                <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" asp-controller="Home" asp-action="Index">
-                    <span class="badge rounded-pill bg-gradient-dotnet text-white p-2">
-                        <i class="bi bi-code-slash fs-5"></i>
-                    </span>
-                    <span class="brand-text">
-                        <span class="text-primary fw-extrabold">.NET</span> DevMaster
-                    </span>
+            <div class="container-fluid px-3 px-xl-4">
+                <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-decoration-none py-1" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/csharp-logo.png" alt="C# Logo" width="34" height="38" class="csharp-nav-logo" />
+                    <span class="brand-text text-primary fw-extrabold fs-4">.NET</span>
                 </a>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
@@ -46,33 +42,33 @@
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3 gap-1">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-2 gap-0 gap-xl-1 align-items-lg-center">
                         <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active fw-semibold" : "")"
+                            <a class="nav-link text-nowrap @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active fw-semibold" : "")"
                                asp-controller="Home" asp-action="Index">
                                 <i class="bi bi-house-door me-1"></i> Trang chủ
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Roadmap" ? "active fw-semibold" : "")"
+                            <a class="nav-link text-nowrap @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Roadmap" ? "active fw-semibold" : "")"
                                asp-controller="Roadmap" asp-action="Index">
                                 <i class="bi bi-signpost-split me-1 text-warning"></i> Lộ trình học
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Tutorials" ? "active fw-semibold" : "")"
+                            <a class="nav-link text-nowrap @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Tutorials" ? "active fw-semibold" : "")"
                                asp-controller="Tutorials" asp-action="Index">
                                 <i class="bi bi-book me-1 text-primary"></i> Khóa học & Bài viết
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Quiz" ? "active fw-semibold" : "")"
+                            <a class="nav-link text-nowrap @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Quiz" ? "active fw-semibold" : "")"
                                asp-controller="Quiz" asp-action="Index">
                                 <i class="bi bi-patch-question me-1 text-success"></i> Trắc nghiệm
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "CheatSheet" ? "active fw-semibold" : "")"
+                            <a class="nav-link text-nowrap @(ViewContext.RouteData.Values["Controller"]?.ToString() == "CheatSheet" ? "active fw-semibold" : "")"
                                asp-controller="CheatSheet" asp-action="Index">
                                 <i class="bi bi-code-square me-1 text-info"></i> Tra cứu Code
                             </a>
@@ -80,21 +76,21 @@
                     </ul>
 
                     <!-- Search Box -->
-                    <form class="d-flex me-3" asp-controller="Tutorials" asp-action="Index" method="get">
+                    <form class="d-flex me-2 my-2 my-lg-0" asp-controller="Tutorials" asp-action="Index" method="get">
                         <div class="input-group input-group-sm search-group">
-                            <input class="form-control" type="search" name="search" placeholder="Tìm bài học, LINQ, EF Core..." aria-label="Search" value="@Context.Request.Query["search"]">
-                            <button class="btn btn-outline-primary" type="submit">
+                            <input class="form-control" type="search" name="search" placeholder="Tìm bài học..." aria-label="Search" value="@Context.Request.Query["search"]">
+                            <button class="btn btn-outline-primary" type="submit" title="Tìm kiếm">
                                 <i class="bi bi-search"></i>
                             </button>
                         </div>
                     </form>
 
                     <!-- User Account / Auth Menu -->
-                    <div class="d-flex align-items-center ms-lg-2 me-2">
+                    <div class="d-flex align-items-center gap-2 me-2">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-primary dropdown-toggle d-flex align-items-center gap-2 rounded-pill px-3 py-1.5" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <button class="btn btn-sm btn-outline-primary dropdown-toggle d-flex align-items-center gap-2 rounded-pill px-3 py-1.5 text-nowrap" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-person-circle fs-6"></i>
                                     <span class="fw-semibold text-truncate" style="max-width: 140px;">@(User.Identity.Name?.Split('@')[0] ?? "Học viên")</span>
                                 </button>
@@ -117,11 +113,11 @@
                         }
                         else
                         {
-                            <div class="d-flex align-items-center gap-2">
-                                <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
-                                    <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập
+                            <div class="d-flex align-items-center gap-1.5 flex-nowrap">
+                                <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold text-nowrap">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập
                                 </a>
-                                <a asp-controller="Account" asp-action="Register" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold d-none d-sm-inline-block">
+                                <a asp-controller="Account" asp-action="Register" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-semibold text-nowrap d-none d-sm-inline-block">
                                     Đăng ký
                                 </a>
                             </div>
@@ -150,8 +146,9 @@
             <div class="row g-4 align-items-center">
                 <div class="col-md-6 text-center text-md-start">
                     <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2 mb-0">
+                        <img src="~/images/csharp-logo.png" alt="C# Logo" width="24" height="27" style="object-fit: contain;" />
                         <span class="badge bg-primary text-white p-1 px-2 rounded">.NET 10</span>
-                        <span class="fw-bold">.NET DevMaster Portal</span>
+                        <span class="fw-bold">.NET Tutos</span>
                     </div>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
@@ -163,7 +160,7 @@
                         <a asp-controller="Home" asp-action="About" class="text-decoration-none small text-body-secondary">Về dự án</a>
                     </div>
                     <p class="text-muted small mb-0">
-                        © @DateTime.Now.Year .NET DevMaster. Xây dựng bằng ASP.NET Core MVC & Entity Framework Core.
+                        © @DateTime.Now.Year .NET Tutos. Nền tảng học tập & thực hành lập trình .NET chất lượng cao.
                     </p>
                 </div>
             </div>
