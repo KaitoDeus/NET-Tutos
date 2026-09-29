@@ -115,6 +115,13 @@ body {
     font-size: 0.85rem !important;
 }
 
+.auth-btn-group {
+    display: flex;
+    align-items: center;
+    gap: 6px !important;
+    flex-wrap: nowrap;
+}
+
 .theme-btn {
     width: 36px;
     height: 36px;
