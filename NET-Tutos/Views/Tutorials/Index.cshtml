@@ -1,0 +1,130 @@
+﻿@model NET_Tutos.Models.ViewModels.TutorialListViewModel
+@{
+    ViewData["Title"] = "Danh sách bài học .NET";
+}
+
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-8">
+            <h1 class="fw-bold mb-1">
+                @if (Model.CurrentCategory != null)
+                {
+                    <span>@Model.CurrentCategory.Name</span>
+                }
+                else
+                {
+                    <span>Tất Cả Bài Học .NET</span>
+                }
+            </h1>
+            <p class="text-muted mb-0">
+                Tìm thấy <strong>@Model.TotalCount</strong> bài hướng dẫn chi tiết từ cơ bản đến nâng cao
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a asp-controller="Roadmap" asp-action="Index" class="btn btn-outline-primary">
+                <i class="bi bi-signpost-split me-1"></i> Xem theo lộ trình học
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-body">
+        <div class="card-body p-3">
+            <form method="get" asp-action="Index" class="row g-2 align-items-center">
+                <!-- Category Select -->
+                <div class="col-md-4">
+                    <select name="category" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- Tất cả chuyên đề --</option>
+                        @foreach (var cat in Model.Categories)
+                        {
+                            <option value="@cat.Slug" selected="@(Model.CurrentCategorySlug == cat.Slug)">
+                                @cat.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Difficulty Select -->
+                <div class="col-md-3">
+                    <select name="level" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- Mọi cấp độ --</option>
+                        <option value="Beginner" selected="@(Model.CurrentDifficulty == DifficultyLevel.Beginner)">Cơ bản (Beginner)</option>
+                        <option value="Intermediate" selected="@(Model.CurrentDifficulty == DifficultyLevel.Intermediate)">Trung cấp (Intermediate)</option>
+                        <option value="Advanced" selected="@(Model.CurrentDifficulty == DifficultyLevel.Advanced)">Nâng cao (Advanced)</option>
+                    </select>
+                </div>
+
+                <!-- Search Input -->
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" placeholder="Từ khóa tìm kiếm..." value="@Model.SearchQuery" />
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reset Button -->
+                <div class="col-md-1 text-center">
+                    <a asp-action="Index" class="btn btn-outline-secondary w-100" title="Đặt lại bộ lọc">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tutorials Grid -->
+    @if (!Model.Tutorials.Any())
+    {
+        <div class="text-center py-5">
+            <div class="fs-1 text-muted mb-3"><i class="bi bi-search"></i></div>
+            <h4>Không tìm thấy bài học nào phù hợp</h4>
+            <p class="text-muted">Vui lòng thử lại với từ khóa khác hoặc đặt lại bộ lọc tìm kiếm.</p>
+            <a asp-action="Index" class="btn btn-primary mt-2">Xem tất cả bài học</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var item in Model.Tutorials)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 card-hover rounded-4 bg-body">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-@item.Category?.BadgeColor bg-opacity-10 text-@item.Category?.BadgeColor border">
+                                    @item.Category?.Name
+                                </span>
+                                <span class="text-muted small">
+                                    <i class="bi bi-clock me-1"></i>@item.EstimatedReadingMinutes phút
+                                </span>
+                            </div>
+
+                            <h5 class="card-title fw-bold my-2">
+                                <a asp-action="Details" asp-route-slug="@item.Slug" class="text-decoration-none text-body-emphasis">
+                                    @item.Title
+                                </a>
+                            </h5>
+
+                            <p class="card-text text-muted small flex-grow-1">
+                                @item.Summary
+                            </p>
+
+                            <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-3">
+                                <span class="badge bg-secondary-subtle text-secondary small">
+                                    <i class="bi bi-eye me-1"></i>@item.ViewCount lượt xem
+                                </span>
+                                <a asp-action="Details" asp-route-slug="@item.Slug" class="btn btn-sm btn-primary rounded-pill px-3">
+                                    Học bài này <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+

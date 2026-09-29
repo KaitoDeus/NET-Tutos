@@ -1,0 +1,90 @@
+﻿@model IEnumerable<NET_Tutos.Models.Entities.Category>
+@{
+    ViewData["Title"] = "Trung tâm Trắc nghiệm .NET";
+}
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold mb-2">Đánh Giá Năng Lực</span>
+        <h1 class="display-5 fw-extrabold text-body-emphasis">Trắc Nghiệm Kiến Thức .NET</h1>
+        <p class="lead text-muted mx-auto" style="max-width: 680px;">
+            Thử thách và củng cố kiến thức C#, OOP, LINQ, Entity Framework Core và ASP.NET Core qua các câu hỏi trắc nghiệm thực chiến kèm lời giải thích chi tiết.
+        </p>
+    </div>
+
+    <!-- Quick Quiz Options by Level -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center bg-body card-hover">
+                <div class="fs-1 text-success mb-3"><i class="bi bi-mortarboard-fill"></i></div>
+                <h4 class="fw-bold mb-2">C# & .NET Cơ bản</h4>
+                <p class="text-muted small mb-4">Kiểm tra cú pháp biến, kiểu dữ liệu, vòng lặp, collections và bộ nhớ CLR.</p>
+                <a asp-action="Take" asp-route-level="Beginner" class="btn btn-outline-success mt-auto rounded-pill fw-semibold">
+                    <i class="bi bi-play-circle me-1"></i> Bắt đầu làm bài
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center bg-body card-hover">
+                <div class="fs-1 text-info mb-3"><i class="bi bi-layers-half"></i></div>
+                <h4 class="fw-bold mb-2">OOP & LINQ Nâng cao</h4>
+                <p class="text-muted small mb-4">Thử thách về 4 trụ cột OOP, Interface, Generics, LINQ queries và Task Async/Await.</p>
+                <a asp-action="Take" asp-route-level="Intermediate" class="btn btn-outline-info mt-auto rounded-pill fw-semibold">
+                    <i class="bi bi-play-circle me-1"></i> Bắt đầu làm bài
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center bg-body card-hover">
+                <div class="fs-1 text-primary mb-3"><i class="bi bi-globe2"></i></div>
+                <h4 class="fw-bold mb-2">ASP.NET Core & EF Core</h4>
+                <p class="text-muted small mb-4">Câu hỏi về Middleware, Controller, REST API, DI Lifetimes và SOLID principles.</p>
+                <a asp-action="Take" asp-route-level="Advanced" class="btn btn-outline-primary mt-auto rounded-pill fw-semibold">
+                    <i class="bi bi-play-circle me-1"></i> Bắt đầu làm bài
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Or Quiz by Category and Tutorial -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-body">
+        <h3 class="fw-bold mb-4"><i class="bi bi-list-check text-primary me-2"></i>Chọn câu hỏi theo từng bài học cụ thể</h3>
+        
+        <div class="row g-4">
+            @foreach (var cat in Model)
+            {
+                <div class="col-lg-6">
+                    <div class="border rounded-4 p-3 bg-body-tertiary">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="fw-bold mb-0 text-@cat.BadgeColor">
+                                <i class="bi @cat.IconClass me-2"></i>@cat.Name
+                            </h5>
+                            <span class="badge bg-@cat.BadgeColor">@cat.Level</span>
+                        </div>
+                        <div class="list-group list-group-flush small">
+                            @foreach (var tut in cat.Tutorials)
+                            {
+                                <div class="list-group-item bg-transparent d-flex align-items-center justify-content-between px-0 py-2">
+                                    <span class="text-truncate me-2" style="max-width: 320px;">@tut.Title</span>
+                                    @if (tut.QuizQuestions.Any())
+                                    {
+                                        <a asp-action="Take" asp-route-tutorialId="@tut.Id" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                            Làm bài (@tut.QuizQuestions.Count)
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">Chưa có câu hỏi</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+

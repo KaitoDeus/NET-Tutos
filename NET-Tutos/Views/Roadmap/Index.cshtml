@@ -1,0 +1,106 @@
+@model NET_Tutos.Models.ViewModels.RoadmapViewModel
+@{
+    ViewData["Title"] = "Lộ trình học .NET từ Zero đến Hero";
+}
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold mb-2">Roadmap 2026</span>
+        <h1 class="display-5 fw-extrabold text-body-emphasis">Lộ Trình Trở Thành .NET Developer</h1>
+        <p class="lead text-muted mx-auto" style="max-width: 750px;">
+            Hướng dẫn từng bước từ khi chưa biết gì về C# đến khi tự tay xây dựng được ứng dụng Web ASP.NET Core MVC & RESTful API chuyên nghiệp, sẵn sàng cho công việc thực tế.
+        </p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="roadmap-container">
+                @for (int i = 0; i < Model.Steps.Count; i++)
+                {
+                    var step = Model.Steps[i];
+                    bool isLast = (i == Model.Steps.Count - 1);
+                    <div class="roadmap-item">
+                        <!-- Marker: Step Dot & Connecting Line -->
+                        <div class="roadmap-marker">
+                            <div class="roadmap-step-dot bg-@step.BadgeColor" title="Giai đoạn @step.StepNumber">
+                                <i class="bi @step.Icon"></i>
+                            </div>
+                            @if (!isLast)
+                            {
+                                <div class="roadmap-line"></div>
+                            }
+                        </div>
+
+                        <!-- Card Content -->
+                        <div class="roadmap-content">
+                            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body card-hover">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                                    <span class="badge bg-@step.BadgeColor px-3 py-1.5 rounded-pill">
+                                        Giai đoạn @step.StepNumber - @step.Level
+                                    </span>
+                                    <span class="text-muted small fw-semibold">
+                                        <i class="bi bi-clock-history me-1"></i> Dự kiến: 2 - 3 tuần
+                                    </span>
+                                </div>
+
+                                <h3 class="fw-bold mb-1 text-body-emphasis">@step.Title</h3>
+                                <h6 class="text-@step.BadgeColor fw-semibold mb-3">@step.Subtitle</h6>
+                                <p class="text-muted mb-4">@step.Description</p>
+
+                                <!-- Key Skills Pill -->
+                                <div class="mb-4">
+                                    <strong class="small d-block text-uppercase tracking-wider text-muted mb-2">Kiến thức trọng tâm:</strong>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach (var topic in step.KeyTopics)
+                                        {
+                                            <span class="badge bg-body-tertiary text-body border px-2.5 py-1.5 rounded-3">
+                                                <i class="bi bi-check2 text-success me-1"></i>@topic
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- List of Lessons in this phase -->
+                                <div class="border-top pt-3">
+                                    <strong class="small d-block text-uppercase tracking-wider text-muted mb-2">Các bài học trong giai đoạn này:</strong>
+                                    <div class="list-group list-group-flush">
+                                        @foreach (var tut in step.RelatedTutorials)
+                                        {
+                                            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@tut.Slug"
+                                               class="list-group-item list-group-item-action d-flex align-items-center justify-content-between py-2 px-2 rounded-2">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <i class="bi bi-play-circle-fill text-@step.BadgeColor"></i>
+                                                    <span class="fw-medium">@tut.Title</span>
+                                                </div>
+                                                <span class="badge bg-light text-secondary border small">
+                                                    ~@tut.EstimatedReadingMinutes phút
+                                                </span>
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Graduation Call to Action -->
+            <div class="text-center mt-4 p-5 rounded-4 bg-body-tertiary border">
+                <i class="bi bi-award text-warning display-4 mb-3 d-block"></i>
+                <h3 class="fw-bold mb-2">Hoàn Thành Toàn Bộ Lộ Trình</h3>
+                <p class="text-muted mb-4 mx-auto" style="max-width: 600px;">
+                    Sau khi đi hết 4 giai đoạn, bạn đã nắm vững toàn bộ kiến thức cốt lõi và kiến trúc thực tế của một Backend Developer chuyên về .NET. Hãy thử sức ngay với các bài trắc nghiệm tổng hợp!
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a asp-controller="Quiz" asp-action="Take" class="btn btn-success px-4 py-2 fw-semibold">
+                        <i class="bi bi-patch-question me-1"></i> Thi thử trắc nghiệm tổng hợp
+                    </a>
+                    <a asp-controller="Tutorials" asp-action="Index" class="btn btn-outline-primary px-4 py-2 fw-semibold">
+                        <i class="bi bi-book me-1"></i> Xem danh mục bài học
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,95 @@
+@{
+    ViewData["Title"] = "Giới thiệu Dự án";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold mb-2">Về Dự Án</span>
+                <h1 class="fw-extrabold display-5">.NET DevMaster Portal</h1>
+                <p class="lead text-muted">Cổng kiến thức toàn diện về .NET & ASP.NET Core dành cho lập trình viên Việt Nam</p>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-body mb-4">
+                <h3 class="fw-bold mb-3">Mục tiêu của dự án</h3>
+                <p>
+                    Dự án này được thiết kế và xây dựng bằng chính công nghệ <strong>ASP.NET Core MVC</strong> và <strong>Entity Framework Core</strong>, với vai trò vừa là một <em>sản phẩm web mẫu chuẩn mực</em>, vừa là một <em>nền tảng tài liệu học tập thực chiến</em> giúp các bạn mới bắt đầu (Beginner) từng bước nâng cao trình độ lên Intermediate và Advanced.
+                </p>
+
+                <h4 class="fw-bold mt-4 mb-3">Công nghệ sử dụng trong dự án này:</h4>
+                <ul class="list-group list-group-flush mb-4">
+                    <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>.NET 10 / C# 14</strong>
+                            <div class="text-muted small">Phiên bản mới nhất của Microsoft với hiệu năng vượt trội và tính năng hiện đại.</div>
+                        </div>
+                        <span class="badge bg-primary">Core</span>
+                    </li>
+                    <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>ASP.NET Core MVC</strong>
+                            <div class="text-muted small">Mô hình phân tách Model - View - Controller, Middleware Pipeline và Razor rendering.</div>
+                        </div>
+                        <span class="badge bg-info">Web</span>
+                    </li>
+                    <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Entity Framework Core</strong>
+                            <div class="text-muted calculations">Code-First migrations, DbContext, hỗ trợ cả SQL Server và SQLite dự phòng.</div>
+                        </div>
+                        <span class="badge bg-warning text-dark">ORM / DB</span>
+                    </li>
+                    <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Markdig</strong>
+                            <div class="text-muted small">Thư viện phân tích cú pháp Markdown sang HTML tốc độ cao.</div>
+                        </div>
+                        <span class="badge bg-secondary">Parser</span>
+                    </li>
+                    <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Bootstrap 5 & Prism.js</strong>
+                            <div class="text-muted small">Giao diện responsive, chế độ Dark/Light, tô màu cú pháp mã nguồn chuẩn IDE.</div>
+                        </div>
+                        <span class="badge bg-success">UI / UX</span>
+                    </li>
+                </ul>
+
+                <h4 class="fw-bold mt-2 mb-3">Bạn sẽ học được những gì?</h4>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-body-tertiary">
+                            <h6 class="fw-bold text-success"><i class="bi bi-check-circle-fill me-2"></i>Nền tảng vững chắc</h6>
+                            <p class="small text-muted mb-0">Biến, kiểu dữ liệu, vòng lặp, xử lý chuỗi và các cấu trúc dữ liệu thiết yếu.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-body-tertiary">
+                            <h6 class="fw-bold text-info"><i class="bi bi-check-circle-fill me-2"></i>Tư duy OOP & LINQ</h6>
+                            <p class="small text-muted mb-0">Lập trình hướng đối tượng, Interface, Generics, LINQ và lập trình bất đồng bộ async/await.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-body-tertiary">
+                            <h6 class="fw-bold text-warning"><i class="bi bi-check-circle-fill me-2"></i>Làm chủ Database</h6>
+                            <p class="small text-muted mb-0">Thiết kế CSDL, thao tác CRUD, quan hệ bảng và tối ưu câu lệnh với EF Core.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-body-tertiary">
+                            <h6 class="fw-bold text-primary"><i class="bi bi-check-circle-fill me-2"></i>Phát triển Web App & API</h6>
+                            <p class="small text-muted mb-0">Xây dựng ứng dụng MVC và RESTful API với Dependency Injection và chuẩn SOLID.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-5">
+                    <a asp-controller="Roadmap" asp-action="Index" class="btn btn-primary px-4 py-2 fw-semibold">
+                        <i class="bi bi-signpost-split me-1"></i> Khám phá Lộ Trình Chi Tiết
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
