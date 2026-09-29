@@ -1,0 +1,73 @@
+@model NET_Tutos.Models.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Đăng Ký Tài Khoản Học Viên";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-body">
+                <div class="card-header bg-gradient-dotnet text-white p-4 text-center">
+                    <h3 class="fw-bold mb-1">Tạo Tài Khoản Học Viên</h3>
+                    <p class="small opacity-90 mb-0">Bắt đầu hành trình làm chủ .NET & ASP.NET Core miễn phí</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form method="post" asp-action="Register">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label fw-semibold small"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-tertiary"><i class="bi bi-person"></i></span>
+                                <input asp-for="FullName" class="form-control" placeholder="Nguyễn Văn A" autofocus />
+                            </div>
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label fw-semibold small"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-tertiary"><i class="bi bi-envelope"></i></span>
+                                <input asp-for="Email" class="form-control" placeholder="name@example.com" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label fw-semibold small"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-tertiary"><i class="bi bi-lock"></i></span>
+                                <input asp-for="Password" class="form-control" placeholder="Tối thiểu 6 ký tự" />
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="ConfirmPassword" class="form-label fw-semibold small"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-tertiary"><i class="bi bi-shield-check"></i></span>
+                                <input asp-for="ConfirmPassword" class="form-control" placeholder="Nhập lại mật khẩu" />
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-pill fw-semibold shadow-sm mb-3">
+                            <i class="bi bi-person-plus me-1"></i> Đăng Ký Tài Khoản
+                        </button>
+                    </form>
+
+                    <div class="text-center pt-3 border-top">
+                        <span class="text-muted small">Đã có tài khoản?</span>
+                        <a asp-action="Login" class="fw-semibold text-primary text-decoration-none small ms-1">Đăng nhập</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

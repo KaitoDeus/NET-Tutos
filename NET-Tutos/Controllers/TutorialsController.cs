@@ -1,4 +1,5 @@
-﻿using NET_Tutos.Models.Entities;
+using System.Security.Claims;
+using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
 using NET_Tutos.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -9,11 +10,16 @@ public class TutorialsController : Controller
 {
     private readonly ITutorialService _tutorialService;
     private readonly IMarkdownService _markdownService;
+    private readonly ILearningProgressService _progressService;
 
-    public TutorialsController(ITutorialService tutorialService, IMarkdownService markdownService)
+    public TutorialsController(
+        ITutorialService tutorialService, 
+        IMarkdownService markdownService,
+        ILearningProgressService progressService)
     {
         _tutorialService = tutorialService;
         _markdownService = markdownService;
+        _progressService = progressService;
     }
 
     // GET: /Tutorials
@@ -69,6 +75,16 @@ public class TutorialsController : Controller
             PreviousTutorial = previous,
             NextTutorial = next
         };
+
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(userId))
+            {
+                viewModel.IsCompletedByCurrentUser = await _progressService.IsLessonCompletedAsync(userId, tutorial.Id);
+                _ = _progressService.RecordLessonAccessAsync(userId, tutorial.Id);
+            }
+        }
 
         return View(viewModel);
     }

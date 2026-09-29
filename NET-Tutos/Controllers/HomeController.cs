@@ -1,7 +1,10 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
+using System.Security.Claims;
 using NET_Tutos.Models;
+using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
 using NET_Tutos.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace NET_Tutos.Controllers;
@@ -10,11 +13,19 @@ public class HomeController : Controller
 {
     private readonly ITutorialService _tutorialService;
     private readonly DatabaseProviderInfo _dbInfo;
+    private readonly ILearningProgressService _progressService;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public HomeController(ITutorialService tutorialService, DatabaseProviderInfo dbInfo)
+    public HomeController(
+        ITutorialService tutorialService, 
+        DatabaseProviderInfo dbInfo,
+        ILearningProgressService progressService,
+        UserManager<ApplicationUser> userManager)
     {
         _tutorialService = tutorialService;
         _dbInfo = dbInfo;
+        _progressService = progressService;
+        _userManager = userManager;
     }
 
     public async Task<IActionResult> Index()
@@ -36,6 +47,19 @@ public class HomeController : Controller
             TotalQuizzes = totalQuizzes,
             DatabaseProviderUsed = _dbInfo.Name
         };
+
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(userId))
+            {
+                viewModel.LastAccessedTutorial = await _progressService.GetLastAccessedTutorialAsync(userId);
+                var user = await _userManager.FindByIdAsync(userId);
+                viewModel.UserExperiencePoints = user?.ExperiencePoints;
+                var completedIds = await _progressService.GetCompletedLessonIdsAsync(userId);
+                viewModel.CompletedLessonsCount = completedIds.Count;
+            }
+        }
 
         return View(viewModel);
     }

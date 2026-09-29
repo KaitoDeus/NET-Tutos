@@ -1,4 +1,4 @@
-﻿using NET_Tutos.Models.Entities;
+using NET_Tutos.Models.Entities;
 
 namespace NET_Tutos.Models.ViewModels;
 
@@ -9,6 +9,7 @@ public class TutorialDetailViewModel
     public Tutorial? PreviousTutorial { get; set; }
     public Tutorial? NextTutorial { get; set; }
     public IEnumerable<Tutorial> RelatedTutorials { get; set; } = new List<Tutorial>();
+    public bool IsCompletedByCurrentUser { get; set; }
 }
 
 public class TutorialListViewModel

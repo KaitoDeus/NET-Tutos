@@ -1,4 +1,4 @@
-﻿@model NET_Tutos.Models.ViewModels.TutorialDetailViewModel
+@model NET_Tutos.Models.ViewModels.TutorialDetailViewModel
 @{
     ViewData["Title"] = Model.Tutorial.Title;
 }
@@ -39,6 +39,14 @@
                         </span>
                         <span class="text-muted small">
                             <i class="bi bi-eye me-1"></i>@Model.Tutorial.ViewCount lượt xem
+                        </span>
+                        <span id="headerBadgeWrapper">
+                            @if (User.Identity?.IsAuthenticated == true && Model.IsCompletedByCurrentUser)
+                            {
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Đã hoàn thành
+                                </span>
+                            }
                         </span>
                     </div>
 
@@ -104,6 +112,41 @@
                         </div>
                     </section>
                 }
+                <!-- Lesson Completion Box -->
+                <div class="card border-0 bg-body-tertiary rounded-4 p-4 mt-5 mb-4 text-center text-md-start">
+                    <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle p-3 @(Model.IsCompletedByCurrentUser ? "bg-success-subtle text-success" : "bg-primary-subtle text-primary")" id="completeIconWrapper">
+                                <i class="bi @(Model.IsCompletedByCurrentUser ? "bi-check-circle-fill" : "bi-bookmark-check") fs-3" id="completeIcon"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-1" id="completeTitle">
+                                    @(Model.IsCompletedByCurrentUser ? "Bạn đã hoàn thành bài học này! 🎉" : "Đã đọc xong bài học này?")
+                                </h5>
+                                <p class="text-muted small mb-0" id="completeDesc">
+                                    @(Model.IsCompletedByCurrentUser ? "Tuyệt vời! Bạn đã nhận được +20 XP cho tiến trình học tập." : "Đánh dấu để ghi nhận tiến độ vào hồ sơ và tích lũy +20 XP điểm kinh nghiệm.")
+                                </p>
+                            </div>
+                        </div>
+                        <div>
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <button type="button" id="btnToggleComplete" 
+                                        class="btn @(Model.IsCompletedByCurrentUser ? "btn-outline-success" : "btn-primary") px-4 py-2 fw-semibold rounded-pill shadow-sm"
+                                        data-tutorial-id="@Model.Tutorial.Id">
+                                    <span class="spinner-border spinner-border-sm d-none me-1" id="completeSpinner"></span>
+                                    <span id="btnCompleteText">@(Model.IsCompletedByCurrentUser ? "✓ Đã hoàn thành (Bấm để hủy)" : "Đánh dấu đã hoàn thành (+20 XP)")</span>
+                                </button>
+                            }
+                            else
+                            {
+                                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="btn btn-outline-primary px-4 py-2 fw-semibold rounded-pill">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập để lưu tiến độ
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Previous / Next Navigation -->
                 <nav class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top">
@@ -176,4 +219,79 @@
         </div>
     </div>
 </div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const btn = document.getElementById('btnToggleComplete');
+            if (!btn) return;
+
+            btn.addEventListener('click', async function () {
+                const tutorialId = btn.getAttribute('data-tutorial-id');
+                const spinner = document.getElementById('completeSpinner');
+                const btnText = document.getElementById('btnCompleteText');
+                const title = document.getElementById('completeTitle');
+                const desc = document.getElementById('completeDesc');
+                const icon = document.getElementById('completeIcon');
+                const iconWrap = document.getElementById('completeIconWrapper');
+                const headerBadgeWrapper = document.getElementById('headerBadgeWrapper');
+
+                btn.disabled = true;
+                if (spinner) spinner.classList.remove('d-none');
+
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                    const response = await fetch('/Account/ToggleLesson', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify({ tutorialId: parseInt(tutorialId) })
+                    });
+
+                    if (response.status === 401) {
+                        window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+                        return;
+                    }
+
+                    const res = await response.json();
+                    if (res.success) {
+                        if (res.isCompleted) {
+                            btn.className = 'btn btn-outline-success px-4 py-2 fw-semibold rounded-pill shadow-sm';
+                            btnText.innerText = '✓ Đã hoàn thành (Bấm để hủy)';
+                            title.innerText = 'Bạn đã hoàn thành bài học này! 🎉';
+                            desc.innerText = 'Tuyệt vời! Bạn đã nhận được +20 XP cho tiến trình học tập.';
+                            icon.className = 'bi bi-check-circle-fill fs-3';
+                            iconWrap.className = 'rounded-circle p-3 bg-success-subtle text-success';
+                            if (headerBadgeWrapper) {
+                                headerBadgeWrapper.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> Đã hoàn thành</span>';
+                            }
+                        } else {
+                            btn.className = 'btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm';
+                            btnText.innerText = 'Đánh dấu đã hoàn thành (+20 XP)';
+                            title.innerText = 'Đã đọc xong bài học này?';
+                            desc.innerText = 'Đánh dấu để ghi nhận tiến độ vào hồ sơ và tích lũy +20 XP điểm kinh nghiệm.';
+                            icon.className = 'bi bi-bookmark-check fs-3';
+                            iconWrap.className = 'rounded-circle p-3 bg-primary-subtle text-primary';
+                            if (headerBadgeWrapper) {
+                                headerBadgeWrapper.innerHTML = '';
+                            }
+                        }
+                    } else {
+                        alert(res.message || 'Có lỗi xảy ra, vui lòng thử lại.');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('Lỗi kết nối máy chủ!');
+                } finally {
+                    btn.disabled = false;
+                    if (spinner) spinner.classList.add('d-none');
+                }
+            });
+        });
+    </script>
+}
 

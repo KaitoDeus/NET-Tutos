@@ -89,6 +89,45 @@
                         </div>
                     </form>
 
+                    <!-- User Account / Auth Menu -->
+                    <div class="d-flex align-items-center ms-lg-2 me-2">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-primary dropdown-toggle d-flex align-items-center gap-2 rounded-pill px-3 py-1.5" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle fs-6"></i>
+                                    <span class="fw-semibold text-truncate" style="max-width: 140px;">@(User.Identity.Name?.Split('@')[0] ?? "Học viên")</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 mt-2">
+                                    <li>
+                                        <a class="dropdown-item py-2 d-flex align-items-center gap-2" asp-controller="Account" asp-action="Profile">
+                                            <i class="bi bi-mortarboard text-primary"></i> Góc học tập (Dashboard)
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                    <li>
+                                        <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                            <button type="submit" class="dropdown-item py-2 d-flex align-items-center gap-2 text-danger">
+                                                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center gap-2">
+                                <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập
+                                </a>
+                                <a asp-controller="Account" asp-action="Register" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold d-none d-sm-inline-block">
+                                    Đăng ký
+                                </a>
+                            </div>
+                        }
+                    </div>
+
                     <!-- Theme Switcher -->
                     <div class="d-flex align-items-center">
                         <button id="themeToggleBtn" class="btn btn-sm btn-outline-secondary rounded-circle theme-btn" type="button" title="Chuyển chế độ Sáng / Tối">

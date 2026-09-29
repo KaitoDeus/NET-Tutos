@@ -1,9 +1,10 @@
-﻿using NET_Tutos.Models.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using NET_Tutos.Models.Entities;
 
 namespace NET_Tutos.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<ApplicationUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -13,6 +14,8 @@ public class AppDbContext : DbContext
     public DbSet<Tutorial> Tutorials => Set<Tutorial>();
     public DbSet<QuizQuestion> QuizQuestions => Set<QuizQuestion>();
     public DbSet<CodeSnippet> CodeSnippets => Set<CodeSnippet>();
+    public DbSet<UserLessonProgress> UserLessonProgresses => Set<UserLessonProgress>();
+    public DbSet<CourseEnrollment> CourseEnrollments => Set<CourseEnrollment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -60,6 +63,39 @@ public class AppDbContext : DbContext
                   .HasForeignKey(s => s.TutorialId)
                   .OnDelete(DeleteBehavior.SetNull);
         });
+
+        // UserLessonProgress configurations
+        modelBuilder.Entity<UserLessonProgress>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.HasIndex(p => new { p.UserId, p.TutorialId }).IsUnique();
+
+            entity.HasOne(p => p.User)
+                  .WithMany(u => u.LessonProgresses)
+                  .HasForeignKey(p => p.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(p => p.Tutorial)
+                  .WithMany()
+                  .HasForeignKey(p => p.TutorialId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // CourseEnrollment configurations
+        modelBuilder.Entity<CourseEnrollment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.UserId, e.CategoryId }).IsUnique();
+
+            entity.HasOne(e => e.User)
+                  .WithMany(u => u.Enrollments)
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Category)
+                  .WithMany()
+                  .HasForeignKey(e => e.CategoryId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }
-

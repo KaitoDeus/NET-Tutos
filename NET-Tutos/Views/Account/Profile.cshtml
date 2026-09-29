@@ -1,0 +1,168 @@
+@model NET_Tutos.Models.ViewModels.StudentProfileViewModel
+@{
+    ViewData["Title"] = "Góc Học Tập Của Tôi (LMS Dashboard)";
+    string rankTitle = Model.User.ExperiencePoints >= 200 ? ".NET Master" :
+                       (Model.User.ExperiencePoints >= 100 ? "Lập trình viên Trung cấp" :
+                       (Model.User.ExperiencePoints >= 40 ? "Lập trình viên Tập sự" : "Tân binh .NET"));
+}
+
+<div class="container py-5">
+    <!-- Student Header Banner -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-body mb-4">
+        <div class="row align-items-center g-4">
+            <div class="col-md-auto text-center text-md-start">
+                <div class="position-relative d-inline-block">
+                    <div class="rounded-circle bg-gradient-dotnet text-white d-flex align-items-center justify-content-center shadow-lg"
+                         style="width: 88px; height: 88px; font-size: 2.2rem; font-weight: bold;">
+                        @(string.IsNullOrEmpty(Model.User.FullName) ? "U" : Model.User.FullName.Substring(0, 1).ToUpper())
+                    </div>
+                    <span class="position-absolute bottom-0 end-0 badge rounded-pill bg-success p-1.5" title="Đang hoạt động">
+                        <span class="visually-hidden">Online</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="col-md">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                    <h2 class="fw-bold mb-0 text-body-emphasis">@Model.User.FullName</h2>
+                    <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill fw-semibold">
+                        <i class="bi bi-award-fill me-1"></i> @rankTitle
+                    </span>
+                    <span class="badge bg-primary px-3 py-1.5 rounded-pill fw-semibold">
+                        <i class="bi bi-lightning-charge-fill me-1"></i> @Model.User.ExperiencePoints XP
+                    </span>
+                </div>
+                <p class="text-muted small mb-0">
+                    <i class="bi bi-envelope me-1"></i> @Model.User.Email &nbsp;•&nbsp; 
+                    <i class="bi bi-calendar-check me-1"></i> Tham gia: @Model.User.CreatedAt.ToString("dd/MM/yyyy")
+                </p>
+            </div>
+
+            @if (Model.LastAccessedTutorial != null)
+            {
+                <div class="col-md-auto text-center text-md-end">
+                    <span class="small text-muted d-block mb-1">Bài học xem gần nhất:</span>
+                    <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@Model.LastAccessedTutorial.Slug" 
+                       class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold">
+                        <i class="bi bi-play-circle-fill me-1"></i> Tiếp tục học
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100 card-hover">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-semibold">Tiến độ tổng thể</span>
+                    <span class="fs-4 text-primary"><i class="bi bi-pie-chart-fill"></i></span>
+                </div>
+                <div class="display-6 fw-bold text-primary mb-2">@Model.OverallProgressPercentage%</div>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: @Model.OverallProgressPercentage%" aria-valuenow="@Model.OverallProgressPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <span class="small text-muted mt-2 d-block">Hoàn thành @Model.TotalCompletedLessons trên tổng số @Model.TotalLessons bài</span>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100 card-hover">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-semibold">Bài học đã hoàn tất</span>
+                    <span class="fs-4 text-success"><i class="bi bi-check-circle-fill"></i></span>
+                </div>
+                <div class="display-6 fw-bold text-success mb-2">@Model.TotalCompletedLessons</div>
+                <span class="small text-muted d-block">Mỗi bài hoàn thành cộng thêm +20 điểm XP</span>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100 card-hover">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-semibold">Chứng chỉ khóa học</span>
+                    <span class="fs-4 text-warning"><i class="bi bi-award"></i></span>
+                </div>
+                <div class="display-6 fw-bold text-warning mb-2">
+                    @(Model.OverallProgressPercentage >= 100 ? "1" : "0")
+                </div>
+                <span class="small text-muted d-block">
+                    @(Model.OverallProgressPercentage >= 100 ? "Bạn đã đủ điều kiện nhận chứng chỉ tốt nghiệp!" : "Hoàn thành 100% giáo trình để mở khóa chứng chỉ")
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Progress Breakdown -->
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
+                <h4 class="fw-bold mb-4 d-flex align-items-center">
+                    <i class="bi bi-bar-chart-steps text-primary me-2"></i> Tiến độ theo chuyên đề
+                </h4>
+
+                <div class="d-flex flex-column gap-4">
+                    @foreach (var prog in Model.CategoryProgresses)
+                    {
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-semibold">
+                                    <i class="bi @prog.Category.IconClass text-@prog.Category.BadgeColor me-1.5"></i>
+                                    @prog.Category.Name
+                                </span>
+                                <span class="badge bg-@prog.Category.BadgeColor bg-opacity-10 text-@prog.Category.BadgeColor">
+                                    @prog.CompletedCount / @prog.TotalCount bài (@prog.Percentage%)
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-@prog.Category.BadgeColor" role="progressbar" style="width: @prog.Percentage%" aria-valuenow="@prog.Percentage" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
+                <h4 class="fw-bold mb-4 d-flex align-items-center">
+                    <i class="bi bi-clock-history text-info me-2"></i> Bài học vừa hoàn thành
+                </h4>
+
+                @if (!Model.RecentCompletedLessons.Any())
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-journal-x fs-1 d-block mb-2"></i>
+                        <span>Bạn chưa hoàn thành bài học nào. Hãy bắt đầu ngay nhé!</span>
+                        <div class="mt-3">
+                            <a asp-controller="Roadmap" asp-action="Index" class="btn btn-sm btn-outline-primary rounded-pill">
+                                Khám phá lộ trình
+                            </a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var item in Model.RecentCompletedLessons)
+                        {
+                            <div class="list-group-item bg-transparent px-0 py-2.5 d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 text-truncate me-2">
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.Tutorial?.Slug" 
+                                       class="text-decoration-none text-body-emphasis small fw-medium text-truncate">
+                                        @item.Tutorial?.Title
+                                    </a>
+                                </div>
+                                <span class="text-muted small" style="white-space:nowrap">
+                                    @(item.CompletedAt?.ToString("dd/MM") ?? "")
+                                </span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

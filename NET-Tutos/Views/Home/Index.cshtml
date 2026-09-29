@@ -16,6 +16,47 @@
             </p>
         </div>
 
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <div class="row justify-content-center mb-4">
+                <div class="col-xl-11">
+                    <div class="card border-0 bg-primary bg-opacity-10 rounded-4 p-3 p-md-4 shadow-sm">
+                        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-primary text-white p-3 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
+                                    <i class="bi bi-mortarboard fs-4"></i>
+                                </div>
+                                <div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <h5 class="fw-bold mb-0">Xin chào, @(User.Identity.Name?.Split('@')[0] ?? "Học viên")! 👋</h5>
+                                        <span class="badge bg-warning text-dark rounded-pill fw-semibold">
+                                            <i class="bi bi-lightning-charge-fill text-danger me-1"></i>@(Model.UserExperiencePoints ?? 0) XP
+                                        </span>
+                                    </div>
+                                    <p class="text-muted small mb-0 mt-1">
+                                        Bạn đã hoàn thành <strong>@(Model.CompletedLessonsCount ?? 0)</strong> bài học trên hệ thống.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                @if (Model.LastAccessedTutorial != null)
+                                {
+                                    <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@Model.LastAccessedTutorial.Slug" 
+                                       class="btn btn-primary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2 shadow-sm text-truncate" style="max-width: 320px;">
+                                        <i class="bi bi-play-circle-fill"></i>
+                                        <span class="text-truncate">Học tiếp: @Model.LastAccessedTutorial.Title</span>
+                                    </a>
+                                }
+                                <a asp-controller="Account" asp-action="Profile" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-semibold">
+                                    <i class="bi bi-person-lines-fill me-1"></i> Góc học tập
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
         <!-- Spotlight Showcase Card -->
         <div class="row justify-content-center">
             <div class="col-xl-11">

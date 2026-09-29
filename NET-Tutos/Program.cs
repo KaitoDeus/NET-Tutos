@@ -1,8 +1,10 @@
-﻿using NET_Tutos.Data;
-using NET_Tutos.Models;
-using NET_Tutos.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using NET_Tutos.Data;
+using NET_Tutos.Models;
+using NET_Tutos.Models.Entities;
+using NET_Tutos.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,7 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddSingleton<IMarkdownService, MarkdownService>();
 builder.Services.AddScoped<ITutorialService, TutorialService>();
+builder.Services.AddScoped<ILearningProgressService, LearningProgressService>();
 
 // Determine Database Provider
 var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
@@ -59,11 +62,32 @@ else
         options.UseSqlite(sqliteConnection));
 }
 
+// Register Identity
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequiredLength = 6;
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/Login";
+    options.ExpireTimeSpan = TimeSpan.FromDays(30);
+});
+
 builder.Services.AddSingleton(new DatabaseProviderInfo { Name = activeProvider });
 
 var app = builder.Build();
 
-// Auto-seed database
+// Auto-seed database and create tables
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -94,6 +118,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// Authentication must be before Authorization
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Custom friendly route for tutorials: /bai-hoc/{slug}
@@ -108,4 +134,3 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
-
