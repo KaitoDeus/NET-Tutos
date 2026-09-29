@@ -3,7 +3,11 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - .NET Tutos (Học .NET từ Cơ Bản đến Nâng Cao)</title>
+    <title>@(string.IsNullOrWhiteSpace(ViewData["Title"]?.ToString()) || ViewData["Title"]?.ToString() == "Trang chủ" ? "NET-Tutos" : $"{ViewData["Title"]} | NET-Tutos")</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="~/images/csharp-logo.png" />
+    <link rel="shortcut icon" type="image/png" href="~/images/csharp-logo.png" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

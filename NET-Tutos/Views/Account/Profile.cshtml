@@ -1,6 +1,6 @@
 @model NET_Tutos.Models.ViewModels.StudentProfileViewModel
 @{
-    ViewData["Title"] = "Góc Học Tập Của Tôi (LMS Dashboard)";
+    ViewData["Title"] = "Góc học tập";
     string rankTitle = Model.User.ExperiencePoints >= 200 ? ".NET Master" :
                        (Model.User.ExperiencePoints >= 100 ? "Lập trình viên Trung cấp" :
                        (Model.User.ExperiencePoints >= 40 ? "Lập trình viên Tập sự" : "Tân binh .NET"));
