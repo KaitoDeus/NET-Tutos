@@ -126,7 +126,7 @@
                                         <div class="text-body-secondary small font-monospace">/@item.Slug</div>
                                     </td>
                                     <td>
-                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill">
+                                        <span class="badge bg-primary-subtle border border-primary-subtle rounded-pill px-2.5 py-1">
                                             @(item.Category?.Name ?? "Chưa phân loại")
                                         </span>
                                     </td>
@@ -134,13 +134,13 @@
                                         @switch (item.Difficulty)
                                         {
                                             case NET_Tutos.Models.Entities.DifficultyLevel.Beginner:
-                                                <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill">Cơ bản</span>
+                                                <span class="badge bg-success-subtle border border-success-subtle rounded-pill px-2.5 py-1">Cơ bản</span>
                                                 break;
                                             case NET_Tutos.Models.Entities.DifficultyLevel.Intermediate:
-                                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill">Trung cấp</span>
+                                                <span class="badge bg-primary-subtle border border-primary-subtle rounded-pill px-2.5 py-1">Trung cấp</span>
                                                 break;
                                             case NET_Tutos.Models.Entities.DifficultyLevel.Advanced:
-                                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle rounded-pill">Nâng cao</span>
+                                                <span class="badge bg-danger-subtle border border-danger-subtle rounded-pill px-2.5 py-1">Nâng cao</span>
                                                 break;
                                         }
                                     </td>
