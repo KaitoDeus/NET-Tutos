@@ -1,0 +1,325 @@
+@model NET_Tutos.Models.ViewModels.TutorialEditViewModel
+
+<div class="row g-4">
+    <!-- Cột trái: Thông tin cấu hình bài học -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 bg-body sticky-top" style="top: 80px; z-index: 10;">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-gear-wide-connected text-primary me-2"></i> Cấu hình bài học
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label fw-semibold small text-uppercase">Tiêu đề bài học <span class="text-danger">*</span></label>
+                    <input asp-for="Title" id="tutorialTitle" class="form-control" placeholder="Ví dụ: Giới thiệu Dependency Injection trong .NET" required />
+                    <span asp-validation-for="Title" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label asp-for="Slug" class="form-label fw-semibold small text-uppercase mb-0">Đường dẫn Slug <span class="text-danger">*</span></label>
+                        <button type="button" id="btnGenerateSlug" class="btn btn-sm btn-link p-0 text-decoration-none small text-primary">
+                            <i class="bi bi-magic"></i> Tạo tự động
+                        </button>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text bg-body-secondary font-monospace small">/tutorials/</span>
+                        <input asp-for="Slug" id="tutorialSlug" class="form-control font-monospace" placeholder="gioi-thieu-dependency-injection" required />
+                    </div>
+                    <span asp-validation-for="Slug" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="CategoryId" class="form-label fw-semibold small text-uppercase">Chuyên đề khóa học <span class="text-danger">*</span></label>
+                    <select asp-for="CategoryId" class="form-select">
+                        @foreach (var cat in Model.AvailableCategories)
+                        {
+                            <option value="@cat.Id">@cat.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label asp-for="Difficulty" class="form-label fw-semibold small text-uppercase">Độ khó</label>
+                        <select asp-for="Difficulty" class="form-select" asp-items="Html.GetEnumSelectList<NET_Tutos.Models.Entities.DifficultyLevel>()"></select>
+                    </div>
+                    <div class="col-6">
+                        <label asp-for="EstimatedReadingMinutes" class="form-label fw-semibold small text-uppercase">Thời lượng</label>
+                        <div class="input-group">
+                            <input asp-for="EstimatedReadingMinutes" type="number" min="1" max="180" class="form-control" />
+                            <span class="input-group-text small">phút</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="OrderIndex" class="form-label fw-semibold small text-uppercase">Thứ tự hiển thị</label>
+                    <input asp-for="OrderIndex" type="number" min="1" class="form-control" />
+                    <small class="text-body-secondary">Số thứ tự sắp xếp trong chuyên đề.</small>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check form-switch p-0 d-flex align-items-center gap-3">
+                        <input class="form-check-input ms-0 mt-0" type="checkbox" asp-for="IsFeatured" id="isFeaturedSwitch" style="width: 2.5em; height: 1.25em;">
+                        <label class="form-check-label fw-semibold small" for="isFeaturedSwitch">
+                            Hiển thị nổi bật trang chủ
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Summary" class="form-label fw-semibold small text-uppercase">Tóm tắt ngắn (SEO & Giới thiệu) <span class="text-danger">*</span></label>
+                    <textarea asp-for="Summary" class="form-control" rows="3" placeholder="Mô tả súc tích nội dung bài học..." required></textarea>
+                    <span asp-validation-for="Summary" class="text-danger small"></span>
+                </div>
+
+                <div class="d-grid gap-2 pt-2">
+                    <button type="submit" class="btn btn-primary rounded-pill py-2.5 fw-bold shadow-sm">
+                        <i class="bi bi-save me-1"></i> Lưu bài học
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary rounded-pill py-2">
+                        Hủy & Quay lại
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cột phải: Trình soạn thảo Markdown WYSIWYG & Live Preview -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 bg-body">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-markdown text-primary me-2"></i> Soạn thảo nội dung Markdown
+                    </h5>
+
+                    <!-- View Mode Controls -->
+                    <div class="btn-group btn-group-sm" role="group" id="editorViewToggle">
+                        <button type="button" class="btn btn-outline-primary active" id="btnViewEditor">
+                            <i class="bi bi-pencil me-1"></i> Soạn thảo
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" id="btnViewSplit">
+                            <i class="bi bi-layout-split me-1"></i> Song song
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" id="btnViewPreview">
+                            <i class="bi bi-eye me-1"></i> Xem trước
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Markdown Toolbar -->
+                <div class="d-flex flex-wrap gap-1 mt-3 p-2 bg-body-secondary rounded-3" id="markdownToolbar">
+                    <button type="button" class="btn btn-sm btn-light border py-1 px-2" data-tag="h2" title="Tiêu đề 2 (##)"><i class="bi bi-type-h2"></i></button>
+                    <button type="button" class="btn btn-sm btn-light border py-1 px-2" data-tag="h3" title="Tiêu đề 3 (###)"><i class="bi bi-type-h3"></i></button>
+                    <div class="vr my-1 mx-1"></div>
+                    <button type="button" class="btn btn-sm btn-light border py-1 px-2" data-tag="bold" title="In đậm (**text**)"><i class="bi bi-type-bold"></i></button>
+                    <button type="button" class="btn btn-sm btn-light border py-1 px-2" data-tag="italic" title="In nghiêng (*text*)"><i class="bi bi-type-italic"></i></button>
+                    <div class="vr my-1 mx-1"></div>
+                    <button type="button" class="btn btn-sm btn-light border py-1 px-2" data-tag="code-inline" title="Mã trong dòng (`code`)"><i class="bi bi-code"></i></button>
+                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-primary fw-semibold" data-tag="code-csharp" title="Khối mã C#">C#</button>
+                    <button type="button" class="btn btn-sm btn-light border py-1 px-2" data-tag="quote" title="Trích dẫn (> text)"><i class="bi bi-quote"></i></button>
+                    <button type="button" class="btn btn-sm btn-light border py-1 px-2" data-tag="list-ul" title="Danh sách gạch đầu dòng"><i class="bi bi-list-ul"></i></button>
+                    <button type="button" class="btn btn-sm btn-light border py-1 px-2" data-tag="list-ol" title="Danh sách số thứ tự"><i class="bi bi-list-ol"></i></button>
+                    <div class="vr my-1 mx-1"></div>
+                    <button type="button" class="btn btn-sm btn-light border py-1 px-2" data-tag="table" title="Bảng Markdown"><i class="bi bi-table"></i></button>
+                    <button type="button" class="btn btn-sm btn-light border py-1 px-2" data-tag="alert-note" title="Hộp chú thích Lưu ý"><i class="bi bi-info-circle text-info"></i> Ghi chú</button>
+                    <button type="button" class="btn btn-sm btn-light border py-1 px-2" data-tag="alert-tip" title="Hộp mẹo lập trình"><i class="bi bi-lightbulb text-warning"></i> Mẹo</button>
+                </div>
+            </div>
+
+            <div class="card-body px-4 pb-4 pt-2">
+                <div class="row g-3" id="editorContainer">
+                    <!-- Editor Box -->
+                    <div class="col-12" id="editorCol">
+                        <textarea asp-for="ContentMarkdown" id="markdownInput" class="form-control font-monospace rounded-3" rows="25" 
+                                  placeholder="Nhập nội dung bài học bằng cú pháp Markdown hoặc sử dụng thanh công cụ ở trên..." 
+                                  style="font-size: 0.95rem; line-height: 1.6;" required></textarea>
+                        <span asp-validation-for="ContentMarkdown" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Live Preview Box -->
+                    <div class="col-12 d-none" id="previewCol">
+                        <div class="border rounded-3 p-4 bg-body" style="min-height: 560px; max-height: 750px; overflow-y: auto;">
+                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill">
+                                    <i class="bi bi-eye me-1"></i> Xem trước hiển thị thực tế
+                                </span>
+                                <small class="text-body-secondary" id="previewStatus">Cập nhật tự động</small>
+                            </div>
+                            <div id="previewRender" class="tutorial-markdown-content">
+                                <p class="text-body-secondary fst-italic">Bắt đầu gõ để xem nội dung hiển thị tại đây...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const titleInput = document.getElementById('tutorialTitle');
+            const slugInput = document.getElementById('tutorialSlug');
+            const btnGenerateSlug = document.getElementById('btnGenerateSlug');
+            const markdownInput = document.getElementById('markdownInput');
+            const previewRender = document.getElementById('previewRender');
+            const previewStatus = document.getElementById('previewStatus');
+
+            const editorCol = document.getElementById('editorCol');
+            const previewCol = document.getElementById('previewCol');
+            const btnViewEditor = document.getElementById('btnViewEditor');
+            const btnViewSplit = document.getElementById('btnViewSplit');
+            const btnViewPreview = document.getElementById('btnViewPreview');
+
+            // Vietnamese Slugifier
+            function slugify(text) {
+                return text.toString().toLowerCase().trim()
+                    .replace(/á|à|ả|ã|ạ|ă|ắ|ằ|ẳ|ẵ|ặ|â|ấ|ầ|ẩ|ẫ|ậ/gi, 'a')
+                    .replace(/é|è|ẻ|ẽ|ẹ|ê|ế|ề|ể|ễ|ệ/gi, 'e')
+                    .replace(/i|í|ì|ỉ|ĩ|ị/gi, 'i')
+                    .replace(/ó|ò|ỏ|õ|ọ|ô|ố|ồ|ổ|ỗ|ộ|ơ|ớ|ờ|ở|ỡ|ợ/gi, 'o')
+                    .replace(/ú|ù|ủ|ũ|ụ|ư|ứ|ừ|ử|ữ|ự/gi, 'u')
+                    .replace(/ý|ỳ|ỷ|ỹ|ỵ/gi, 'y')
+                    .replace(/đ/gi, 'd')
+                    .replace(/c#/gi, 'csharp')
+                    .replace(/\.net/gi, 'dotnet')
+                    .replace(/[^a-z0-9 -]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-');
+            }
+
+            if (btnGenerateSlug && titleInput && slugInput) {
+                btnGenerateSlug.addEventListener('click', function () {
+                    if (titleInput.value) {
+                        slugInput.value = slugify(titleInput.value);
+                    }
+                });
+            }
+
+            // View modes
+            function setViewMode(mode) {
+                btnViewEditor.classList.remove('active');
+                btnViewSplit.classList.remove('active');
+                btnViewPreview.classList.remove('active');
+
+                if (mode === 'editor') {
+                    btnViewEditor.classList.add('active');
+                    editorCol.className = 'col-12';
+                    previewCol.className = 'col-12 d-none';
+                } else if (mode === 'split') {
+                    btnViewSplit.classList.add('active');
+                    editorCol.className = 'col-lg-6';
+                    previewCol.className = 'col-lg-6';
+                    updatePreview();
+                } else if (mode === 'preview') {
+                    btnViewPreview.classList.add('active');
+                    editorCol.className = 'col-12 d-none';
+                    previewCol.className = 'col-12';
+                    updatePreview();
+                }
+            }
+
+            btnViewEditor.addEventListener('click', () => setViewMode('editor'));
+            btnViewSplit.addEventListener('click', () => setViewMode('split'));
+            btnViewPreview.addEventListener('click', () => setViewMode('preview'));
+
+            // Live Preview AJAX
+            let previewDebounce;
+            function updatePreview() {
+                if (previewCol.classList.contains('d-none')) return;
+                
+                previewStatus.innerText = 'Đang biên dịch...';
+                clearTimeout(previewDebounce);
+                previewDebounce = setTimeout(async () => {
+                    try {
+                        const response = await fetch('/Admin/PreviewMarkdown', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ markdown: markdownInput.value })
+                        });
+                        const data = await response.json();
+                        previewRender.innerHTML = data.html || '<p class="text-body-secondary fst-italic">Nội dung trống</p>';
+                        previewStatus.innerText = 'Đã đồng bộ';
+                        if (window.Prism) {
+                            Prism.highlightAllUnder(previewRender);
+                        }
+                    } catch (e) {
+                        previewStatus.innerText = 'Lỗi xem trước';
+                    }
+                }, 300);
+            }
+
+            markdownInput.addEventListener('input', () => {
+                if (!previewCol.classList.contains('d-none')) {
+                    updatePreview();
+                }
+            });
+
+            // Toolbar insertions
+            const toolbar = document.getElementById('markdownToolbar');
+            toolbar.addEventListener('click', function (e) {
+                const btn = e.target.closest('button[data-tag]');
+                if (!btn) return;
+                const tag = btn.getAttribute('data-tag');
+                insertMarkdown(tag);
+            });
+
+            function insertMarkdown(tag) {
+                const start = markdownInput.selectionStart;
+                const end = markdownInput.selectionEnd;
+                const selected = markdownInput.value.substring(start, end);
+                let insert = '';
+
+                switch (tag) {
+                    case 'h2':
+                        insert = `## ${selected || 'Tiêu đề lớn'}\n`;
+                        break;
+                    case 'h3':
+                        insert = `### ${selected || 'Tiêu đề phụ'}\n`;
+                        break;
+                    case 'bold':
+                        insert = `**${selected || 'in đậm'}**`;
+                        break;
+                    case 'italic':
+                        insert = `*${selected || 'in nghiêng'}*`;
+                        break;
+                    case 'code-inline':
+                        insert = `\`${selected || 'code'}\``;
+                        break;
+                    case 'code-csharp':
+                        insert = `\n\`\`\`csharp\n${selected || '// Đoạn mã C# mẫu\nConsole.WriteLine("Xin chào C#");'}\n\`\`\`\n`;
+                        break;
+                    case 'quote':
+                        insert = `\n> ${selected || 'Nội dung trích dẫn'}\n`;
+                        break;
+                    case 'list-ul':
+                        insert = `\n- ${selected || 'Mục 1'}\n- Mục 2\n`;
+                        break;
+                    case 'list-ol':
+                        insert = `\n1. ${selected || 'Bước 1'}\n2. Bước 2\n`;
+                        break;
+                    case 'table':
+                        insert = `\n| Cột 1 | Cột 2 | Cột 3 |\n| :--- | :--- | :--- |\n| Giá trị 1 | Giá trị 2 | Giá trị 3 |\n`;
+                        break;
+                    case 'alert-note':
+                        insert = `\n> [!NOTE]\n> ${selected || 'Đây là lưu ý quan trọng cần ghi nhớ.'}\n`;
+                        break;
+                    case 'alert-tip':
+                        insert = `\n> [!TIP]\n> ${selected || 'Mẹo: Bạn có thể tối ưu hiệu năng bằng cách sử dụng cú pháp này.'}\n`;
+                        break;
+                }
+
+                markdownInput.setRangeText(insert, start, end, 'end');
+                markdownInput.focus();
+                updatePreview();
+            }
+        });
+    </script>
+}

@@ -1,0 +1,163 @@
+@model NET_Tutos.Models.ViewModels.UserManagementViewModel
+@{
+    ViewData["Title"] = "Quản lý Học viên & Phân quyền";
+}
+
+<div class="container-fluid px-3 px-xl-4 py-4">
+    <partial name="_AdminNav" />
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm border-0 mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm border-0 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm rounded-4 bg-body">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="fw-bold mb-1">
+                    <i class="bi bi-people-fill text-primary me-2"></i> Danh sách Học viên & Tài khoản (@Model.Users.Count người)
+                </h5>
+                <p class="text-body-secondary small mb-0">Quản lý cấp quyền Quản trị viên và theo dõi tiến độ đào tạo của từng học viên.</p>
+            </div>
+        </div>
+        <div class="card-body px-4 py-3">
+            @if (!Model.Users.Any())
+            {
+                <div class="text-center py-5 text-body-secondary">
+                    Chưa có học viên nào đăng ký.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-uppercase">
+                            <tr>
+                                <th>Học viên</th>
+                                <th>Vai trò</th>
+                                <th>Điểm XP</th>
+                                <th>Bài hoàn thành</th>
+                                <th>Chứng chỉ</th>
+                                <th>Ngày đăng ký</th>
+                                <th class="text-end" style="min-width: 160px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model.Users)
+                            {
+                                var isAdmin = user.Roles.Contains("Admin");
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                                @(string.IsNullOrEmpty(user.FullName) ? user.Email.Substring(0, 1).ToUpper() : user.FullName.Substring(0, 1).ToUpper())
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">@user.FullName</div>
+                                                <div class="text-body-secondary small">@user.Email</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (isAdmin)
+                                        {
+                                            <span class="badge bg-danger bg-opacity-15 text-danger border border-danger-subtle rounded-pill px-2.5 py-1">
+                                                <i class="bi bi-shield-lock-fill me-1"></i> Quản trị viên
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary bg-opacity-15 text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1">
+                                                <i class="bi bi-person me-1"></i> Học viên
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning bg-opacity-15 text-warning border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold">
+                                            ⚡ @user.ExperiencePoints XP
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold">@user.CompletedLessonsCount</span> bài học
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle rounded-pill px-2.5 py-1">
+                                            <i class="bi bi-award-fill me-1"></i> @user.CertificatesCount chứng chỉ
+                                        </span>
+                                    </td>
+                                    <td class="text-body-secondary small">
+                                        @user.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-1">
+                                            <!-- Award XP Button / Modal -->
+                                            <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-2.5" data-bs-toggle="modal" data-bs-target="#awardXpModal-@user.Id" title="Thưởng XP cho học viên">
+                                                <i class="bi bi-gift-fill"></i>
+                                            </button>
+
+                                            <!-- Toggle Admin Form -->
+                                            <form asp-action="ToggleAdmin" asp-route-id="@user.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                @if (isAdmin)
+                                                {
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 text-nowrap" title="Hạ quyền xuống học viên">
+                                                        <i class="bi bi-shield-x"></i> Gỡ Admin
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-2.5 text-nowrap" title="Nâng quyền lên Quản trị viên">
+                                                        <i class="bi bi-shield-check"></i> Cấp Admin
+                                                    </button>
+                                                }
+                                            </form>
+                                        </div>
+
+                                        <!-- Award XP Modal -->
+                                        <div class="modal fade" id="awardXpModal-@user.Id" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered modal-sm">
+                                                <div class="modal-content rounded-4 border-0 shadow">
+                                                    <form asp-action="AwardXp" asp-route-id="@user.Id" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <div class="modal-header border-0 pb-0">
+                                                            <h6 class="modal-title fw-bold">
+                                                                <i class="bi bi-gift-fill text-warning me-1"></i> Thưởng XP
+                                                            </h6>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body text-start py-3">
+                                                            <p class="small text-body-secondary mb-2">Thưởng thêm điểm kinh nghiệm cho <strong>@user.FullName</strong>:</p>
+                                                            <div class="input-group">
+                                                                <input type="number" name="xpAmount" class="form-control" value="50" min="5" max="1000" step="5" required />
+                                                                <span class="input-group-text">XP</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer border-0 pt-0">
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Hủy</button>
+                                                            <button type="submit" class="btn btn-sm btn-warning rounded-pill fw-bold">Xác nhận</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -98,8 +98,11 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<AppDbContext>();
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
         logger.LogInformation("Đang khởi tạo cơ sở dữ liệu ({Provider})...", activeProvider);
-        await DbInitializer.InitializeAsync(context);
+        await DbInitializer.InitializeAsync(context, userManager, roleManager);
         logger.LogInformation("Cơ sở dữ liệu và dữ liệu mẫu đã sẵn sàng!");
     }
     catch (Exception ex)

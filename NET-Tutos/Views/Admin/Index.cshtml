@@ -1,0 +1,284 @@
+@model NET_Tutos.Models.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Quản trị LMS";
+}
+
+<div class="container-fluid px-3 px-xl-4 py-4">
+    <partial name="_AdminNav" />
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm border-0 mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm border-0 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- KPI Metric Cards -->
+    <div class="row g-3 g-md-4 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-body">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="text-body-secondary fw-semibold small text-uppercase">Học viên</span>
+                        <div class="rounded-3 p-2 bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-people-fill fs-5"></i>
+                        </div>
+                    </div>
+                    <h2 class="fw-bold mb-1">@Model.TotalUsers</h2>
+                    <p class="text-body-secondary small mb-0">Tài khoản đăng ký hệ thống</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-body">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="text-body-secondary fw-semibold small text-uppercase">Bài học CMS</span>
+                        <div class="rounded-3 p-2 bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-journal-richtext fs-5"></i>
+                        </div>
+                    </div>
+                    <h2 class="fw-bold mb-1">@Model.TotalTutorials</h2>
+                    <p class="text-body-secondary small mb-0">Trong @Model.TotalCategories chuyên đề đào tạo</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-body">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="text-body-secondary fw-semibold small text-uppercase">Lượt thi trực tuyến</span>
+                        <div class="rounded-3 p-2 bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-mortarboard-fill fs-5"></i>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-baseline gap-2">
+                        <h2 class="fw-bold mb-1">@Model.TotalExamsTaken</h2>
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill small">
+                            Đạt @Model.ExamPassRate%
+                        </span>
+                    </div>
+                    <p class="text-body-secondary small mb-0">Từ ngân hàng @Model.TotalQuizQuestions câu hỏi</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-body">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="text-body-secondary fw-semibold small text-uppercase">Chứng chỉ đã cấp</span>
+                        <div class="rounded-3 p-2 bg-info bg-opacity-10 text-info">
+                            <i class="bi bi-patch-check-fill fs-5"></i>
+                        </div>
+                    </div>
+                    <h2 class="fw-bold mb-1">@Model.TotalCertificatesIssued</h2>
+                    <p class="text-body-secondary small mb-0">Chứng chỉ PDF có mã QR xác thực</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Shortcuts & Rankings Row -->
+    <div class="row g-4 mb-4">
+        <!-- Top Học viên -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-body">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-trophy-fill text-warning me-2"></i> Bảng vàng Học viên tiêu biểu
+                    </h5>
+                    <a asp-controller="AdminUsers" asp-action="Index" class="btn btn-sm btn-link text-decoration-none">
+                        Xem tất cả <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="card-body px-4 py-3">
+                    @if (!Model.TopStudentsByXp.Any())
+                    {
+                        <div class="text-center py-4 text-body-secondary">
+                            Chưa có dữ liệu học viên.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="list-group list-group-flush">
+                            @for (int i = 0; i < Model.TopStudentsByXp.Count; i++)
+                            {
+                                var student = Model.TopStudentsByXp[i];
+                                <div class="list-group-item bg-transparent px-0 py-2.5 d-flex align-items-center justify-content-between border-bottom-subtle">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="badge rounded-circle @(i == 0 ? "bg-warning text-dark" : (i == 1 ? "bg-secondary text-white" : (i == 2 ? "bg-info text-white" : "bg-light text-secondary border"))) d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                            @(i + 1)
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold">@(student.FullName ?? student.UserName)</div>
+                                            <div class="text-body-secondary small">@student.Email</div>
+                                        </div>
+                                    </div>
+                                    <div class="badge bg-warning bg-opacity-15 text-warning border border-warning-subtle rounded-pill px-3 py-1.5 fw-bold">
+                                        ⚡ @student.ExperiencePoints XP
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Chứng chỉ vừa cấp gần đây -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-body">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-award-fill text-primary me-2"></i> Chứng chỉ vừa cấp gần đây
+                    </h5>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill">
+                        Tự động cấp qua QR & PDF
+                    </span>
+                </div>
+                <div class="card-body px-4 py-3">
+                    @if (!Model.RecentCertificates.Any())
+                    {
+                        <div class="text-center py-4 text-body-secondary">
+                            Chưa có chứng chỉ nào được cấp.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light small text-uppercase">
+                                    <tr>
+                                        <th>Mã số</th>
+                                        <th>Học viên</th>
+                                        <th>Chuyên đề</th>
+                                        <th>Điểm thi</th>
+                                        <th>Ngày cấp</th>
+                                        <th class="text-end">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var cert in Model.RecentCertificates)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <code class="text-primary fw-semibold">@cert.CertificateCode</code>
+                                            </td>
+                                            <td>
+                                                <div class="fw-semibold">@cert.StudentFullName</div>
+                                                <div class="text-body-secondary small">@(cert.User?.Email ?? "")</div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-body-secondary text-body border">
+                                                    @(cert.Category?.Name ?? "Chung")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold text-success">@cert.FinalScore%</span>
+                                            </td>
+                                            <td class="text-body-secondary small">
+                                                @cert.IssuedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="/verify-certificate/@cert.CertificateCode" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1" title="Xác thực trực tuyến">
+                                                    <i class="bi bi-qr-code-scan"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lịch sử bài thi gần đây -->
+    <div class="card border-0 shadow-sm rounded-4 bg-body mb-4">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-clock-history text-secondary me-2"></i> Kết quả thi trực tuyến gần nhất
+            </h5>
+            <span class="text-body-secondary small">8 bài thi mới nhất</span>
+        </div>
+        <div class="card-body px-4 py-3">
+            @if (!Model.RecentExams.Any())
+            {
+                <div class="text-center py-4 text-body-secondary">
+                    Chưa có lượt nộp bài thi nào.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-uppercase">
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Học viên</th>
+                                <th>Chuyên đề</th>
+                                <th>Điểm số</th>
+                                <th>Trạng thái</th>
+                                <th>Thời lượng làm bài</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var attempt in Model.RecentExams)
+                            {
+                                <tr>
+                                    <td class="text-body-secondary small">
+                                        @attempt.CompletedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">@(attempt.User?.FullName ?? attempt.User?.UserName ?? "Học viên")</div>
+                                        <div class="text-body-secondary small">@(attempt.User?.Email ?? "")</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-body-secondary text-body border">
+                                            @(attempt.Category?.Name ?? "Toàn bộ chuyên đề")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold">@attempt.ScorePercentage%</span>
+                                        <span class="text-body-secondary small ms-1">(@attempt.CorrectAnswers/@attempt.TotalQuestions câu)</span>
+                                    </td>
+                                    <td>
+                                        @if (attempt.IsPassed)
+                                        {
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill px-2.5 py-1">
+                                                <i class="bi bi-check-circle me-1"></i> Đạt chuẩn
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle rounded-pill px-2.5 py-1">
+                                                <i class="bi bi-x-circle me-1"></i> Chưa đạt
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-body-secondary small">
+                                        <i class="bi bi-stopwatch me-1"></i> @(attempt.DurationSeconds / 60)p @(attempt.DurationSeconds % 60)s
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

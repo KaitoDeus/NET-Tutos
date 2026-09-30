@@ -1,0 +1,112 @@
+@model NET_Tutos.Models.ViewModels.QuizQuestionEditViewModel
+
+<div class="row g-4">
+    <!-- Cột trái: Nội dung câu hỏi và các đáp án -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 bg-body mb-4">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-patch-question text-primary me-2"></i> Nội dung câu hỏi & Các lựa chọn
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-4">
+                    <label asp-for="Question" class="form-label fw-semibold small text-uppercase">Nội dung câu hỏi <span class="text-danger">*</span></label>
+                    <textarea asp-for="Question" class="form-control" rows="3" placeholder="Nhập câu hỏi trắc nghiệm..." required></textarea>
+                    <span asp-validation-for="Question" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold small text-uppercase">Các đáp án lựa chọn & Đánh dấu đáp án đúng <span class="text-danger">*</span></label>
+                    <p class="text-body-secondary small mb-3">Tích chọn nút radio bên cạnh đáp án chính xác nhất.</p>
+
+                    <!-- Option A -->
+                    <div class="input-group mb-3">
+                        <div class="input-group-text bg-body-secondary">
+                            <input class="form-check-input mt-0" type="radio" asp-for="CorrectOption" value="A" id="optA" title="Chọn làm đáp án đúng" required />
+                            <label class="form-check-label fw-bold ms-2" for="optA">A</label>
+                        </div>
+                        <input asp-for="OptionA" class="form-control" placeholder="Nội dung đáp án A..." required />
+                    </div>
+                    <span asp-validation-for="OptionA" class="text-danger small d-block mb-2"></span>
+
+                    <!-- Option B -->
+                    <div class="input-group mb-3">
+                        <div class="input-group-text bg-body-secondary">
+                            <input class="form-check-input mt-0" type="radio" asp-for="CorrectOption" value="B" id="optB" title="Chọn làm đáp án đúng" required />
+                            <label class="form-check-label fw-bold ms-2" for="optB">B</label>
+                        </div>
+                        <input asp-for="OptionB" class="form-control" placeholder="Nội dung đáp án B..." required />
+                    </div>
+                    <span asp-validation-for="OptionB" class="text-danger small d-block mb-2"></span>
+
+                    <!-- Option C -->
+                    <div class="input-group mb-3">
+                        <div class="input-group-text bg-body-secondary">
+                            <input class="form-check-input mt-0" type="radio" asp-for="CorrectOption" value="C" id="optC" title="Chọn làm đáp án đúng" required />
+                            <label class="form-check-label fw-bold ms-2" for="optC">C</label>
+                        </div>
+                        <input asp-for="OptionC" class="form-control" placeholder="Nội dung đáp án C..." required />
+                    </div>
+                    <span asp-validation-for="OptionC" class="text-danger small d-block mb-2"></span>
+
+                    <!-- Option D -->
+                    <div class="input-group mb-3">
+                        <div class="input-group-text bg-body-secondary">
+                            <input class="form-check-input mt-0" type="radio" asp-for="CorrectOption" value="D" id="optD" title="Chọn làm đáp án đúng" required />
+                            <label class="form-check-label fw-bold ms-2" for="optD">D</label>
+                        </div>
+                        <input asp-for="OptionD" class="form-control" placeholder="Nội dung đáp án D..." required />
+                    </div>
+                    <span asp-validation-for="OptionD" class="text-danger small d-block mb-2"></span>
+
+                    <span asp-validation-for="CorrectOption" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Explanation" class="form-label fw-semibold small text-uppercase">Giải thích chi tiết (khi học viên hoàn thành bài thi)</label>
+                    <textarea asp-for="Explanation" class="form-control" rows="3" placeholder="Giải thích lý do vì sao đáp án trên là chính xác..."></textarea>
+                    <span asp-validation-for="Explanation" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cột phải: Cấu hình phân loại & Lưu -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 bg-body sticky-top" style="top: 80px;">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-sliders text-primary me-2"></i> Phân loại câu hỏi
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <label asp-for="TutorialId" class="form-label fw-semibold small text-uppercase">Gắn với bài học</label>
+                    <select asp-for="TutorialId" class="form-select">
+                        <option value="">-- Câu hỏi chung toàn khóa --</option>
+                        @foreach (var tut in Model.AvailableTutorials)
+                        {
+                            <option value="@tut.Id">[@(tut.Category?.Name ?? "Chung")] @tut.Title</option>
+                        }
+                    </select>
+                    <small class="text-body-secondary">Học viên có thể ôn tập câu hỏi này ở cuối bài học tương ứng.</small>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Difficulty" class="form-label fw-semibold small text-uppercase">Cấp độ khó</label>
+                    <select asp-for="Difficulty" class="form-select" asp-items="Html.GetEnumSelectList<NET_Tutos.Models.Entities.DifficultyLevel>()"></select>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary rounded-pill py-2.5 fw-bold shadow-sm">
+                        <i class="bi bi-save me-1"></i> Lưu câu hỏi
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary rounded-pill py-2">
+                        Hủy & Quay lại
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

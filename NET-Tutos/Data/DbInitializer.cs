@@ -1,14 +1,51 @@
-﻿using NET_Tutos.Models.Entities;
+using Microsoft.AspNetCore.Identity;
+using NET_Tutos.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace NET_Tutos.Data;
 
 public static class DbInitializer
 {
-    public static async Task InitializeAsync(AppDbContext context)
+    public static async Task InitializeAsync(
+        AppDbContext context,
+        UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole> roleManager)
     {
         // Ensure database is created
         await context.Database.EnsureCreatedAsync();
+
+        // Seed Roles
+        string[] roles = { "Admin", "Student" };
+        foreach (var role in roles)
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+            {
+                await roleManager.CreateAsync(new IdentityRole(role));
+            }
+        }
+
+        // Seed Default Admin User
+        var adminEmail = "admin@nettutos.com";
+        var existingAdmin = await userManager.FindByEmailAsync(adminEmail);
+        if (existingAdmin == null)
+        {
+            var adminUser = new ApplicationUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                FullName = "Quản trị viên Hệ thống",
+                EmailConfirmed = true,
+                ExperiencePoints = 999,
+                Bio = "Quản trị viên & Tác giả biên soạn nội dung NET-Tutos",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var createResult = await userManager.CreateAsync(adminUser, "AdminPassword@123");
+            if (createResult.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, "Admin");
+            }
+        }
 
         // Check if data already exists
         if (await context.Categories.AnyAsync())
