@@ -18,6 +18,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<CourseEnrollment> CourseEnrollments => Set<CourseEnrollment>();
     public DbSet<QuizAttempt> QuizAttempts => Set<QuizAttempt>();
     public DbSet<Certificate> Certificates => Set<Certificate>();
+    public DbSet<CodingChallenge> CodingChallenges => Set<CodingChallenge>();
+    public DbSet<CodeTestCase> CodeTestCases => Set<CodeTestCase>();
+    public DbSet<CodeSubmission> CodeSubmissions => Set<CodeSubmission>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -130,6 +133,45 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                   .WithMany()
                   .HasForeignKey(c => c.CategoryId)
                   .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // CodingChallenge configurations
+        modelBuilder.Entity<CodingChallenge>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.HasIndex(c => c.Slug).IsUnique();
+
+            entity.HasOne(c => c.Category)
+                  .WithMany()
+                  .HasForeignKey(c => c.CategoryId)
+                  .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // CodeTestCase configurations
+        modelBuilder.Entity<CodeTestCase>(entity =>
+        {
+            entity.HasKey(t => t.Id);
+
+            entity.HasOne(t => t.CodingChallenge)
+                  .WithMany(c => c.TestCases)
+                  .HasForeignKey(t => t.CodingChallengeId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // CodeSubmission configurations
+        modelBuilder.Entity<CodeSubmission>(entity =>
+        {
+            entity.HasKey(s => s.Id);
+
+            entity.HasOne(s => s.User)
+                  .WithMany(u => u.Submissions)
+                  .HasForeignKey(s => s.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(s => s.CodingChallenge)
+                  .WithMany(c => c.Submissions)
+                  .HasForeignKey(s => s.CodingChallengeId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

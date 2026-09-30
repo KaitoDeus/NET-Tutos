@@ -52,7 +52,16 @@ NET-Tutos provides structured learning pathways, self-paced tutorials, real-time
 - Topic-specific quizzes with instant feedback and answer explanations.
 - Standardized syntax directory containing quick-reference snippets for C#, LINQ, EF Core, and ASP.NET Core.
 
-### 7. Modern Responsive UI
+### 7. Interactive C# Playground and Automated Coding Challenges
+- Monaco Editor (VS Code web engine) with C# syntax highlighting, code folding, auto-indentation, and dark/light theme synchronization.
+- Free-form C# code runner with pre-configured templates (Hello World, LINQ queries, Modern Records & Pattern Matching, Async/Await parallelism, Fibonacci generator).
+- Roslyn scripting compiler backend (`Microsoft.CodeAnalysis.CSharp.Scripting`) with sandboxed execution, real-time diagnostic reporting (line/column error tracking), and standard output capture.
+- LeetCode-style algorithm challenge catalog with difficulty tiering (Beginner, Intermediate, Advanced) and category categorization.
+- Automated judge test harness executing code against public test cases and hidden evaluation cases.
+- Execution timeout protection (4-second cutoff) and keyword security filtering to prevent malicious code invocation or infinite loops.
+- Gamified experience point (XP) rewards upon passing all test cases with persistent submission history tracking (`CodeSubmission`).
+
+### 8. Modern Responsive UI
 - Fully responsive interface engineered with Bootstrap 5 and customized modern typography.
 - Native Light and Dark theme switcher with persistent client preference storage.
 
@@ -63,11 +72,13 @@ NET-Tutos provides structured learning pathways, self-paced tutorials, real-time
 - Framework: ASP.NET Core MVC (.NET 10)
 - Language: C# 14
 - ORM: Entity Framework Core 10
+- Code Analysis and Scripting Engine: Microsoft.CodeAnalysis.CSharp.Scripting (Roslyn)
+- Web Code Editor: Monaco Editor
 - Authentication: ASP.NET Core Identity with Role-Based Access Control (RBAC)
 - Document Generation: QuestPDF
 - Barcode Generation: QRCoder
 - Markdown Engine: Markdig
-- Client Libraries: Bootstrap 5, Bootstrap Icons, Prism.js
+- Client Libraries: Bootstrap 5, Bootstrap Icons, Prism.js, Monaco Editor
 - Database Support: Microsoft SQL Server (LocalDB) with automated fallback to SQLite
 
 ---
@@ -91,6 +102,7 @@ NET-Tutos provides structured learning pathways, self-paced tutorials, real-time
     │   ├── CheatSheetController.cs     # Code reference explorer
     │   ├── ExamController.cs           # Timed examinations, scoring, and certification issuance
     │   ├── HomeController.cs           # Landing page, curriculum overview, and metrics
+    │   ├── PlaygroundController.cs     # Interactive C# sandbox, code templates, and automated challenge judging
     │   ├── QuizController.cs           # Interactive practice quiz engine
     │   ├── RoadmapController.cs        # Learning roadmap pathways
     │   └── TutorialsController.cs      # Catalog browsing, lesson reading, search
@@ -98,11 +110,13 @@ NET-Tutos provides structured learning pathways, self-paced tutorials, real-time
     │   ├── AppDbContext.cs             # Identity and application database context
     │   └── DbInitializer.cs            # Schema setup, role creation, and default administrator seeding
     ├── Models/                         # Domain entities and viewmodels
-    │   ├── Entities/                   # ApplicationUser, Category, Tutorial, QuizQuestion, QuizAttempt, Certificate
-    │   └── ViewModels/                 # Presentation viewmodels (Account, Admin, Exam, etc.)
+    │   ├── Entities/                   # ApplicationUser, Category, Tutorial, QuizQuestion, Certificate, CodingChallenge, CodeTestCase, CodeSubmission
+    │   └── ViewModels/                 # Presentation viewmodels (Account, Admin, Exam, Playground, etc.)
     ├── Services/                       # Application business logic layer
     │   ├── CertificateService.cs       # Vector PDF certificate generation with QR codes
+    │   ├── CodeExecutionService.cs     # Roslyn-powered sandboxed execution and test case judge harness
     │   ├── ExamService.cs              # Timed examination grading and question generation
+    │   ├── ICodeExecutionService.cs    # Sandboxed execution and evaluation interface contract
     │   ├── LearningProgressService.cs  # Student progress and XP calculation service
     │   ├── MarkdownService.cs          # Markdown transformation service
     │   └── TutorialService.cs          # Content retrieval and search service
@@ -116,6 +130,7 @@ NET-Tutos provides structured learning pathways, self-paced tutorials, real-time
     │   ├── CheatSheet/                 # Snippet catalog
     │   ├── Exam/                       # Examination hall, countdown timer, and results
     │   ├── Home/                       # Index, About
+    │   ├── Playground/                 # Monaco Editor runner and challenge directory views
     │   ├── Quiz/                       # Quiz index and interactive test view
     │   ├── Roadmap/                    # Roadmap visualization
     │   ├── Shared/                     # Navigation, footer, admin tab bar

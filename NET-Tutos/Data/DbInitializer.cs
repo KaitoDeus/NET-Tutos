@@ -14,6 +14,9 @@ public static class DbInitializer
         // Ensure database is created
         await context.Database.EnsureCreatedAsync();
 
+        // Ensure newly added LMS Playground tables exist
+        await EnsurePlaygroundTablesExistAsync(context);
+
         // Seed Roles
         string[] roles = { "Admin", "Student" };
         foreach (var role in roles)
@@ -45,6 +48,12 @@ public static class DbInitializer
             {
                 await userManager.AddToRoleAsync(adminUser, "Admin");
             }
+        }
+
+        // Seed Coding Challenges if none exist
+        if (!await context.CodingChallenges.AnyAsync())
+        {
+            await SeedCodingChallengesAsync(context);
         }
 
         // Check if data already exists
@@ -1236,6 +1245,361 @@ public class UsersController : ControllerBase
         context.CodeSnippets.AddRange(snippets);
         await context.SaveChangesAsync();
         #endregion
+    }
+
+    private static async Task SeedCodingChallengesAsync(AppDbContext context)
+    {
+        var catCsharp = await context.Categories.FirstOrDefaultAsync(c => c.Slug == "csharp-co-ban");
+        var catLinq = await context.Categories.FirstOrDefaultAsync(c => c.Slug == "linq-efcore");
+
+        var challenge1 = new CodingChallenge
+        {
+            Title = "1. Tính tổng hai số nguyên",
+            Slug = "tinh-tong-hai-so",
+            ShortDescription = "Làm quen với cấu trúc hàm C# bằng cách viết phương thức tính tổng hai số nguyên.",
+            InstructionsMarkdown = @"### Đề bài
+Viết hàm `Sum(int a, int b)` nhận vào hai số nguyên `a` và `b`. Trả về tổng của hai số đó.
+
+#### Ví dụ 1:
+- **Đầu vào**: `a = 5, b = 10`
+- **Đầu ra**: `15`
+
+#### Ví dụ 2:
+- **Đầu vào**: `a = -3, b = 8`
+- **Đầu ra**: `5`",
+            InitialCode = @"public class Solution
+{
+    public static int Sum(int a, int b)
+    {
+        // Viết mã xử lý của bạn ở đây
+        return a + b;
+    }
+}",
+            SolutionCode = @"public class Solution
+{
+    public static int Sum(int a, int b) => a + b;
+}",
+            Difficulty = DifficultyLevel.Beginner,
+            CategoryId = catCsharp?.Id,
+            XpReward = 30,
+            OrderIndex = 1,
+            TestCases = new List<CodeTestCase>
+            {
+                new() { InputParameters = "5, 10", ExpectedOutput = "15", IsHidden = false, Explanation = "5 + 10 = 15" },
+                new() { InputParameters = "-3, 8", ExpectedOutput = "5", IsHidden = false, Explanation = "-3 + 8 = 5" },
+                new() { InputParameters = "100, -200", ExpectedOutput = "-100", IsHidden = true },
+                new() { InputParameters = "0, 0", ExpectedOutput = "0", IsHidden = true }
+            }
+        };
+
+        var challenge2 = new CodingChallenge
+        {
+            Title = "2. Đảo ngược chuỗi ký tự",
+            Slug = "dao-nguoc-chuoi",
+            ShortDescription = "Xử lý chuỗi ký tự cơ bản trong C# và làm quen với mảng ký tự hoặc LINQ.",
+            InstructionsMarkdown = @"### Đề bài
+Viết hàm `ReverseString(string s)` nhận vào một chuỗi ký tự `s` và trả về chuỗi đảo ngược của nó.
+
+#### Ví dụ 1:
+- **Đầu vào**: `s = ""hello""`
+- **Đầu ra**: `""olleh""`
+
+#### Ví dụ 2:
+- **Đầu vào**: `s = ""csharp""`
+- **Đầu ra**: `""prahsc""`",
+            InitialCode = @"public class Solution
+{
+    public static string ReverseString(string s)
+    {
+        // Viết mã xử lý của bạn ở đây
+        return """";
+    }
+}",
+            SolutionCode = @"public class Solution
+{
+    public static string ReverseString(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return s;
+        char[] arr = s.ToCharArray();
+        Array.Reverse(arr);
+        return new string(arr);
+    }
+}",
+            Difficulty = DifficultyLevel.Beginner,
+            CategoryId = catCsharp?.Id,
+            XpReward = 40,
+            OrderIndex = 2,
+            TestCases = new List<CodeTestCase>
+            {
+                new() { InputParameters = "\"hello\"", ExpectedOutput = "olleh", IsHidden = false },
+                new() { InputParameters = "\"csharp\"", ExpectedOutput = "prahsc", IsHidden = false },
+                new() { InputParameters = "\"12345\"", ExpectedOutput = "54321", IsHidden = true },
+                new() { InputParameters = "\"a\"", ExpectedOutput = "a", IsHidden = true }
+            }
+        };
+
+        var challenge3 = new CodingChallenge
+        {
+            Title = "3. Lọc và sắp xếp số chẵn với LINQ",
+            Slug = "loc-so-chan-linq",
+            ShortDescription = "Sử dụng toán tử Where và OrderBy trong LINQ để xử lý mảng số nguyên.",
+            InstructionsMarkdown = @"### Đề bài
+Viết hàm `FilterEvens(int[] numbers)` nhận vào một mảng số nguyên `numbers`. Sử dụng LINQ để lọc ra các số chẵn và sắp xếp theo thứ tự tăng dần.
+
+#### Ví dụ 1:
+- **Đầu vào**: `numbers = [1, 2, 3, 4, 5, 6]`
+- **Đầu ra**: `2, 4, 6`
+
+#### Ví dụ 2:
+- **Đầu vào**: `numbers = [10, 3, 8, 1, 4]`
+- **Đầu ra**: `4, 8, 10`",
+            InitialCode = @"using System.Linq;
+using System.Collections.Generic;
+
+public class Solution
+{
+    public static IEnumerable<int> FilterEvens(int[] numbers)
+    {
+        // Sử dụng LINQ để lọc số chẵn và sắp xếp tăng dần
+        return new List<int>();
+    }
+}",
+            SolutionCode = @"using System.Linq;
+using System.Collections.Generic;
+
+public class Solution
+{
+    public static IEnumerable<int> FilterEvens(int[] numbers)
+    {
+        return numbers.Where(n => n % 2 == 0).OrderBy(n => n);
+    }
+}",
+            Difficulty = DifficultyLevel.Intermediate,
+            CategoryId = catLinq?.Id,
+            XpReward = 50,
+            OrderIndex = 3,
+            TestCases = new List<CodeTestCase>
+            {
+                new() { InputParameters = "new int[] { 1, 2, 3, 4, 5, 6 }", ExpectedOutput = "2, 4, 6", IsHidden = false },
+                new() { InputParameters = "new int[] { 7, 9, 11 }", ExpectedOutput = "", IsHidden = false },
+                new() { InputParameters = "new int[] { 10, 3, 8, 1, 4 }", ExpectedOutput = "4, 8, 10", IsHidden = true }
+            }
+        };
+
+        var challenge4 = new CodingChallenge
+        {
+            Title = "4. Kiểm tra số nguyên tố",
+            Slug = "kiem-tra-so-nguyen-to",
+            ShortDescription = "Thuật toán kiểm tra số nguyên tố tối ưu căn bậc hai O(sqrt(n)).",
+            InstructionsMarkdown = @"### Đề bài
+Viết hàm `IsPrime(int n)` kiểm tra xem số nguyên $n$ có phải là số nguyên tố hay không. Trả về `true` nếu là số nguyên tố, ngược lại trả về `false`.
+*Lưu ý: Số nguyên tố là số nguyên lớn hơn 1 và chỉ chia hết cho 1 và chính nó.*
+
+#### Ví dụ 1:
+- **Đầu vào**: `n = 7`
+- **Đầu ra**: `True`
+
+#### Ví dụ 2:
+- **Đầu vào**: `n = 4`
+- **Đầu ra**: `False`",
+            InitialCode = @"public class Solution
+{
+    public static bool IsPrime(int n)
+    {
+        // Viết thuật toán kiểm tra số nguyên tố
+        return false;
+    }
+}",
+            SolutionCode = @"public class Solution
+{
+    public static bool IsPrime(int n)
+    {
+        if (n <= 1) return false;
+        if (n <= 3) return true;
+        if (n % 2 == 0 || n % 3 == 0) return false;
+        for (int i = 5; i * i <= n; i += 6)
+        {
+            if (n % i == 0 || n % (i + 2) == 0) return false;
+        }
+        return true;
+    }
+}",
+            Difficulty = DifficultyLevel.Intermediate,
+            CategoryId = catCsharp?.Id,
+            XpReward = 50,
+            OrderIndex = 4,
+            TestCases = new List<CodeTestCase>
+            {
+                new() { InputParameters = "7", ExpectedOutput = "True", IsHidden = false },
+                new() { InputParameters = "4", ExpectedOutput = "False", IsHidden = false },
+                new() { InputParameters = "1", ExpectedOutput = "False", IsHidden = true },
+                new() { InputParameters = "29", ExpectedOutput = "True", IsHidden = true },
+                new() { InputParameters = "97", ExpectedOutput = "True", IsHidden = true }
+            }
+        };
+
+        var challenge5 = new CodingChallenge
+        {
+            Title = "5. Tìm số Fibonacci thứ n",
+            Slug = "tim-so-fibonacci",
+            ShortDescription = "Tính toán giá trị Fibonacci thứ n với độ phức tạp tối ưu O(n).",
+            InstructionsMarkdown = @"### Đề bài
+Dãy số Fibonacci được định nghĩa: $F(0) = 0$, $F(1) = 1$, và $F(n) = F(n-1) + F(n-2)$ với mọi $n \ge 2$.
+Viết hàm `Fibonacci(int n)` trả về số Fibonacci thứ $n$.
+
+#### Ví dụ 1:
+- **Đầu vào**: `n = 6`
+- **Đầu ra**: `8` (Dãy số: 0, 1, 1, 2, 3, 5, 8)
+
+#### Ví dụ 2:
+- **Đầu vào**: `n = 10`
+- **Đầu ra**: `55`",
+            InitialCode = @"public class Solution
+{
+    public static long Fibonacci(int n)
+    {
+        // Viết thuật toán tính Fibonacci
+        return 0;
+    }
+}",
+            SolutionCode = @"public class Solution
+{
+    public static long Fibonacci(int n)
+    {
+        if (n <= 0) return 0;
+        if (n == 1) return 1;
+        long a = 0, b = 1;
+        for (int i = 2; i <= n; i++)
+        {
+            long temp = a + b;
+            a = b;
+            b = temp;
+        }
+        return b;
+    }
+}",
+            Difficulty = DifficultyLevel.Advanced,
+            CategoryId = catCsharp?.Id,
+            XpReward = 60,
+            OrderIndex = 5,
+            TestCases = new List<CodeTestCase>
+            {
+                new() { InputParameters = "0", ExpectedOutput = "0", IsHidden = false },
+                new() { InputParameters = "6", ExpectedOutput = "8", IsHidden = false },
+                new() { InputParameters = "10", ExpectedOutput = "55", IsHidden = true },
+                new() { InputParameters = "20", ExpectedOutput = "6765", IsHidden = true }
+            }
+        };
+
+        context.CodingChallenges.AddRange(challenge1, challenge2, challenge3, challenge4, challenge5);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task EnsurePlaygroundTablesExistAsync(AppDbContext context)
+    {
+        if (context.Database.IsSqlite())
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS ""CodingChallenges"" (
+                    ""Id"" INTEGER NOT NULL CONSTRAINT ""PK_CodingChallenges"" PRIMARY KEY AUTOINCREMENT,
+                    ""Title"" TEXT NOT NULL,
+                    ""Slug"" TEXT NOT NULL,
+                    ""ShortDescription"" TEXT NOT NULL,
+                    ""InstructionsMarkdown"" TEXT NOT NULL,
+                    ""InitialCode"" TEXT NOT NULL,
+                    ""SolutionCode"" TEXT NULL,
+                    ""Difficulty"" INTEGER NOT NULL,
+                    ""CategoryId"" INTEGER NULL,
+                    ""XpReward"" INTEGER NOT NULL,
+                    ""OrderIndex"" INTEGER NOT NULL,
+                    CONSTRAINT ""FK_CodingChallenges_Categories_CategoryId"" FOREIGN KEY (""CategoryId"") REFERENCES ""Categories"" (""Id"") ON DELETE SET NULL
+                );
+
+                CREATE UNIQUE INDEX IF NOT EXISTS ""IX_CodingChallenges_Slug"" ON ""CodingChallenges"" (""Slug"");
+
+                CREATE TABLE IF NOT EXISTS ""CodeTestCases"" (
+                    ""Id"" INTEGER NOT NULL CONSTRAINT ""PK_CodeTestCases"" PRIMARY KEY AUTOINCREMENT,
+                    ""CodingChallengeId"" INTEGER NOT NULL,
+                    ""InputParameters"" TEXT NOT NULL,
+                    ""ExpectedOutput"" TEXT NOT NULL,
+                    ""IsHidden"" INTEGER NOT NULL,
+                    ""Explanation"" TEXT NULL,
+                    CONSTRAINT ""FK_CodeTestCases_CodingChallenges_CodingChallengeId"" FOREIGN KEY (""CodingChallengeId"") REFERENCES ""CodingChallenges"" (""Id"") ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS ""CodeSubmissions"" (
+                    ""Id"" INTEGER NOT NULL CONSTRAINT ""PK_CodeSubmissions"" PRIMARY KEY AUTOINCREMENT,
+                    ""UserId"" TEXT NOT NULL,
+                    ""CodingChallengeId"" INTEGER NOT NULL,
+                    ""SubmittedCode"" TEXT NOT NULL,
+                    ""IsPassed"" INTEGER NOT NULL,
+                    ""PassedTestsCount"" INTEGER NOT NULL,
+                    ""TotalTestsCount"" INTEGER NOT NULL,
+                    ""ExecutionTimeMs"" INTEGER NOT NULL,
+                    ""XpEarned"" INTEGER NOT NULL,
+                    ""SubmittedAt"" TEXT NOT NULL,
+                    CONSTRAINT ""FK_CodeSubmissions_AspNetUsers_UserId"" FOREIGN KEY (""UserId"") REFERENCES ""AspNetUsers"" (""Id"") ON DELETE CASCADE,
+                    CONSTRAINT ""FK_CodeSubmissions_CodingChallenges_CodingChallengeId"" FOREIGN KEY (""CodingChallengeId"") REFERENCES ""CodingChallenges"" (""Id"") ON DELETE CASCADE
+                );
+            ");
+        }
+        else if (context.Database.IsSqlServer())
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'CodingChallenges')
+                BEGIN
+                    CREATE TABLE [CodingChallenges] (
+                        [Id] int NOT NULL IDENTITY,
+                        [Title] nvarchar(200) NOT NULL,
+                        [Slug] nvarchar(200) NOT NULL,
+                        [ShortDescription] nvarchar(500) NOT NULL,
+                        [InstructionsMarkdown] nvarchar(max) NOT NULL,
+                        [InitialCode] nvarchar(max) NOT NULL,
+                        [SolutionCode] nvarchar(max) NULL,
+                        [Difficulty] int NOT NULL,
+                        [CategoryId] int NULL,
+                        [XpReward] int NOT NULL,
+                        [OrderIndex] int NOT NULL,
+                        CONSTRAINT [PK_CodingChallenges] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_CodingChallenges_Categories_CategoryId] FOREIGN KEY ([CategoryId]) REFERENCES [Categories] ([Id]) ON DELETE SET NULL
+                    );
+                    CREATE UNIQUE INDEX [IX_CodingChallenges_Slug] ON [CodingChallenges] ([Slug]);
+                END
+
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'CodeTestCases')
+                BEGIN
+                    CREATE TABLE [CodeTestCases] (
+                        [Id] int NOT NULL IDENTITY,
+                        [CodingChallengeId] int NOT NULL,
+                        [InputParameters] nvarchar(500) NOT NULL,
+                        [ExpectedOutput] nvarchar(500) NOT NULL,
+                        [IsHidden] bit NOT NULL,
+                        [Explanation] nvarchar(500) NULL,
+                        CONSTRAINT [PK_CodeTestCases] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_CodeTestCases_CodingChallenges_CodingChallengeId] FOREIGN KEY ([CodingChallengeId]) REFERENCES [CodingChallenges] ([Id]) ON DELETE CASCADE
+                    );
+                END
+
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'CodeSubmissions')
+                BEGIN
+                    CREATE TABLE [CodeSubmissions] (
+                        [Id] int NOT NULL IDENTITY,
+                        [UserId] nvarchar(450) NOT NULL,
+                        [CodingChallengeId] int NOT NULL,
+                        [SubmittedCode] nvarchar(max) NOT NULL,
+                        [IsPassed] bit NOT NULL,
+                        [PassedTestsCount] int NOT NULL,
+                        [TotalTestsCount] int NOT NULL,
+                        [ExecutionTimeMs] bigint NOT NULL,
+                        [XpEarned] int NOT NULL,
+                        [SubmittedAt] datetime2 NOT NULL,
+                        CONSTRAINT [PK_CodeSubmissions] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_CodeSubmissions_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE,
+                        CONSTRAINT [FK_CodeSubmissions_CodingChallenges_CodingChallengeId] FOREIGN KEY ([CodingChallengeId]) REFERENCES [CodingChallenges] ([Id]) ON DELETE CASCADE
+                    );
+                END
+            ");
+        }
     }
 }
 

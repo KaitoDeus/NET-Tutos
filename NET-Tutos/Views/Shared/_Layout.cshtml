@@ -78,6 +78,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link text-nowrap @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Playground" ? "active fw-semibold" : "")"
+                               asp-controller="Playground" asp-action="Index">
+                                <i class="bi bi-terminal-fill me-1 text-danger"></i> Luyện Code C#
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-nowrap @(ViewContext.RouteData.Values["Controller"]?.ToString() == "CheatSheet" ? "active fw-semibold" : "")"
                                asp-controller="CheatSheet" asp-action="Index">
                                 <i class="bi bi-code-square me-1 text-info"></i> Tra cứu Code
@@ -174,6 +180,7 @@
                         <a asp-controller="Home" asp-action="Index" class="text-decoration-none small text-body-secondary">Trang chủ</a>
                         <a asp-controller="Roadmap" asp-action="Index" class="text-decoration-none small text-body-secondary">Lộ trình</a>
                         <a asp-controller="Tutorials" asp-action="Index" class="text-decoration-none small text-body-secondary">Bài học</a>
+                        <a asp-controller="Playground" asp-action="Index" class="text-decoration-none small text-body-secondary">Luyện Code</a>
                         <a asp-controller="Quiz" asp-action="Index" class="text-decoration-none small text-body-secondary">Trắc nghiệm</a>
                         <a asp-controller="Exam" asp-action="Index" class="text-decoration-none small text-body-secondary">Thi & Chứng chỉ</a>
                         <a asp-controller="Home" asp-action="About" class="text-decoration-none small text-body-secondary">Về dự án</a>

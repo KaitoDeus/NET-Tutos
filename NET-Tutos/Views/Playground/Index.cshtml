@@ -1,0 +1,463 @@
+@model NET_Tutos.Models.ViewModels.PlaygroundIndexViewModel
+@{
+    var title = Model.ActiveChallenge != null 
+        ? $"Thử thách: {Model.ActiveChallenge.Title}" 
+        : "Thực hành Code C# Playground";
+    ViewData["Title"] = title;
+}
+
+@section Styles {
+    <style>
+        .monaco-container {
+            height: 520px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--bs-border-color);
+        }
+        .console-terminal {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: var(--font-mono);
+            font-size: 0.92rem;
+            min-height: 220px;
+            max-height: 480px;
+            overflow-y: auto;
+            border-radius: 12px;
+            padding: 1rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .console-terminal .text-success { color: #4ade80 !important; }
+        .console-terminal .text-danger { color: #f87171 !important; }
+        .console-terminal .text-warning { color: #fbbf24 !important; }
+        .console-terminal .text-muted { color: #9ca3af !important; }
+
+        .challenge-instruction {
+            max-height: 380px;
+            overflow-y: auto;
+        }
+    </style>
+}
+
+<div class="container-fluid px-3 px-xl-4 py-4">
+    <!-- Header Title & Mode Switcher -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-primary-subtle border border-primary-subtle rounded-pill px-3 py-1 fw-bold">
+                    <i class="bi bi-terminal-fill me-1"></i> Interactive C# Runner (.NET 10)
+                </span>
+                @if (Model.ActiveChallenge != null)
+                {
+                    <span class="badge bg-warning-subtle border border-warning-subtle rounded-pill px-3 py-1 fw-bold">
+                        ⚡ Thử thách LeetCode-style (+@Model.ActiveChallenge.XpReward XP)
+                    </span>
+                }
+            </div>
+            <h3 class="fw-bold mb-0">
+                @(Model.ActiveChallenge != null ? Model.ActiveChallenge.Title : "Trình Thực Hành Code C# Trực Tuyến")
+            </h3>
+        </div>
+
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <a asp-action="Challenges" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-semibold">
+                <i class="bi bi-list-task me-1"></i> Kho thử thách (@Model.Challenges.Count bài)
+            </a>
+            @if (Model.ActiveChallenge != null)
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3 py-2">
+                    <i class="bi bi-code-slash me-1"></i> Playground tự do
+                </a>
+            }
+        </div>
+    </div>
+
+    <!-- Active Challenge Description Card (If in Challenge mode) -->
+    @if (Model.ActiveChallenge != null)
+    {
+        <div class="card border-0 shadow-sm rounded-4 bg-body mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3 pb-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold fs-5">Mô tả bài toán</span>
+                        @switch (Model.ActiveChallenge.Difficulty)
+                        {
+                            case NET_Tutos.Models.Entities.DifficultyLevel.Beginner:
+                                <span class="badge bg-success-subtle border border-success-subtle rounded-pill px-2.5 py-1">Cơ bản</span>
+                                break;
+                            case NET_Tutos.Models.Entities.DifficultyLevel.Intermediate:
+                                <span class="badge bg-primary-subtle border border-primary-subtle rounded-pill px-2.5 py-1">Trung cấp</span>
+                                break;
+                            case NET_Tutos.Models.Entities.DifficultyLevel.Advanced:
+                                <span class="badge bg-danger-subtle border border-danger-subtle rounded-pill px-2.5 py-1">Nâng cao</span>
+                                break;
+                        }
+                    </div>
+                    @if (Model.LastSubmission != null && Model.LastSubmission.IsPassed)
+                    {
+                        <span class="badge bg-success-subtle border border-success-subtle rounded-pill px-3 py-1.5 fw-bold">
+                            <i class="bi bi-check-circle-fill me-1"></i> Bạn đã hoàn thành thử thách này (+@Model.LastSubmission.XpEarned XP)
+                        </span>
+                    }
+                </div>
+
+                <div class="challenge-instruction tutorial-markdown-content mb-3">
+                    <p class="lead fs-6 mb-3">@Model.ActiveChallenge.ShortDescription</p>
+                    <div class="p-3 bg-body-tertiary rounded-3">
+                        <pre class="mb-0 bg-transparent p-0 text-body" style="white-space: pre-wrap; font-family: inherit;">@Model.ActiveChallenge.InstructionsMarkdown</pre>
+                    </div>
+                </div>
+
+                <!-- Public Test Cases preview -->
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span class="small fw-bold text-body-secondary text-uppercase me-2">Test cases mẫu:</span>
+                    @foreach (var tc in Model.ActiveChallenge.TestCases.Where(t => !t.IsHidden))
+                    {
+                        <div class="badge bg-body-tertiary text-body border rounded-3 p-2 font-monospace text-start">
+                            <span class="text-body-secondary">Input:</span> @tc.InputParameters <br />
+                            <span class="text-success fw-bold">Output:</span> @tc.ExpectedOutput
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- IDE & Execution Row -->
+    <div class="row g-4">
+        <!-- Editor Column -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 bg-body h-100">
+                <div class="card-header bg-transparent border-0 pt-3 px-4 pb-2">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <!-- Template selector (in free mode) or Reset Button -->
+                        @if (Model.ActiveChallenge == null)
+                        {
+                            <div class="d-flex align-items-center gap-2">
+                                <label class="small text-body-secondary fw-semibold text-nowrap">Mẫu code:</label>
+                                <select id="templateSelector" class="form-select form-select-sm rounded-pill font-monospace" style="max-width: 250px;">
+                                    @foreach (var t in Model.Templates)
+                                    {
+                                        <option value="@t.Id">@t.Title</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="small fw-semibold text-primary">
+                                <i class="bi bi-file-earmark-code me-1"></i> Solution.cs
+                            </span>
+                        }
+
+                        <!-- Action Toolbar -->
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" id="btnResetCode" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="Đặt lại code ban đầu">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> Đặt lại
+                            </button>
+                            <button type="button" id="btnRunCode" class="btn btn-sm btn-success rounded-pill px-3.5 py-1.5 fw-bold shadow-sm" title="Phím tắt: Ctrl + Enter">
+                                <i class="bi bi-play-fill fs-6"></i> Chạy mã
+                            </button>
+                            @if (Model.ActiveChallenge != null)
+                            {
+                                <button type="button" id="btnSubmitChallenge" class="btn btn-sm btn-primary rounded-pill px-3.5 py-1.5 fw-bold shadow-sm">
+                                    <i class="bi bi-cloud-upload-fill me-1"></i> Nộp bài
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-3 pt-0">
+                    <div id="monacoEditor" class="monaco-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terminal & Test Results Column -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 bg-body h-100">
+                <div class="card-header bg-transparent border-0 pt-3 px-4 pb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-terminal fs-5 text-primary"></i>
+                            <span class="fw-bold">Cửa sổ Output & Console</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span id="execTimerBadge" class="badge bg-secondary-subtle border border-secondary-subtle rounded-pill small d-none">
+                                <i class="bi bi-stopwatch me-1"></i> <span id="execTimerVal">0ms</span>
+                            </span>
+                            <button type="button" id="btnClearTerminal" class="btn btn-sm btn-link p-0 text-decoration-none text-body-secondary small" title="Xóa màn hình console">
+                                <i class="bi bi-trash"></i> Xóa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-3 pt-0 d-flex flex-column">
+                    <!-- Terminal Console Box -->
+                    <div id="terminalOutput" class="console-terminal flex-grow-1">
+<span class="text-muted">// Bấm "Chạy mã" (hoặc nhấn Ctrl + Enter) để thực thi C# script...
+// Kết quả Console.WriteLine() sẽ xuất hiện tại đây.</span></div>
+
+                    <!-- Challenge Test Cases Evaluation Box (Appears after submission) -->
+                    <div id="challengeEvaluationBox" class="mt-3 d-none">
+                        <div class="p-3 rounded-3 border" id="evalSummaryCard">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h6 class="fw-bold mb-0" id="evalSummaryTitle">Kết quả chấm điểm</h6>
+                                <span class="badge rounded-pill fw-bold" id="evalSummaryBadge"></span>
+                            </div>
+                            <div class="small mb-3" id="evalSummaryText"></div>
+                            
+                            <!-- Test details table -->
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered align-middle mb-0 font-monospace" style="font-size: 0.82rem;">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Test</th>
+                                            <th>Input</th>
+                                            <th>Kết quả</th>
+                                            <th>Kỳ vọng</th>
+                                            <th>Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="evalTestCasesBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Monaco Editor Loader from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <script>
+        // Data Templates
+        const templates = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Templates.ToDictionary(t => t.Id, t => t.Code)));
+        const activeChallengeId = @(Model.ActiveChallenge != null ? Model.ActiveChallenge.Id : 0);
+        const initialChallengeCode = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ActiveChallenge?.InitialCode ?? ""));
+
+        let editorInstance = null;
+
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+
+        require(['vs/editor/editor.main'], function () {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'vs-dark' : 'vs';
+            
+            let defaultCode = "";
+            if (activeChallengeId > 0 && initialChallengeCode) {
+                defaultCode = initialChallengeCode;
+            } else {
+                defaultCode = templates['hello-world'] || '// Nhập mã C# tại đây\nConsole.WriteLine("Xin chào C#!");';
+            }
+
+            editorInstance = monaco.editor.create(document.getElementById('monacoEditor'), {
+                value: defaultCode,
+                language: 'csharp',
+                theme: currentTheme,
+                fontSize: 14,
+                fontFamily: "'Fira Code', Consolas, monospace",
+                fontLigatures: true,
+                automaticLayout: true,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                lineNumbers: 'on',
+                roundedSelection: true,
+                padding: { top: 12, bottom: 12 }
+            });
+
+            // Keyboard shortcut Ctrl + Enter to run code
+            editorInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, function () {
+                document.getElementById('btnRunCode').click();
+            });
+
+            // Watch for theme toggle button on page
+            const themeBtn = document.getElementById('themeToggleBtn');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function () {
+                    setTimeout(() => {
+                        const newTheme = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'vs-dark' : 'vs';
+                        monaco.editor.setTheme(newTheme);
+                    }, 50);
+                });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const templateSelector = document.getElementById('templateSelector');
+            const btnResetCode = document.getElementById('btnResetCode');
+            const btnRunCode = document.getElementById('btnRunCode');
+            const btnSubmitChallenge = document.getElementById('btnSubmitChallenge');
+            const btnClearTerminal = document.getElementById('btnClearTerminal');
+            const terminalOutput = document.getElementById('terminalOutput');
+            const execTimerBadge = document.getElementById('execTimerBadge');
+            const execTimerVal = document.getElementById('execTimerVal');
+
+            const challengeEvaluationBox = document.getElementById('challengeEvaluationBox');
+            const evalSummaryCard = document.getElementById('evalSummaryCard');
+            const evalSummaryTitle = document.getElementById('evalSummaryTitle');
+            const evalSummaryBadge = document.getElementById('evalSummaryBadge');
+            const evalSummaryText = document.getElementById('evalSummaryText');
+            const evalTestCasesBody = document.getElementById('evalTestCasesBody');
+
+            // Template Switcher
+            if (templateSelector) {
+                templateSelector.addEventListener('change', function () {
+                    const selectedId = this.value;
+                    if (templates[selectedId] && editorInstance) {
+                        editorInstance.setValue(templates[selectedId]);
+                    }
+                });
+            }
+
+            // Reset Code
+            btnResetCode.addEventListener('click', function () {
+                if (!editorInstance) return;
+                if (activeChallengeId > 0 && initialChallengeCode) {
+                    editorInstance.setValue(initialChallengeCode);
+                } else if (templateSelector && templates[templateSelector.value]) {
+                    editorInstance.setValue(templates[templateSelector.value]);
+                }
+            });
+
+            // Clear Terminal
+            btnClearTerminal.addEventListener('click', function () {
+                terminalOutput.innerHTML = '<span class="text-muted">// Cửa sổ console đã được xóa sạch.</span>';
+                execTimerBadge.classList.add('d-none');
+                if (challengeEvaluationBox) challengeEvaluationBox.classList.add('d-none');
+            });
+
+            // Execute Code (Run Code)
+            btnRunCode.addEventListener('click', async function () {
+                if (!editorInstance) return;
+                const code = editorInstance.getValue();
+
+                btnRunCode.disabled = true;
+                btnRunCode.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Đang chạy...';
+                terminalOutput.innerHTML = '<span class="text-warning">// Đang biên dịch mã nguồn và khởi chạy sandbox...</span>';
+
+                try {
+                    const response = await fetch('/Playground/Execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code: code })
+                    });
+
+                    const data = await response.json();
+
+                    execTimerVal.innerText = `${data.executionTimeMs}ms`;
+                    execTimerBadge.classList.remove('d-none');
+
+                    if (data.isSuccess) {
+                        terminalOutput.innerHTML = `<span class="text-success">[Thực thi thành công trong ${data.executionTimeMs}ms]</span>\n\n${escapeHtml(data.output)}`;
+                    } else {
+                        terminalOutput.innerHTML = `<span class="text-danger">[Gặp lỗi]</span>\n\n<span class="text-danger">${escapeHtml(data.error || 'Lỗi không xác định')}</span>`;
+                    }
+                } catch (err) {
+                    terminalOutput.innerHTML = `<span class="text-danger">Lỗi kết nối máy chủ: ${escapeHtml(err.message)}</span>`;
+                } finally {
+                    btnRunCode.disabled = false;
+                    btnRunCode.innerHTML = '<i class="bi bi-play-fill fs-6"></i> Chạy mã';
+                }
+            });
+
+            // Submit Challenge (Judge Engine)
+            if (btnSubmitChallenge) {
+                btnSubmitChallenge.addEventListener('click', async function () {
+                    if (!editorInstance || activeChallengeId <= 0) return;
+                    const code = editorInstance.getValue();
+
+                    btnSubmitChallenge.disabled = true;
+                    btnSubmitChallenge.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang chấm...';
+                    terminalOutput.innerHTML = '<span class="text-warning">// Đang kiểm thử qua các Test Cases...</span>';
+
+                    try {
+                        const response = await fetch('/Playground/SubmitChallenge', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ challengeId: activeChallengeId, code: code })
+                        });
+
+                        const data = await response.json();
+
+                        challengeEvaluationBox.classList.remove('d-none');
+                        evalTestCasesBody.innerHTML = '';
+
+                        execTimerVal.innerText = `${data.executionTimeMs}ms`;
+                        execTimerBadge.classList.remove('d-none');
+
+                        if (data.compileError) {
+                            terminalOutput.innerHTML = `<span class="text-danger">[Lỗi biên dịch khi nộp bài]</span>\n\n${escapeHtml(data.compileError)}`;
+                            evalSummaryCard.className = 'p-3 rounded-3 border border-danger-subtle bg-danger-subtle';
+                            evalSummaryTitle.innerText = 'Biên dịch thất bại';
+                            evalSummaryBadge.className = 'badge bg-danger text-white rounded-pill';
+                            evalSummaryBadge.innerText = 'Lỗi';
+                            evalSummaryText.innerText = data.compileError;
+                        } else {
+                            if (data.allPassed) {
+                                terminalOutput.innerHTML = `<span class="text-success">🎉 TUYỆT VỜI! BẠN ĐÃ VƯỢT QUA TOÀN BỘ ${data.totalTestsCount}/${data.totalTestsCount} TEST CASES!</span>\n` +
+                                    (data.xpEarned > 0 ? `<span class="text-warning">⚡ +${data.xpEarned} XP đã được cộng vào tài khoản của bạn!</span>` : `<span class="text-muted">(Thử thách này bạn đã vượt qua trước đó)</span>`);
+
+                                evalSummaryCard.className = 'p-3 rounded-3 border border-success-subtle bg-success-subtle';
+                                evalSummaryTitle.innerText = 'Chấp thuận (Accepted)';
+                                evalSummaryBadge.className = 'badge bg-success text-white rounded-pill px-3 py-1';
+                                evalSummaryBadge.innerText = `${data.passedTestsCount}/${data.totalTestsCount} Passed`;
+                                evalSummaryText.innerHTML = `Chúc mừng! Thuật toán của bạn đạt chuẩn tuyệt đối trong <strong>${data.executionTimeMs}ms</strong>.` +
+                                    (data.xpEarned > 0 ? ` Bạn nhận được <strong>+${data.xpEarned} XP</strong>.` : '');
+                            } else {
+                                terminalOutput.innerHTML = `<span class="text-danger">❌ Chưa vượt qua toàn bộ Test Cases: ${data.passedTestsCount}/${data.totalTestsCount} Tests đạt chuẩn.</span>`;
+
+                                evalSummaryCard.className = 'p-3 rounded-3 border border-warning-subtle bg-warning-subtle';
+                                evalSummaryTitle.innerText = 'Kết quả sai (Wrong Answer)';
+                                evalSummaryBadge.className = 'badge bg-danger text-white rounded-pill px-3 py-1';
+                                evalSummaryBadge.innerText = `${data.passedTestsCount}/${data.totalTestsCount} Passed`;
+                                evalSummaryText.innerText = 'Một số trường hợp kiểm thử cho kết quả không khớp với kỳ vọng. Hãy kiểm tra lại logic thuật toán.';
+                            }
+
+                            // Render test rows
+                            if (data.details) {
+                                data.details.forEach(item => {
+                                    const tr = document.createElement('tr');
+                                    tr.innerHTML = `
+                                        <td>#${item.testIndex}</td>
+                                        <td><code>${escapeHtml(item.input)}</code></td>
+                                        <td><span class="${item.passed ? 'text-success' : 'text-danger'} fw-bold">${escapeHtml(item.actual)}</span></td>
+                                        <td><code>${escapeHtml(item.expected)}</code></td>
+                                        <td>
+                                            ${item.passed 
+                                                ? '<span class="badge bg-success-subtle border border-success-subtle text-success rounded-pill">Đạt</span>' 
+                                                : '<span class="badge bg-danger-subtle border border-danger-subtle text-danger rounded-pill">Sai</span>'}
+                                        </td>
+                                    `;
+                                    evalTestCasesBody.appendChild(tr);
+                                });
+                            }
+                        }
+                    } catch (err) {
+                        terminalOutput.innerHTML = `<span class="text-danger">Lỗi kết nối khi nộp bài: ${escapeHtml(err.message)}</span>`;
+                    } finally {
+                        btnSubmitChallenge.disabled = false;
+                        btnSubmitChallenge.innerHTML = '<i class="bi bi-cloud-upload-fill me-1"></i> Nộp bài';
+                    }
+                });
+            }
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                const map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                return text.toString().replace(/[&<>"']/g, m => map[m]);
+            }
+        });
+    </script>
+}

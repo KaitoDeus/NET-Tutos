@@ -22,4 +22,5 @@ public class ApplicationUser : IdentityUser
     public ICollection<CourseEnrollment> Enrollments { get; set; } = new List<CourseEnrollment>();
     public ICollection<QuizAttempt> QuizAttempts { get; set; } = new List<QuizAttempt>();
     public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
+    public ICollection<CodeSubmission> Submissions { get; set; } = new List<CodeSubmission>();
 }
