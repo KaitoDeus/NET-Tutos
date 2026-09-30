@@ -1,0 +1,113 @@
+@model NET_Tutos.Models.ViewModels.CertificateVerifyViewModel
+@{
+    ViewData["Title"] = Model.IsFound ? $"Xác thực chứng chỉ: {Model.Certificate?.CertificateCode}" : "Tra cứu chứng chỉ";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            @if (Model.IsFound && Model.Certificate != null)
+            {
+                <!-- Verified Certificate Card -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-body text-center mb-4">
+                    <div class="mb-3">
+                        <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center p-4" style="width: 90px; height: 90px;">
+                            <i class="bi bi-patch-check-fill display-4"></i>
+                        </div>
+                    </div>
+
+                    <span class="badge bg-success px-3 py-1.5 rounded-pill mb-2 d-inline-block">
+                        CHỨNG CHỈ HỢP LỆ & ĐÃ ĐƯỢC XÁC THỰC
+                    </span>
+
+                    <h2 class="fw-extrabold mb-1">Hệ Thống Xác Thực Chứng Nhận Số</h2>
+                    <p class="text-muted small">Cấp bởi NET-Tutos Academic Council theo chuẩn khảo thí tự động</p>
+
+                    <div class="card border rounded-4 p-4 my-4 bg-body-tertiary text-start">
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Học viên được cấp:</label>
+                                <h5 class="fw-bold text-primary mb-0">@Model.Certificate.StudentFullName</h5>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Mã định danh chứng chỉ:</label>
+                                <h5 class="fw-bold text-dark mb-0"><code>@Model.Certificate.CertificateCode</code></h5>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Chương trình / Khóa học:</label>
+                                <h6 class="fw-bold mb-0">@Model.Certificate.CourseTitle</h6>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Điểm số bài thi tốt nghiệp:</label>
+                                <h6 class="fw-bold text-success mb-0">@Model.Certificate.FinalScore.ToString("F1")% (Đạt loại Xuất sắc)</h6>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Ngày cấp chính thức:</label>
+                                <p class="fw-semibold mb-0">@Model.Certificate.IssuedAt.ToString("dd/MM/yyyy HH:mm:ss") (UTC)</p>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Trạng thái hồ sơ:</label>
+                                <p class="fw-bold text-success mb-0">
+                                    <i class="bi bi-shield-fill-check"></i> Đang hoạt động / Có hiệu lực vĩnh viễn
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a asp-action="DownloadPdf" asp-route-code="@Model.Certificate.CertificateCode" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+                            <i class="bi bi-file-earmark-pdf me-1"></i> Tải file Chứng chỉ PDF
+                        </a>
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" id="btnCopyVerifyLink">
+                            <i class="bi bi-clipboard me-1"></i> Sao chép liên kết chia sẻ
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Not Found / Search Card -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-body text-center mb-4">
+                    <div class="mb-3">
+                        <div class="rounded-circle bg-warning-subtle text-warning d-inline-flex align-items-center justify-content-center p-4" style="width: 90px; height: 90px;">
+                            <i class="bi bi-search display-4"></i>
+                        </div>
+                    </div>
+
+                    <h2 class="fw-extrabold mb-2">Tra Cứu Chứng Chỉ Số .NET</h2>
+                    <p class="text-muted mb-4">
+                        Nhập mã chứng chỉ (ví dụ: <code>NET-2026-A1B2C3</code>) để kiểm tra tính hợp lệ và thông tin học viên tốt nghiệp.
+                    </p>
+
+                    <form method="get" onsubmit="event.preventDefault(); var code = document.getElementById('searchCode').value.trim(); if(code) window.location.href='/verify-certificate/' + encodeURIComponent(code);">
+                        <div class="input-group input-group-lg max-w-md mx-auto mb-3" style="max-width: 480px;">
+                            <input type="text" class="form-control" id="searchCode" placeholder="Nhập mã chứng chỉ..." required>
+                            <button class="btn btn-primary px-4 fw-semibold" type="submit">
+                                Tra cứu
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="alert alert-warning small py-2 d-inline-block mx-auto">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Không tìm thấy chứng chỉ với mã số này hoặc mã chưa được cấp.
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const btn = document.getElementById('btnCopyVerifyLink');
+        if (btn) {
+            btn.addEventListener('click', function () {
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = '<i class="bi bi-check2 me-1"></i> Đã sao chép!';
+                    setTimeout(() => btn.innerHTML = orig, 2000);
+                });
+            });
+        }
+    </script>
+}

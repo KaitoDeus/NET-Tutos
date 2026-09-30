@@ -62,4 +62,6 @@ public class StudentProfileViewModel
     public List<CategoryProgressItem> CategoryProgresses { get; set; } = new();
     public List<UserLessonProgress> RecentCompletedLessons { get; set; } = new();
     public Tutorial? LastAccessedTutorial { get; set; }
+    public List<Certificate> Certificates { get; set; } = new();
+    public List<QuizAttempt> RecentQuizAttempts { get; set; } = new();
 }

@@ -16,6 +16,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<CodeSnippet> CodeSnippets => Set<CodeSnippet>();
     public DbSet<UserLessonProgress> UserLessonProgresses => Set<UserLessonProgress>();
     public DbSet<CourseEnrollment> CourseEnrollments => Set<CourseEnrollment>();
+    public DbSet<QuizAttempt> QuizAttempts => Set<QuizAttempt>();
+    public DbSet<Certificate> Certificates => Set<Certificate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -96,6 +98,38 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                   .WithMany()
                   .HasForeignKey(e => e.CategoryId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // QuizAttempt configurations
+        modelBuilder.Entity<QuizAttempt>(entity =>
+        {
+            entity.HasKey(a => a.Id);
+            entity.HasOne(a => a.User)
+                  .WithMany(u => u.QuizAttempts)
+                  .HasForeignKey(a => a.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(a => a.Category)
+                  .WithMany()
+                  .HasForeignKey(a => a.CategoryId)
+                  .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Certificate configurations
+        modelBuilder.Entity<Certificate>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.HasIndex(c => c.CertificateCode).IsUnique();
+
+            entity.HasOne(c => c.User)
+                  .WithMany(u => u.Certificates)
+                  .HasForeignKey(c => c.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(c => c.Category)
+                  .WithMany()
+                  .HasForeignKey(c => c.CategoryId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

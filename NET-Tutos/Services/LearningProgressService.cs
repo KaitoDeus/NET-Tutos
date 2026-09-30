@@ -169,6 +169,19 @@ public class LearningProgressService : ILearningProgressService
         var lastTutorial = await GetLastAccessedTutorialAsync(userId);
         int totalLessons = await _context.Tutorials.CountAsync();
 
+        var certificates = await _context.Certificates
+            .Include(c => c.Category)
+            .Where(c => c.UserId == userId)
+            .OrderByDescending(c => c.IssuedAt)
+            .ToListAsync();
+
+        var recentAttempts = await _context.QuizAttempts
+            .Include(a => a.Category)
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.CompletedAt)
+            .Take(8)
+            .ToListAsync();
+
         return new StudentProfileViewModel
         {
             User = user,
@@ -176,7 +189,9 @@ public class LearningProgressService : ILearningProgressService
             TotalLessons = totalLessons,
             CategoryProgresses = categoryProgresses,
             RecentCompletedLessons = completedProgresses.Take(6).ToList(),
-            LastAccessedTutorial = lastTutorial
+            LastAccessedTutorial = lastTutorial,
+            Certificates = certificates,
+            RecentQuizAttempts = recentAttempts
         };
     }
 

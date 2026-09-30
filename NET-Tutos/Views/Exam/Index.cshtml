@@ -1,0 +1,177 @@
+@model NET_Tutos.Models.ViewModels.ExamListViewModel
+@{
+    ViewData["Title"] = "Kỳ thi & Chứng chỉ";
+}
+
+<div class="container py-5">
+    <!-- Top Hero Banner -->
+    <div class="text-center mb-5">
+        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold mb-2">
+            <i class="bi bi-mortarboard-fill me-1"></i> Khảo Thí & Cấp Bằng LMS
+        </span>
+        <h1 class="fw-extrabold display-5">Hệ Thống Đánh Giá & Cấp Chứng Chỉ Số .NET</h1>
+        <p class="lead text-muted mx-auto" style="max-width: 750px;">
+            Tham gia các kỳ thi trắc nghiệm tính giờ theo từng chuyên đề hoặc toàn khóa để kiểm tra năng lực thực chiến, tích lũy điểm XP và nhận chứng chỉ số PDF có mã xác thực QR.
+        </p>
+    </div>
+
+    <!-- Exam Guidelines Card -->
+    <div class="card border-0 bg-primary bg-opacity-10 rounded-4 p-4 mb-5 shadow-sm">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-8">
+                <h5 class="fw-bold mb-2 text-primary">Quy định và Điều kiện cấp Chứng nhận:</h5>
+                <ul class="mb-0 text-muted small ps-3">
+                    <li class="mb-1">Bài thi gồm <strong>10 - 15 câu hỏi trắc nghiệm</strong> được xáo trộn ngẫu nhiên từ ngân hàng đề.</li>
+                    <li class="mb-1">Thời gian làm bài: <strong>15 - 20 phút</strong> (hệ thống sẽ tự động nộp bài khi hết giờ).</li>
+                    <li class="mb-1">Điểm đạt chuẩn cấp chứng nhận: <strong>từ 80% trở lên</strong>.</li>
+                    <li>Chứng chỉ được cấp dưới dạng <strong>file PDF vector chất lượng cao</strong> có mã số và mã QR xác thực công khai.</li>
+                </ul>
+            </div>
+            <div class="col-md-4 text-md-end text-center">
+                @if (User.Identity?.IsAuthenticated != true)
+                {
+                    <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập để dự thi
+                    </a>
+                }
+                else
+                {
+                    <span class="badge bg-success px-3 py-2 rounded-pill fs-6">
+                        <i class="bi bi-check2-circle me-1"></i> Sẵn sàng dự thi
+                    </span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Exams Grid -->
+    <h3 class="fw-bold mb-4">Các Kỳ Thi Đánh Giá Năng Lực</h3>
+    <div class="row g-4 mb-5">
+        @foreach (var exam in Model.AvailableExams)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 h-100 bg-body p-4 d-flex flex-column justify-content-between position-relative">
+                    @if (exam.HasPassed)
+                    {
+                        <span class="position-absolute top-0 end-0 m-3 badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5">
+                            <i class="bi bi-patch-check-fill me-1"></i> Đã có chứng chỉ
+                        </span>
+                    }
+
+                    <div>
+                        <div class="rounded-3 bg-@exam.BadgeColor bg-opacity-10 text-@exam.BadgeColor d-inline-flex p-3 mb-3">
+                            <i class="bi @exam.IconClass fs-3"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">@exam.Title</h5>
+                        <p class="text-muted small mb-4">@exam.Description</p>
+                    </div>
+
+                    <div>
+                        <div class="d-flex justify-content-between text-muted small border-top pt-3 mb-3">
+                            <span><i class="bi bi-clock me-1"></i>@exam.DurationMinutes phút</span>
+                            <span><i class="bi bi-patch-question me-1"></i>@exam.QuestionCount câu</span>
+                            <span><i class="bi bi-trophy me-1"></i>Đạt từ @exam.PassingScorePercent%</span>
+                        </div>
+
+                        @if (exam.BestScore.HasValue)
+                        {
+                            <div class="alert @(exam.HasPassed ? "alert-success" : "alert-warning") py-2 px-3 small mb-3">
+                                Điểm cao nhất của bạn: <strong>@exam.BestScore.Value.ToString("F1")%</strong>
+                            </div>
+                        }
+
+                        <div class="d-grid gap-2">
+                            <a asp-action="Take" asp-route-categoryId="@exam.CategoryId" 
+                               class="btn @(exam.HasPassed ? "btn-outline-primary" : "btn-primary") rounded-pill fw-semibold">
+                                <i class="bi bi-play-circle me-1"></i> @(exam.HasPassed ? "Thi lại cải thiện điểm" : "Bắt đầu làm bài thi")
+                            </a>
+                            @if (exam.Certificate != null)
+                            {
+                                <a asp-controller="Certificate" asp-action="Verify" asp-route-code="@exam.Certificate.CertificateCode" 
+                                   class="btn btn-outline-success btn-sm rounded-pill fw-semibold">
+                                    <i class="bi bi-award me-1"></i> Xem Chứng chỉ (@exam.Certificate.CertificateCode)
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- User Certificates & Attempts Section (When Logged in) -->
+    @if (User.Identity?.IsAuthenticated == true && (Model.Certificates.Any() || Model.RecentAttempts.Any()))
+    {
+        <div class="row g-4">
+            @if (Model.Certificates.Any())
+            {
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
+                        <h4 class="fw-bold mb-3 text-success">
+                            <i class="bi bi-award-fill me-2"></i> Chứng Chỉ Của Bạn
+                        </h4>
+                        <div class="list-group list-group-flush">
+                            @foreach (var cert in Model.Certificates)
+                            {
+                                <div class="list-group-item bg-transparent px-0 py-3 border-bottom d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 class="fw-bold mb-1">@cert.CourseTitle</h6>
+                                        <span class="text-muted small">
+                                            Mã: <code>@cert.CertificateCode</code> • Điểm: <strong>@cert.FinalScore.ToString("F1")%</strong> • Ngày cấp: @cert.IssuedAt.ToString("dd/MM/yyyy")
+                                        </span>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a asp-controller="Certificate" asp-action="DownloadPdf" asp-route-code="@cert.CertificateCode" class="btn btn-sm btn-outline-primary rounded-pill" title="Tải PDF">
+                                            <i class="bi bi-file-earmark-pdf"></i> PDF
+                                        </a>
+                                        <a asp-controller="Certificate" asp-action="Verify" asp-route-code="@cert.CertificateCode" class="btn btn-sm btn-primary rounded-pill">
+                                            Xác thực
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (Model.RecentAttempts.Any())
+            {
+                <div class="col-lg-@(Model.Certificates.Any() ? "6" : "12")">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
+                        <h4 class="fw-bold mb-3">
+                            <i class="bi bi-clock-history me-2 text-primary"></i> Lịch Sử Thi Gần Đây
+                        </h4>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle small mb-0">
+                                <thead>
+                                    <tr class="text-muted">
+                                        <th>Kỳ thi</th>
+                                        <th>Kết quả</th>
+                                        <th>Thời gian</th>
+                                        <th>Ngày thi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var attempt in Model.RecentAttempts)
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold">@attempt.ExamTitle</td>
+                                            <td>
+                                                <span class="badge @(attempt.IsPassed ? "bg-success" : "bg-danger") rounded-pill">
+                                                    @(attempt.IsPassed ? "Đạt" : "Chưa đạt"): @attempt.ScorePercentage.ToString("F1")% (@attempt.CorrectAnswers/@attempt.TotalQuestions)
+                                                </span>
+                                            </td>
+                                            <td>@(attempt.DurationSeconds / 60)m @(attempt.DurationSeconds % 60)s</td>
+                                            <td>@attempt.CompletedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

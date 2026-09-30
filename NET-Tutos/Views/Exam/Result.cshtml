@@ -1,0 +1,113 @@
+@model NET_Tutos.Models.ViewModels.ExamResultViewModel
+@{
+    ViewData["Title"] = "Kết quả thi: " + Model.ExamTitle;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Score Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-body text-center mb-4">
+                <div class="mb-3">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center p-4 @(Model.IsPassed ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")" style="width: 100px; height: 100px;">
+                        <i class="bi @(Model.IsPassed ? "bi-trophy-fill" : "bi-x-circle-fill") display-4"></i>
+                    </div>
+                </div>
+
+                <span class="badge @(Model.IsPassed ? "bg-success" : "bg-danger") px-3 py-1.5 rounded-pill mb-2">
+                    @(Model.IsPassed ? "CHÚC MỪNG - ĐÃ VƯỢT QUA KỲ THI" : "CHƯA ĐẠT CHUẨN ĐỖ (CẦN TỪ 80%)")
+                </span>
+
+                <h2 class="fw-extrabold mb-1">@Model.ExamTitle</h2>
+                <div class="display-3 fw-extrabold my-3 @(Model.IsPassed ? "text-success" : "text-danger")">
+                    @Model.ScorePercentage.ToString("F1")%
+                </div>
+
+                <p class="text-muted lead mb-4">
+                    Bạn đã trả lời đúng <strong>@Model.CorrectAnswers</strong> / <strong>@Model.TotalQuestions</strong> câu hỏi 
+                    trong thời gian <strong>@(Model.DurationSeconds / 60) phút @(Model.DurationSeconds % 60) giây</strong>.
+                </p>
+
+                <!-- Certification Announcement if Passed -->
+                @if (Model.IsPassed && Model.Certificate != null)
+                {
+                    <div class="card border border-success bg-success-subtle rounded-4 p-4 mb-4 text-start">
+                        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+                            <div>
+                                <h5 class="fw-bold text-success mb-1">
+                                    <i class="bi bi-award-fill me-1"></i> Chứng chỉ số đã được cấp thành công!
+                                </h5>
+                                <p class="small text-muted mb-0">
+                                    Mã chứng chỉ: <code>@Model.Certificate.CertificateCode</code> • Được ký điện tử bởi NET-Tutos Academic Council.
+                                </p>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a asp-controller="Certificate" asp-action="DownloadPdf" asp-route-code="@Model.Certificate.CertificateCode" class="btn btn-success rounded-pill px-3 py-2 fw-semibold">
+                                    <i class="bi bi-file-earmark-pdf me-1"></i> Tải PDF
+                                </a>
+                                <a asp-controller="Certificate" asp-action="Verify" asp-route-code="@Model.Certificate.CertificateCode" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold">
+                                    <i class="bi bi-shield-check me-1"></i> Trang xác thực
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a asp-action="Index" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
+                        <i class="bi bi-arrow-left me-1"></i> Danh sách kỳ thi
+                    </a>
+                    <a asp-controller="Account" asp-action="Profile" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+                        <i class="bi bi-person-lines-fill me-1"></i> Về góc học tập
+                    </a>
+                </div>
+            </div>
+
+            <!-- Detailed Question Review -->
+            @if (Model.QuestionResults.Any())
+            {
+                <h4 class="fw-bold mb-3 mt-5">Chi Tiết Từng Câu Hỏi</h4>
+                <div class="d-flex flex-column gap-3 mb-5">
+                    @for (int i = 0; i < Model.QuestionResults.Count; i++)
+                    {
+                        var qr = Model.QuestionResults[i];
+                        <div class="card border-0 shadow-sm rounded-4 p-4 bg-body border-start border-4 @(qr.IsCorrect ? "border-success" : "border-danger")">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge @(qr.IsCorrect ? "bg-success" : "bg-danger") rounded-pill">
+                                    Câu @(i + 1): @(qr.IsCorrect ? "Chính xác ✓" : "Chưa chính xác ✗")
+                                </span>
+                                <span class="small text-muted">
+                                    Lựa chọn: <strong>@qr.SelectedOption</strong> | Đáp án đúng: <strong class="text-success">@qr.CorrectOption</strong>
+                                </span>
+                            </div>
+
+                            <h6 class="fw-bold mb-3">@qr.Question</h6>
+
+                            <div class="list-group small mb-3">
+                                <div class="list-group-item @(qr.CorrectOption == "A" ? "list-group-item-success fw-bold" : (qr.SelectedOption == "A" ? "list-group-item-danger" : ""))">
+                                    <strong>A.</strong> @qr.OptionA @(qr.CorrectOption == "A" ? "✓" : "")
+                                </div>
+                                <div class="list-group-item @(qr.CorrectOption == "B" ? "list-group-item-success fw-bold" : (qr.SelectedOption == "B" ? "list-group-item-danger" : ""))">
+                                    <strong>B.</strong> @qr.OptionB @(qr.CorrectOption == "B" ? "✓" : "")
+                                </div>
+                                <div class="list-group-item @(qr.CorrectOption == "C" ? "list-group-item-success fw-bold" : (qr.SelectedOption == "C" ? "list-group-item-danger" : ""))">
+                                    <strong>C.</strong> @qr.OptionC @(qr.CorrectOption == "C" ? "✓" : "")
+                                </div>
+                                <div class="list-group-item @(qr.CorrectOption == "D" ? "list-group-item-success fw-bold" : (qr.SelectedOption == "D" ? "list-group-item-danger" : ""))">
+                                    <strong>D.</strong> @qr.OptionD @(qr.CorrectOption == "D" ? "✓" : "")
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(qr.Explanation))
+                            {
+                                <div class="alert alert-info py-2 small mb-0">
+                                    <i class="bi bi-info-circle-fill me-1"></i><strong>Giải thích:</strong> @qr.Explanation
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

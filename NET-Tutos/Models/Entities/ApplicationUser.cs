@@ -20,4 +20,6 @@ public class ApplicationUser : IdentityUser
 
     public ICollection<UserLessonProgress> LessonProgresses { get; set; } = new List<UserLessonProgress>();
     public ICollection<CourseEnrollment> Enrollments { get; set; } = new List<CourseEnrollment>();
+    public ICollection<QuizAttempt> QuizAttempts { get; set; } = new List<QuizAttempt>();
+    public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
 }
