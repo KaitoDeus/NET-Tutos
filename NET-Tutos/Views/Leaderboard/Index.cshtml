@@ -118,7 +118,7 @@
                         <div class="d-flex justify-content-center gap-1">
                             @foreach (var b in top1.Badges.Take(4))
                             {
-                                <span class="badge bg-@b.ColorClass-subtle text-@b.ColorClass rounded-pill" title="@b.Title: @b.Description">
+                                <span class="badge bg-@b.ColorClass-subtle text-@b.ColorClass border border-@b.ColorClass-subtle rounded-pill" title="@b.Title: @b.Description">
                                     <i class="bi @b.IconClass"></i>
                                 </span>
                             }
@@ -238,7 +238,7 @@
                                     {
                                         @foreach (var b in user.Badges)
                                         {
-                                            <span class="badge bg-@b.ColorClass-subtle text-@b.ColorClass rounded-pill" title="@b.Title: @b.Description">
+                                            <span class="badge bg-@b.ColorClass-subtle text-@b.ColorClass border border-@b.ColorClass-subtle rounded-pill" title="@b.Title: @b.Description">
                                                 <i class="bi @b.IconClass me-1"></i>@b.Title
                                             </span>
                                         }
@@ -270,7 +270,7 @@
                 <div class="col-md-6 col-lg-4">
                     <div class="card border-0 shadow-sm bg-body rounded-4 p-3 h-100 @(isEarned ? "border-start border-4 border-success" : "opacity-75")">
                         <div class="d-flex align-items-start gap-3">
-                            <div class="rounded-circle bg-@b.ColorClass-subtle text-@b.ColorClass d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 48px; height: 48px; font-size: 1.4rem;">
+                            <div class="rounded-circle bg-@b.ColorClass-subtle text-@b.ColorClass border border-@b.ColorClass-subtle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 48px; height: 48px; font-size: 1.4rem;">
                                 <i class="bi @b.IconClass"></i>
                             </div>
                             <div class="flex-grow-1">

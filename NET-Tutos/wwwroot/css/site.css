@@ -511,3 +511,22 @@ body {
     color: #d1d5db !important;
     border-color: rgba(108, 117, 125, 0.4) !important;
 }
+
+.badge.bg-purple-subtle,
+.bg-purple-subtle {
+    background-color: #f3e8ff !important;
+    border-color: #d8b4fe !important;
+}
+.text-purple,
+.badge.bg-purple-subtle {
+    color: #6b21a8 !important;
+}
+[data-bs-theme="dark"] .badge.bg-purple-subtle,
+[data-bs-theme="dark"] .bg-purple-subtle {
+    background-color: rgba(168, 85, 247, 0.22) !important;
+    border-color: rgba(168, 85, 247, 0.4) !important;
+}
+[data-bs-theme="dark"] .text-purple,
+[data-bs-theme="dark"] .badge.bg-purple-subtle {
+    color: #d8b4fe !important;
+}
