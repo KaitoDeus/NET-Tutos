@@ -35,15 +35,33 @@
     <header class="sticky-top">
         <nav class="navbar navbar-expand-lg border-bottom shadow-sm bg-body">
             <div class="container-fluid px-3 px-xl-4">
-                <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-decoration-none py-1" asp-controller="Home" asp-action="Index">
-                    <img src="~/images/csharp-logo.png" alt="C# Logo" width="34" height="38" class="csharp-nav-logo" />
-                    <span class="brand-text text-primary fw-extrabold fs-4">.NET</span>
+                <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-decoration-none py-1 me-2 me-sm-3" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/csharp-logo.png" alt="C# Logo" width="30" height="34" class="csharp-nav-logo" />
+                    <span class="brand-text fw-extrabold fs-4"><span class="text-dotnet">.NET</span><span class="text-body-emphasis"> Tutos</span></span>
                 </a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
-                        aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+                <!-- Mobile Quick Actions Bar (Theme Switch & Toggler) -->
+                <div class="d-flex align-items-center gap-2 d-lg-none ms-auto">
+                    <button class="btn btn-sm btn-outline-secondary rounded-circle theme-btn p-1.5" type="button" onclick="document.getElementById('themeToggleBtn').click()" title="Chuyển chế độ Sáng / Tối">
+                        <i class="bi bi-moon-stars-fill mobile-theme-icon"></i>
+                    </button>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-controller="Account" asp-action="Profile" class="btn btn-sm btn-outline-primary rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Góc học tập">
+                            <i class="bi bi-person-fill"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 small fw-semibold" title="Đăng nhập">
+                            Đăng nhập
+                        </a>
+                    }
+                    <button class="navbar-toggler border-0 p-1.5 rounded-3 shadow-none bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+                            aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon" style="width: 1.25em; height: 1.25em;"></span>
+                    </button>
+                </div>
 
                 <div class="collapse navbar-collapse" id="navbarContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-2 gap-0 gap-xl-1 align-items-lg-center">
@@ -98,8 +116,8 @@
                     </ul>
 
                     <!-- Search Box -->
-                    <form class="d-flex me-2 my-2 my-lg-0" asp-controller="Tutorials" asp-action="Index" method="get">
-                        <div class="input-group input-group-sm search-group">
+                    <form class="d-flex my-2 my-lg-0 me-lg-2 w-100 w-lg-auto" asp-controller="Tutorials" asp-action="Index" method="get">
+                        <div class="input-group input-group-sm search-group w-100">
                             <input class="form-control" type="search" name="search" placeholder="Tìm bài học..." aria-label="Search" value="@Context.Request.Query["search"]">
                             <button class="btn btn-outline-primary" type="submit" title="Tìm kiếm">
                                 <i class="bi bi-search"></i>
@@ -108,15 +126,17 @@
                     </form>
 
                     <!-- User Account / Auth Menu -->
-                    <div class="d-flex align-items-center gap-2 me-2">
+                    <div class="d-flex align-items-center gap-2 me-lg-2 my-2 my-lg-0 mobile-nav-auth">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-primary dropdown-toggle d-flex align-items-center gap-2 rounded-pill px-3 py-1.5 text-nowrap" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-person-circle fs-6"></i>
-                                    <span class="fw-semibold text-truncate" style="max-width: 140px;">@(User.Identity.Name?.Split('@')[0] ?? "Học viên")</span>
+                            <div class="dropdown w-100 w-lg-auto">
+                                <button class="btn btn-sm btn-outline-primary dropdown-toggle d-flex align-items-center justify-content-between justify-content-lg-start gap-2 rounded-pill px-3 py-1.5 text-nowrap w-100 w-lg-auto" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-person-circle fs-6"></i>
+                                        <span class="fw-semibold text-truncate" style="max-width: 140px;">@(User.Identity.Name?.Split('@')[0] ?? "Học viên")</span>
+                                    </span>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 mt-2">
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 mt-2 w-100 w-lg-auto">
                                     <li>
                                         <a class="dropdown-item py-2 d-flex align-items-center gap-2" asp-controller="Account" asp-action="Profile">
                                             <i class="bi bi-mortarboard text-primary"></i> Góc học tập (Dashboard)
@@ -143,19 +163,19 @@
                         }
                         else
                         {
-                            <div class="auth-btn-group d-flex align-items-center flex-nowrap" style="gap: 6px;">
-                                <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold text-nowrap">
+                            <div class="auth-btn-group d-flex align-items-center w-100 w-lg-auto" style="gap: 8px;">
+                                <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold text-nowrap flex-grow-1 flex-lg-grow-0 text-center">
                                     <i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập
                                 </a>
-                                <a asp-controller="Account" asp-action="Register" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-semibold text-nowrap d-none d-sm-inline-block">
+                                <a asp-controller="Account" asp-action="Register" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-semibold text-nowrap flex-grow-1 flex-lg-grow-0 text-center">
                                     Đăng ký
                                 </a>
                             </div>
                         }
                     </div>
 
-                    <!-- Theme Switcher -->
-                    <div class="d-flex align-items-center">
+                    <!-- Desktop Theme Switcher -->
+                    <div class="d-none d-lg-flex align-items-center">
                         <button id="themeToggleBtn" class="btn btn-sm btn-outline-secondary rounded-circle theme-btn" type="button" title="Chuyển chế độ Sáng / Tối">
                             <i id="themeIcon" class="bi bi-moon-stars-fill"></i>
                         </button>

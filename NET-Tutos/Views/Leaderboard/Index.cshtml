@@ -97,7 +97,7 @@
             @if (top1 != null)
             {
                 <div class="col-md-4 col-sm-8 order-1 order-md-2">
-                    <div class="card border-0 shadow-lg bg-body rounded-4 p-4 text-center position-relative h-100 border-top border-4 border-warning scale-highlight" style="transform: translateY(-15px);">
+                    <div class="card border-0 shadow-lg bg-body rounded-4 p-4 text-center position-relative h-100 border-top border-4 border-warning scale-highlight podium-rank-1">
                         <div class="position-absolute top-0 start-50 translate-middle">
                             <span class="badge bg-warning text-dark rounded-pill px-4 py-2 shadow-sm fw-bold fs-6">
                                 <i class="bi bi-trophy-fill me-1"></i>QUÁN QUÂN #1
@@ -168,9 +168,9 @@
                         <th class="ps-4" style="width: 80px;">Hạng</th>
                         <th>Học viên</th>
                         <th class="text-center">Bài học</th>
-                        <th class="text-center">Thuật toán</th>
-                        <th class="text-center">Chứng chỉ</th>
-                        <th>Huy hiệu</th>
+                        <th class="text-center d-none d-sm-table-cell">Thuật toán</th>
+                        <th class="text-center d-none d-lg-table-cell">Chứng chỉ</th>
+                        <th class="d-none d-md-table-cell">Huy hiệu</th>
                         <th class="text-end pe-4">Tổng XP</th>
                     </tr>
                 </thead>
@@ -218,17 +218,17 @@
                                     <i class="bi bi-book text-primary me-1"></i>@user.CompletedLessonsCount
                                 </span>
                             </td>
-                            <td class="text-center">
+                            <td class="text-center d-none d-sm-table-cell">
                                 <span class="badge bg-body-tertiary text-body border rounded-pill px-2 py-1">
                                     <i class="bi bi-code-slash text-warning me-1"></i>@user.CompletedChallengesCount
                                 </span>
                             </td>
-                            <td class="text-center">
+                            <td class="text-center d-none d-lg-table-cell">
                                 <span class="badge bg-body-tertiary text-body border rounded-pill px-2 py-1">
                                     <i class="bi bi-award text-success me-1"></i>@user.CertificatesCount
                                 </span>
                             </td>
-                            <td>
+                            <td class="d-none d-md-table-cell">
                                 <div class="d-flex gap-1 flex-wrap">
                                     @if (!user.Badges.Any())
                                     {

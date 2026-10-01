@@ -28,6 +28,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 themeIcon.className = 'bi bi-moon-stars-fill text-secondary';
             }
         }
+
+        document.querySelectorAll('.mobile-theme-icon').forEach(icon => {
+            if (theme === 'dark') {
+                icon.className = 'bi bi-sun-fill text-warning mobile-theme-icon';
+            } else {
+                icon.className = 'bi bi-moon-stars-fill text-secondary mobile-theme-icon';
+            }
+        });
     }
 
     // Reading Progress Bar

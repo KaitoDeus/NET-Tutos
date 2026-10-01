@@ -24,7 +24,7 @@
     <div class="row g-4">
         <!-- Main Content Column -->
         <div class="col-lg-8 col-xl-9">
-            <article class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-body">
+            <article class="card border-0 shadow-sm rounded-4 p-3 p-sm-4 p-md-5 bg-body">
                 <!-- Article Header -->
                 <header class="border-bottom pb-4 mb-4">
                     <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
@@ -50,7 +50,7 @@
                         </span>
                     </div>
 
-                    <h1 class="display-6 fw-extrabold text-body-emphasis mb-3">@Model.Tutorial.Title</h1>
+                    <h1 class="h2 fw-extrabold text-body-emphasis mb-3">@Model.Tutorial.Title</h1>
                     <p class="lead text-muted">@Model.Tutorial.Summary</p>
                 </header>
 
@@ -149,27 +149,27 @@
                 </div>
 
                 <!-- Previous / Next Navigation -->
-                <nav class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top">
-                    <div>
+                <nav class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-3 mt-5 pt-4 border-top">
+                    <div class="flex-grow-1 flex-sm-grow-0">
                         @if (Model.PreviousTutorial != null)
                         {
-                            <a asp-action="Details" asp-route-slug="@Model.PreviousTutorial.Slug" class="btn btn-outline-secondary text-start">
+                            <a asp-action="Details" asp-route-slug="@Model.PreviousTutorial.Slug" class="btn btn-outline-secondary text-start w-100 w-sm-auto">
                                 <small class="d-block text-muted">← Bài trước</small>
                                 <span class="fw-semibold">@Model.PreviousTutorial.Title</span>
                             </a>
                         }
                     </div>
-                    <div class="text-end">
+                    <div class="text-start text-sm-end flex-grow-1 flex-sm-grow-0">
                         @if (Model.NextTutorial != null)
                         {
-                            <a asp-action="Details" asp-route-slug="@Model.NextTutorial.Slug" class="btn btn-primary text-end">
+                            <a asp-action="Details" asp-route-slug="@Model.NextTutorial.Slug" class="btn btn-primary text-start text-sm-end w-100 w-sm-auto">
                                 <small class="d-block opacity-75">Bài tiếp theo →</small>
                                 <span class="fw-semibold">@Model.NextTutorial.Title</span>
                             </a>
                         }
                         else
                         {
-                            <a asp-controller="Roadmap" asp-action="Index" class="btn btn-success">
+                            <a asp-controller="Roadmap" asp-action="Index" class="btn btn-success w-100 w-sm-auto">
                                 <i class="bi bi-trophy me-1"></i> Hoàn thành lộ trình!
                             </a>
                         }
