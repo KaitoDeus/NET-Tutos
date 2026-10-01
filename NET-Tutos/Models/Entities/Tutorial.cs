@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace NET_Tutos.Models.Entities;
 
@@ -41,5 +41,6 @@ public class Tutorial
     public ICollection<QuizQuestion> QuizQuestions { get; set; } = new List<QuizQuestion>();
 
     public ICollection<CodeSnippet> CodeSnippets { get; set; } = new List<CodeSnippet>();
+    public ICollection<DiscussionComment> Comments { get; set; } = new List<DiscussionComment>();
 }
 

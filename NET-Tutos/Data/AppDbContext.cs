@@ -21,6 +21,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<CodingChallenge> CodingChallenges => Set<CodingChallenge>();
     public DbSet<CodeTestCase> CodeTestCases => Set<CodeTestCase>();
     public DbSet<CodeSubmission> CodeSubmissions => Set<CodeSubmission>();
+    public DbSet<DiscussionComment> DiscussionComments => Set<DiscussionComment>();
+    public DbSet<CommentUpvote> CommentUpvotes => Set<CommentUpvote>();
+    public DbSet<UserBadge> UserBadges => Set<UserBadge>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -171,6 +174,62 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(s => s.CodingChallenge)
                   .WithMany(c => c.Submissions)
                   .HasForeignKey(s => s.CodingChallengeId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // DiscussionComment configurations
+        modelBuilder.Entity<DiscussionComment>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.ContentMarkdown).IsRequired().HasMaxLength(4000);
+
+            entity.HasOne(c => c.Tutorial)
+                  .WithMany(t => t.Comments)
+                  .HasForeignKey(c => c.TutorialId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(c => c.CodingChallenge)
+                  .WithMany(c => c.Comments)
+                  .HasForeignKey(c => c.CodingChallengeId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(c => c.User)
+                  .WithMany(u => u.Comments)
+                  .HasForeignKey(c => c.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(c => c.ParentComment)
+                  .WithMany(p => p.Replies)
+                  .HasForeignKey(c => c.ParentCommentId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // CommentUpvote configurations
+        modelBuilder.Entity<CommentUpvote>(entity =>
+        {
+            entity.HasKey(u => u.Id);
+            entity.HasIndex(u => new { u.CommentId, u.UserId }).IsUnique();
+
+            entity.HasOne(u => u.Comment)
+                  .WithMany(c => c.Upvotes)
+                  .HasForeignKey(u => u.CommentId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(u => u.User)
+                  .WithMany(u => u.Upvotes)
+                  .HasForeignKey(u => u.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // UserBadge configurations
+        modelBuilder.Entity<UserBadge>(entity =>
+        {
+            entity.HasKey(b => b.Id);
+            entity.HasIndex(b => new { b.UserId, b.BadgeCode }).IsUnique();
+
+            entity.HasOne(b => b.User)
+                  .WithMany(u => u.Badges)
+                  .HasForeignKey(b => b.UserId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
     }

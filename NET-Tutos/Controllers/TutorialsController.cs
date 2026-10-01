@@ -11,15 +11,18 @@ public class TutorialsController : Controller
     private readonly ITutorialService _tutorialService;
     private readonly IMarkdownService _markdownService;
     private readonly ILearningProgressService _progressService;
+    private readonly IDiscussionService _discussionService;
 
     public TutorialsController(
         ITutorialService tutorialService, 
         IMarkdownService markdownService,
-        ILearningProgressService progressService)
+        ILearningProgressService progressService,
+        IDiscussionService discussionService)
     {
         _tutorialService = tutorialService;
         _markdownService = markdownService;
         _progressService = progressService;
+        _discussionService = discussionService;
     }
 
     // GET: /Tutorials
@@ -76,15 +79,29 @@ public class TutorialsController : Controller
             NextTutorial = next
         };
 
+        string? currentUserId = null;
         if (User.Identity?.IsAuthenticated == true)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(userId))
+            currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(currentUserId))
             {
-                viewModel.IsCompletedByCurrentUser = await _progressService.IsLessonCompletedAsync(userId, tutorial.Id);
-                _ = _progressService.RecordLessonAccessAsync(userId, tutorial.Id);
+                viewModel.IsCompletedByCurrentUser = await _progressService.IsLessonCompletedAsync(currentUserId, tutorial.Id);
+                _ = _progressService.RecordLessonAccessAsync(currentUserId, tutorial.Id);
             }
         }
+
+        var comments = await _discussionService.GetCommentsAsync("Tutorial", tutorial.Id, currentUserId);
+        viewModel.Discussion = new DiscussionSectionViewModel
+        {
+            TopicType = "Tutorial",
+            TopicId = tutorial.Id,
+            TopicTitle = tutorial.Title,
+            Comments = comments,
+            TotalCommentsCount = comments.Count + comments.Sum(c => c.Replies.Count),
+            CurrentUserId = currentUserId,
+            IsAuthenticated = User.Identity?.IsAuthenticated == true,
+            IsAdmin = User.IsInRole("Admin")
+        };
 
         return View(viewModel);
     }

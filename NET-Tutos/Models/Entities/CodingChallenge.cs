@@ -37,4 +37,5 @@ public class CodingChallenge
 
     public ICollection<CodeTestCase> TestCases { get; set; } = new List<CodeTestCase>();
     public ICollection<CodeSubmission> Submissions { get; set; } = new List<CodeSubmission>();
+    public ICollection<DiscussionComment> Comments { get; set; } = new List<DiscussionComment>();
 }

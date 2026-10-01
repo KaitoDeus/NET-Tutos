@@ -61,7 +61,28 @@ NET-Tutos provides structured learning pathways, self-paced tutorials, real-time
 - Execution timeout protection (4-second cutoff) and keyword security filtering to prevent malicious code invocation or infinite loops.
 - Gamified experience point (XP) rewards upon passing all test cases with persistent submission history tracking (`CodeSubmission`).
 
-### 8. Modern Responsive UI
+### 8. Real-Time Community Discussion and Q&A Engine (SignalR)
+- Instant bidirectional communication powered by ASP.NET Core SignalR (`DiscussionHub`).
+- Interactive discussion threads beneath each tutorial lesson with live online learner counter.
+- Markdown commenting supporting formatted text, quotes, and C# code snippets.
+- Threaded discussions with parent-child nested replies.
+- Peer upvoting with live counter synchronization across active learners.
+- Verified solution recognition: Author or Administrator can mark comments as "Accepted Solution" with bonus XP rewards (+15 XP).
+- Contribution incentives granting +5 XP for each valuable discussion contribution.
+
+### 9. Gamification Leaderboard and Achievement Badges
+- Public student ranking hall (`/Leaderboard`) showcasing top developers ranked by total Experience Points (XP).
+- Visual podium honoring 1st, 2nd, and 3rd place champions with gold, silver, and bronze badges.
+- Dynamic student rank card displaying real-time standing, completed lessons, solved algorithms, and earned credentials.
+- Multi-tier achievement badge system:
+  - Newbie: First lesson completed.
+  - Scholar: 5 lessons completed.
+  - Algorithm Hunter: First C# challenge solved.
+  - Algorithm Master: 3 C# challenges conquered.
+  - Certified: Official certificate achieved.
+  - Community Hero: Accepted solution provided or active discussion participant.
+
+### 10. Modern Responsive UI
 - Fully responsive interface engineered with Bootstrap 5 and customized modern typography.
 - Native Light and Dark theme switcher with persistent client preference storage.
 
@@ -72,13 +93,14 @@ NET-Tutos provides structured learning pathways, self-paced tutorials, real-time
 - Framework: ASP.NET Core MVC (.NET 10)
 - Language: C# 14
 - ORM: Entity Framework Core 10
+- Real-Time Communication: ASP.NET Core SignalR
 - Code Analysis and Scripting Engine: Microsoft.CodeAnalysis.CSharp.Scripting (Roslyn)
 - Web Code Editor: Monaco Editor
 - Authentication: ASP.NET Core Identity with Role-Based Access Control (RBAC)
 - Document Generation: QuestPDF
 - Barcode Generation: QRCoder
 - Markdown Engine: Markdig
-- Client Libraries: Bootstrap 5, Bootstrap Icons, Prism.js, Monaco Editor
+- Client Libraries: Bootstrap 5, Bootstrap Icons, Prism.js, Monaco Editor, Microsoft SignalR Client
 - Database Support: Microsoft SQL Server (LocalDB) with automated fallback to SQLite
 
 ---
@@ -92,7 +114,9 @@ NET-Tutos provides structured learning pathways, self-paced tutorials, real-time
 ├── README.md                           # Project documentation
 └── NET-Tutos/                          # Core ASP.NET Core web application
     ├── NET-Tutos.csproj                # Project configuration and package references
-    ├── Controllers/                    # MVC Controllers
+    ├── Hubs/                           # SignalR Real-Time Hubs
+    │   └── DiscussionHub.cs            # Live connection group management and learner presence
+    ├── Controllers/                    # MVC & API Controllers
     │   ├── AccountController.cs        # Authentication, student dashboard, and progress toggling
     │   ├── AdminController.cs          # LMS Admin dashboard, analytics, and Markdown live preview
     │   ├── AdminTutorialsController.cs # CMS tutorial management and authoring studio
@@ -100,8 +124,10 @@ NET-Tutos provides structured learning pathways, self-paced tutorials, real-time
     │   ├── AdminUsersController.cs     # Student roster, roles, and XP moderation
     │   ├── CertificateController.cs    # Certificate download and public QR verification
     │   ├── CheatSheetController.cs     # Code reference explorer
+    │   ├── DiscussionController.cs     # Real-time discussion API with SignalR broadcasting
     │   ├── ExamController.cs           # Timed examinations, scoring, and certification issuance
     │   ├── HomeController.cs           # Landing page, curriculum overview, and metrics
+    │   ├── LeaderboardController.cs    # Hall of fame student rankings and badge showcase
     │   ├── PlaygroundController.cs     # Interactive C# sandbox, code templates, and automated challenge judging
     │   ├── QuizController.cs           # Interactive practice quiz engine
     │   ├── RoadmapController.cs        # Learning roadmap pathways
@@ -110,13 +136,17 @@ NET-Tutos provides structured learning pathways, self-paced tutorials, real-time
     │   ├── AppDbContext.cs             # Identity and application database context
     │   └── DbInitializer.cs            # Schema setup, role creation, and default administrator seeding
     ├── Models/                         # Domain entities and viewmodels
-    │   ├── Entities/                   # ApplicationUser, Category, Tutorial, QuizQuestion, Certificate, CodingChallenge, CodeTestCase, CodeSubmission
-    │   └── ViewModels/                 # Presentation viewmodels (Account, Admin, Exam, Playground, etc.)
+    │   ├── Entities/                   # ApplicationUser, Category, Tutorial, QuizQuestion, Certificate, CodingChallenge, CodeTestCase, CodeSubmission, DiscussionComment, CommentUpvote, UserBadge
+    │   └── ViewModels/                 # Presentation viewmodels (Account, Admin, Exam, Playground, Discussion, Leaderboard)
     ├── Services/                       # Application business logic layer
     │   ├── CertificateService.cs       # Vector PDF certificate generation with QR codes
     │   ├── CodeExecutionService.cs     # Roslyn-powered sandboxed execution and test case judge harness
+    │   ├── DiscussionService.cs        # Threaded discussion logic, upvoting, and solution marking
     │   ├── ExamService.cs              # Timed examination grading and question generation
     │   ├── ICodeExecutionService.cs    # Sandboxed execution and evaluation interface contract
+    │   ├── IDiscussionService.cs       # Discussion service interface contract
+    │   ├── ILeaderboardService.cs      # Ranking calculations and automated badge triggers
+    │   ├── LeaderboardService.cs       # Leaderboard and achievement computation service
     │   ├── LearningProgressService.cs  # Student progress and XP calculation service
     │   ├── MarkdownService.cs          # Markdown transformation service
     │   └── TutorialService.cs          # Content retrieval and search service
@@ -130,11 +160,12 @@ NET-Tutos provides structured learning pathways, self-paced tutorials, real-time
     │   ├── CheatSheet/                 # Snippet catalog
     │   ├── Exam/                       # Examination hall, countdown timer, and results
     │   ├── Home/                       # Index, About
+    │   ├── Leaderboard/                # Student ranking podium, table, and badges catalog
     │   ├── Playground/                 # Monaco Editor runner and challenge directory views
     │   ├── Quiz/                       # Quiz index and interactive test view
     │   ├── Roadmap/                    # Roadmap visualization
-    │   ├── Shared/                     # Navigation, footer, admin tab bar
-    │   └── Tutorials/                  # Lesson listing and reader view
+    │   ├── Shared/                     # Navigation, footer, _DiscussionSection.cshtml
+    │   └── Tutorials/                  # Lesson listing, reader view, and Q&A section
     ├── wwwroot/                        # Static client assets (CSS, JS, images, icons)
     ├── appsettings.json                # Environment and database configuration
     └── Program.cs                      # Dependency injection, middleware pipeline, and host bootstrapping

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using NET_Tutos.Data;
+using NET_Tutos.Hubs;
 using NET_Tutos.Models;
 using NET_Tutos.Models.Entities;
 using NET_Tutos.Services;
@@ -10,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 builder.Services.AddSingleton<IMarkdownService, MarkdownService>();
 builder.Services.AddScoped<ITutorialService, TutorialService>();
@@ -17,6 +19,8 @@ builder.Services.AddScoped<ILearningProgressService, LearningProgressService>();
 builder.Services.AddScoped<ICertificateService, CertificateService>();
 builder.Services.AddScoped<IExamService, ExamService>();
 builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
+builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
+builder.Services.AddScoped<IDiscussionService, DiscussionService>();
 
 // Determine Database Provider
 var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
@@ -133,6 +137,9 @@ app.MapControllerRoute(
     name: "tutorial-slug",
     pattern: "bai-hoc/{slug}",
     defaults: new { controller = "Tutorials", action = "Details" });
+
+// SignalR Hub endpoint
+app.MapHub<DiscussionHub>("/hubs/discussion");
 
 // Default route
 app.MapControllerRoute(

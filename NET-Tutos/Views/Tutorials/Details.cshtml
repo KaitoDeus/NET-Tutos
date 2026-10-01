@@ -175,6 +175,12 @@
                         }
                     </div>
                 </nav>
+
+                <!-- Real-Time Community Discussion & Q&A -->
+                @if (Model.Discussion != null)
+                {
+                    <partial name="_DiscussionSection" model="Model.Discussion" />
+                }
             </article>
         </div>
 

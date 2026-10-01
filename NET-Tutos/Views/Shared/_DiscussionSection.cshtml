@@ -1,0 +1,545 @@
+@model NET_Tutos.Models.ViewModels.DiscussionSectionViewModel
+
+<section class="discussion-section mt-5 pt-4 border-top" id="discussionArea" data-topic-type="@Model.TopicType" data-topic-id="@Model.TopicId">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h3 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-chat-square-dots text-primary"></i>
+                Hỏi Đáp & Thảo Luận Cộng Đồng
+            </h3>
+            <p class="text-muted small mb-0">Trao đổi kiến thức, giải đáp vướng mắc và chia sẻ kinh nghiệm học tập trực tiếp.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">
+                <i class="bi bi-circle-fill text-success small me-1 pulse-dot"></i>
+                <span id="liveLearnerCount">1</span> đang trực tuyến
+            </span>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
+                <span id="totalCommentsCount">@Model.TotalCommentsCount</span> bình luận
+            </span>
+        </div>
+    </div>
+
+    <!-- Post Comment Box -->
+    <div class="card border-0 shadow-sm bg-body-tertiary rounded-4 p-4 mb-4">
+        @if (Model.IsAuthenticated)
+        {
+            <div class="d-flex align-items-start gap-3">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.1rem;">
+                    @(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded" onclick="insertMarkdownToolbar('**', '**', 'Chữ in đậm')"><i class="bi bi-type-bold"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded" onclick="insertMarkdownToolbar('*', '*', 'Chữ nghiêng')"><i class="bi bi-type-italic"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded" onclick="insertMarkdownToolbar('`', '`', 'code')"><i class="bi bi-code"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded" onclick="insertMarkdownToolbar('\n```csharp\n', '\n```\n', '// Code C# ở đây')"><i class="bi bi-code-square"></i> C#</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded" onclick="insertMarkdownToolbar('> ', '', 'Trích dẫn')"><i class="bi bi-quote"></i></button>
+                        <span class="text-muted small ms-auto d-none d-md-inline"><i class="bi bi-markdown me-1"></i>Hỗ trợ Markdown</span>
+                    </div>
+                    <textarea id="mainCommentInput" class="form-control rounded-3 border bg-body" rows="3" placeholder="Đặt câu hỏi hoặc chia sẻ góc nhìn của bạn về bài học này (hỗ trợ code C#, Markdown)..."></textarea>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-muted small">
+                            <i class="bi bi-award text-warning me-1"></i>Đăng thảo luận hữu ích nhận ngay <strong>+5 XP</strong>
+                        </span>
+                        <button type="button" id="btnSubmitComment" class="btn btn-primary px-4 rounded-pill fw-semibold shadow-sm" onclick="submitNewComment(null, 'mainCommentInput')">
+                            <span class="spinner-border spinner-border-sm d-none me-1" id="submitCommentSpinner"></span>
+                            <i class="bi bi-send-fill me-1"></i> Gửi thảo luận
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-3">
+                <i class="bi bi-chat-left-text text-muted fs-2 d-block mb-2"></i>
+                <h6 class="fw-bold mb-1">Tham gia thảo luận cùng cộng đồng học viên</h6>
+                <p class="text-muted small mb-3">Đăng nhập để đặt câu hỏi, chia sẻ mẹo lập trình và nhận thưởng điểm XP kinh nghiệm.</p>
+                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="btn btn-outline-primary px-4 rounded-pill fw-semibold">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập để bình luận
+                </a>
+            </div>
+        }
+    </div>
+
+    <!-- Comments List -->
+    <div id="commentsContainer" class="d-flex flex-column gap-3">
+        @if (!Model.Comments.Any())
+        {
+            <div class="text-center py-5 text-muted bg-body-tertiary rounded-4 border-dashed" id="emptyCommentsPlaceholder">
+                <i class="bi bi-chat-dots fs-1 d-block mb-2 opacity-50"></i>
+                <p class="mb-0 fw-semibold">Chưa có thảo luận nào cho bài học này.</p>
+                <small>Hãy là người đầu tiên đặt câu hỏi hoặc chia sẻ cảm nghĩ!</small>
+            </div>
+        }
+        else
+        {
+            @foreach (var comment in Model.Comments)
+            {
+                <div class="card border-0 shadow-sm bg-body rounded-4 p-3 p-md-4 comment-card @(comment.IsPinned ? "border-start border-4 border-primary" : "") @(comment.IsBestAnswer ? "border-start border-4 border-warning" : "")" id="comment-@comment.Id">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="rounded-circle @(comment.IsAdmin ? "bg-danger" : "bg-primary") text-white d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0" style="width: 42px; height: 42px;">
+                            @(string.IsNullOrEmpty(comment.AuthorName) ? "U" : comment.AuthorName.Substring(0, 1).ToUpper())
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-bold">@comment.AuthorName</span>
+                                    @if (comment.IsAdmin)
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill small">Quản trị viên</span>
+                                    }
+                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill small"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>@comment.AuthorXp XP</span>
+                                    <span class="text-muted small">· @comment.CreatedAgo</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    @if (comment.IsPinned)
+                                    {
+                                        <span class="badge bg-primary text-white rounded-pill"><i class="bi bi-pin-angle-fill me-1"></i>Đã ghim</span>
+                                    }
+                                    @if (comment.IsBestAnswer)
+                                    {
+                                        <span class="badge bg-warning text-dark rounded-pill fw-bold" id="bestAnswerBadge-@comment.Id"><i class="bi bi-check-circle-fill me-1"></i>Giải pháp chính xác</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Comment Content -->
+                            <div class="comment-content text-break mb-3">
+                                @Html.Raw(comment.ContentHtml)
+                            </div>
+
+                            <!-- Comment Footer Actions -->
+                            <div class="d-flex align-items-center gap-3 pt-2 border-top">
+                                <button type="button" class="btn btn-sm @(comment.IsUpvotedByCurrentUser ? "btn-primary" : "btn-outline-secondary") rounded-pill py-1 px-3 upvote-btn" data-comment-id="@comment.Id" onclick="toggleUpvote(@comment.Id, this)">
+                                    <i class="bi @(comment.IsUpvotedByCurrentUser ? "bi-hand-thumbs-up-fill" : "bi-hand-thumbs-up") me-1"></i>
+                                    <span class="upvote-count">@comment.UpvotesCount</span>
+                                </button>
+
+                                @if (Model.IsAuthenticated)
+                                {
+                                    <button type="button" class="btn btn-sm btn-link text-decoration-none text-muted p-0" onclick="toggleReplyBox(@comment.Id)">
+                                        <i class="bi bi-reply-fill me-1"></i>Trả lời
+                                    </button>
+                                }
+
+                                @if (Model.IsAdmin || (Model.IsAuthenticated && comment.UserId == Model.CurrentUserId))
+                                {
+                                    <button type="button" class="btn btn-sm btn-link text-decoration-none text-danger p-0 ms-auto" onclick="deleteComment(@comment.Id)">
+                                        <i class="bi bi-trash3 me-1"></i>Xóa
+                                    </button>
+                                }
+                            </div>
+
+                            <!-- Reply Box (Hidden by default) -->
+                            @if (Model.IsAuthenticated)
+                            {
+                                <div class="reply-box mt-3 pt-3 border-top d-none" id="replyBox-@comment.Id">
+                                    <div class="d-flex gap-2">
+                                        <input type="text" class="form-control form-control-sm rounded-pill" id="replyInput-@comment.Id" placeholder="Viết câu trả lời của bạn..." onkeydown="if(event.key==='Enter') submitNewComment(@comment.Id, 'replyInput-@comment.Id')" />
+                                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" onclick="submitNewComment(@comment.Id, 'replyInput-@comment.Id')">
+                                            Gửi
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Nested Replies Container -->
+                            <div class="replies-container mt-3 ps-3 border-start border-2 d-flex flex-column gap-2" id="replies-@comment.Id">
+                                @foreach (var reply in comment.Replies)
+                                {
+                                    <div class="card border-0 bg-body-tertiary rounded-3 p-3 reply-card @(reply.IsBestAnswer ? "border-start border-3 border-warning" : "")" id="comment-@reply.Id">
+                                        <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="fw-semibold small">@reply.AuthorName</span>
+                                                @if (reply.IsAdmin)
+                                                {
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill py-0 px-2" style="font-size: 0.7rem;">Admin</span>
+                                                }
+                                                <span class="text-muted" style="font-size: 0.75rem;">· @reply.CreatedAgo</span>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-1">
+                                                @if (reply.IsBestAnswer)
+                                                {
+                                                    <span class="badge bg-warning text-dark rounded-pill py-0 px-2" style="font-size: 0.7rem;" id="bestAnswerBadge-@reply.Id">✓ Giải pháp (+15 XP)</span>
+                                                }
+                                                @if ((Model.IsAdmin || (Model.IsAuthenticated && comment.UserId == Model.CurrentUserId)) && !reply.IsBestAnswer)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-link text-warning p-0" title="Đánh dấu là câu trả lời chính xác" onclick="markBestAnswer(@reply.Id)">
+                                                        <i class="bi bi-check-circle"></i>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="reply-content small text-break mb-2">
+                                            @Html.Raw(reply.ContentHtml)
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <button type="button" class="btn btn-sm @(reply.IsUpvotedByCurrentUser ? "btn-primary" : "btn-outline-secondary") rounded-pill py-0 px-2 upvote-btn" style="font-size: 0.75rem;" data-comment-id="@reply.Id" onclick="toggleUpvote(@reply.Id, this)">
+                                                <i class="bi @(reply.IsUpvotedByCurrentUser ? "bi-hand-thumbs-up-fill" : "bi-hand-thumbs-up")"></i>
+                                                <span class="upvote-count">@reply.UpvotesCount</span>
+                                            </button>
+                                            @if (Model.IsAdmin || (Model.IsAuthenticated && reply.UserId == Model.CurrentUserId))
+                                            {
+                                                <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-auto" style="font-size: 0.75rem;" onclick="deleteComment(@reply.Id)">
+                                                    <i class="bi bi-trash3"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</section>
+
+<!-- SignalR Client Script -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+    const topicType = "@Model.TopicType";
+    const topicId = @Model.TopicId;
+    const currentUserId = "@(Model.CurrentUserId ?? "")";
+    const isAdmin = @(Model.IsAdmin ? "true" : "false");
+    const isAuthenticated = @(Model.IsAuthenticated ? "true" : "false");
+    const topicGroup = `${topicType}_${topicId}`;
+
+    let discussionConnection = null;
+
+    function initSignalR() {
+        if (!window.signalR) return;
+
+        discussionConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/discussion")
+            .withAutomaticReconnect()
+            .build();
+
+        discussionConnection.on("UpdateLearnerCount", function(count) {
+            const el = document.getElementById("liveLearnerCount");
+            if (el) {
+                el.innerText = count > 0 ? count : 1;
+                el.classList.add("text-success", "fw-bold");
+                setTimeout(() => el.classList.remove("fw-bold"), 1000);
+            }
+        });
+
+        discussionConnection.on("ReceiveComment", function(comment) {
+            const emptyEl = document.getElementById("emptyCommentsPlaceholder");
+            if (emptyEl) emptyEl.remove();
+
+            // Increment total count
+            const totalCountEl = document.getElementById("totalCommentsCount");
+            if (totalCountEl) {
+                totalCountEl.innerText = parseInt(totalCountEl.innerText || "0") + 1;
+            }
+
+            if (comment.parentCommentId) {
+                // Nested reply
+                appendReplyHtml(comment.parentCommentId, comment);
+            } else {
+                // Top level comment
+                appendCommentHtml(comment);
+            }
+
+            if (window.Prism) {
+                Prism.highlightAll();
+            }
+        });
+
+        discussionConnection.on("CommentUpvoted", function(data) {
+            const buttons = document.querySelectorAll(`button[data-comment-id="${data.commentId}"] .upvote-count`);
+            buttons.forEach(span => {
+                span.innerText = data.upvotesCount;
+            });
+        });
+
+        discussionConnection.on("BestAnswerMarked", function(data) {
+            const badge = document.getElementById(`bestAnswerBadge-${data.commentId}`);
+            if (badge) {
+                badge.classList.remove("d-none");
+            } else {
+                location.reload();
+            }
+        });
+
+        discussionConnection.on("CommentDeleted", function(data) {
+            const card = document.getElementById(`comment-${data.commentId}`);
+            if (card) {
+                card.style.transition = "opacity 0.4s ease, transform 0.4s ease";
+                card.style.opacity = "0";
+                card.style.transform = "translateY(-10px)";
+                setTimeout(() => card.remove(), 400);
+            }
+        });
+
+        discussionConnection.start()
+            .then(function() {
+                discussionConnection.invoke("JoinTopic", topicGroup).catch(console.error);
+            })
+            .catch(err => console.error("SignalR Connection Error: ", err));
+
+        window.addEventListener("beforeunload", function() {
+            if (discussionConnection && discussionConnection.state === signalR.HubConnectionState.Connected) {
+                discussionConnection.invoke("LeaveTopic", topicGroup);
+            }
+        });
+    }
+
+    function insertMarkdownToolbar(prefix, suffix, placeholder) {
+        const textarea = document.getElementById("mainCommentInput");
+        if (!textarea) return;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selected = textarea.value.substring(start, end) || placeholder;
+        const replacement = prefix + selected + suffix;
+        textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+        textarea.focus();
+        textarea.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+    }
+
+    function toggleReplyBox(commentId) {
+        const box = document.getElementById(`replyBox-${commentId}`);
+        if (box) {
+            box.classList.toggle("d-none");
+            const input = document.getElementById(`replyInput-${commentId}`);
+            if (input && !box.classList.contains("d-none")) {
+                input.focus();
+            }
+        }
+    }
+
+    async function submitNewComment(parentCommentId, inputId) {
+        if (!isAuthenticated) {
+            window.location.href = `/Account/Login?returnUrl=${encodeURIComponent(window.location.pathname)}`;
+            return;
+        }
+
+        const input = document.getElementById(inputId);
+        if (!input || !input.value.trim()) return;
+
+        const content = input.value.trim();
+        const btn = document.getElementById("btnSubmitComment");
+        const spinner = document.getElementById("submitCommentSpinner");
+
+        if (spinner) spinner.classList.remove("d-none");
+        if (btn) btn.disabled = true;
+
+        try {
+            const response = await fetch("/api/discussion/comment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    topicType: topicType,
+                    topicId: topicId,
+                    parentCommentId: parentCommentId,
+                    content: content
+                })
+            });
+
+            if (response.ok) {
+                input.value = "";
+                if (parentCommentId) {
+                    toggleReplyBox(parentCommentId);
+                }
+            } else {
+                const err = await response.json();
+                alert(err.message || "Không thể gửi bình luận.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Lỗi kết nối khi gửi bình luận.");
+        } finally {
+            if (spinner) spinner.classList.add("d-none");
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    async function toggleUpvote(commentId, btn) {
+        if (!isAuthenticated) {
+            window.location.href = `/Account/Login?returnUrl=${encodeURIComponent(window.location.pathname)}`;
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/discussion/upvote?topicType=${encodeURIComponent(topicType)}&topicId=${topicId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ commentId: commentId })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const icon = btn.querySelector("i");
+                const count = btn.querySelector(".upvote-count");
+
+                count.innerText = data.upvotesCount;
+                if (data.isUpvoted) {
+                    btn.classList.remove("btn-outline-secondary");
+                    btn.classList.add("btn-primary");
+                    if (icon) {
+                        icon.classList.remove("bi-hand-thumbs-up");
+                        icon.classList.add("bi-hand-thumbs-up-fill");
+                    }
+                } else {
+                    btn.classList.remove("btn-primary");
+                    btn.classList.add("btn-outline-secondary");
+                    if (icon) {
+                        icon.classList.remove("bi-hand-thumbs-up-fill");
+                        icon.classList.add("bi-hand-thumbs-up");
+                    }
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function markBestAnswer(commentId) {
+        if (!confirm("Bạn có chắc chắn muốn đánh dấu bình luận này là giải pháp chính xác (+15 XP)?")) return;
+
+        try {
+            const response = await fetch(`/api/discussion/mark-best-answer?topicType=${encodeURIComponent(topicType)}&topicId=${topicId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ commentId: commentId })
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                const err = await response.json();
+                alert(err.message || "Không thể đánh dấu giải pháp.");
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function deleteComment(commentId) {
+        if (!confirm("Bạn có chắc chắn muốn xóa bình luận này không?")) return;
+
+        try {
+            const response = await fetch(`/api/discussion/delete-comment?topicType=${encodeURIComponent(topicType)}&topicId=${topicId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ commentId: commentId })
+            });
+
+            if (response.ok) {
+                const el = document.getElementById(`comment-${commentId}`);
+                if (el) el.remove();
+            } else {
+                const err = await response.json();
+                alert(err.message || "Không thể xóa bình luận.");
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function appendCommentHtml(c) {
+        const container = document.getElementById("commentsContainer");
+        const div = document.createElement("div");
+        div.className = "card border-0 shadow-sm bg-body rounded-4 p-3 p-md-4 comment-card new-item-highlight";
+        div.id = `comment-${c.id}`;
+
+        const initial = c.authorName ? c.authorName.charAt(0).toUpperCase() : "U";
+        const adminBadge = c.isAdmin ? `<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill small">Quản trị viên</span>` : "";
+
+        div.innerHTML = `
+            <div class="d-flex align-items-start gap-3">
+                <div class="rounded-circle ${c.isAdmin ? 'bg-danger' : 'bg-primary'} text-white d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0" style="width: 42px; height: 42px;">
+                    ${initial}
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold">${c.authorName}</span>
+                            ${adminBadge}
+                            <span class="badge bg-secondary-subtle text-secondary rounded-pill small"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>${c.authorXp} XP</span>
+                            <span class="text-muted small">· ${c.createdAgo || 'Vừa xong'}</span>
+                        </div>
+                    </div>
+                    <div class="comment-content text-break mb-3">
+                        ${c.contentHtml}
+                    </div>
+                    <div class="d-flex align-items-center gap-3 pt-2 border-top">
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-3 upvote-btn" data-comment-id="${c.id}" onclick="toggleUpvote(${c.id}, this)">
+                            <i class="bi bi-hand-thumbs-up me-1"></i>
+                            <span class="upvote-count">${c.upvotesCount}</span>
+                        </button>
+                        ${isAuthenticated ? `<button type="button" class="btn btn-sm btn-link text-decoration-none text-muted p-0" onclick="toggleReplyBox(${c.id})"><i class="bi bi-reply-fill me-1"></i>Trả lời</button>` : ''}
+                        ${(isAdmin || c.userId === currentUserId) ? `<button type="button" class="btn btn-sm btn-link text-decoration-none text-danger p-0 ms-auto" onclick="deleteComment(${c.id})"><i class="bi bi-trash3 me-1"></i>Xóa</button>` : ''}
+                    </div>
+                    <div class="reply-box mt-3 pt-3 border-top d-none" id="replyBox-${c.id}">
+                        <div class="d-flex gap-2">
+                            <input type="text" class="form-control form-control-sm rounded-pill" id="replyInput-${c.id}" placeholder="Viết câu trả lời của bạn..." onkeydown="if(event.key==='Enter') submitNewComment(${c.id}, 'replyInput-${c.id}')" />
+                            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" onclick="submitNewComment(${c.id}, 'replyInput-${c.id}')">Gửi</button>
+                        </div>
+                    </div>
+                    <div class="replies-container mt-3 ps-3 border-start border-2 d-flex flex-column gap-2" id="replies-${c.id}"></div>
+                </div>
+            </div>
+        `;
+
+        container.insertBefore(div, container.firstChild);
+    }
+
+    function appendReplyHtml(parentId, r) {
+        const repliesContainer = document.getElementById(`replies-${parentId}`);
+        if (!repliesContainer) return;
+
+        const div = document.createElement("div");
+        div.className = "card border-0 bg-body-tertiary rounded-3 p-3 reply-card new-item-highlight";
+        div.id = `comment-${r.id}`;
+
+        const adminBadge = r.isAdmin ? `<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill py-0 px-2" style="font-size: 0.7rem;">Admin</span>` : "";
+
+        div.innerHTML = `
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-semibold small">${r.authorName}</span>
+                    ${adminBadge}
+                    <span class="text-muted" style="font-size: 0.75rem;">· ${r.createdAgo || 'Vừa xong'}</span>
+                </div>
+            </div>
+            <div class="reply-content small text-break mb-2">
+                ${r.contentHtml}
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-0 px-2 upvote-btn" style="font-size: 0.75rem;" data-comment-id="${r.id}" onclick="toggleUpvote(${r.id}, this)">
+                    <i class="bi bi-hand-thumbs-up"></i>
+                    <span class="upvote-count">${r.upvotesCount}</span>
+                </button>
+                ${(isAdmin || r.userId === currentUserId) ? `<button type="button" class="btn btn-sm btn-link text-danger p-0 ms-auto" style="font-size: 0.75rem;" onclick="deleteComment(${r.id})"><i class="bi bi-trash3"></i></button>` : ''}
+            </div>
+        `;
+
+        repliesContainer.appendChild(div);
+    }
+
+    document.addEventListener("DOMContentLoaded", initSignalR);
+</script>
+
+<style>
+    .pulse-dot {
+        animation: pulseAnimation 2s infinite;
+        display: inline-block;
+    }
+    @@keyframes pulseAnimation {
+        0% { transform: scale(0.95); opacity: 0.8; }
+        50% { transform: scale(1.3); opacity: 1; }
+        100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .new-item-highlight {
+        animation: highlightFade 3s ease forwards;
+    }
+    @@keyframes highlightFade {
+        0% { background-color: rgba(13, 110, 253, 0.12) !important; }
+        100% { background-color: inherit; }
+    }
+</style>

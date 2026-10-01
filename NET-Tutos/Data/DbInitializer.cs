@@ -17,6 +17,9 @@ public static class DbInitializer
         // Ensure newly added LMS Playground tables exist
         await EnsurePlaygroundTablesExistAsync(context);
 
+        // Ensure newly added LMS Discussion & Gamification tables exist
+        await EnsureDiscussionAndGamificationTablesExistAsync(context);
+
         // Seed Roles
         string[] roles = { "Admin", "Student" };
         foreach (var role in roles)
@@ -54,6 +57,12 @@ public static class DbInitializer
         if (!await context.CodingChallenges.AnyAsync())
         {
             await SeedCodingChallengesAsync(context);
+        }
+
+        // Seed Initial Discussions and Badges if none exist
+        if (!await context.DiscussionComments.AnyAsync())
+        {
+            await SeedInitialDiscussionsAndBadgesAsync(context, userManager);
         }
 
         // Check if data already exists
@@ -1600,6 +1609,181 @@ Viết hàm `Fibonacci(int n)` trả về số Fibonacci thứ $n$.
                 END
             ");
         }
+    }
+
+    private static async Task EnsureDiscussionAndGamificationTablesExistAsync(AppDbContext context)
+    {
+        bool isSqlite = context.Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true;
+
+        if (isSqlite)
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS [DiscussionComments] (
+                    [Id] INTEGER PRIMARY KEY AUTOINCREMENT,
+                    [TutorialId] INTEGER NULL,
+                    [CodingChallengeId] INTEGER NULL,
+                    [UserId] TEXT NOT NULL,
+                    [ParentCommentId] INTEGER NULL,
+                    [ContentMarkdown] TEXT NOT NULL,
+                    [UpvotesCount] INTEGER NOT NULL DEFAULT 0,
+                    [IsPinned] INTEGER NOT NULL DEFAULT 0,
+                    [IsBestAnswer] INTEGER NOT NULL DEFAULT 0,
+                    [CreatedAt] TEXT NOT NULL,
+                    [UpdatedAt] TEXT NULL,
+                    FOREIGN KEY ([TutorialId]) REFERENCES [Tutorials] ([Id]) ON DELETE CASCADE,
+                    FOREIGN KEY ([CodingChallengeId]) REFERENCES [CodingChallenges] ([Id]) ON DELETE CASCADE,
+                    FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE,
+                    FOREIGN KEY ([ParentCommentId]) REFERENCES [DiscussionComments] ([Id]) ON DELETE RESTRICT
+                );
+
+                CREATE TABLE IF NOT EXISTS [CommentUpvotes] (
+                    [Id] INTEGER PRIMARY KEY AUTOINCREMENT,
+                    [CommentId] INTEGER NOT NULL,
+                    [UserId] TEXT NOT NULL,
+                    [CreatedAt] TEXT NOT NULL,
+                    FOREIGN KEY ([CommentId]) REFERENCES [DiscussionComments] ([Id]) ON DELETE CASCADE,
+                    FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+                );
+
+                CREATE UNIQUE INDEX IF NOT EXISTS [IX_CommentUpvotes_CommentId_UserId] 
+                ON [CommentUpvotes] ([CommentId], [UserId]);
+
+                CREATE TABLE IF NOT EXISTS [UserBadges] (
+                    [Id] INTEGER PRIMARY KEY AUTOINCREMENT,
+                    [UserId] TEXT NOT NULL,
+                    [BadgeCode] TEXT NOT NULL,
+                    [Title] TEXT NOT NULL,
+                    [Description] TEXT NULL,
+                    [IconClass] TEXT NOT NULL DEFAULT 'bi-award',
+                    [ColorClass] TEXT NOT NULL DEFAULT 'primary',
+                    [EarnedAt] TEXT NOT NULL,
+                    FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+                );
+
+                CREATE UNIQUE INDEX IF NOT EXISTS [IX_UserBadges_UserId_BadgeCode] 
+                ON [UserBadges] ([UserId], [BadgeCode]);
+            ");
+        }
+        else
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'DiscussionComments')
+                BEGIN
+                    CREATE TABLE [DiscussionComments] (
+                        [Id] int NOT NULL IDENTITY,
+                        [TutorialId] int NULL,
+                        [CodingChallengeId] int NULL,
+                        [UserId] nvarchar(450) NOT NULL,
+                        [ParentCommentId] int NULL,
+                        [ContentMarkdown] nvarchar(max) NOT NULL,
+                        [UpvotesCount] int NOT NULL DEFAULT 0,
+                        [IsPinned] bit NOT NULL DEFAULT 0,
+                        [IsBestAnswer] bit NOT NULL DEFAULT 0,
+                        [CreatedAt] datetime2 NOT NULL,
+                        [UpdatedAt] datetime2 NULL,
+                        CONSTRAINT [PK_DiscussionComments] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_DiscussionComments_Tutorials_TutorialId] FOREIGN KEY ([TutorialId]) REFERENCES [Tutorials] ([Id]) ON DELETE CASCADE,
+                        CONSTRAINT [FK_DiscussionComments_CodingChallenges_CodingChallengeId] FOREIGN KEY ([CodingChallengeId]) REFERENCES [CodingChallenges] ([Id]) ON DELETE CASCADE,
+                        CONSTRAINT [FK_DiscussionComments_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE,
+                        CONSTRAINT [FK_DiscussionComments_DiscussionComments_ParentCommentId] FOREIGN KEY ([ParentCommentId]) REFERENCES [DiscussionComments] ([Id])
+                    );
+                END
+
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'CommentUpvotes')
+                BEGIN
+                    CREATE TABLE [CommentUpvotes] (
+                        [Id] int NOT NULL IDENTITY,
+                        [CommentId] int NOT NULL,
+                        [UserId] nvarchar(450) NOT NULL,
+                        [CreatedAt] datetime2 NOT NULL,
+                        CONSTRAINT [PK_CommentUpvotes] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_CommentUpvotes_DiscussionComments_CommentId] FOREIGN KEY ([CommentId]) REFERENCES [DiscussionComments] ([Id]) ON DELETE CASCADE,
+                        CONSTRAINT [FK_CommentUpvotes_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+                    );
+                    CREATE UNIQUE INDEX [IX_CommentUpvotes_CommentId_UserId] ON [CommentUpvotes] ([CommentId], [UserId]);
+                END
+
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'UserBadges')
+                BEGIN
+                    CREATE TABLE [UserBadges] (
+                        [Id] int NOT NULL IDENTITY,
+                        [UserId] nvarchar(450) NOT NULL,
+                        [BadgeCode] nvarchar(50) NOT NULL,
+                        [Title] nvarchar(150) NOT NULL,
+                        [Description] nvarchar(300) NULL,
+                        [IconClass] nvarchar(50) NOT NULL DEFAULT 'bi-award',
+                        [ColorClass] nvarchar(50) NOT NULL DEFAULT 'primary',
+                        [EarnedAt] datetime2 NOT NULL,
+                        CONSTRAINT [PK_UserBadges] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_UserBadges_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+                    );
+                    CREATE UNIQUE INDEX [IX_UserBadges_UserId_BadgeCode] ON [UserBadges] ([UserId], [BadgeCode]);
+                END
+            ");
+        }
+    }
+
+    private static async Task SeedInitialDiscussionsAndBadgesAsync(AppDbContext context, UserManager<ApplicationUser> userManager)
+    {
+        var admin = await userManager.FindByEmailAsync("admin@nettutos.com");
+        if (admin == null) return;
+
+        // Seed Admin badges
+        var badges = new List<UserBadge>
+        {
+            new() { UserId = admin.Id, BadgeCode = "NEWBIE", Title = "Tân Binh .NET", Description = "Bắt đầu hành trình và hoàn thành bài học lý thuyết đầu tiên", IconClass = "bi-rocket-takeoff-fill", ColorClass = "primary", EarnedAt = DateTime.UtcNow },
+            new() { UserId = admin.Id, BadgeCode = "SCHOLAR", Title = "Học Giả Chăm Chỉ", Description = "Kiên trì tích lũy kiến thức và hoàn thành từ 5 bài học", IconClass = "bi-book-half", ColorClass = "info", EarnedAt = DateTime.UtcNow },
+            new() { UserId = admin.Id, BadgeCode = "CERTIFIED", Title = "Bậc Thầy Chứng Chỉ", Description = "Vượt qua kỳ thi tốt nghiệp và nhận chứng chỉ số chính thức", IconClass = "bi-award-fill", ColorClass = "success", EarnedAt = DateTime.UtcNow },
+            new() { UserId = admin.Id, BadgeCode = "COMMUNITY_HERO", Title = "Người Truyền Lửa", Description = "Tích cực đóng góp lời giải và hỗ trợ cộng đồng học viên", IconClass = "bi-chat-heart-fill", ColorClass = "purple", EarnedAt = DateTime.UtcNow }
+        };
+
+        foreach (var b in badges)
+        {
+            if (!await context.UserBadges.AnyAsync(ub => ub.UserId == admin.Id && ub.BadgeCode == b.BadgeCode))
+            {
+                context.UserBadges.Add(b);
+            }
+        }
+
+        var firstTutorial = await context.Tutorials.OrderBy(t => t.OrderIndex).FirstOrDefaultAsync();
+        if (firstTutorial != null)
+        {
+            var pinnedComment = new DiscussionComment
+            {
+                TutorialId = firstTutorial.Id,
+                UserId = admin.Id,
+                ContentMarkdown = "👋 Chào mừng bạn đến với khu vực thảo luận của bài học! Nếu gặp bất kỳ vướng mắc nào về cú pháp C# hoặc thiết lập môi trường .NET, hãy để lại câu hỏi để được giải đáp nhanh chóng nhé.",
+                IsPinned = true,
+                UpvotesCount = 5,
+                CreatedAt = DateTime.UtcNow.AddHours(-2)
+            };
+            context.DiscussionComments.Add(pinnedComment);
+
+            var questionComment = new DiscussionComment
+            {
+                TutorialId = firstTutorial.Id,
+                UserId = admin.Id,
+                ContentMarkdown = "💡 **Câu hỏi tham khảo**: Cho mình hỏi sự khác nhau căn bản giữa lệnh `dotnet --info` và `dotnet --version` trong Terminal là gì?",
+                UpvotesCount = 2,
+                CreatedAt = DateTime.UtcNow.AddMinutes(-45)
+            };
+            context.DiscussionComments.Add(questionComment);
+            await context.SaveChangesAsync();
+
+            var replyComment = new DiscussionComment
+            {
+                TutorialId = firstTutorial.Id,
+                UserId = admin.Id,
+                ParentCommentId = questionComment.Id,
+                ContentMarkdown = "`dotnet --version` chỉ in ra phiên bản SDK đang kích hoạt hiện tại. Trong khi `dotnet --info` sẽ liệt kê toàn bộ thông tin chi tiết về môi trường: kiến trúc hệ điều hành (x64/ARM), danh sách tất cả các .NET SDK và .NET Runtime đã cài đặt trên máy.",
+                IsBestAnswer = true,
+                UpvotesCount = 4,
+                CreatedAt = DateTime.UtcNow.AddMinutes(-30)
+            };
+            context.DiscussionComments.Add(replyComment);
+        }
+
+        await context.SaveChangesAsync();
     }
 }
 

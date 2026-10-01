@@ -23,4 +23,7 @@ public class ApplicationUser : IdentityUser
     public ICollection<QuizAttempt> QuizAttempts { get; set; } = new List<QuizAttempt>();
     public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
     public ICollection<CodeSubmission> Submissions { get; set; } = new List<CodeSubmission>();
+    public ICollection<DiscussionComment> Comments { get; set; } = new List<DiscussionComment>();
+    public ICollection<CommentUpvote> Upvotes { get; set; } = new List<CommentUpvote>();
+    public ICollection<UserBadge> Badges { get; set; } = new List<UserBadge>();
 }
