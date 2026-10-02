@@ -38,18 +38,29 @@
                 </p>
             </div>
 
-            @if (Model.LastAccessedTutorial != null)
-            {
                 <div class="col-md-auto text-center text-md-end">
-                    <span class="small text-muted d-block mb-1">Bài học xem gần nhất:</span>
-                    <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@Model.LastAccessedTutorial.Slug" 
-                       class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold">
-                        <i class="bi bi-play-circle-fill me-1"></i> Tiếp tục học
-                    </a>
+                    @if (Model.LastAccessedTutorial != null)
+                    {
+                        <span class="small text-muted d-block mb-1">Bài học xem gần nhất:</span>
+                        <div class="d-flex gap-2 justify-content-center justify-content-md-end flex-wrap">
+                            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@Model.LastAccessedTutorial.Slug" 
+                               class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold">
+                                <i class="bi bi-play-circle-fill me-1"></i> Tiếp tục học
+                            </a>
+                            <a asp-controller="Project" asp-action="MyProjects" class="btn btn-outline-primary rounded-pill px-3 shadow-sm fw-semibold">
+                                <i class="bi bi-folder-check me-1"></i> Đồ án của tôi
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-controller="Project" asp-action="MyProjects" class="btn btn-outline-primary rounded-pill px-3 shadow-sm fw-semibold">
+                            <i class="bi bi-folder-check me-1"></i> Đồ án của tôi
+                        </a>
+                    }
                 </div>
-            }
+            </div>
         </div>
-    </div>
 
     <!-- Quick Stats Cards -->
     <div class="row g-3 g-md-4 mb-4">

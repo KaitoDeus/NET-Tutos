@@ -111,6 +111,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link text-nowrap @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Project" ? "active fw-semibold" : "")"
+                               asp-controller="Project" asp-action="Index">
+                                <i class="bi bi-folder-check me-1 text-primary"></i> Đồ án thực chiến
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-nowrap @(ViewContext.RouteData.Values["Controller"]?.ToString() == "CheatSheet" ? "active fw-semibold" : "")"
                                asp-controller="CheatSheet" asp-action="Index">
                                 <i class="bi bi-code-square me-1 text-info"></i> Tra cứu Code
@@ -197,11 +203,21 @@
                                             <i class="bi bi-mortarboard text-primary"></i> Góc học tập (Dashboard)
                                         </a>
                                     </li>
+                                    <li>
+                                        <a class="dropdown-item py-2 d-flex align-items-center gap-2" asp-controller="Project" asp-action="MyProjects">
+                                            <i class="bi bi-folder-check text-success"></i> Đồ án của tôi
+                                        </a>
+                                    </li>
                                     @if (User.IsInRole("Admin"))
                                     {
                                         <li>
                                             <a class="dropdown-item py-2 d-flex align-items-center gap-2 text-primary fw-semibold" asp-controller="Admin" asp-action="Index">
                                                 <i class="bi bi-speedometer2"></i> Quản trị LMS
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-2 d-flex align-items-center gap-2 text-warning fw-semibold" asp-controller="AdminProjects" asp-action="Submissions">
+                                                <i class="bi bi-inbox-fill"></i> Duyệt đồ án học viên
                                             </a>
                                         </li>
                                     }

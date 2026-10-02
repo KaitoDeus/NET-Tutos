@@ -8,7 +8,8 @@ public enum ActivityType
     CertificateEarned = 3,
     StreakAchieved = 4,
     BadgeEarned = 5,
-    DiscussionComment = 6
+    DiscussionComment = 6,
+    ProjectApproved = 7
 }
 
 public class ActivityFeedItem

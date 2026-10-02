@@ -766,3 +766,17 @@ body {
         transform: scale(1);
     }
 }
+
+/* Capstone Project Styles */
+.bg-gradient-primary-subtle {
+    background: linear-gradient(135deg, rgba(81, 43, 212, 0.08) 0%, rgba(43, 120, 228, 0.04) 100%);
+}
+
+.transition-hover {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.transition-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-shadow-hover) !important;
+}

@@ -129,6 +129,9 @@ public class ActivityFeedService : IActivityFeedService
                 case "badge":
                     query = query.Where(a => a.Type == ActivityType.BadgeEarned || a.Type == ActivityType.StreakAchieved);
                     break;
+                case "project":
+                    query = query.Where(a => a.Type == ActivityType.ProjectApproved);
+                    break;
             }
         }
 
@@ -185,6 +188,7 @@ public class ActivityFeedService : IActivityFeedService
         ActivityType.StreakAchieved => ("Chuỗi Streak", "danger", "bi-fire"),
         ActivityType.BadgeEarned => ("Huy hiệu", "warning", "bi-trophy-fill"),
         ActivityType.DiscussionComment => ("Thảo luận", "primary", "bi-chat-dots-fill"),
+        ActivityType.ProjectApproved => ("Đồ án", "success", "bi-folder-check"),
         _ => ("Hoạt động", "secondary", "bi-activity")
     };
 }

@@ -206,6 +206,8 @@ public class NotificationService : INotificationService
         NotificationType.BonusXpAwarded => ("bi-lightning-charge-fill", "text-warning"),
         NotificationType.LessonCompleted => ("bi-check-circle-fill", "text-info"),
         NotificationType.ChallengeSolved => ("bi-code-slash", "text-danger"),
+        NotificationType.ProjectSubmitted => ("bi-folder-check", "text-info"),
+        NotificationType.ProjectReviewed => ("bi-star-fill", "text-success"),
         _ => ("bi-bell-fill", "text-primary")
     };
 
@@ -220,6 +222,8 @@ public class NotificationService : INotificationService
         NotificationType.BonusXpAwarded => "Thưởng điểm XP",
         NotificationType.LessonCompleted => "Bài học",
         NotificationType.ChallengeSolved => "Thử thách C#",
+        NotificationType.ProjectSubmitted => "Nộp đồ án",
+        NotificationType.ProjectReviewed => "Đánh giá đồ án",
         _ => "Hệ thống"
     };
 

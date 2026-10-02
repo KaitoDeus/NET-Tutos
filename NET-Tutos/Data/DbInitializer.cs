@@ -26,6 +26,9 @@ public static class DbInitializer
         // Ensure newly added LMS Notification & Activity Feed tables exist
         await EnsureNotificationAndActivityTablesExistAsync(context);
 
+        // Ensure newly added LMS Capstone Project tables exist
+        await EnsureCapstoneProjectTablesExistAsync(context);
+
         // Seed Roles
         string[] roles = { "Admin", "Student" };
         foreach (var role in roles)
@@ -69,6 +72,12 @@ public static class DbInitializer
         if (!await context.DiscussionComments.AnyAsync())
         {
             await SeedInitialDiscussionsAndBadgesAsync(context, userManager);
+        }
+
+        // Seed Capstone Projects if none exist
+        if (!await context.CapstoneProjects.AnyAsync())
+        {
+            await SeedCapstoneProjectsAsync(context);
         }
 
         // Check if data already exists
@@ -2069,6 +2078,272 @@ Viết hàm `Fibonacci(int n)` trả về số Fibonacci thứ $n$.
             );
         }
 
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task EnsureCapstoneProjectTablesExistAsync(AppDbContext context)
+    {
+        var isSqlite = context.Database.IsSqlite();
+        if (isSqlite)
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS [CapstoneProjects] (
+                    [Id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    [Title] TEXT NOT NULL,
+                    [Slug] TEXT NOT NULL,
+                    [ShortDescription] TEXT NOT NULL,
+                    [FullContentMarkdown] TEXT NOT NULL,
+                    [RequirementsMarkdown] TEXT NOT NULL,
+                    [TechStack] TEXT NOT NULL,
+                    [Level] INTEGER NOT NULL DEFAULT 2,
+                    [EstimatedHours] INTEGER NOT NULL DEFAULT 15,
+                    [RewardXp] INTEGER NOT NULL DEFAULT 200,
+                    [GitHubTemplateUrl] TEXT NULL,
+                    [CategoryId] INTEGER NOT NULL,
+                    [OrderIndex] INTEGER NOT NULL DEFAULT 0,
+                    [IsPublished] INTEGER NOT NULL DEFAULT 1,
+                    [CreatedAt] TEXT NOT NULL,
+                    FOREIGN KEY ([CategoryId]) REFERENCES [Categories] ([Id]) ON DELETE CASCADE
+                );
+
+                CREATE UNIQUE INDEX IF NOT EXISTS [IX_CapstoneProjects_Slug]
+                ON [CapstoneProjects] ([Slug]);
+
+                CREATE TABLE IF NOT EXISTS [ProjectSubmissions] (
+                    [Id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    [ProjectId] INTEGER NOT NULL,
+                    [UserId] TEXT NOT NULL,
+                    [GitHubRepoUrl] TEXT NOT NULL,
+                    [LiveDemoUrl] TEXT NULL,
+                    [Notes] TEXT NOT NULL,
+                    [Status] INTEGER NOT NULL DEFAULT 0,
+                    [Score] INTEGER NULL,
+                    [ReviewerFeedback] TEXT NULL,
+                    [ReviewedByUserId] TEXT NULL,
+                    [SubmittedAt] TEXT NOT NULL,
+                    [ReviewedAt] TEXT NULL,
+                    [XpAwarded] INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY ([ProjectId]) REFERENCES [CapstoneProjects] ([Id]) ON DELETE CASCADE,
+                    FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE,
+                    FOREIGN KEY ([ReviewedByUserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE SET NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS [IX_ProjectSubmissions_ProjectId_UserId]
+                ON [ProjectSubmissions] ([ProjectId], [UserId]);
+            ");
+        }
+        else
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'CapstoneProjects')
+                BEGIN
+                    CREATE TABLE [CapstoneProjects] (
+                        [Id] int NOT NULL IDENTITY,
+                        [Title] nvarchar(250) NOT NULL,
+                        [Slug] nvarchar(250) NOT NULL,
+                        [ShortDescription] nvarchar(500) NOT NULL,
+                        [FullContentMarkdown] nvarchar(max) NOT NULL,
+                        [RequirementsMarkdown] nvarchar(max) NOT NULL,
+                        [TechStack] nvarchar(250) NOT NULL,
+                        [Level] int NOT NULL DEFAULT 2,
+                        [EstimatedHours] int NOT NULL DEFAULT 15,
+                        [RewardXp] int NOT NULL DEFAULT 200,
+                        [GitHubTemplateUrl] nvarchar(500) NULL,
+                        [CategoryId] int NOT NULL,
+                        [OrderIndex] int NOT NULL DEFAULT 0,
+                        [IsPublished] bit NOT NULL DEFAULT 1,
+                        [CreatedAt] datetime2 NOT NULL,
+                        CONSTRAINT [PK_CapstoneProjects] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_CapstoneProjects_Categories_CategoryId] FOREIGN KEY ([CategoryId]) REFERENCES [Categories] ([Id]) ON DELETE CASCADE
+                    );
+                    CREATE UNIQUE INDEX [IX_CapstoneProjects_Slug] ON [CapstoneProjects] ([Slug]);
+                END
+
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ProjectSubmissions')
+                BEGIN
+                    CREATE TABLE [ProjectSubmissions] (
+                        [Id] int NOT NULL IDENTITY,
+                        [ProjectId] int NOT NULL,
+                        [UserId] nvarchar(450) NOT NULL,
+                        [GitHubRepoUrl] nvarchar(500) NOT NULL,
+                        [LiveDemoUrl] nvarchar(500) NULL,
+                        [Notes] nvarchar(2000) NOT NULL,
+                        [Status] int NOT NULL DEFAULT 0,
+                        [Score] int NULL,
+                        [ReviewerFeedback] nvarchar(max) NULL,
+                        [ReviewedByUserId] nvarchar(450) NULL,
+                        [SubmittedAt] datetime2 NOT NULL,
+                        [ReviewedAt] datetime2 NULL,
+                        [XpAwarded] int NOT NULL DEFAULT 0,
+                        CONSTRAINT [PK_ProjectSubmissions] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_ProjectSubmissions_CapstoneProjects_ProjectId] FOREIGN KEY ([ProjectId]) REFERENCES [CapstoneProjects] ([Id]) ON DELETE CASCADE,
+                        CONSTRAINT [FK_ProjectSubmissions_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE,
+                        CONSTRAINT [FK_ProjectSubmissions_AspNetUsers_ReviewedByUserId] FOREIGN KEY ([ReviewedByUserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE SET NULL
+                    );
+                    CREATE INDEX [IX_ProjectSubmissions_ProjectId_UserId] ON [ProjectSubmissions] ([ProjectId], [UserId]);
+                END
+            ");
+        }
+    }
+
+    private static async Task SeedCapstoneProjectsAsync(AppDbContext context)
+    {
+        var catWeb = await context.Categories.FirstOrDefaultAsync(c => c.Slug == "aspnet-core-mvc")
+            ?? await context.Categories.OrderBy(c => c.OrderIndex).FirstOrDefaultAsync();
+
+        if (catWeb == null) return;
+
+        var catEf = await context.Categories.FirstOrDefaultAsync(c => c.Slug == "entity-framework-core") ?? catWeb;
+        var catOop = await context.Categories.FirstOrDefaultAsync(c => c.Slug == "oop-csharp-nang-cao") ?? catWeb;
+
+        var projects = new List<CapstoneProject>
+        {
+            new()
+            {
+                Title = "Xây dựng RESTful Web API Quản Lý Thư Viện Sách (Book Library API)",
+                Slug = "xay-dung-restful-web-api-quan-ly-thu-vien-sach",
+                ShortDescription = "Thiết kế và xây dựng dịch vụ RESTful API chuẩn mực bằng ASP.NET Core Web API kết hợp Entity Framework Core, áp dụng DTOs, Repository Pattern, Dependency Injection và Swagger UI.",
+                TechStack = "ASP.NET Core 10 Web API, EF Core, SQLite/SQL Server, Swagger / OpenAPI, AutoMapper",
+                Level = DifficultyLevel.Beginner,
+                EstimatedHours = 10,
+                RewardXp = 150,
+                OrderIndex = 1,
+                GitHubTemplateUrl = "https://github.com/dotnet/dotnet-docker",
+                CategoryId = catWeb.Id,
+                IsPublished = true,
+                CreatedAt = DateTime.UtcNow.AddDays(-10),
+                RequirementsMarkdown = @"### 🎯 Mục Tiêu Dự Án
+Xây dựng một hệ thống Web API RESTful hoàn chỉnh hỗ trợ nghiệp vụ mượn/trả và quản lý kho sách thư viện. Dự án giúp bạn làm chủ cách xây dựng API chuẩn REST, xử lý dữ liệu với EF Core và tài liệu hóa qua Swagger.
+
+---
+
+### 📋 Yêu Cầu Chức Năng (Functional Requirements)
+1. **Quản lý Danh mục Sách (Books CRUD)**:
+   - `GET /api/books`: Lấy danh sách sách (hỗ trợ phân trang `pageIndex`, `pageSize`, lọc theo thể loại `genre` và tìm kiếm theo `title`).
+   - `GET /api/books/{id}`: Xem chi tiết cuốn sách kèm thông tin tác giả và trạng thái còn hàng.
+   - `POST /api/books`: Thêm sách mới (Validate dữ liệu đầu vào: Tiêu đề không rỗng, Năm xuất bản hợp lệ, Giá bán > 0).
+   - `PUT /api/books/{id}`: Cập nhật thông tin sách.
+   - `DELETE /api/books/{id}`: Xóa sách (chỉ cho phép xóa khi sách không có người đang mượn).
+2. **Quản lý Độc Giả (Members)**:
+   - Thêm độc giả mới kèm số điện thoại, email và mã thẻ thư viện.
+3. **Nghiệp Vụ Mượn/Trả Sách (Borrowing Transactions)**:
+   - `POST /api/borrow`: Tạo phiếu mượn sách. Tự động giảm số lượng tồn kho `AvailableCopies`.
+   - `POST /api/return`: Ghi nhận trả sách và tính phí quá hạn nếu có.
+
+---
+
+### 🛡️ Tiêu Chuẩn Kỹ Thuật (Technical Rubrics & Clean Code)
+- [ ] **Data Transfer Objects (DTOs)**: Tuyệt đối không trả trực tiếp Database Entity ra Controller. Dùng DTOs riêng cho Request và Response.
+- [ ] **Repository Pattern & DI**: Tách tầng truy cập dữ liệu qua `IBookRepository` và đăng ký Scoped Service trong `Program.cs`.
+- [ ] **Global Error Handling**: Xử lý ngoại lệ tập trung qua `UseExceptionHandler` hoặc `ExceptionFilter`, trả về định dạng `ProblemDetails` (RFC 7807).
+- [ ] **API Documentation**: Tích hợp Swagger / OpenAPI với chú thích đầy đủ cho từng Endpoint.",
+                FullContentMarkdown = @"# Hướng Dẫn Thực Hiện Đồ Án: Book Library RESTful API
+
+Chào mừng bạn đến với đồ án thực chiến đầu tiên trong lộ trình trở thành **ASP.NET Core Backend Developer**! 
+
+Trong dự án này, bạn sẽ đóng vai trò là một lập trình viên backend phụ trách thiết kế toàn bộ hệ thống API cho một ứng dụng quản lý thư viện sách trường học.
+
+### 1. Kiến Trúc Khuyến Nghị (Project Architecture)
+Bạn nên tổ chức solution theo cấu trúc phân tầng rõ ràng:
+- `LibraryApi.Domain`: Chứa các Entities (`Book`, `Author`, `BorrowRecord`).
+- `LibraryApi.Infrastructure`: Chứa `LibraryDbContext`, cấu hình EF Core Migrations và các Repositories.
+- `LibraryApi.Application`: Chứa Interfaces, DTOs, Business Validators.
+- `LibraryApi.Web`: ASP.NET Core Web API Controllers, cấu hình Swagger, Middleware.
+
+### 2. Các Bước Nộp Bài
+1. Tạo một repository mới trên GitHub (Public).
+2. Viết mã nguồn dự án kèm tệp `README.md` mô tả cách chạy dự án, hình ảnh Swagger UI và hướng dẫn kết nối database.
+3. Nhập đường dẫn GitHub repository vào form nộp bài bên cạnh và ghi chú tóm tắt kiến trúc bạn đã lựa chọn."
+            },
+            new()
+            {
+                Title = "Hệ Thống Đặt Hàng & Thanh Toán Mini với Clean Architecture & CQRS",
+                Slug = "he-thong-dat-hang-mini-clean-architecture-cqrs",
+                ShortDescription = "Áp dụng kiến trúc Clean Architecture (Domain-Driven Design), mẫu thiết kế CQRS với MediatR, FluentValidation, Unit Testing và xử lý giao dịch an toàn (ACID Transactions) trong ASP.NET Core.",
+                TechStack = "ASP.NET Core 10, Clean Architecture, MediatR (CQRS), FluentValidation, EF Core, xUnit, Moq",
+                Level = DifficultyLevel.Intermediate,
+                EstimatedHours = 20,
+                RewardXp = 250,
+                OrderIndex = 2,
+                GitHubTemplateUrl = "https://github.com/jasontaylordev/CleanArchitecture",
+                CategoryId = catEf.Id,
+                IsPublished = true,
+                CreatedAt = DateTime.UtcNow.AddDays(-7),
+                RequirementsMarkdown = @"### 🎯 Mục Tiêu Dự Án
+Xây dựng module Đặt hàng (Ordering Module) chuẩn doanh nghiệp với Clean Architecture. Dự án tập trung vào tính phân tách trách nhiệm (Separation of Concerns), kiểm thử tự động (Unit Test) và kiến trúc mở rộng cao.
+
+---
+
+### 📋 Yêu Cầu Chức Năng (Functional Requirements)
+1. **Quản lý Giỏ hàng & Sản phẩm**:
+   - Kiểm tra tồn kho trước khi đặt hàng.
+   - Tính toán tổng tiền, thuế VAT và mã giảm giá (Coupon).
+2. **Quy trình Đặt hàng (Order Processing)**:
+   - `CreateOrderCommand`: Tạo đơn hàng mới với trạng thái `Pending`.
+   - `CancelOrderCommand`: Hủy đơn hàng và hoàn lại tồn kho nếu đơn chưa giao.
+   - `GetOrderByIdQuery` & `GetOrdersByCustomerQuery`: Truy vấn đơn hàng tối ưu với `AsNoTracking`.
+3. **Xử lý Sự kiện Nghiệp vụ (Domain Events)**:
+   - Khi đơn hàng được tạo thành công: Phát sinh sự kiện `OrderCreatedDomainEvent` để gửi email thông báo và trừ kho.
+
+---
+
+### 🛡️ Tiêu Chuẩn Kỹ Thuật (Technical Rubrics & Clean Code)
+- [ ] **Clean Architecture Layers**: Tách độc lập 4 tầng `Domain`, `Application`, `Infrastructure`, `WebApi`. Domain không phụ thuộc vào bất kỳ thư viện bên thứ 3 nào.
+- [ ] **CQRS Pattern**: Tách biệt luồng Ghi (Command) và luồng Đọc (Query) sử dụng MediatR.
+- [ ] **Validation Pipeline**: Tự động xác thực dữ liệu đầu vào qua MediatR Pipeline Behavior kết hợp FluentValidation.
+- [ ] **Unit Tests**: Tối thiểu 5 Unit Test kiểm tra Domain Logic tính tiền và hủy đơn hàng với `xUnit` và `Moq` (Test coverage $\ge 70\%$).",
+                FullContentMarkdown = @"# Hướng Dẫn Thực Hiện Đồ Án: Ordering System Clean Architecture
+
+Đồ án này là bài kiểm tra toàn diện năng lực thiết kế phần mềm theo phong cách hiện đại của các tập đoàn công nghệ lớn: **Clean Architecture & Domain-Driven Design**.
+
+### 1. Điểm Mấu Chốt Cần Đạt Được
+- **Domain Centric**: Logic nghiệp vụ cốt lõi nằm hoàn toàn trong tầng Domain.
+- **Fail-Fast**: Bắt mọi lỗi logic và dữ liệu đầu vào ngay tại Pipeline trước khi chạm tới Controller.
+- **Unit Testing First**: Đảm bảo nghiệp vụ mua hàng và trừ tồn kho được bảo vệ bằng các bài kiểm thử tự động."
+            },
+            new()
+            {
+                Title = "Nền Tảng Đấu Giá Trực Tuyến Thời Gian Thực với ASP.NET Core & SignalR",
+                Slug = "nen-tang-dau-gia-truc-tuyen-realtime-signalr",
+                ShortDescription = "Xây dựng hệ thống đấu giá trực tiếp (Live Auction) đa người dùng: đếm ngược thời gian thực, đặt giá thầu tức thì với SignalR, đồng bộ trạng thái nhiều client và chống tranh chấp dữ liệu (Optimistic Concurrency Control).",
+                TechStack = "ASP.NET Core 10, SignalR WebSocket, EF Core Concurrency Tokens, BackgroundService (Worker), Bootstrap 5",
+                Level = DifficultyLevel.Advanced,
+                EstimatedHours = 25,
+                RewardXp = 350,
+                OrderIndex = 3,
+                GitHubTemplateUrl = "https://github.com/dotnet/aspnetcore",
+                CategoryId = catOop.Id,
+                IsPublished = true,
+                CreatedAt = DateTime.UtcNow.AddDays(-3),
+                RequirementsMarkdown = @"### 🎯 Mục Tiêu Dự Án
+Xây dựng một sàn đấu giá trực tuyến hoạt động thời gian thực (Real-time). Hàng trăm người dùng có thể cùng theo dõi một phiên đấu giá, xem bước giá nhảy tức thì mà không cần tải lại trang, và hệ thống tự động chốt phiên khi hết thời gian.
+
+---
+
+### 📋 Yêu Cầu Chức Năng (Functional Requirements)
+1. **Phòng Đấu Giá Trực Tiếp (Live Auction Room)**:
+   - Kết nối SignalR Hub theo phòng `AuctionRoom_{id}`.
+   - Đồng hồ đếm ngược thời gian phiên đấu giá đồng bộ chính xác tới từng giây giữa server và tất cả client.
+2. **Đặt Giá Thầu Thời Gian Thực (Real-time Bidding)**:
+   - Học viên nhập mức giá mới $\ge$ giá hiện tại + bước giá tối thiểu.
+   - Phát sóng (Broadcast) giá mới kèm tên người trả giá cao nhất cho toàn bộ người xem trong phòng trong vòng < 100ms.
+3. **Tự Động Kết Thúc Phiên (Background Worker Service)**:
+   - Sử dụng `.NET BackgroundService` chạy ngầm định kỳ kiểm tra các phiên hết hạn, tự động đổi trạng thái `Ended`, ghi nhận người chiến thắng và gửi thông báo.
+
+---
+
+### 🛡️ Tiêu Chuẩn Kỹ Thuật (Technical Rubrics & Clean Code)
+- [ ] **Concurrency Control**: Sử dụng `[Timestamp]` / `RowVersion` trong EF Core để xử lý xung đột khi 2 người cùng đặt giá tại cùng 1 phần nghìn giây.
+- [ ] **SignalR Groups & Connection Management**: Quản lý join/leave group an toàn, hiển thị số lượng người đang xem trực tiếp.
+- [ ] **Background Processing**: Tách biệt logic kiểm tra phiên đấu giá sang Hosted Service chạy nền độc lập với luồng Web request.
+- [ ] **Resilience**: Tự động phục hồi kết nối SignalR (`withUrl().withAutomaticReconnect()`) khi mạng chập chờn.",
+                FullContentMarkdown = @"# Hướng Dẫn Thực Hiện Đồ Án: Live Auction Real-time Platform
+
+Đây là đồ án thực chiến cấp độ Nâng cao đòi hỏi sự kết hợp nhuần nhuyễn giữa kiến trúc Backend xử lý song song đa luồng, giao tiếp WebSocket thời gian thực và quản lý tranh chấp dữ liệu ngân hàng/tài chính."
+            }
+        };
+
+        context.CapstoneProjects.AddRange(projects);
         await context.SaveChangesAsync();
     }
 }

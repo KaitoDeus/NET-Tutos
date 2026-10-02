@@ -1,0 +1,175 @@
+@model NET_Tutos.Models.ViewModels.AdminReviewInputModel
+@using NET_Tutos.Models.Entities
+@{
+    ViewData["Title"] = "Chấm Bài & Code Review Đồ Án - LMS Admin";
+    var submission = (ProjectSubmission)ViewBag.Submission;
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0 small">
+            <li class="breadcrumb-item"><a asp-controller="Admin" asp-action="Index">Quản trị LMS</a></li>
+            <li class="breadcrumb-item"><a asp-action="Submissions">Hàng đợi chấm bài</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Chấm bài #@submission.Id</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">
+                <i class="bi bi-code-slash text-primary me-2"></i> Chấm Điểm & Code Review Đồ Án
+            </h4>
+            <p class="text-body-secondary small mb-0">Đề tài: <strong>@submission.Project?.Title</strong></p>
+        </div>
+        <div>
+            <a asp-action="Submissions" class="btn btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Trở lại hàng đợi
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm border-0 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Left: Student Submission Details (6 cols) -->
+        <div class="col-lg-6">
+            <!-- Student Card -->
+            <div class="card border-0 shadow-sm rounded-4 bg-body mb-4 p-4">
+                <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-person-circle me-1"></i> Thông Tin Học Viên</h6>
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold fs-4" style="width: 52px; height: 52px;">
+                        @(submission.User?.FullName?.Substring(0, 1).ToUpper() ?? submission.User?.UserName?.Substring(0, 1).ToUpper() ?? "U")
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">@(string.IsNullOrEmpty(submission.User?.FullName) ? submission.User?.UserName : submission.User.FullName)</h5>
+                        <div class="text-body-secondary small">@submission.User?.Email</div>
+                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-0.5 small mt-1">
+                            @submission.User?.ExperiencePoints XP Hiện tại
+                        </span>
+                    </div>
+                </div>
+
+                <div class="text-body-secondary small">
+                    <i class="bi bi-clock me-1"></i> Ngày nộp: <strong>@submission.SubmittedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</strong>
+                </div>
+            </div>
+
+            <!-- Repository & Demo Links -->
+            <div class="card border-0 shadow-sm rounded-4 bg-body mb-4 p-4">
+                <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-github me-1"></i> Mã Nguồn & Live Demo</h6>
+                
+                <div class="mb-3">
+                    <label class="form-label small text-body-secondary mb-1">Kho lưu trữ GitHub:</label>
+                    <a href="@submission.GitHubRepoUrl" target="_blank" rel="noopener noreferrer" class="btn btn-outline-dark rounded-pill w-100 text-truncate text-start px-3 py-2 fw-semibold">
+                        <i class="bi bi-github me-2"></i> @submission.GitHubRepoUrl <i class="bi bi-box-arrow-up-right float-end mt-1"></i>
+                    </a>
+                </div>
+
+                @if (!string.IsNullOrEmpty(submission.LiveDemoUrl))
+                {
+                    <div class="mb-3">
+                        <label class="form-label small text-body-secondary mb-1">Live Demo / Deployment:</label>
+                        <a href="@submission.LiveDemoUrl" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success rounded-pill w-100 text-truncate text-start px-3 py-2 fw-semibold">
+                            <i class="bi bi-globe me-2"></i> @submission.LiveDemoUrl <i class="bi bi-box-arrow-up-right float-end mt-1"></i>
+                        </a>
+                    </div>
+                }
+
+                <div>
+                    <a asp-controller="Project" asp-action="Details" asp-route-slug="@submission.Project?.Slug" target="_blank" class="btn btn-link text-decoration-none small text-primary p-0">
+                        <i class="bi bi-box-arrow-up-right me-1"></i> Mở đề bài & tiêu chuẩn kỹ thuật gốc
+                    </a>
+                </div>
+            </div>
+
+            <!-- Student's Architecture Notes -->
+            <div class="card border-0 shadow-sm rounded-4 bg-body p-4">
+                <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-journal-text me-1"></i> Báo Cáo Kiến Trúc & Ghi Chú Của Học Viên</h6>
+                <div class="p-3 rounded-3 bg-body-tertiary small text-body" style="white-space: pre-line; line-height: 1.6; max-height: 300px; overflow-y: auto;">
+                    @submission.Notes
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Grading & Feedback Form (6 cols) -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 bg-body p-4 p-md-5">
+                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-check2-square text-success"></i> Biểu Mẫu Đánh Giá & Code Review
+                </h5>
+                <p class="text-body-secondary small mb-4">
+                    Nhập điểm đánh giá, chọn trạng thái và để lại phản hồi cụ thể để giúp học viên nâng cao tư duy lập trình và hoàn thiện sản phẩm.
+                </p>
+
+                <form asp-action="Review" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="SubmissionId" />
+
+                    <!-- Score (0-100) -->
+                    <div class="mb-3">
+                        <label asp-for="Score" class="form-label small fw-semibold">Điểm số đánh giá (Thang điểm 100) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-award"></i></span>
+                            <input asp-for="Score" type="number" min="0" max="100" class="form-control" required />
+                            <span class="input-group-text">/ 100</span>
+                        </div>
+                        <span asp-validation-for="Score" class="text-danger small"></span>
+                        <div class="form-text small" style="font-size: 0.75rem;">
+                            Đạt chuẩn khi điểm $\ge$ 70/100.
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="mb-3">
+                        <label asp-for="Status" class="form-label small fw-semibold">Trạng thái duyệt <span class="text-danger">*</span></label>
+                        <select asp-for="Status" class="form-select" required>
+                            <option value="@ProjectSubmissionStatus.Approved">✅ Đạt Chuẩn (Approved) - Hoàn thành đồ án</option>
+                            <option value="@ProjectSubmissionStatus.NeedsImprovement">⚠️ Cần Bổ Sung (Needs Improvement) - Yêu cầu sửa code</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Bonus XP -->
+                    <div class="mb-3">
+                        <label asp-for="BonusXp" class="form-label small fw-semibold">Thưởng điểm kinh nghiệm bổ sung (Bonus XP)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lightning-charge"></i></span>
+                            <input asp-for="BonusXp" type="number" min="0" max="500" class="form-control" />
+                            <span class="input-group-text">XP</span>
+                        </div>
+                        <span asp-validation-for="BonusXp" class="text-danger small"></span>
+                        <div class="form-text small" style="font-size: 0.75rem;">
+                            Điểm cơ bản của đồ án là <strong>+@submission.Project?.RewardXp XP</strong>. Bạn có thể thưởng thêm nếu đồ án xuất sắc.
+                        </div>
+                    </div>
+
+                    <!-- Feedback -->
+                    <div class="mb-4">
+                        <label asp-for="ReviewerFeedback" class="form-label small fw-semibold">
+                            Nhận xét Code Review chi tiết <span class="text-danger">*</span>
+                        </label>
+                        <textarea asp-for="ReviewerFeedback" class="form-control" rows="7" required placeholder="Nhận xét về Clean Architecture, cấu trúc thư mục, xử lý lỗi, bảo mật, tối ưu truy vấn EF Core và các lời khuyên cho học viên..."></textarea>
+                        <span asp-validation-for="ReviewerFeedback" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary rounded-pill flex-grow-1 fw-semibold py-2.5 shadow-sm">
+                            <i class="bi bi-send-check-fill me-1.5"></i> Hoàn tất đánh giá & Gửi kết quả
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

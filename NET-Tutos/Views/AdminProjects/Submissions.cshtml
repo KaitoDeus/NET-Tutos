@@ -1,0 +1,144 @@
+@model NET_Tutos.Models.ViewModels.AdminProjectSubmissionsViewModel
+@using NET_Tutos.Models.Entities
+@{
+    ViewData["Title"] = "Duyệt Đồ Án & Code Review - LMS Admin";
+}
+
+<div class="container-fluid px-3 px-xl-4 py-4">
+    <partial name="_AdminNav" />
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm border-0 mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">
+                <i class="bi bi-inbox-fill text-primary me-2"></i> Hàng Đợi Chấm Bài & Code Review
+            </h4>
+            <p class="text-body-secondary small mb-0">Đánh giá mã nguồn đồ án thực chiến của học viên, nhận xét Clean Code và cộng điểm XP thưởng.</p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Quản lý đề tài đồ án
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Pills -->
+    <div class="d-flex align-items-center gap-2 mb-4 overflow-x-auto pb-1">
+        <a asp-action="Submissions" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold @(Model.SelectedStatus == null ? "btn-primary" : "btn-outline-secondary")">
+            Tất cả bài nộp (@Model.Submissions.Count)
+        </a>
+        <a asp-action="Submissions" asp-route-status="@ProjectSubmissionStatus.Submitted" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold @(Model.SelectedStatus == ProjectSubmissionStatus.Submitted ? "btn-warning text-dark" : "btn-outline-warning text-dark")">
+            Chờ chấm (@Model.PendingCount)
+        </a>
+        <a asp-action="Submissions" asp-route-status="@ProjectSubmissionStatus.Approved" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold @(Model.SelectedStatus == ProjectSubmissionStatus.Approved ? "btn-success" : "btn-outline-success")">
+            Đã đạt chuẩn (@Model.ApprovedCount)
+        </a>
+        <a asp-action="Submissions" asp-route-status="@ProjectSubmissionStatus.NeedsImprovement" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold @(Model.SelectedStatus == ProjectSubmissionStatus.NeedsImprovement ? "btn-danger" : "btn-outline-danger")">
+            Cần sửa lại (@Model.NeedsImprovementCount)
+        </a>
+    </div>
+
+    <!-- Submissions Table -->
+    <div class="card border-0 shadow-sm rounded-4 bg-body overflow-hidden">
+        @if (!Model.Submissions.Any())
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-check2-all text-success fs-1 mb-2 d-block"></i>
+                <h5 class="fw-bold mb-1">Không có bài nộp nào trong mục này</h5>
+                <p class="text-body-secondary small mb-0">Tất cả các bài nộp đã được xử lý hoặc chưa có học viên nào nộp.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-body-tertiary">
+                        <tr>
+                            <th class="ps-4">Học viên</th>
+                            <th>Đồ án</th>
+                            <th>Ngày nộp</th>
+                            <th>Repository</th>
+                            <th>Trạng thái</th>
+                            <th>Điểm</th>
+                            <th class="text-end pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sub in Model.Submissions)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px;">
+                                            @(sub.User?.FullName?.Substring(0, 1).ToUpper() ?? sub.User?.UserName?.Substring(0, 1).ToUpper() ?? "U")
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold">@(string.IsNullOrEmpty(sub.User?.FullName) ? sub.User?.UserName : sub.User.FullName)</div>
+                                            <div class="text-body-secondary small">@sub.User?.Email</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">@sub.Project?.Title</div>
+                                    <span class="badge bg-body-tertiary text-body border rounded-pill px-2 py-0.5 small" style="font-size: 0.7rem;">
+                                        @sub.Project?.Category?.Name
+                                    </span>
+                                </td>
+                                <td class="small">
+                                    @sub.SubmittedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                </td>
+                                <td>
+                                    <a href="@sub.GitHubRepoUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 text-truncate small" style="max-width: 180px;">
+                                        <i class="bi bi-github me-1"></i> Xem code
+                                    </a>
+                                </td>
+                                <td>
+                                    @if (sub.Status == ProjectSubmissionStatus.Approved)
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2.5 py-1 small">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Đã duyệt
+                                        </span>
+                                    }
+                                    else if (sub.Status == ProjectSubmissionStatus.NeedsImprovement)
+                                    {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-2.5 py-1 small">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Cần sửa
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-2.5 py-1 small">
+                                            <i class="bi bi-hourglass-split me-1"></i> Chờ chấm
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (sub.Score.HasValue)
+                                    {
+                                        <strong class="text-success">@sub.Score/100</strong>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-body-secondary small">--</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a asp-action="Review" asp-route-id="@sub.Id" class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-semibold">
+                                        <i class="bi bi-pencil-square me-1"></i> Chấm bài / Review
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

@@ -32,4 +32,5 @@ public class ApplicationUser : IdentityUser
     public ICollection<UserBadge> Badges { get; set; } = new List<UserBadge>();
     public ICollection<DailyCheckIn> DailyCheckIns { get; set; } = new List<DailyCheckIn>();
     public ICollection<UserNotification> Notifications { get; set; } = new List<UserNotification>();
+    public ICollection<ProjectSubmission> ProjectSubmissions { get; set; } = new List<ProjectSubmission>();
 }

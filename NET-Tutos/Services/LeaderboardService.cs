@@ -98,6 +98,15 @@ public class LeaderboardService : ILeaderboardService
                 IconClass = "bi-trophy-fill",
                 ColorClass = "primary",
                 ConditionDescription = "Đạt chuỗi học tập từ 30 ngày liên tục"
+            },
+            new()
+            {
+                BadgeCode = "ARCHITECT",
+                Title = "Kiến Trúc Sư .NET",
+                Description = "Bảo vệ thành công Đồ án Thực chiến Capstone và được duyệt đạt chuẩn",
+                IconClass = "bi-diagram-3-fill",
+                ColorClass = "success",
+                ConditionDescription = "Có ít nhất 1 đồ án thực chiến được duyệt (Approved)"
             }
         };
     }
@@ -282,6 +291,11 @@ public class LeaderboardService : ILeaderboardService
         // 6. Người Truyền Lửa: Has best answer or 3+ comments
         bool isHero = user.Comments.Any(c => c.IsBestAnswer) || user.Comments.Count >= 3;
         TryAward("COMMUNITY_HERO", isHero);
+
+        // 7. Kiến Trúc Sư .NET: Has at least 1 approved capstone project
+        bool hasApprovedProject = await _context.ProjectSubmissions
+            .AnyAsync(s => s.UserId == userId && s.Status == ProjectSubmissionStatus.Approved);
+        TryAward("ARCHITECT", hasApprovedProject);
 
         await _context.SaveChangesAsync();
     }

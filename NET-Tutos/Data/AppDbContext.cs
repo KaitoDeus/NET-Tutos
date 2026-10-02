@@ -27,6 +27,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<DailyCheckIn> DailyCheckIns => Set<DailyCheckIn>();
     public DbSet<UserNotification> UserNotifications => Set<UserNotification>();
     public DbSet<ActivityFeedItem> ActivityFeedItems => Set<ActivityFeedItem>();
+    public DbSet<CapstoneProject> CapstoneProjects => Set<CapstoneProject>();
+    public DbSet<ProjectSubmission> ProjectSubmissions => Set<ProjectSubmission>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -273,6 +275,47 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(a => a.User)
                   .WithMany()
                   .HasForeignKey(a => a.UserId)
+                  .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // CapstoneProject configurations
+        modelBuilder.Entity<CapstoneProject>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.HasIndex(p => p.Slug).IsUnique();
+            entity.Property(p => p.Title).IsRequired().HasMaxLength(250);
+            entity.Property(p => p.Slug).IsRequired().HasMaxLength(250);
+            entity.Property(p => p.ShortDescription).IsRequired().HasMaxLength(500);
+            entity.Property(p => p.TechStack).IsRequired().HasMaxLength(250);
+
+            entity.HasOne(p => p.Category)
+                  .WithMany()
+                  .HasForeignKey(p => p.CategoryId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ProjectSubmission configurations
+        modelBuilder.Entity<ProjectSubmission>(entity =>
+        {
+            entity.HasKey(s => s.Id);
+            entity.HasIndex(s => new { s.ProjectId, s.UserId });
+            entity.Property(s => s.GitHubRepoUrl).IsRequired().HasMaxLength(500);
+            entity.Property(s => s.LiveDemoUrl).HasMaxLength(500);
+            entity.Property(s => s.Notes).IsRequired().HasMaxLength(2000);
+
+            entity.HasOne(s => s.Project)
+                  .WithMany(p => p.Submissions)
+                  .HasForeignKey(s => s.ProjectId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(s => s.User)
+                  .WithMany(u => u.ProjectSubmissions)
+                  .HasForeignKey(s => s.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(s => s.Reviewer)
+                  .WithMany()
+                  .HasForeignKey(s => s.ReviewedByUserId)
                   .OnDelete(DeleteBehavior.SetNull);
         });
     }

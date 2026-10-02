@@ -1,0 +1,115 @@
+@model IEnumerable<NET_Tutos.Models.Entities.CapstoneProject>
+@using NET_Tutos.Models.Entities
+@{
+    ViewData["Title"] = "Quản lý Đồ Án Thực Chiến - LMS Admin";
+}
+
+<div class="container-fluid px-3 px-xl-4 py-4">
+    <partial name="_AdminNav" />
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm border-0 mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">Danh Sách Đề Tài Đồ Án Thực Chiến</h4>
+            <p class="text-body-secondary small mb-0">Quản lý danh mục đề tài Capstone Project và theo dõi lượt nộp bài của học viên.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Submissions" class="btn btn-primary rounded-pill px-3 py-2 fw-semibold btn-sm">
+                <i class="bi bi-inbox-fill me-1"></i> Danh sách bài nộp chờ chấm
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 bg-body overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-body-tertiary">
+                    <tr>
+                        <th class="ps-4">Đề tài đồ án</th>
+                        <th>Chuyên đề</th>
+                        <th>Cấp độ</th>
+                        <th>Thời lượng</th>
+                        <th>Phần thưởng</th>
+                        <th>Lượt nộp</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model)
+                    {
+                        var levelBadgeClass = p.Level switch
+                        {
+                            DifficultyLevel.Beginner => "bg-success bg-opacity-10 text-success border-success border-opacity-25",
+                            DifficultyLevel.Intermediate => "bg-warning bg-opacity-10 text-warning border-warning border-opacity-25",
+                            DifficultyLevel.Advanced => "bg-danger bg-opacity-10 text-danger border-danger border-opacity-25",
+                            _ => "bg-secondary bg-opacity-10 text-secondary border-secondary border-opacity-25"
+                        };
+
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold">@p.Title</div>
+                                <div class="text-body-secondary small text-truncate" style="max-width: 320px;">@p.ShortDescription</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-body-tertiary text-body border rounded-pill px-2.5 py-1 small">
+                                    @p.Category?.Name
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge border rounded-pill px-2.5 py-1 small fw-semibold @levelBadgeClass">
+                                    @p.Level
+                                </span>
+                            </td>
+                            <td class="small">~@p.EstimatedHours giờ</td>
+                            <td>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2.5 py-1 small fw-semibold">
+                                    +@p.RewardXp XP
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-body-tertiary text-body border rounded-pill px-2.5 py-1 small fw-bold">
+                                    @p.Submissions.Count bài nộp
+                                </span>
+                            </td>
+                            <td>
+                                @if (p.IsPublished)
+                                {
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2.5 py-1 small">
+                                        Công khai
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-2.5 py-1 small">
+                                        Đang ẩn
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex justify-content-end gap-1">
+                                    <a asp-controller="Project" asp-action="Details" asp-route-slug="@p.Slug" class="btn btn-sm btn-outline-primary rounded-circle p-1.5" title="Xem trên web" target="_blank">
+                                        <i class="bi bi-box-arrow-up-right"></i>
+                                    </a>
+                                    <form asp-action="TogglePublish" asp-route-id="@p.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary rounded-circle p-1.5" title="@(p.IsPublished ? "Ẩn đồ án" : "Hiện đồ án")">
+                                            <i class="bi bi-eye@(p.IsPublished ? "-slash" : "")"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

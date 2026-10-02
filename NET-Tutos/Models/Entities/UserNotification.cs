@@ -11,7 +11,9 @@ public enum NotificationType
     CertificateIssued = 6,
     BonusXpAwarded = 7,
     LessonCompleted = 8,
-    ChallengeSolved = 9
+    ChallengeSolved = 9,
+    ProjectSubmitted = 10,
+    ProjectReviewed = 11
 }
 
 public class UserNotification
