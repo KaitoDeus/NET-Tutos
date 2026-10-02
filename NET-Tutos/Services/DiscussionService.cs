@@ -12,17 +12,23 @@ public class DiscussionService : IDiscussionService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IMarkdownService _markdownService;
     private readonly ILeaderboardService _leaderboardService;
+    private readonly INotificationService _notificationService;
+    private readonly IActivityFeedService _activityFeedService;
 
     public DiscussionService(
         AppDbContext context,
         UserManager<ApplicationUser> userManager,
         IMarkdownService markdownService,
-        ILeaderboardService leaderboardService)
+        ILeaderboardService leaderboardService,
+        INotificationService notificationService,
+        IActivityFeedService activityFeedService)
     {
         _context = context;
         _userManager = userManager;
         _markdownService = markdownService;
         _leaderboardService = leaderboardService;
+        _notificationService = notificationService;
+        _activityFeedService = activityFeedService;
     }
 
     public async Task<List<DiscussionCommentDto>> GetCommentsAsync(string topicType, int topicId, string? currentUserId)
@@ -106,6 +112,35 @@ public class DiscussionService : IDiscussionService
 
         // Check badge unlocks
         await _leaderboardService.CheckAndAwardBadgesAsync(userId);
+
+        if (parentCommentId.HasValue)
+        {
+            var parent = await _context.DiscussionComments
+                .Include(c => c.User)
+                .FirstOrDefaultAsync(c => c.Id == parentCommentId.Value);
+
+            if (parent != null && parent.UserId != userId)
+            {
+                var replierName = user != null
+                    ? (!string.IsNullOrWhiteSpace(user.FullName) ? user.FullName : user.UserName?.Split('@')[0] ?? "Một học viên")
+                    : "Một học viên";
+
+                string targetUrl = topicType.Equals("Challenge", StringComparison.OrdinalIgnoreCase)
+                    ? $"/Playground?challengeId={topicId}#discussion"
+                    : $"/bai-hoc/{topicId}#discussion";
+
+                try
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        parent.UserId,
+                        "Phản hồi thảo luận mới! 💬",
+                        $"{replierName} đã trả lời bình luận của bạn.",
+                        NotificationType.DiscussionReply,
+                        targetUrl);
+                }
+                catch { }
+            }
+        }
 
         // Reload comment with user details
         var reloaded = await _context.DiscussionComments
@@ -199,6 +234,32 @@ public class DiscussionService : IDiscussionService
         if (comment.User != null)
         {
             await _leaderboardService.CheckAndAwardBadgesAsync(comment.UserId);
+
+            if (comment.IsBestAnswer && comment.UserId != currentUserId)
+            {
+                string targetUrl = comment.CodingChallengeId.HasValue
+                    ? $"/Playground?challengeId={comment.CodingChallengeId.Value}#discussion"
+                    : $"/bai-hoc/{comment.TutorialId}#discussion";
+
+                try
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        comment.UserId,
+                        "Giải pháp được công nhận! ⭐",
+                        "Bình luận của bạn vừa được chọn làm Giải pháp chính xác (+15 XP)!",
+                        NotificationType.BestAnswer,
+                        targetUrl);
+
+                    await _activityFeedService.RecordActivityAsync(
+                        comment.UserId,
+                        ActivityType.DiscussionComment,
+                        "được bình chọn là Giải pháp chính xác",
+                        "Được ghi nhận câu trả lời xuất sắc (+15 XP) ⭐",
+                        targetUrl,
+                        xpEarned: 15);
+                }
+                catch { }
+            }
         }
 
         return (true, comment.IsBestAnswer ? "Đã đánh dấu là giải pháp chính xác (+15 XP)!" : "Đã gỡ bỏ đánh dấu giải pháp.", awardedXp);

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using NET_Tutos.Data;
 using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
+using NET_Tutos.Services;
 
 namespace NET_Tutos.Controllers;
 
@@ -13,11 +14,19 @@ public class AdminUsersController : Controller
 {
     private readonly AppDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly INotificationService _notificationService;
+    private readonly IActivityFeedService _activityFeedService;
 
-    public AdminUsersController(AppDbContext context, UserManager<ApplicationUser> userManager)
+    public AdminUsersController(
+        AppDbContext context,
+        UserManager<ApplicationUser> userManager,
+        INotificationService notificationService,
+        IActivityFeedService activityFeedService)
     {
         _context = context;
         _userManager = userManager;
+        _notificationService = notificationService;
+        _activityFeedService = activityFeedService;
     }
 
     // GET: /AdminUsers
@@ -110,6 +119,25 @@ public class AdminUsersController : Controller
 
         targetUser.ExperiencePoints += xpAmount;
         await _userManager.UpdateAsync(targetUser);
+
+        try
+        {
+            await _notificationService.CreateNotificationAsync(
+                targetUser.Id,
+                "Nhận thưởng XP từ Quản trị viên! 🎁",
+                $"Bạn vừa được thưởng +{xpAmount} XP vì những thành tích học tập tích cực!",
+                NotificationType.BonusXpAwarded,
+                "/Account/Profile");
+
+            await _activityFeedService.RecordActivityAsync(
+                targetUser.Id,
+                ActivityType.BadgeEarned,
+                "được thưởng điểm kinh nghiệm danh dự",
+                $"+{xpAmount} XP cống hiến học tập xuất sắc 🌟",
+                "/Leaderboard",
+                xpEarned: xpAmount);
+        }
+        catch { }
 
         TempData["SuccessMessage"] = $"Đã thưởng +{xpAmount} XP cho {targetUser.FullName ?? targetUser.Email}!";
         return RedirectToAction(nameof(Index));

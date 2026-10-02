@@ -9,11 +9,19 @@ public class LearningProgressService : ILearningProgressService
 {
     private readonly AppDbContext _context;
     private readonly IStreakService _streakService;
+    private readonly INotificationService _notificationService;
+    private readonly IActivityFeedService _activityFeedService;
 
-    public LearningProgressService(AppDbContext context, IStreakService streakService)
+    public LearningProgressService(
+        AppDbContext context,
+        IStreakService streakService,
+        INotificationService notificationService,
+        IActivityFeedService activityFeedService)
     {
         _context = context;
         _streakService = streakService;
+        _notificationService = notificationService;
+        _activityFeedService = activityFeedService;
     }
 
     public async Task<bool> ToggleLessonCompletedAsync(string userId, int tutorialId)
@@ -65,6 +73,25 @@ public class LearningProgressService : ILearningProgressService
         if (isCompletedNow)
         {
             await _streakService.RecordLearningActivityStreakAsync(userId);
+
+            try
+            {
+                await _notificationService.CreateNotificationAsync(
+                    userId,
+                    "Hoàn thành bài học! 🎉",
+                    $"Bạn đã hoàn thành bài học '{tutorial.Title}' (+20 XP).",
+                    NotificationType.LessonCompleted,
+                    $"/bai-hoc/{tutorial.Slug}");
+
+                await _activityFeedService.RecordActivityAsync(
+                    userId,
+                    ActivityType.LessonCompleted,
+                    "đã hoàn thành bài học",
+                    tutorial.Title,
+                    $"/bai-hoc/{tutorial.Slug}",
+                    xpEarned: 20);
+            }
+            catch { }
         }
 
         // Update CourseEnrollment progress percentage

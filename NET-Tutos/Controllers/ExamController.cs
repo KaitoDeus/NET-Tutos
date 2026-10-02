@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
 using NET_Tutos.Services;
 
@@ -10,11 +11,19 @@ public class ExamController : Controller
 {
     private readonly IExamService _examService;
     private readonly IStreakService _streakService;
+    private readonly INotificationService _notificationService;
+    private readonly IActivityFeedService _activityFeedService;
 
-    public ExamController(IExamService examService, IStreakService streakService)
+    public ExamController(
+        IExamService examService,
+        IStreakService streakService,
+        INotificationService notificationService,
+        IActivityFeedService activityFeedService)
     {
         _examService = examService;
         _streakService = streakService;
+        _notificationService = notificationService;
+        _activityFeedService = activityFeedService;
     }
 
     // GET: /Exam
@@ -59,6 +68,45 @@ public class ExamController : Controller
         if (result.IsPassed)
         {
             await _streakService.RecordLearningActivityStreakAsync(userId);
+
+            try
+            {
+                var examUrl = Url.Action(nameof(Result), new { id = result.AttemptId });
+                await _notificationService.CreateNotificationAsync(
+                    userId,
+                    "Chúc mừng bạn đã thi đỗ kỳ thi! 🎓",
+                    $"Bạn đã hoàn thành kỳ thi với kết quả {result.ScorePercentage}% (+50 XP)!",
+                    NotificationType.ExamPassed,
+                    examUrl);
+
+                await _activityFeedService.RecordActivityAsync(
+                    userId,
+                    ActivityType.ExamPassed,
+                    "đã vượt qua kỳ thi đánh giá",
+                    $"Đạt kết quả {result.ScorePercentage}% chuẩn chuyên môn",
+                    examUrl,
+                    xpEarned: 50);
+
+                if (result.Certificate != null)
+                {
+                    var certUrl = Url.Action("ViewCertificate", "Certificate", new { code = result.Certificate.CertificateCode });
+                    await _notificationService.CreateNotificationAsync(
+                        userId,
+                        "Chứng chỉ số đã sẵn sàng! 📜",
+                        $"Chúc mừng bạn nhận được Chứng chỉ số #{result.Certificate.CertificateCode}.",
+                        NotificationType.CertificateIssued,
+                        certUrl);
+
+                    await _activityFeedService.RecordActivityAsync(
+                        userId,
+                        ActivityType.CertificateEarned,
+                        "đã được cấp Chứng chỉ số chính thức",
+                        $"Mã chứng chỉ #{result.Certificate.CertificateCode} 🎓",
+                        certUrl,
+                        xpEarned: 100);
+                }
+            }
+            catch { }
         }
 
         return Ok(new

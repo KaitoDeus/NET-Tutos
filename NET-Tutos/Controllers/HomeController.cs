@@ -15,17 +15,20 @@ public class HomeController : Controller
     private readonly DatabaseProviderInfo _dbInfo;
     private readonly ILearningProgressService _progressService;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IActivityFeedService _activityFeedService;
 
     public HomeController(
         ITutorialService tutorialService, 
         DatabaseProviderInfo dbInfo,
         ILearningProgressService progressService,
-        UserManager<ApplicationUser> userManager)
+        UserManager<ApplicationUser> userManager,
+        IActivityFeedService activityFeedService)
     {
         _tutorialService = tutorialService;
         _dbInfo = dbInfo;
         _progressService = progressService;
         _userManager = userManager;
+        _activityFeedService = activityFeedService;
     }
 
     public async Task<IActionResult> Index()
@@ -45,7 +48,8 @@ public class HomeController : Controller
             TotalTutorials = totalTutorials,
             TotalCategories = totalCategories,
             TotalQuizzes = totalQuizzes,
-            DatabaseProviderUsed = _dbInfo.Name
+            DatabaseProviderUsed = _dbInfo.Name,
+            RecentActivities = await _activityFeedService.GetRecentActivitiesAsync(take: 4)
         };
 
         if (User.Identity?.IsAuthenticated == true)

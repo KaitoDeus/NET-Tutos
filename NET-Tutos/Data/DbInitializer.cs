@@ -23,6 +23,9 @@ public static class DbInitializer
         // Ensure newly added LMS Streak & Daily Check-in tables exist
         await EnsureStreakTablesExistAsync(context);
 
+        // Ensure newly added LMS Notification & Activity Feed tables exist
+        await EnsureNotificationAndActivityTablesExistAsync(context);
+
         // Seed Roles
         string[] roles = { "Admin", "Student" };
         foreach (var role in roles)
@@ -1794,6 +1797,95 @@ Viết hàm `Fibonacci(int n)` trả về số Fibonacci thứ $n$.
         }
     }
 
+    private static async Task EnsureNotificationAndActivityTablesExistAsync(AppDbContext context)
+    {
+        var isSqlite = context.Database.IsSqlite();
+        if (isSqlite)
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS [UserNotifications] (
+                    [Id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    [UserId] TEXT NOT NULL,
+                    [Title] TEXT NOT NULL,
+                    [Message] TEXT NOT NULL,
+                    [TargetUrl] TEXT NULL,
+                    [Type] INTEGER NOT NULL DEFAULT 0,
+                    [IconClass] TEXT NULL,
+                    [ColorClass] TEXT NULL,
+                    [IsRead] INTEGER NOT NULL DEFAULT 0,
+                    [ReadAt] TEXT NULL,
+                    [CreatedAt] TEXT NOT NULL,
+                    FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+                );
+
+                CREATE INDEX IF NOT EXISTS [IX_UserNotifications_UserId_IsRead]
+                ON [UserNotifications] ([UserId], [IsRead]);
+
+                CREATE TABLE IF NOT EXISTS [ActivityFeedItems] (
+                    [Id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    [UserId] TEXT NULL,
+                    [UserDisplayName] TEXT NOT NULL,
+                    [UserAvatar] TEXT NULL,
+                    [Type] INTEGER NOT NULL DEFAULT 0,
+                    [Title] TEXT NOT NULL,
+                    [Description] TEXT NOT NULL,
+                    [TargetUrl] TEXT NULL,
+                    [XpEarned] INTEGER NOT NULL DEFAULT 0,
+                    [BadgeCode] TEXT NULL,
+                    [CreatedAt] TEXT NOT NULL,
+                    FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE SET NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS [IX_ActivityFeedItems_CreatedAt]
+                ON [ActivityFeedItems] ([CreatedAt]);
+            ");
+        }
+        else
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'UserNotifications')
+                BEGIN
+                    CREATE TABLE [UserNotifications] (
+                        [Id] int NOT NULL IDENTITY,
+                        [UserId] nvarchar(450) NOT NULL,
+                        [Title] nvarchar(250) NOT NULL,
+                        [Message] nvarchar(1000) NOT NULL,
+                        [TargetUrl] nvarchar(500) NULL,
+                        [Type] int NOT NULL DEFAULT 0,
+                        [IconClass] nvarchar(50) NULL,
+                        [ColorClass] nvarchar(50) NULL,
+                        [IsRead] bit NOT NULL DEFAULT 0,
+                        [ReadAt] datetime2 NULL,
+                        [CreatedAt] datetime2 NOT NULL,
+                        CONSTRAINT [PK_UserNotifications] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_UserNotifications_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+                    );
+                    CREATE INDEX [IX_UserNotifications_UserId_IsRead] ON [UserNotifications] ([UserId], [IsRead]);
+                END
+
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ActivityFeedItems')
+                BEGIN
+                    CREATE TABLE [ActivityFeedItems] (
+                        [Id] int NOT NULL IDENTITY,
+                        [UserId] nvarchar(450) NULL,
+                        [UserDisplayName] nvarchar(150) NOT NULL,
+                        [UserAvatar] nvarchar(500) NULL,
+                        [Type] int NOT NULL DEFAULT 0,
+                        [Title] nvarchar(250) NOT NULL,
+                        [Description] nvarchar(500) NOT NULL,
+                        [TargetUrl] nvarchar(500) NULL,
+                        [XpEarned] int NOT NULL DEFAULT 0,
+                        [BadgeCode] nvarchar(50) NULL,
+                        [CreatedAt] datetime2 NOT NULL,
+                        CONSTRAINT [PK_ActivityFeedItems] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_ActivityFeedItems_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE SET NULL
+                    );
+                    CREATE INDEX [IX_ActivityFeedItems_CreatedAt] ON [ActivityFeedItems] ([CreatedAt]);
+                END
+            ");
+        }
+    }
+
     private static async Task SeedInitialDiscussionsAndBadgesAsync(AppDbContext context, UserManager<ApplicationUser> userManager)
     {
         var admin = await userManager.FindByEmailAsync("admin@nettutos.com");
@@ -1880,6 +1972,101 @@ Viết hàm `Fibonacci(int n)` trả về số Fibonacci thứ $n$.
                     });
                 }
             }
+        }
+
+        // Seed sample notifications for admin if none exist
+        if (!await context.UserNotifications.AnyAsync(n => n.UserId == admin.Id))
+        {
+            context.UserNotifications.AddRange(
+                new UserNotification
+                {
+                    UserId = admin.Id,
+                    Title = "Chào mừng bạn đến với NET-Tutos! 🚀",
+                    Message = "Chúc mừng bạn đã gia nhập nền tảng học tập C# & .NET chuyên sâu. Hãy bắt đầu bài học đầu tiên ngay!",
+                    Type = NotificationType.General,
+                    IconClass = "bi-rocket-takeoff-fill",
+                    ColorClass = "text-primary",
+                    TargetUrl = "/Tutorials",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow.AddHours(-3)
+                },
+                new UserNotification
+                {
+                    UserId = admin.Id,
+                    Title = "Chuỗi học tập đạt 5 ngày liên tục! 🔥",
+                    Message = "Bạn đã duy trì ngọn lửa học tập kiên trì 5 ngày liên tiếp. Tiếp tục phát huy nhé!",
+                    Type = NotificationType.StreakReminder,
+                    IconClass = "bi-fire",
+                    ColorClass = "text-danger",
+                    TargetUrl = "/Streak",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow.AddHours(-1)
+                },
+                new UserNotification
+                {
+                    UserId = admin.Id,
+                    Title = "Mở khóa huy hiệu 'Huyền Thoại Bất Bại' 🏆",
+                    Message = "Bạn vừa đạt thành tích vinh danh danh giá trên Bảng Xếp Hạng học viên.",
+                    Type = NotificationType.BadgeEarned,
+                    IconClass = "bi-trophy-fill",
+                    ColorClass = "text-warning",
+                    TargetUrl = "/Leaderboard",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow.AddMinutes(-30)
+                }
+            );
+        }
+
+        // Seed sample community activities if none exist
+        if (!await context.ActivityFeedItems.AnyAsync())
+        {
+            context.ActivityFeedItems.AddRange(
+                new ActivityFeedItem
+                {
+                    UserId = admin.Id,
+                    UserDisplayName = "Quản trị viên Hệ thống",
+                    Type = ActivityType.BadgeEarned,
+                    Title = "đã mở khóa huy hiệu",
+                    Description = "Huyền Thoại Bất Bại (30 ngày kiên trì học tập)",
+                    TargetUrl = "/Leaderboard",
+                    XpEarned = 100,
+                    BadgeCode = "STREAK_30",
+                    CreatedAt = DateTime.UtcNow.AddMinutes(-20)
+                },
+                new ActivityFeedItem
+                {
+                    UserId = admin.Id,
+                    UserDisplayName = "Quản trị viên Hệ thống",
+                    Type = ActivityType.StreakAchieved,
+                    Title = "đã đạt chuỗi ngọn lửa học tập",
+                    Description = "5 ngày học tập liên tục không ngắt quãng 🔥",
+                    TargetUrl = "/Streak",
+                    XpEarned = 35,
+                    CreatedAt = DateTime.UtcNow.AddHours(-1)
+                },
+                new ActivityFeedItem
+                {
+                    UserId = admin.Id,
+                    UserDisplayName = "Quản trị viên Hệ thống",
+                    Type = ActivityType.ChallengeSolved,
+                    Title = "đã giải thành công thử thách thuật toán",
+                    Description = "Hai Con Số (Two Sum) - C# Algorithmic Mastery",
+                    TargetUrl = "/Playground/Challenges",
+                    XpEarned = 30,
+                    CreatedAt = DateTime.UtcNow.AddHours(-2)
+                },
+                new ActivityFeedItem
+                {
+                    UserId = admin.Id,
+                    UserDisplayName = "Quản trị viên Hệ thống",
+                    Type = ActivityType.LessonCompleted,
+                    Title = "đã hoàn thành bài học",
+                    Description = "Bài 1: Tổng quan hệ sinh thái .NET & Cài đặt môi trường",
+                    TargetUrl = "/bai-hoc/tong-quan-he-sinh-thai-dotnet-cai-dat-moi-truong",
+                    XpEarned = 20,
+                    CreatedAt = DateTime.UtcNow.AddHours(-4)
+                }
+            );
         }
 
         await context.SaveChangesAsync();

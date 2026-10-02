@@ -31,4 +31,5 @@ public class ApplicationUser : IdentityUser
     public ICollection<CommentUpvote> Upvotes { get; set; } = new List<CommentUpvote>();
     public ICollection<UserBadge> Badges { get; set; } = new List<UserBadge>();
     public ICollection<DailyCheckIn> DailyCheckIns { get; set; } = new List<DailyCheckIn>();
+    public ICollection<UserNotification> Notifications { get; set; } = new List<UserNotification>();
 }

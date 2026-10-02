@@ -10,15 +10,21 @@ public class StreakService : IStreakService
 {
     private readonly AppDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly INotificationService _notificationService;
+    private readonly IActivityFeedService _activityFeedService;
     private readonly ILogger<StreakService> _logger;
 
     public StreakService(
         AppDbContext context,
         UserManager<ApplicationUser> userManager,
+        INotificationService notificationService,
+        IActivityFeedService activityFeedService,
         ILogger<StreakService> logger)
     {
         _context = context;
         _userManager = userManager;
+        _notificationService = notificationService;
+        _activityFeedService = activityFeedService;
         _logger = logger;
     }
 
@@ -221,6 +227,45 @@ public class StreakService : IStreakService
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("User {UserId} checked in successfully. Streak: {Streak}, XP: +{Xp}", userId, newStreak, xpReward);
+
+        try
+        {
+            await _notificationService.CreateNotificationAsync(
+                userId,
+                "Điểm danh nhận thưởng thành công! 🔥",
+                $"Bạn đã duy trì chuỗi {newStreak} ngày liên tiếp (+{xpReward} XP)!",
+                NotificationType.StreakReminder,
+                "/Streak");
+
+            if (newStreak >= 3)
+            {
+                await _activityFeedService.RecordActivityAsync(
+                    userId,
+                    ActivityType.StreakAchieved,
+                    "đã duy trì chuỗi học tập",
+                    $"{newStreak} ngày liên tiếp kiên trì không nghỉ 🔥",
+                    "/Streak",
+                    xpEarned: xpReward);
+            }
+
+            foreach (var badgeMsg in newlyUnlocked)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    userId,
+                    "Huy hiệu mới đã mở khóa! 🏆",
+                    badgeMsg,
+                    NotificationType.BadgeEarned,
+                    "/Leaderboard");
+
+                await _activityFeedService.RecordActivityAsync(
+                    userId,
+                    ActivityType.BadgeEarned,
+                    "đã mở khóa thành tích mới",
+                    badgeMsg,
+                    "/Leaderboard");
+            }
+        }
+        catch { }
 
         var past7Days = await GetPast7DaysListAsync(userId, today);
 

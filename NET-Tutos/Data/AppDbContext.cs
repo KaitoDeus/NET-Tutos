@@ -25,6 +25,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<CommentUpvote> CommentUpvotes => Set<CommentUpvote>();
     public DbSet<UserBadge> UserBadges => Set<UserBadge>();
     public DbSet<DailyCheckIn> DailyCheckIns => Set<DailyCheckIn>();
+    public DbSet<UserNotification> UserNotifications => Set<UserNotification>();
+    public DbSet<ActivityFeedItem> ActivityFeedItems => Set<ActivityFeedItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -244,6 +246,34 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                   .WithMany(u => u.DailyCheckIns)
                   .HasForeignKey(d => d.UserId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // UserNotification configurations
+        modelBuilder.Entity<UserNotification>(entity =>
+        {
+            entity.HasKey(n => n.Id);
+            entity.HasIndex(n => new { n.UserId, n.IsRead });
+            entity.Property(n => n.Title).IsRequired().HasMaxLength(250);
+            entity.Property(n => n.Message).IsRequired().HasMaxLength(1000);
+
+            entity.HasOne(n => n.User)
+                  .WithMany(u => u.Notifications)
+                  .HasForeignKey(n => n.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ActivityFeedItem configurations
+        modelBuilder.Entity<ActivityFeedItem>(entity =>
+        {
+            entity.HasKey(a => a.Id);
+            entity.HasIndex(a => a.CreatedAt);
+            entity.Property(a => a.Title).IsRequired().HasMaxLength(250);
+            entity.Property(a => a.Description).IsRequired().HasMaxLength(500);
+
+            entity.HasOne(a => a.User)
+                  .WithMany()
+                  .HasForeignKey(a => a.UserId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

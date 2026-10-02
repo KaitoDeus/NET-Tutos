@@ -14,5 +14,6 @@ public class HomeViewModel
     public Tutorial? LastAccessedTutorial { get; set; }
     public int? UserExperiencePoints { get; set; }
     public int? CompletedLessonsCount { get; set; }
+    public List<ActivityFeedItemViewModel> RecentActivities { get; set; } = new();
 }
 

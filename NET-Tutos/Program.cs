@@ -22,6 +22,8 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
 builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddScoped<IDiscussionService, DiscussionService>();
 builder.Services.AddScoped<IStreakService, StreakService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IActivityFeedService, ActivityFeedService>();
 
 // Determine Database Provider
 var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
@@ -139,8 +141,9 @@ app.MapControllerRoute(
     pattern: "bai-hoc/{slug}",
     defaults: new { controller = "Tutorials", action = "Details" });
 
-// SignalR Hub endpoint
+// SignalR Hub endpoints
 app.MapHub<DiscussionHub>("/hubs/discussion");
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 // Default route
 app.MapControllerRoute(

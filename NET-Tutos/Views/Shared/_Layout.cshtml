@@ -51,6 +51,11 @@
                                 style="width: 32px; height: 32px;" type="button" data-bs-toggle="modal" data-bs-target="#streakModal" title="Chuỗi học tập hàng ngày">
                             <i class="bi bi-fire text-danger"></i>
                         </button>
+                        <button class="btn btn-sm btn-outline-secondary rounded-circle p-1 position-relative d-flex align-items-center justify-content-center"
+                                style="width: 32px; height: 32px;" type="button" onclick="document.getElementById('btnNavNotification')?.click()" title="Thông báo">
+                            <i class="bi bi-bell-fill"></i>
+                            <span id="mobileNotificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.6rem;">0</span>
+                        </button>
                         <a asp-controller="Account" asp-action="Profile" class="btn btn-sm btn-outline-primary rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Góc học tập">
                             <i class="bi bi-person-fill"></i>
                         </a>
@@ -117,6 +122,12 @@
                                 <i class="bi bi-trophy-fill me-1 text-warning"></i> Vinh danh
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-nowrap @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Activity" ? "active fw-semibold" : "")"
+                               asp-controller="Activity" asp-action="Index">
+                                <i class="bi bi-activity me-1 text-info"></i> Bảng tin
+                            </a>
+                        </li>
                     </ul>
 
                     <!-- Search Box -->
@@ -139,6 +150,39 @@
                                 <i class="bi bi-fire text-danger fs-6 streak-fire-icon"></i>
                                 <span id="navStreakCountText">0 ngày</span>
                             </button>
+
+                            <!-- Notification Center Dropdown -->
+                            <div class="dropdown" id="notificationDropdownContainer">
+                                <button id="btnNavNotification" class="btn btn-sm btn-outline-secondary rounded-circle position-relative p-1.5 d-flex align-items-center justify-content-center shadow-none"
+                                        type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Trung tâm Thông báo" style="width: 34px; height: 34px;">
+                                    <i class="bi bi-bell-fill fs-6" id="navBellIcon"></i>
+                                    <span id="navNotificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.65rem;">
+                                        0
+                                    </span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end shadow-lg border rounded-4 p-0 mt-2 notification-menu" style="width: 360px; max-width: 92vw;">
+                                    <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-body-tertiary rounded-top-4">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <h6 class="fw-bold mb-0"><i class="bi bi-bell-fill text-primary me-1.5"></i>Thông báo</h6>
+                                            <span id="notificationUnreadPill" class="badge bg-danger rounded-pill d-none">0 mới</span>
+                                        </div>
+                                        <button id="btnMarkAllRead" class="btn btn-sm btn-link text-decoration-none p-0 small fw-semibold text-muted" type="button">
+                                            <i class="bi bi-check2-all me-1"></i>Đọc tất cả
+                                        </button>
+                                    </div>
+                                    <div id="notificationListItems" class="notification-scroll-container overflow-y-auto" style="max-height: 380px;">
+                                        <div class="text-center py-4 text-muted small" id="notificationLoadingState">
+                                            <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                                            <div>Đang tải thông báo...</div>
+                                        </div>
+                                    </div>
+                                    <div class="p-2 border-top text-center bg-body-tertiary rounded-bottom-4">
+                                        <a asp-controller="Activity" asp-action="Index" class="btn btn-sm btn-link text-decoration-none small fw-semibold text-primary">
+                                            Xem bảng tin hoạt động cộng đồng <i class="bi bi-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="dropdown w-100 w-lg-auto">
                                 <button class="btn btn-sm btn-outline-primary dropdown-toggle d-flex align-items-center justify-content-between justify-content-lg-start gap-2 rounded-pill px-3 py-1.5 text-nowrap w-100 w-lg-auto" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -233,9 +277,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
 
+    <!-- SignalR Client Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+
     <!-- Custom JS -->
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Live Notification Toast Container -->
+    <div id="notificationToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;"></div>
 
     @if (User.Identity?.IsAuthenticated == true)
     {

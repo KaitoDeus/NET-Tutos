@@ -15,17 +15,23 @@ public class PlaygroundController : Controller
     private readonly ICodeExecutionService _executionService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IStreakService _streakService;
+    private readonly INotificationService _notificationService;
+    private readonly IActivityFeedService _activityFeedService;
 
     public PlaygroundController(
         AppDbContext context,
         ICodeExecutionService executionService,
         UserManager<ApplicationUser> userManager,
-        IStreakService streakService)
+        IStreakService streakService,
+        INotificationService notificationService,
+        IActivityFeedService activityFeedService)
     {
         _context = context;
         _executionService = executionService;
         _userManager = userManager;
         _streakService = streakService;
+        _notificationService = notificationService;
+        _activityFeedService = activityFeedService;
     }
 
     // GET: /Playground or /Playground/Challenge/{slug?}
@@ -201,6 +207,25 @@ public class PlaygroundController : Controller
                 if (evaluation.AllPassed)
                 {
                     await _streakService.RecordLearningActivityStreakAsync(user.Id);
+
+                    try
+                    {
+                        await _notificationService.CreateNotificationAsync(
+                            user.Id,
+                            "Chiến thắng thử thách C#! 💻",
+                            $"Bạn đã vượt qua toàn bộ Test cases thử thách '{challenge.Title}' (+{xpEarned} XP)!",
+                            NotificationType.ChallengeSolved,
+                            $"/Playground?slug={challenge.Slug}");
+
+                        await _activityFeedService.RecordActivityAsync(
+                            user.Id,
+                            ActivityType.ChallengeSolved,
+                            "đã giải thành công thử thách thuật toán",
+                            challenge.Title,
+                            $"/Playground?slug={challenge.Slug}",
+                            xpEarned: xpEarned);
+                    }
+                    catch { }
                 }
 
                 evaluation.XpEarned = xpEarned;

@@ -76,6 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Daily Learning Streak System
     initStreakSystem();
+
+    // Real-time Notification Center & Activity Feed
+    initNotificationSystem();
 });
 
 function initStreakSystem() {
@@ -248,4 +251,326 @@ async function handleDailyCheckIn() {
         if (checkInSpinner) checkInSpinner.classList.add('d-none');
         if (checkInIcon) checkInIcon.classList.remove('d-none');
     }
+}
+
+/* ==========================================================================
+   Real-time Notification Center & Activity Feed System
+   ========================================================================== */
+let notificationHubConn = null;
+
+function initNotificationSystem() {
+    const btnNavNotification = document.getElementById('btnNavNotification');
+    if (!btnNavNotification) return;
+
+    // Load initial notifications
+    loadNotifications();
+
+    // Hook up Mark All As Read button
+    const btnMarkAllRead = document.getElementById('btnMarkAllRead');
+    if (btnMarkAllRead) {
+        btnMarkAllRead.addEventListener('click', handleMarkAllNotificationsRead);
+    }
+
+    // Connect to SignalR NotificationHub
+    if (window.signalR) {
+        setupNotificationHubConnection();
+    }
+}
+
+async function setupNotificationHubConnection() {
+    try {
+        notificationHubConn = new signalR.HubConnectionBuilder()
+            .withUrl('/hubs/notifications')
+            .withAutomaticReconnect()
+            .build();
+
+        notificationHubConn.on('ReceiveNotification', (notification) => {
+            handleReceiveNotification(notification);
+        });
+
+        notificationHubConn.on('UpdateUnreadCount', (count) => {
+            updateNotificationBadges(count);
+        });
+
+        notificationHubConn.on('ReceiveActivity', (activity) => {
+            handleReceiveActivity(activity);
+        });
+
+        await notificationHubConn.start();
+        console.log('[SignalR] Notification Hub connected successfully.');
+    } catch (err) {
+        console.warn('[SignalR] Notification Hub connection failed:', err);
+    }
+}
+
+async function loadNotifications() {
+    try {
+        const response = await fetch('/Notification/GetLatest');
+        if (!response.ok) return;
+
+        const data = await response.json();
+        updateNotificationBadges(data.unreadCount || 0);
+        renderNotificationItems(data.items || []);
+    } catch (err) {
+        console.warn('Error loading notifications:', err);
+    }
+}
+
+function updateNotificationBadges(count) {
+    const navBadge = document.getElementById('navNotificationBadge');
+    const mobileBadge = document.getElementById('mobileNotificationBadge');
+    const unreadPill = document.getElementById('notificationUnreadPill');
+    const bellIcon = document.getElementById('navBellIcon');
+
+    if (count > 0) {
+        if (navBadge) {
+            navBadge.textContent = count > 99 ? '99+' : count;
+            navBadge.classList.remove('d-none');
+        }
+        if (mobileBadge) {
+            mobileBadge.textContent = count > 99 ? '99+' : count;
+            mobileBadge.classList.remove('d-none');
+        }
+        if (unreadPill) {
+            unreadPill.textContent = `${count} mới`;
+            unreadPill.classList.remove('d-none');
+        }
+        if (bellIcon) {
+            bellIcon.classList.add('bell-ring');
+            setTimeout(() => bellIcon.classList.remove('bell-ring'), 800);
+        }
+    } else {
+        if (navBadge) navBadge.classList.add('d-none');
+        if (mobileBadge) mobileBadge.classList.add('d-none');
+        if (unreadPill) unreadPill.classList.add('d-none');
+    }
+}
+
+function renderNotificationItems(items) {
+    const container = document.getElementById('notificationListItems');
+    if (!container) return;
+
+    if (!items || items.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-5 text-muted px-3">
+                <i class="bi bi-bell-slash fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                <div class="small fw-semibold">Bạn không có thông báo mới nào</div>
+                <div class="text-muted" style="font-size: 0.78rem;">Các hoạt động học tập sẽ hiển thị tại đây</div>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = '';
+    items.forEach(item => {
+        container.appendChild(createNotificationElement(item));
+    });
+}
+
+function createNotificationElement(item) {
+    const div = document.createElement('div');
+    div.className = `notification-item ${item.isRead ? '' : 'unread'}`;
+    div.setAttribute('data-id', item.id);
+
+    div.innerHTML = `
+        <div class="d-flex align-items-start gap-2.5">
+            <div class="rounded-circle bg-body-secondary ${item.colorClass} p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                <i class="bi ${item.iconClass || 'bi-bell'} fs-6"></i>
+            </div>
+            <div class="flex-grow-1 min-w-0">
+                <div class="d-flex align-items-center justify-content-between gap-1 mb-0.5">
+                    <span class="fw-bold small text-truncate text-body-emphasis">${escapeHtml(item.title)}</span>
+                    ${!item.isRead ? '<span class="notification-unread-dot ms-1" title="Chưa đọc"></span>' : ''}
+                </div>
+                <p class="text-body-secondary small mb-1 lh-sm" style="font-size: 0.8rem;">
+                    ${escapeHtml(item.message)}
+                </p>
+                <div class="d-flex align-items-center gap-2" style="font-size: 0.72rem;">
+                    <span class="text-muted"><i class="bi bi-clock me-1"></i>${escapeHtml(item.timeAgo)}</span>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary border py-0 px-1.5">${escapeHtml(item.typeName || '')}</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+    div.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (!item.isRead) {
+            await handleMarkNotificationRead(item.id, div);
+        }
+        if (item.targetUrl) {
+            window.location.href = item.targetUrl;
+        }
+    });
+
+    return div;
+}
+
+function handleReceiveNotification(notification) {
+    const container = document.getElementById('notificationListItems');
+    if (container) {
+        const emptyState = container.querySelector('.bi-bell-slash');
+        if (emptyState) container.innerHTML = '';
+
+        const elem = createNotificationElement(notification);
+        container.prepend(elem);
+    }
+
+    const bellIcon = document.getElementById('navBellIcon');
+    if (bellIcon) {
+        bellIcon.classList.add('bell-ring');
+        setTimeout(() => bellIcon.classList.remove('bell-ring'), 800);
+    }
+
+    showNotificationToast(notification);
+}
+
+function showNotificationToast(item) {
+    const toastContainer = document.getElementById('notificationToastContainer');
+    if (!toastContainer) return;
+
+    const toastId = 'toast_' + Date.now();
+    const toastEl = document.createElement('div');
+    toastEl.id = toastId;
+    toastEl.className = 'toast align-items-center border-0 shadow-lg rounded-4 overflow-hidden mb-2';
+    toastEl.setAttribute('role', 'alert');
+    toastEl.setAttribute('aria-live', 'assertive');
+    toastEl.setAttribute('aria-atomic', 'true');
+
+    toastEl.innerHTML = `
+        <div class="toast-header bg-body-tertiary border-0 py-2.5 px-3">
+            <i class="bi ${item.iconClass || 'bi-bell-fill'} ${item.colorClass || 'text-primary'} me-2 fs-6"></i>
+            <strong class="me-auto small fw-bold">${escapeHtml(item.title)}</strong>
+            <small class="text-muted">Vừa xong</small>
+            <button type="button" class="btn-close ms-2" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body bg-body py-2.5 px-3">
+            <p class="small mb-1 text-body-secondary">${escapeHtml(item.message)}</p>
+            ${item.targetUrl ? `<a href="${item.targetUrl}" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 small fw-semibold text-decoration-none mt-1 d-inline-block">Xem chi tiết <i class="bi bi-arrow-right"></i></a>` : ''}
+        </div>
+    `;
+
+    toastContainer.appendChild(toastEl);
+    if (window.bootstrap && bootstrap.Toast) {
+        const bsToast = new bootstrap.Toast(toastEl, { delay: 6000 });
+        bsToast.show();
+        toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+    }
+}
+
+async function handleMarkNotificationRead(id, element) {
+    const token = getCsrfToken();
+    try {
+        const response = await fetch(`/Notification/MarkAsRead?id=${id}`, {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken': token,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+        if (response.ok) {
+            if (element) {
+                element.classList.remove('unread');
+                const dot = element.querySelector('.notification-unread-dot');
+                if (dot) dot.remove();
+            }
+            const remaining = document.querySelectorAll('#notificationListItems .notification-item.unread').length;
+            updateNotificationBadges(remaining);
+        }
+    } catch (err) {
+        console.error('Error marking notification as read:', err);
+    }
+}
+
+async function handleMarkAllNotificationsRead() {
+    const token = getCsrfToken();
+    try {
+        const response = await fetch('/Notification/MarkAllAsRead', {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken': token,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+        if (response.ok) {
+            document.querySelectorAll('#notificationListItems .notification-item.unread').forEach(el => {
+                el.classList.remove('unread');
+                const dot = el.querySelector('.notification-unread-dot');
+                if (dot) dot.remove();
+            });
+            updateNotificationBadges(0);
+        }
+    } catch (err) {
+        console.error('Error marking all notifications as read:', err);
+    }
+}
+
+function handleReceiveActivity(activity) {
+    const timeline = document.getElementById('activityFeedTimeline');
+    if (!timeline) return;
+
+    const initials = activity.userDisplayName ? activity.userDisplayName.substring(0, 1).toUpperCase() : 'U';
+
+    const card = document.createElement('div');
+    card.className = 'card border rounded-4 shadow-sm p-3 p-md-3.5 activity-feed-card transition-hover just-added';
+    card.setAttribute('data-activity-id', activity.id);
+
+    card.innerHTML = `
+        <div class="d-flex align-items-start gap-3">
+            <div class="position-relative flex-shrink-0">
+                <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center fs-5 shadow-xs"
+                     style="width: 48px; height: 48px;">
+                    ${initials}
+                </div>
+                <span class="position-absolute bottom-0 end-0 translate-middle-y badge rounded-circle bg-${activity.typeBadgeColor || 'primary'} text-white p-1 d-flex align-items-center justify-content-center"
+                      style="width: 20px; height: 20px; font-size: 0.65rem;" title="${escapeHtml(activity.typeLabel || '')}">
+                    <i class="bi ${activity.iconClass || 'bi-activity'}"></i>
+                </span>
+            </div>
+            <div class="flex-grow-1 min-w-0">
+                <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-1">
+                    <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                        <span class="fw-bold text-body-emphasis">${escapeHtml(activity.userDisplayName)}</span>
+                        <span class="text-body-secondary small">${escapeHtml(activity.title)}</span>
+                        <span class="badge bg-${activity.typeBadgeColor || 'primary'} bg-opacity-10 text-${activity.typeBadgeColor || 'primary'} rounded-pill px-2 py-0.5 small fw-semibold">
+                            ${escapeHtml(activity.typeLabel || '')}
+                        </span>
+                    </div>
+                    <span class="text-muted small text-nowrap">
+                        <i class="bi bi-clock me-1"></i>Vừa xong
+                    </span>
+                </div>
+                <div class="mt-1">
+                    ${activity.targetUrl
+                        ? `<a href="${activity.targetUrl}" class="text-decoration-none fw-semibold text-primary hover-underline">${escapeHtml(activity.description)} <i class="bi bi-arrow-up-right small"></i></a>`
+                        : `<span class="text-body-secondary fw-medium">${escapeHtml(activity.description)}</span>`
+                    }
+                </div>
+            </div>
+            ${activity.xpEarned > 0 ? `
+                <div class="flex-shrink-0 text-end">
+                    <span class="badge bg-warning bg-opacity-20 text-dark border border-warning border-opacity-50 rounded-pill px-2.5 py-1.5 fw-bold d-inline-flex align-items-center gap-1">
+                        <i class="bi bi-lightning-charge-fill text-danger"></i> +${activity.xpEarned} XP
+                    </span>
+                </div>
+            ` : ''}
+        </div>
+    `;
+
+    timeline.prepend(card);
+}
+
+function getCsrfToken() {
+    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+    return tokenInput ? tokenInput.value : '';
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
