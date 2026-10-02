@@ -20,6 +20,9 @@ public static class DbInitializer
         // Ensure newly added LMS Discussion & Gamification tables exist
         await EnsureDiscussionAndGamificationTablesExistAsync(context);
 
+        // Ensure newly added LMS Streak & Daily Check-in tables exist
+        await EnsureStreakTablesExistAsync(context);
+
         // Seed Roles
         string[] roles = { "Admin", "Student" };
         foreach (var role in roles)
@@ -1723,6 +1726,74 @@ Viết hàm `Fibonacci(int n)` trả về số Fibonacci thứ $n$.
         }
     }
 
+    private static async Task EnsureStreakTablesExistAsync(AppDbContext context)
+    {
+        var isSqlite = context.Database.IsSqlite();
+        if (isSqlite)
+        {
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync("ALTER TABLE [AspNetUsers] ADD COLUMN [CurrentStreak] INTEGER NOT NULL DEFAULT 0;");
+            }
+            catch { }
+
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync("ALTER TABLE [AspNetUsers] ADD COLUMN [LongestStreak] INTEGER NOT NULL DEFAULT 0;");
+            }
+            catch { }
+
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync("ALTER TABLE [AspNetUsers] ADD COLUMN [LastCheckInDate] TEXT NULL;");
+            }
+            catch { }
+
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS [DailyCheckIns] (
+                    [Id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    [UserId] TEXT NOT NULL,
+                    [CheckInDate] TEXT NOT NULL,
+                    [StreakDay] INTEGER NOT NULL DEFAULT 1,
+                    [XpEarned] INTEGER NOT NULL DEFAULT 10,
+                    [CreatedAt] TEXT NOT NULL,
+                    FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+                );
+
+                CREATE UNIQUE INDEX IF NOT EXISTS [IX_DailyCheckIns_UserId_CheckInDate]
+                ON [DailyCheckIns] ([UserId], [CheckInDate]);
+            ");
+        }
+        else
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('AspNetUsers') AND name = 'CurrentStreak')
+                    ALTER TABLE [AspNetUsers] ADD [CurrentStreak] int NOT NULL DEFAULT 0;
+
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('AspNetUsers') AND name = 'LongestStreak')
+                    ALTER TABLE [AspNetUsers] ADD [LongestStreak] int NOT NULL DEFAULT 0;
+
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('AspNetUsers') AND name = 'LastCheckInDate')
+                    ALTER TABLE [AspNetUsers] ADD [LastCheckInDate] datetime2 NULL;
+
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'DailyCheckIns')
+                BEGIN
+                    CREATE TABLE [DailyCheckIns] (
+                        [Id] int NOT NULL IDENTITY,
+                        [UserId] nvarchar(450) NOT NULL,
+                        [CheckInDate] datetime2 NOT NULL,
+                        [StreakDay] int NOT NULL DEFAULT 1,
+                        [XpEarned] int NOT NULL DEFAULT 10,
+                        [CreatedAt] datetime2 NOT NULL,
+                        CONSTRAINT [PK_DailyCheckIns] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_DailyCheckIns_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+                    );
+                    CREATE UNIQUE INDEX [IX_DailyCheckIns_UserId_CheckInDate] ON [DailyCheckIns] ([UserId], [CheckInDate]);
+                END
+            ");
+        }
+    }
+
     private static async Task SeedInitialDiscussionsAndBadgesAsync(AppDbContext context, UserManager<ApplicationUser> userManager)
     {
         var admin = await userManager.FindByEmailAsync("admin@nettutos.com");
@@ -1734,7 +1805,10 @@ Viết hàm `Fibonacci(int n)` trả về số Fibonacci thứ $n$.
             new() { UserId = admin.Id, BadgeCode = "NEWBIE", Title = "Tân Binh .NET", Description = "Bắt đầu hành trình và hoàn thành bài học lý thuyết đầu tiên", IconClass = "bi-rocket-takeoff-fill", ColorClass = "primary", EarnedAt = DateTime.UtcNow },
             new() { UserId = admin.Id, BadgeCode = "SCHOLAR", Title = "Học Giả Chăm Chỉ", Description = "Kiên trì tích lũy kiến thức và hoàn thành từ 5 bài học", IconClass = "bi-book-half", ColorClass = "info", EarnedAt = DateTime.UtcNow },
             new() { UserId = admin.Id, BadgeCode = "CERTIFIED", Title = "Bậc Thầy Chứng Chỉ", Description = "Vượt qua kỳ thi tốt nghiệp và nhận chứng chỉ số chính thức", IconClass = "bi-award-fill", ColorClass = "success", EarnedAt = DateTime.UtcNow },
-            new() { UserId = admin.Id, BadgeCode = "COMMUNITY_HERO", Title = "Người Truyền Lửa", Description = "Tích cực đóng góp lời giải và hỗ trợ cộng đồng học viên", IconClass = "bi-chat-heart-fill", ColorClass = "purple", EarnedAt = DateTime.UtcNow }
+            new() { UserId = admin.Id, BadgeCode = "COMMUNITY_HERO", Title = "Người Truyền Lửa", Description = "Tích cực đóng góp lời giải và hỗ trợ cộng đồng học viên", IconClass = "bi-chat-heart-fill", ColorClass = "purple", EarnedAt = DateTime.UtcNow },
+            new() { UserId = admin.Id, BadgeCode = "STREAK_3", Title = "Ngọn Lửa Bền Bỉ", Description = "Duy trì chuỗi học tập 3 ngày liên tục", IconClass = "bi-fire", ColorClass = "danger", EarnedAt = DateTime.UtcNow },
+            new() { UserId = admin.Id, BadgeCode = "STREAK_7", Title = "Chiến Binh Kỷ Luật", Description = "Duy trì chuỗi học tập 7 ngày liên tiếp không nghỉ", IconClass = "bi-shield-check", ColorClass = "warning", EarnedAt = DateTime.UtcNow },
+            new() { UserId = admin.Id, BadgeCode = "STREAK_30", Title = "Huyền Thoại Bất Bại", Description = "Kỷ lục 30 ngày kiên trì học tập liên tục cùng .NET", IconClass = "bi-trophy-fill", ColorClass = "primary", EarnedAt = DateTime.UtcNow }
         };
 
         foreach (var b in badges)
@@ -1781,6 +1855,31 @@ Viết hàm `Fibonacci(int n)` trả về số Fibonacci thứ $n$.
                 CreatedAt = DateTime.UtcNow.AddMinutes(-30)
             };
             context.DiscussionComments.Add(replyComment);
+        }
+
+        // Initialize sample streak for admin if not already set
+        if (admin.CurrentStreak == 0)
+        {
+            admin.CurrentStreak = 5;
+            admin.LongestStreak = 5;
+            admin.LastCheckInDate = DateTime.UtcNow.Date;
+            await userManager.UpdateAsync(admin);
+
+            if (!await context.DailyCheckIns.AnyAsync(d => d.UserId == admin.Id))
+            {
+                var today = DateTime.UtcNow.Date;
+                for (int i = 4; i >= 0; i--)
+                {
+                    context.DailyCheckIns.Add(new DailyCheckIn
+                    {
+                        UserId = admin.Id,
+                        CheckInDate = today.AddDays(-i),
+                        StreakDay = 5 - i,
+                        XpEarned = 20,
+                        CreatedAt = DateTime.UtcNow.AddDays(-i)
+                    });
+                }
+            }
         }
 
         await context.SaveChangesAsync();

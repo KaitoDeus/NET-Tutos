@@ -31,6 +31,12 @@
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <h4 class="fw-bold mb-0">@Model.CurrentUserItem.FullName</h4>
                             <span class="badge bg-warning text-dark rounded-pill fw-bold">Hạng #@Model.CurrentUserRank</span>
+                            @if (Model.CurrentUserItem.CurrentStreak > 0)
+                            {
+                                <span class="badge bg-danger text-white rounded-pill fw-bold" title="Chuỗi học tập hiện tại">
+                                    <i class="bi bi-fire me-1"></i>@Model.CurrentUserItem.CurrentStreak ngày
+                                </span>
+                            }
                         </div>
                         <p class="mb-0 text-white-50 small">
                             Tiếp tục hoàn thành bài học và giải thử thách thuật toán để bứt phá thứ hạng!
@@ -203,11 +209,17 @@
                                         @(string.IsNullOrEmpty(user.FullName) ? "U" : user.FullName.Substring(0, 1).ToUpper())
                                     </div>
                                     <div>
-                                        <div class="fw-semibold">
-                                            @user.FullName
+                                        <div class="fw-semibold d-flex align-items-center gap-1.5 flex-wrap">
+                                            <span>@user.FullName</span>
                                             @if (isCurrent)
                                             {
-                                                <span class="badge bg-primary text-white ms-1">Bạn</span>
+                                                <span class="badge bg-primary text-white">Bạn</span>
+                                            }
+                                            @if (user.CurrentStreak > 0)
+                                            {
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5 small" title="Chuỗi @user.CurrentStreak ngày liên tiếp">
+                                                    <i class="bi bi-fire me-0.5"></i>@user.CurrentStreak
+                                                </span>
                                             }
                                         </div>
                                     </div>

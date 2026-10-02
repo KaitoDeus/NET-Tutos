@@ -52,34 +52,49 @@
     </div>
 
     <!-- Quick Stats Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100 card-hover">
+    <div class="row g-3 g-md-4 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-body h-100 card-hover">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="text-muted small fw-semibold">Tiến độ tổng thể</span>
                     <span class="fs-4 text-primary"><i class="bi bi-pie-chart-fill"></i></span>
                 </div>
                 <div class="display-6 fw-bold text-primary mb-2">@Model.OverallProgressPercentage%</div>
-                <div class="progress" style="height: 8px;">
+                <div class="progress" style="height: 6px;">
                     <div class="progress-bar bg-primary" role="progressbar" style="width: @Model.OverallProgressPercentage%" aria-valuenow="@Model.OverallProgressPercentage" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
-                <span class="small text-muted mt-2 d-block">Hoàn thành @Model.TotalCompletedLessons trên tổng số @Model.TotalLessons bài</span>
+                <span class="small text-muted mt-2 d-block">Hoàn thành @Model.TotalCompletedLessons/@Model.TotalLessons bài</span>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100 card-hover">
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-body h-100 card-hover">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold">Bài học đã hoàn tất</span>
+                    <span class="text-muted small fw-semibold">Bài học hoàn tất</span>
                     <span class="fs-4 text-success"><i class="bi bi-check-circle-fill"></i></span>
                 </div>
                 <div class="display-6 fw-bold text-success mb-2">@Model.TotalCompletedLessons</div>
-                <span class="small text-muted d-block">Mỗi bài hoàn thành cộng thêm +20 điểm XP</span>
+                <span class="small text-muted d-block">+20 XP cho mỗi bài học</span>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100 card-hover">
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-body h-100 card-hover" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#streakModal" title="Bấm để xem chi tiết chuỗi học tập">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-semibold">Chuỗi ngày học</span>
+                    <span class="fs-4 text-danger"><i class="bi bi-fire"></i></span>
+                </div>
+                <div class="display-6 fw-bold text-danger mb-1">
+                    @Model.User.CurrentStreak <span class="fs-6 text-muted">ngày</span>
+                </div>
+                <span class="small text-muted d-block">
+                    Kỷ lục: <strong>@Model.User.LongestStreak ngày</strong> · Điểm danh
+                </span>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-body h-100 card-hover">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="text-muted small fw-semibold">Chứng chỉ khóa học</span>
                     <span class="fs-4 text-warning"><i class="bi bi-award"></i></span>
@@ -88,7 +103,7 @@
                     @(Model.OverallProgressPercentage >= 100 ? "1" : "0")
                 </div>
                 <span class="small text-muted d-block">
-                    @(Model.OverallProgressPercentage >= 100 ? "Bạn đã đủ điều kiện nhận chứng chỉ tốt nghiệp!" : "Hoàn thành 100% giáo trình để mở khóa chứng chỉ")
+                    @(Model.OverallProgressPercentage >= 100 ? "Đủ điều kiện cấp chứng chỉ!" : "Đạt 100% để mở khóa")
                 </span>
             </div>
         </div>

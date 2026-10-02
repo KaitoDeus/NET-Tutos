@@ -9,10 +9,12 @@ namespace NET_Tutos.Controllers;
 public class ExamController : Controller
 {
     private readonly IExamService _examService;
+    private readonly IStreakService _streakService;
 
-    public ExamController(IExamService examService)
+    public ExamController(IExamService examService, IStreakService streakService)
     {
         _examService = examService;
+        _streakService = streakService;
     }
 
     // GET: /Exam
@@ -53,6 +55,11 @@ public class ExamController : Controller
         var hostUrl = $"{Request.Scheme}://{Request.Host}";
 
         var result = await _examService.EvaluateExamAsync(userId, model, hostUrl);
+
+        if (result.IsPassed)
+        {
+            await _streakService.RecordLearningActivityStreakAsync(userId);
+        }
 
         return Ok(new
         {

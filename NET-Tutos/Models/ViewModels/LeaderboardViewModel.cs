@@ -32,6 +32,8 @@ public class LeaderboardUserItem
     public int CompletedChallengesCount { get; set; }
     public int CertificatesCount { get; set; }
     public int HelpfulCommentsCount { get; set; }
+    public int CurrentStreak { get; set; }
+    public int LongestStreak { get; set; }
     public List<UserBadgeDto> Badges { get; set; } = new();
 }
 

@@ -47,6 +47,10 @@
                     </button>
                     @if (User.Identity?.IsAuthenticated == true)
                     {
+                        <button class="btn btn-sm btn-outline-warning rounded-circle p-1 d-flex align-items-center justify-content-center mobile-streak-btn"
+                                style="width: 32px; height: 32px;" type="button" data-bs-toggle="modal" data-bs-target="#streakModal" title="Chuỗi học tập hàng ngày">
+                            <i class="bi bi-fire text-danger"></i>
+                        </button>
                         <a asp-controller="Account" asp-action="Profile" class="btn btn-sm btn-outline-primary rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Góc học tập">
                             <i class="bi bi-person-fill"></i>
                         </a>
@@ -129,6 +133,13 @@
                     <div class="d-flex align-items-center gap-2 me-lg-2 my-2 my-lg-0 mobile-nav-auth">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
+                            <!-- Streak Quick Badge Button -->
+                            <button id="btnNavStreak" class="btn btn-sm btn-outline-warning rounded-pill px-2.5 py-1.5 d-flex align-items-center gap-1.5 text-nowrap fw-bold shadow-none"
+                                    type="button" data-bs-toggle="modal" data-bs-target="#streakModal" title="Chuỗi học tập hàng ngày (Streak)">
+                                <i class="bi bi-fire text-danger fs-6 streak-fire-icon"></i>
+                                <span id="navStreakCountText">0 ngày</span>
+                            </button>
+
                             <div class="dropdown w-100 w-lg-auto">
                                 <button class="btn btn-sm btn-outline-primary dropdown-toggle d-flex align-items-center justify-content-between justify-content-lg-start gap-2 rounded-pill px-3 py-1.5 text-nowrap w-100 w-lg-auto" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <span class="d-flex align-items-center gap-2">
@@ -225,5 +236,10 @@
     <!-- Custom JS -->
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <partial name="_StreakModal" />
+    }
 </body>
 </html>

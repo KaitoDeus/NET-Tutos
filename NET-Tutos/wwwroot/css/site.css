@@ -607,3 +607,68 @@ body {
 [data-bs-theme="dark"] .badge.bg-purple-subtle {
     color: #d8b4fe !important;
 }
+
+/* Streak Flame Animations & Day Tracker Styles */
+.streak-flame-glow {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(249, 115, 22, 0.28) 0%, rgba(239, 68, 68, 0.12) 60%, transparent 75%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse-flame 2.2s infinite ease-in-out;
+}
+
+.streak-huge-flame {
+    font-size: 3.5rem;
+    color: #ea580c;
+    filter: drop-shadow(0 4px 12px rgba(234, 88, 12, 0.45));
+    animation: flicker-flame 1.5s infinite alternate ease-in-out;
+}
+
+@keyframes pulse-flame {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.08); opacity: 1; }
+}
+
+@keyframes flicker-flame {
+    0% { transform: rotate(-2deg) scale(0.98); }
+    100% { transform: rotate(3deg) scale(1.04); }
+}
+
+.streak-fire-icon {
+    animation: flicker-flame 1.5s infinite alternate ease-in-out;
+    display: inline-block;
+}
+
+.day-tracker-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.82rem;
+    transition: all 0.2s ease;
+}
+
+.day-tracker-circle.checked {
+    background-color: #198754;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);
+}
+
+.day-tracker-circle.today-active {
+    background-color: #ea580c;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4);
+    transform: scale(1.1);
+}
+
+.day-tracker-circle.unchecked {
+    background-color: var(--bs-border-color);
+    color: var(--bs-secondary-color);
+    opacity: 0.7;
+}

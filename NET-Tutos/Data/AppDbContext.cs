@@ -24,6 +24,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<DiscussionComment> DiscussionComments => Set<DiscussionComment>();
     public DbSet<CommentUpvote> CommentUpvotes => Set<CommentUpvote>();
     public DbSet<UserBadge> UserBadges => Set<UserBadge>();
+    public DbSet<DailyCheckIn> DailyCheckIns => Set<DailyCheckIn>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -230,6 +231,18 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(b => b.User)
                   .WithMany(u => u.Badges)
                   .HasForeignKey(b => b.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // DailyCheckIn configurations
+        modelBuilder.Entity<DailyCheckIn>(entity =>
+        {
+            entity.HasKey(d => d.Id);
+            entity.HasIndex(d => new { d.UserId, d.CheckInDate }).IsUnique();
+
+            entity.HasOne(d => d.User)
+                  .WithMany(u => u.DailyCheckIns)
+                  .HasForeignKey(d => d.UserId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
     }

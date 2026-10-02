@@ -8,10 +8,12 @@ namespace NET_Tutos.Services;
 public class LearningProgressService : ILearningProgressService
 {
     private readonly AppDbContext _context;
+    private readonly IStreakService _streakService;
 
-    public LearningProgressService(AppDbContext context)
+    public LearningProgressService(AppDbContext context, IStreakService streakService)
     {
         _context = context;
+        _streakService = streakService;
     }
 
     public async Task<bool> ToggleLessonCompletedAsync(string userId, int tutorialId)
@@ -59,6 +61,11 @@ public class LearningProgressService : ILearningProgressService
         }
 
         await _context.SaveChangesAsync();
+
+        if (isCompletedNow)
+        {
+            await _streakService.RecordLearningActivityStreakAsync(userId);
+        }
 
         // Update CourseEnrollment progress percentage
         await UpdateCourseEnrollmentAsync(userId, tutorial.CategoryId);

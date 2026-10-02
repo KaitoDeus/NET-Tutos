@@ -14,15 +14,18 @@ public class PlaygroundController : Controller
     private readonly AppDbContext _context;
     private readonly ICodeExecutionService _executionService;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IStreakService _streakService;
 
     public PlaygroundController(
         AppDbContext context,
         ICodeExecutionService executionService,
-        UserManager<ApplicationUser> userManager)
+        UserManager<ApplicationUser> userManager,
+        IStreakService streakService)
     {
         _context = context;
         _executionService = executionService;
         _userManager = userManager;
+        _streakService = streakService;
     }
 
     // GET: /Playground or /Playground/Challenge/{slug?}
@@ -194,6 +197,11 @@ public class PlaygroundController : Controller
 
                 _context.CodeSubmissions.Add(submission);
                 await _context.SaveChangesAsync();
+
+                if (evaluation.AllPassed)
+                {
+                    await _streakService.RecordLearningActivityStreakAsync(user.Id);
+                }
 
                 evaluation.XpEarned = xpEarned;
                 evaluation.TotalUserXp = user.ExperiencePoints;

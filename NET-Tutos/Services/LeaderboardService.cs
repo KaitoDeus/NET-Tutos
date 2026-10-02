@@ -71,6 +71,33 @@ public class LeaderboardService : ILeaderboardService
                 IconClass = "bi-chat-heart-fill",
                 ColorClass = "purple",
                 ConditionDescription = "Có bình luận được chọn làm Giải Pháp Đúng hoặc gửi 3 bình luận"
+            },
+            new()
+            {
+                BadgeCode = "STREAK_3",
+                Title = "Ngọn Lửa Bền Bỉ",
+                Description = "Duy trì chuỗi học tập 3 ngày liên tục",
+                IconClass = "bi-fire",
+                ColorClass = "danger",
+                ConditionDescription = "Đạt chuỗi học tập từ 3 ngày liên tục"
+            },
+            new()
+            {
+                BadgeCode = "STREAK_7",
+                Title = "Chiến Binh Kỷ Luật",
+                Description = "Duy trì chuỗi học tập 7 ngày liên tiếp không nghỉ",
+                IconClass = "bi-shield-check",
+                ColorClass = "warning",
+                ConditionDescription = "Đạt chuỗi học tập từ 7 ngày liên tục"
+            },
+            new()
+            {
+                BadgeCode = "STREAK_30",
+                Title = "Huyền Thoại Bất Bại",
+                Description = "Kỷ lục 30 ngày kiên trì học tập liên tục cùng .NET",
+                IconClass = "bi-trophy-fill",
+                ColorClass = "primary",
+                ConditionDescription = "Đạt chuỗi học tập từ 30 ngày liên tục"
             }
         };
     }
@@ -105,6 +132,8 @@ public class LeaderboardService : ILeaderboardService
                 CompletedChallengesCount = u.Submissions.Where(s => s.IsPassed).Select(s => s.CodingChallengeId).Distinct().Count(),
                 CertificatesCount = u.Certificates.Count,
                 HelpfulCommentsCount = u.Comments.Count(c => c.IsBestAnswer),
+                CurrentStreak = u.CurrentStreak,
+                LongestStreak = u.LongestStreak,
                 Badges = u.Badges.Select(b => new UserBadgeDto
                 {
                     BadgeCode = b.BadgeCode,
@@ -157,6 +186,8 @@ public class LeaderboardService : ILeaderboardService
                         CompletedChallengesCount = currentUser.Submissions.Where(s => s.IsPassed).Select(s => s.CodingChallengeId).Distinct().Count(),
                         CertificatesCount = currentUser.Certificates.Count,
                         HelpfulCommentsCount = currentUser.Comments.Count(c => c.IsBestAnswer),
+                        CurrentStreak = currentUser.CurrentStreak,
+                        LongestStreak = currentUser.LongestStreak,
                         Badges = currentUser.Badges.Select(b => new UserBadgeDto
                         {
                             BadgeCode = b.BadgeCode,
