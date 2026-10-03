@@ -115,6 +115,25 @@ body {
 }
 
 @media (min-width: 992px) {
+    .navbar-nav .dropdown {
+        position: relative;
+    }
+    .navbar-nav .dropdown > .dropdown-menu {
+        margin-top: 0 !important;
+        top: 100% !important;
+    }
+    /* Invisible hover bridge connecting nav-link and dropdown menu */
+    .navbar-nav .dropdown > .dropdown-menu::before {
+        content: "";
+        position: absolute;
+        top: -15px;
+        left: 0;
+        right: 0;
+        height: 15px;
+        background: transparent;
+        display: block;
+        z-index: 1000;
+    }
     .mega-menu-grid {
         display: grid;
         grid-template-columns: 1.15fr 0.85fr;

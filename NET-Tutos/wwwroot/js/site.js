@@ -79,7 +79,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Real-time Notification Center & Activity Feed
     initNotificationSystem();
+
+    // Desktop Hover Navigation Dropdowns
+    initNavDropdownHover();
 });
+
+function initNavDropdownHover() {
+    const navDropdowns = document.querySelectorAll('.navbar-nav .dropdown');
+    navDropdowns.forEach(dropdown => {
+        let hideTimeout;
+        const toggle = dropdown.querySelector('[data-bs-toggle="dropdown"]');
+        const menu = dropdown.querySelector('.dropdown-menu');
+
+        if (!toggle || !menu) return;
+
+        // Hover enter: open immediately & clear pending close timeout
+        dropdown.addEventListener('mouseenter', () => {
+            if (window.innerWidth >= 992) {
+                clearTimeout(hideTimeout);
+                // Close other nav dropdowns
+                navDropdowns.forEach(other => {
+                    if (other !== dropdown) {
+                        const otherMenu = other.querySelector('.dropdown-menu');
+                        const otherToggle = other.querySelector('[data-bs-toggle="dropdown"]');
+                        if (otherMenu) otherMenu.classList.remove('show');
+                        if (otherToggle) {
+                            otherToggle.classList.remove('show');
+                            otherToggle.setAttribute('aria-expanded', 'false');
+                        }
+                    }
+                });
+                menu.classList.add('show');
+                toggle.classList.add('show');
+                toggle.setAttribute('aria-expanded', 'true');
+            }
+        });
+
+        // Hover leave: 250ms grace period so cursor can effortlessly travel into dropdown
+        dropdown.addEventListener('mouseleave', () => {
+            if (window.innerWidth >= 992) {
+                hideTimeout = setTimeout(() => {
+                    menu.classList.remove('show');
+                    toggle.classList.remove('show');
+                    toggle.setAttribute('aria-expanded', 'false');
+                }, 250);
+            }
+        });
+
+        // Close on item click
+        menu.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth >= 992) {
+                    menu.classList.remove('show');
+                    toggle.classList.remove('show');
+                    toggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    });
+}
 
 function initStreakSystem() {
     const navStreakBtn = document.getElementById('btnNavStreak');
