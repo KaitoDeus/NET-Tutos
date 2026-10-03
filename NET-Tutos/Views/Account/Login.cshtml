@@ -1,6 +1,7 @@
 @model NET_Tutos.Models.ViewModels.LoginViewModel
 @{
-    ViewData["Title"] = "Đăng nhập";
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "Login" : "Đăng nhập";
 }
 
 <div class="container py-5">
@@ -8,8 +9,8 @@
         <div class="col-md-7 col-lg-5">
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-body">
                 <div class="card-header bg-gradient-dotnet text-white p-4 text-center">
-                    <h3 class="fw-bold mb-1">Chào Mừng Quay Trở Lại</h3>
-                    <p class="small opacity-90 mb-0">Đăng nhập để theo dõi tiến độ và tiếp tục bài học của bạn</p>
+                    <h3 class="fw-bold mb-1">@(isEn ? "Welcome Back" : "Chào Mừng Quay Trở Lại")</h3>
+                    <p class="small opacity-90 mb-0">@(isEn ? "Sign in to track your learning progress and continue your lessons" : "Đăng nhập để theo dõi tiến độ và tiếp tục bài học của bạn")</p>
                 </div>
 
                 <div class="card-body p-4 p-md-5">
@@ -18,7 +19,7 @@
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3"></div>
 
                         <div class="mb-3">
-                            <label asp-for="Email" class="form-label fw-semibold small"></label>
+                            <label asp-for="Email" class="form-label fw-semibold small">@(isEn ? "Email Address" : "Địa chỉ Email")</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-body-tertiary"><i class="bi bi-envelope"></i></span>
                                 <input asp-for="Email" class="form-control" placeholder="name@example.com" autofocus />
@@ -27,27 +28,27 @@
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="Password" class="form-label fw-semibold small"></label>
+                            <label asp-for="Password" class="form-label fw-semibold small">@(isEn ? "Password" : "Mật khẩu")</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-body-tertiary"><i class="bi bi-lock"></i></span>
-                                <input asp-for="Password" class="form-control" placeholder="Nhập mật khẩu" />
+                                <input asp-for="Password" class="form-control" placeholder="@(isEn ? "Enter password" : "Nhập mật khẩu")" />
                             </div>
                             <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
 
                         <div class="form-check mb-4">
                             <input asp-for="RememberMe" class="form-check-input" />
-                            <label asp-for="RememberMe" class="form-check-label small"></label>
+                            <label asp-for="RememberMe" class="form-check-label small">@(isEn ? "Remember login session" : "Ghi nhớ đăng nhập")</label>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-pill fw-semibold shadow-sm mb-3">
-                            <i class="bi bi-box-arrow-in-right me-1"></i> Đăng Nhập
+                            <i class="bi bi-box-arrow-in-right me-1"></i> @(isEn ? "Sign In" : "Đăng Nhập")
                         </button>
                     </form>
 
                     <div class="text-center pt-3 border-top">
-                        <span class="text-muted small">Chưa có tài khoản học viên?</span>
-                        <a asp-action="Register" class="fw-semibold text-primary text-decoration-none small ms-1">Đăng ký ngay</a>
+                        <span class="text-muted small">@(isEn ? "Don't have a learner account yet?" : "Chưa có tài khoản học viên?")</span>
+                        <a asp-action="Register" class="fw-semibold text-primary text-decoration-none small ms-1">@(isEn ? "Register now" : "Đăng ký ngay")</a>
                     </div>
                 </div>
             </div>
@@ -58,3 +59,4 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
+

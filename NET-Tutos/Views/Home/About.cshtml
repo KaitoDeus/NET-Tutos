@@ -1,23 +1,24 @@
 @{
-    ViewData["Title"] = "Giới thiệu Dự án";
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "About the Project" : "Giới thiệu Dự án";
 }
 
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="text-center mb-5">
-                <span class="badge bg-primary-subtle border border-primary-subtle px-3 py-2 rounded-pill fw-bold mb-2">Về Dự Án</span>
+                <span class="badge bg-primary-subtle border border-primary-subtle px-3 py-2 rounded-pill fw-bold mb-2">@(isEn ? "About Project" : "Về Dự Án")</span>
                 <h1 class="fw-extrabold display-5">.NET Tutos Portal</h1>
-                <p class="lead text-muted">Cổng kiến thức toàn diện về .NET & ASP.NET Core dành cho lập trình viên Việt Nam</p>
+                <p class="lead text-muted">@(isEn ? "A comprehensive .NET & ASP.NET Core knowledge hub for modern developers" : "Cổng kiến thức toàn diện về .NET & ASP.NET Core dành cho lập trình viên Việt Nam")</p>
             </div>
 
             <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-body mb-4">
-                <h3 class="fw-bold mb-3">Mục tiêu của dự án</h3>
+                <h3 class="fw-bold mb-3">@(isEn ? "Project Objectives" : "Mục tiêu của dự án")</h3>
                 <p>
-                    Dự án này được thiết kế và xây dựng bằng chính công nghệ <strong>ASP.NET Core MVC</strong> và <strong>Entity Framework Core</strong>, với vai trò vừa là một <em>sản phẩm web mẫu chuẩn mực</em>, vừa là một <em>nền tảng tài liệu học tập thực chiến</em> giúp các bạn mới bắt đầu (Beginner) từng bước nâng cao trình độ lên Intermediate và Advanced.
+                    @(isEn ? "This project is designed and built using ASP.NET Core MVC and Entity Framework Core, serving as both a production-standard web reference and an interactive hands-on learning platform guiding beginners step-by-step to intermediate and advanced mastery." : "Dự án này được thiết kế và xây dựng bằng chính công nghệ ASP.NET Core MVC và Entity Framework Core, với vai trò vừa là một sản phẩm web mẫu chuẩn mực, vừa là một nền tảng tài liệu học tập thực chiến giúp các bạn mới bắt đầu (Beginner) từng bước nâng cao trình độ lên Intermediate và Advanced.")
                 </p>
 
-                <h4 class="fw-bold mt-4 mb-3">Công nghệ sử dụng trong dự án này:</h4>
+                <h4 class="fw-bold mt-4 mb-3">@(isEn ? "Technologies used in this project:" : "Công nghệ sử dụng trong dự án này:")</h4>
                 <ul class="list-group list-group-flush mb-4">
                     <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
                         <div>

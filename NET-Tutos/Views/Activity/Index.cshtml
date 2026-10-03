@@ -1,6 +1,7 @@
 @model NET_Tutos.Models.ViewModels.ActivityFeedPageViewModel
 @{
-    ViewData["Title"] = "Bảng tin Hoạt động Cộng đồng";
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "Community Activity Feed" : "Bảng tin Hoạt động Cộng đồng";
     var activeFilter = Model.CurrentFilter ?? "";
 }
 
@@ -13,14 +14,14 @@
         <div class="position-relative" style="max-width: 800px;">
             <div class="mb-2">
                 <span class="badge bg-primary text-white rounded-pill px-3 py-1.5 fw-semibold">
-                    <i class="bi bi-broadcast me-1"></i> THỜI GIAN THỰC
+                    <i class="bi bi-broadcast me-1"></i> @(isEn ? "REAL-TIME" : "THỜI GIAN THỰC")
                 </span>
             </div>
             <h1 class="display-6 fw-bold text-gradient-primary mb-2">
-                Bảng Tin Hoạt Động Học Tập
+                @(isEn ? "Learning Activity Feed" : "Bảng Tin Hoạt Động Học Tập")
             </h1>
             <p class="text-body-secondary lead fs-6 mb-0">
-                Khám phá hành trình học tập sôi động của cộng đồng NET-Tutos: bài học vừa hoàn thành, thử thách thuật toán C# đã vượt qua, chuỗi ngọn lửa bùng cháy và chứng chỉ số vừa được cấp.
+                @(isEn ? "Explore the active learning journey across the NET-Tutos community: completed lessons, solved C# challenges, burning streaks, and digital certificates." : "Khám phá hành trình học tập sôi động của cộng đồng NET-Tutos: bài học vừa hoàn thành, thử thách thuật toán C# đã vượt qua, chuỗi ngọn lửa bùng cháy và chứng chỉ số vừa được cấp.")
             </p>
         </div>
     </div>
@@ -31,25 +32,25 @@
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 small fw-semibold @(string.IsNullOrEmpty(activeFilter) ? "active" : "text-body-secondary")"
                    asp-action="Index" asp-route-filter="">
-                    <i class="bi bi-grid-fill me-1"></i> Tất cả
+                    <i class="bi bi-grid-fill me-1"></i> @(isEn ? "All" : "Tất cả")
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 small fw-semibold @(activeFilter == "lesson" ? "active" : "text-body-secondary")"
                    asp-action="Index" asp-route-filter="lesson">
-                    <i class="bi bi-journal-check me-1"></i> Bài học
+                    <i class="bi bi-journal-check me-1"></i> @(isEn ? "Lessons" : "Bài học")
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 small fw-semibold @(activeFilter == "challenge" ? "active" : "text-body-secondary")"
                    asp-action="Index" asp-route-filter="challenge">
-                    <i class="bi bi-terminal-fill me-1"></i> Thuật toán
+                    <i class="bi bi-terminal-fill me-1"></i> @(isEn ? "Algorithms" : "Thuật toán")
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 small fw-semibold @(activeFilter == "exam" ? "active" : "text-body-secondary")"
                    asp-action="Index" asp-route-filter="exam">
-                    <i class="bi bi-patch-check-fill me-1"></i> Thi & Chứng chỉ
+                    <i class="bi bi-patch-check-fill me-1"></i> @(isEn ? "Exams & Certs" : "Thi & Chứng chỉ")
                 </a>
             </li>
             <li class="nav-item">

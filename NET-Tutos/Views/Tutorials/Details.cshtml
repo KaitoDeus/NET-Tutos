@@ -1,23 +1,24 @@
 @model NET_Tutos.Models.ViewModels.TutorialDetailViewModel
 @{
-    ViewData["Title"] = Model.Tutorial.Title;
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = Model.Tutorial.GetTitle(isEn);
 }
 
 <div class="container py-4">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb small">
-            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none">Trang chủ</a></li>
-            <li class="breadcrumb-item"><a asp-controller="Tutorials" asp-action="Index" class="text-decoration-none">Bài học</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none">@(isEn ? "Home" : "Trang chủ")</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Tutorials" asp-action="Index" class="text-decoration-none">@(isEn ? "Tutorials" : "Bài học")</a></li>
             @if (Model.Tutorial.Category != null)
             {
                 <li class="breadcrumb-item">
                     <a asp-controller="Tutorials" asp-action="Index" asp-route-category="@Model.Tutorial.Category.Slug" class="text-decoration-none">
-                        @Model.Tutorial.Category.Name
+                        @Model.Tutorial.Category.GetTitle(isEn)
                     </a>
                 </li>
             }
-            <li class="breadcrumb-item active" aria-current="page">@Model.Tutorial.Title</li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Tutorial.GetTitle(isEn)</li>
         </ol>
     </nav>
 
@@ -29,29 +30,29 @@
                 <header class="border-bottom pb-4 mb-4">
                     <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
                         <span class="badge bg-@Model.Tutorial.Category?.BadgeColor px-3 py-1.5 rounded-pill">
-                            @Model.Tutorial.Category?.Name
+                            @Model.Tutorial.Category?.GetTitle(isEn)
                         </span>
                         <span class="badge bg-light text-secondary border px-3 py-1.5 rounded-pill">
-                            @Model.Tutorial.Difficulty
+                            @LocalizationHelper.GetDifficultyName(Model.Tutorial.Difficulty, isEn)
                         </span>
                         <span class="text-muted small ms-auto">
-                            <i class="bi bi-clock me-1"></i>~@Model.Tutorial.EstimatedReadingMinutes phút đọc
+                            <i class="bi bi-clock me-1"></i>~@Model.Tutorial.EstimatedReadingMinutes @(isEn ? "mins read" : "phút đọc")
                         </span>
                         <span class="text-muted small">
-                            <i class="bi bi-eye me-1"></i>@Model.Tutorial.ViewCount lượt xem
+                            <i class="bi bi-eye me-1"></i>@Model.Tutorial.ViewCount @(isEn ? "views" : "lượt xem")
                         </span>
                         <span id="headerBadgeWrapper">
                             @if (User.Identity?.IsAuthenticated == true && Model.IsCompletedByCurrentUser)
                             {
                                 <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill">
-                                    <i class="bi bi-check-circle-fill me-1"></i> Đã hoàn thành
+                                    <i class="bi bi-check-circle-fill me-1"></i> @(isEn ? "Completed" : "Đã hoàn thành")
                                 </span>
                             }
                         </span>
                     </div>
 
-                    <h1 class="h2 fw-extrabold text-body-emphasis mb-3">@Model.Tutorial.Title</h1>
-                    <p class="lead text-muted">@Model.Tutorial.Summary</p>
+                    <h1 class="h2 fw-extrabold text-body-emphasis mb-3">@Model.Tutorial.GetTitle(isEn)</h1>
+                    <p class="lead text-muted">@Model.Tutorial.GetSummary(isEn)</p>
                 </header>
 
                 <!-- Markdown Content Rendered to HTML -->
@@ -65,13 +66,13 @@
                     <section class="mt-5 pt-4 border-top">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <h3 class="fw-bold mb-0">
-                                <i class="bi bi-patch-question text-success me-2"></i>Trắc Nghiệm Ôn Tập Nhanh
+                                <i class="bi bi-patch-question text-success me-2"></i>@(isEn ? "Quick Knowledge Quiz" : "Trắc Nghiệm Ôn Tập Nhanh")
                             </h3>
                             <a asp-controller="Quiz" asp-action="Take" asp-route-tutorialId="@Model.Tutorial.Id" class="btn btn-sm btn-outline-success">
-                                Làm bài thi trắc nghiệm <i class="bi bi-arrow-right ms-1"></i>
+                                @(isEn ? "Take quiz" : "Làm bài thi trắc nghiệm") <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         </div>
-                        <p class="text-muted small mb-4">Củng cố ngay kiến thức vừa đọc với các câu hỏi kiểm tra sau đây:</p>
+                        <p class="text-muted small mb-4">@(isEn ? "Consolidate your knowledge immediately with these practice questions:" : "Củng cố ngay kiến thức vừa đọc với các câu hỏi kiểm tra sau đây:")</p>
 
                         <div class="accordion" id="quizAccordion">
                             @for (int i = 0; i < Model.Tutorial.QuizQuestions.Count; i++)
@@ -80,29 +81,29 @@
                                 <div class="accordion-item border rounded-3 mb-3 overflow-hidden">
                                     <h2 class="accordion-header" id="heading_@q.Id">
                                         <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_@q.Id" aria-expanded="false" aria-controls="collapse_@q.Id">
-                                            <span class="badge bg-primary me-2">Câu @(i + 1)</span> @q.Question
+                                            <span class="badge bg-primary me-2">@(isEn ? $"Question {i + 1}" : $"Câu {i + 1}")</span> @q.Question
                                         </button>
                                     </h2>
                                     <div id="collapse_@q.Id" class="accordion-collapse collapse" aria-labelledby="heading_@q.Id" data-bs-parent="#quizAccordion">
                                         <div class="accordion-body bg-body-tertiary">
                                             <div class="list-group mb-3">
                                                 <div class="list-group-item @(q.CorrectOption == "A" ? "list-group-item-success fw-bold" : "")">
-                                                    <strong>A.</strong> @q.OptionA @(q.CorrectOption == "A" ? "✓ (Đáp án chính xác)" : "")
+                                                    <strong>A.</strong> @q.OptionA @(q.CorrectOption == "A" ? (isEn ? "✓ (Correct answer)" : "✓ (Đáp án chính xác)") : "")
                                                 </div>
                                                 <div class="list-group-item @(q.CorrectOption == "B" ? "list-group-item-success fw-bold" : "")">
-                                                    <strong>B.</strong> @q.OptionB @(q.CorrectOption == "B" ? "✓ (Đáp án chính xác)" : "")
+                                                    <strong>B.</strong> @q.OptionB @(q.CorrectOption == "B" ? (isEn ? "✓ (Correct answer)" : "✓ (Đáp án chính xác)") : "")
                                                 </div>
                                                 <div class="list-group-item @(q.CorrectOption == "C" ? "list-group-item-success fw-bold" : "")">
-                                                    <strong>C.</strong> @q.OptionC @(q.CorrectOption == "C" ? "✓ (Đáp án chính xác)" : "")
+                                                    <strong>C.</strong> @q.OptionC @(q.CorrectOption == "C" ? (isEn ? "✓ (Correct answer)" : "✓ (Đáp án chính xác)") : "")
                                                 </div>
                                                 <div class="list-group-item @(q.CorrectOption == "D" ? "list-group-item-success fw-bold" : "")">
-                                                    <strong>D.</strong> @q.OptionD @(q.CorrectOption == "D" ? "✓ (Đáp án chính xác)" : "")
+                                                    <strong>D.</strong> @q.OptionD @(q.CorrectOption == "D" ? (isEn ? "✓ (Correct answer)" : "✓ (Đáp án chính xác)") : "")
                                                 </div>
                                             </div>
                                             @if (!string.IsNullOrEmpty(q.Explanation))
                                             {
                                                 <div class="alert alert-info py-2 small mb-0">
-                                                    <i class="bi bi-info-circle-fill me-1"></i><strong>Giải thích:</strong> @q.Explanation
+                                                    <i class="bi bi-info-circle-fill me-1"></i><strong>@(isEn ? "Explanation:" : "Giải thích:")</strong> @q.Explanation
                                                 </div>
                                             }
                                         </div>
@@ -121,10 +122,10 @@
                             </div>
                             <div>
                                 <h5 class="fw-bold mb-1" id="completeTitle">
-                                    @(Model.IsCompletedByCurrentUser ? "Bạn đã hoàn thành bài học này! 🎉" : "Đã đọc xong bài học này?")
+                                    @(Model.IsCompletedByCurrentUser ? (isEn ? "You have completed this lesson! 🎉" : "Bạn đã hoàn thành bài học này! 🎉") : (isEn ? "Finished reading this lesson?" : "Đã đọc xong bài học này?"))
                                 </h5>
                                 <p class="text-muted small mb-0" id="completeDesc">
-                                    @(Model.IsCompletedByCurrentUser ? "Tuyệt vời! Bạn đã nhận được +20 XP cho tiến trình học tập." : "Đánh dấu để ghi nhận tiến độ vào hồ sơ và tích lũy +20 XP điểm kinh nghiệm.")
+                                    @(Model.IsCompletedByCurrentUser ? (isEn ? "Great job! You earned +20 XP towards your learning progress." : "Tuyệt vời! Bạn đã nhận được +20 XP cho tiến trình học tập.") : (isEn ? "Mark as complete to record progress on your profile and earn +20 XP." : "Đánh dấu để ghi nhận tiến độ vào hồ sơ và tích lũy +20 XP điểm kinh nghiệm."))
                                 </p>
                             </div>
                         </div>
@@ -135,13 +136,13 @@
                                         class="btn @(Model.IsCompletedByCurrentUser ? "btn-outline-success" : "btn-primary") px-4 py-2 fw-semibold rounded-pill shadow-sm"
                                         data-tutorial-id="@Model.Tutorial.Id">
                                     <span class="spinner-border spinner-border-sm d-none me-1" id="completeSpinner"></span>
-                                    <span id="btnCompleteText">@(Model.IsCompletedByCurrentUser ? "✓ Đã hoàn thành (Bấm để hủy)" : "Đánh dấu đã hoàn thành (+20 XP)")</span>
+                                    <span id="btnCompleteText">@(Model.IsCompletedByCurrentUser ? (isEn ? "✓ Completed (Click to undo)" : "✓ Đã hoàn thành (Bấm để hủy)") : (isEn ? "Mark as Completed (+20 XP)" : "Đánh dấu đã hoàn thành (+20 XP)"))</span>
                                 </button>
                             }
                             else
                             {
                                 <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="btn btn-outline-primary px-4 py-2 fw-semibold rounded-pill">
-                                    <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập để lưu tiến độ
+                                    <i class="bi bi-box-arrow-in-right me-1"></i> @(isEn ? "Login to save progress" : "Đăng nhập để lưu tiến độ")
                                 </a>
                             }
                         </div>
@@ -154,8 +155,8 @@
                         @if (Model.PreviousTutorial != null)
                         {
                             <a asp-action="Details" asp-route-slug="@Model.PreviousTutorial.Slug" class="btn btn-outline-secondary text-start w-100 w-sm-auto">
-                                <small class="d-block text-muted">← Bài trước</small>
-                                <span class="fw-semibold">@Model.PreviousTutorial.Title</span>
+                                <small class="d-block text-muted">@(isEn ? "← Previous lesson" : "← Bài trước")</small>
+                                <span class="fw-semibold">@Model.PreviousTutorial.GetTitle(isEn)</span>
                             </a>
                         }
                     </div>
@@ -163,14 +164,14 @@
                         @if (Model.NextTutorial != null)
                         {
                             <a asp-action="Details" asp-route-slug="@Model.NextTutorial.Slug" class="btn btn-primary text-start text-sm-end w-100 w-sm-auto">
-                                <small class="d-block opacity-75">Bài tiếp theo →</small>
-                                <span class="fw-semibold">@Model.NextTutorial.Title</span>
+                                <small class="d-block opacity-75">@(isEn ? "Next lesson →" : "Bài tiếp theo →")</small>
+                                <span class="fw-semibold">@Model.NextTutorial.GetTitle(isEn)</span>
                             </a>
                         }
                         else
                         {
                             <a asp-controller="Roadmap" asp-action="Index" class="btn btn-success w-100 w-sm-auto">
-                                <i class="bi bi-trophy me-1"></i> Hoàn thành lộ trình!
+                                <i class="bi bi-trophy me-1"></i> @(isEn ? "Complete roadmap!" : "Hoàn thành lộ trình!")
                             </a>
                         }
                     </div>
@@ -189,7 +190,7 @@
             <aside class="sticky-sidebar">
                 <div class="card border-0 shadow-sm rounded-4 p-3 bg-body mb-3">
                     <h6 class="fw-bold mb-3 d-flex align-items-center text-primary">
-                        <i class="bi bi-list-nested me-2"></i> Bài trong chuyên đề này
+                        <i class="bi bi-list-nested me-2"></i> @(isEn ? "Lessons in this Topic" : "Bài trong chuyên đề này")
                     </h6>
                     <div class="list-group list-group-flush small">
                         @if (Model.Tutorial.Category?.Tutorials != null)
@@ -199,7 +200,7 @@
                                 <a asp-action="Details" asp-route-slug="@tut.Slug"
                                    class="list-group-item list-group-item-action py-2.5 px-2 rounded-2 mb-1 @(tut.Id == Model.Tutorial.Id ? "active fw-semibold" : "")">
                                     <i class="bi @(tut.Id == Model.Tutorial.Id ? "bi-check2-circle" : "bi-circle") me-1.5 opacity-75"></i>
-                                    @tut.Title
+                                    @tut.GetTitle(isEn)
                                 </a>
                             }
                         }
@@ -207,17 +208,17 @@
                 </div>
 
                 <div class="card border-0 shadow-sm rounded-4 p-3 bg-body">
-                    <h6 class="fw-bold mb-2"><i class="bi bi-lightbulb text-warning me-2"></i>Công cụ học tập</h6>
-                    <p class="small text-muted mb-3">Tận dụng tối đa các công cụ bổ trợ:</p>
+                    <h6 class="fw-bold mb-2"><i class="bi bi-lightbulb text-warning me-2"></i>@(isEn ? "Learning Tools" : "Công cụ học tập")</h6>
+                    <p class="small text-muted mb-3">@(isEn ? "Make the most of our supporting tools:" : "Tận dụng tối đa các công cụ bổ trợ:")</p>
                     <div class="d-grid gap-2">
                         <a asp-controller="CheatSheet" asp-action="Index" class="btn btn-sm btn-outline-info text-start">
-                            <i class="bi bi-code-square me-2"></i> Tra cứu Code Snippets
+                            <i class="bi bi-code-square me-2"></i> @(isEn ? "Search Code Snippets" : "Tra cứu Code Snippets")
                         </a>
                         <a asp-controller="Quiz" asp-action="Index" class="btn btn-sm btn-outline-success text-start">
-                            <i class="bi bi-patch-question me-2"></i> Thi trắc nghiệm .NET
+                            <i class="bi bi-patch-question me-2"></i> @(isEn ? ".NET Knowledge Quizzes" : "Thi trắc nghiệm .NET")
                         </a>
                         <a asp-controller="Roadmap" asp-action="Index" class="btn btn-sm btn-outline-primary text-start">
-                            <i class="bi bi-signpost-split me-2"></i> Toàn bộ lộ trình .NET
+                            <i class="bi bi-signpost-split me-2"></i> @(isEn ? "Full .NET Roadmap" : "Toàn bộ lộ trình .NET")
                         </a>
                     </div>
                 </div>
@@ -263,23 +264,24 @@
                         return;
                     }
 
+                    const isEnLang = @(isEn ? "true" : "false");
                     const res = await response.json();
                     if (res.success) {
                         if (res.isCompleted) {
                             btn.className = 'btn btn-outline-success px-4 py-2 fw-semibold rounded-pill shadow-sm';
-                            btnText.innerText = '✓ Đã hoàn thành (Bấm để hủy)';
-                            title.innerText = 'Bạn đã hoàn thành bài học này! 🎉';
-                            desc.innerText = 'Tuyệt vời! Bạn đã nhận được +20 XP cho tiến trình học tập.';
+                            btnText.innerText = isEnLang ? '✓ Completed (Click to undo)' : '✓ Đã hoàn thành (Bấm để hủy)';
+                            title.innerText = isEnLang ? 'You have completed this lesson! 🎉' : 'Bạn đã hoàn thành bài học này! 🎉';
+                            desc.innerText = isEnLang ? 'Great job! You earned +20 XP towards your learning progress.' : 'Tuyệt vời! Bạn đã nhận được +20 XP cho tiến trình học tập.';
                             icon.className = 'bi bi-check-circle-fill fs-3';
                             iconWrap.className = 'rounded-circle p-3 bg-success-subtle text-success';
                             if (headerBadgeWrapper) {
-                                headerBadgeWrapper.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> Đã hoàn thành</span>';
+                                headerBadgeWrapper.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> ' + (isEnLang ? 'Completed' : 'Đã hoàn thành') + '</span>';
                             }
                         } else {
                             btn.className = 'btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm';
-                            btnText.innerText = 'Đánh dấu đã hoàn thành (+20 XP)';
-                            title.innerText = 'Đã đọc xong bài học này?';
-                            desc.innerText = 'Đánh dấu để ghi nhận tiến độ vào hồ sơ và tích lũy +20 XP điểm kinh nghiệm.';
+                            btnText.innerText = isEnLang ? 'Mark as Completed (+20 XP)' : 'Đánh dấu đã hoàn thành (+20 XP)';
+                            title.innerText = isEnLang ? 'Finished reading this lesson?' : 'Đã đọc xong bài học này?';
+                            desc.innerText = isEnLang ? 'Mark as complete to record progress on your profile and earn +20 XP.' : 'Đánh dấu để ghi nhận tiến độ vào hồ sơ và tích lũy +20 XP điểm kinh nghiệm.';
                             icon.className = 'bi bi-bookmark-check fs-3';
                             iconWrap.className = 'rounded-circle p-3 bg-primary-subtle text-primary';
                             if (headerBadgeWrapper) {
@@ -287,7 +289,7 @@
                             }
                         }
                     } else {
-                        alert(res.message || 'Có lỗi xảy ra, vui lòng thử lại.');
+                        alert(res.message || (isEnLang ? 'An error occurred, please try again.' : 'Có lỗi xảy ra, vui lòng thử lại.'));
                     }
                 } catch (e) {
                     console.error(e);

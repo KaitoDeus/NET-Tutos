@@ -1,17 +1,18 @@
 @model NET_Tutos.Models.ViewModels.ExamListViewModel
 @{
-    ViewData["Title"] = "Kỳ thi & Chứng chỉ";
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "Exams & Certifications" : "Kỳ thi & Chứng chỉ";
 }
 
 <div class="container py-5">
     <!-- Top Hero Banner -->
     <div class="text-center mb-5">
         <span class="badge bg-primary-subtle border border-primary-subtle px-3 py-2 rounded-pill fw-bold mb-2">
-            <i class="bi bi-mortarboard-fill me-1"></i> Khảo Thí & Cấp Bằng LMS
+            <i class="bi bi-mortarboard-fill me-1"></i> @(isEn ? "LMS Examination & Certification" : "Khảo Thí & Cấp Bằng LMS")
         </span>
-        <h1 class="fw-extrabold display-5">Hệ Thống Đánh Giá & Cấp Chứng Chỉ Số .NET</h1>
+        <h1 class="fw-extrabold display-5">@(isEn ? ".NET Digital Certification & Assessment System" : "Hệ Thống Đánh Giá & Cấp Chứng Chỉ Số .NET")</h1>
         <p class="lead text-muted mx-auto" style="max-width: 750px;">
-            Tham gia các kỳ thi trắc nghiệm tính giờ theo từng chuyên đề hoặc toàn khóa để kiểm tra năng lực thực chiến, tích lũy điểm XP và nhận chứng chỉ số PDF có mã xác thực QR.
+            @(isEn ? "Take timed multi-choice exams by topic or comprehensive final exam to test real-world competence, earn XP points, and receive verified digital PDF certificates with QR code." : "Tham gia các kỳ thi trắc nghiệm tính giờ theo từng chuyên đề hoặc toàn khóa để kiểm tra năng lực thực chiến, tích lũy điểm XP và nhận chứng chỉ số PDF có mã xác thực QR.")
         </p>
     </div>
 
@@ -19,25 +20,25 @@
     <div class="card border-0 bg-primary-subtle rounded-4 p-4 mb-5 shadow-sm">
         <div class="row g-3 align-items-center">
             <div class="col-md-8">
-                <h5 class="fw-bold mb-2 text-primary">Quy định và Điều kiện cấp Chứng nhận:</h5>
+                <h5 class="fw-bold mb-2 text-primary">@(isEn ? "Rules & Certification Requirements:" : "Quy định và Điều kiện cấp Chứng nhận:")</h5>
                 <ul class="mb-0 text-muted small ps-3">
-                    <li class="mb-1">Bài thi gồm <strong>10 - 15 câu hỏi trắc nghiệm</strong> được xáo trộn ngẫu nhiên từ ngân hàng đề.</li>
-                    <li class="mb-1">Thời gian làm bài: <strong>15 - 20 phút</strong> (hệ thống sẽ tự động nộp bài khi hết giờ).</li>
-                    <li class="mb-1">Điểm đạt chuẩn cấp chứng nhận: <strong>từ 80% trở lên</strong>.</li>
-                    <li>Chứng chỉ được cấp dưới dạng <strong>file PDF vector chất lượng cao</strong> có mã số và mã QR xác thực công khai.</li>
+                    <li class="mb-1">@(isEn ? "Exam consists of 10 - 15 randomized questions from the test bank." : "Bài thi gồm 10 - 15 câu hỏi trắc nghiệm được xáo trộn ngẫu nhiên từ ngân hàng đề.")</li>
+                    <li class="mb-1">@(isEn ? "Time limit: 15 - 20 minutes (system auto-submits when time expires)." : "Thời gian làm bài: 15 - 20 phút (hệ thống sẽ tự động nộp bài khi hết giờ).")</li>
+                    <li class="mb-1">@(isEn ? "Passing score: 80% or higher." : "Điểm đạt chuẩn cấp chứng nhận: từ 80% trở lên.")</li>
+                    <li>@(isEn ? "Issued as high-quality vector PDF with certificate ID and verifiable QR code." : "Chứng chỉ được cấp dưới dạng file PDF vector chất lượng cao có mã số và mã QR xác thực công khai.")</li>
                 </ul>
             </div>
             <div class="col-md-4 text-md-end text-center">
                 @if (User.Identity?.IsAuthenticated != true)
                 {
                     <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
-                        <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập để dự thi
+                        <i class="bi bi-box-arrow-in-right me-1"></i> @(isEn ? "Login to take exam" : "Đăng nhập để dự thi")
                     </a>
                 }
                 else
                 {
                     <span class="badge bg-success px-3 py-2 rounded-pill fs-6">
-                        <i class="bi bi-check2-circle me-1"></i> Sẵn sàng dự thi
+                        <i class="bi bi-check2-circle me-1"></i> @(isEn ? "Ready to take exam" : "Sẵn sàng dự thi")
                     </span>
                 }
             </div>
@@ -45,7 +46,7 @@
     </div>
 
     <!-- Available Exams Grid -->
-    <h3 class="fw-bold mb-4">Các Kỳ Thi Đánh Giá Năng Lực</h3>
+    <h3 class="fw-bold mb-4">@(isEn ? "Available Certification Exams" : "Các Kỳ Thi Đánh Giá Năng Lực")</h3>
     <div class="row g-4 mb-5">
         @foreach (var exam in Model.AvailableExams)
         {

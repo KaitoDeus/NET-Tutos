@@ -1,7 +1,8 @@
 @model NET_Tutos.Models.ViewModels.ProjectListViewModel
 @using NET_Tutos.Models.Entities
 @{
-    ViewData["Title"] = "Đồ Án Thực Chiến Capstone - NET-Tutos";
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "Capstone Projects - NET-Tutos" : "Đồ Án Thực Chiến Capstone - NET-Tutos";
 }
 
 <div class="container py-4">
@@ -13,24 +14,24 @@
         <div class="position-relative" style="max-width: 800px;">
             <div class="mb-2">
                 <span class="badge bg-primary text-white rounded-pill px-3 py-1.5 fw-semibold">
-                    <i class="bi bi-mortarboard-fill me-1"></i> ĐỒ ÁN THỰC CHIẾN CAPSTONE
+                    <i class="bi bi-mortarboard-fill me-1"></i> @(isEn ? "CAPSTONE PROJECTS" : "ĐỒ ÁN THỰC CHIẾN CAPSTONE")
                 </span>
             </div>
             <h1 class="display-6 fw-bold text-gradient-primary mb-2">
-                Dự Án Thực Chiến .NET & C#
+                @(isEn ? "Real-World .NET & C# Projects" : "Dự Án Thực Chiến .NET & C#")
             </h1>
             <p class="text-body-secondary lead fs-6 mb-3">
-                Hiện thực hóa kiến thức vào các sản phẩm thực tế chuẩn doanh nghiệp. Thiết kế kiến trúc, tổ chức mã nguồn sạch (Clean Code), nộp kho lưu trữ GitHub và nhận đánh giá Code Review chuyên sâu từ Giảng viên.
+                @(isEn ? "Turn knowledge into enterprise-standard production applications. Design architectures, write Clean Code, submit GitHub repositories, and receive thorough code reviews." : "Hiện thực hóa kiến thức vào các sản phẩm thực tế chuẩn doanh nghiệp. Thiết kế kiến trúc, tổ chức mã nguồn sạch (Clean Code), nộp kho lưu trữ GitHub và nhận đánh giá Code Review chuyên sâu từ Giảng viên.")
             </p>
             <div class="d-flex flex-wrap gap-2 align-items-center">
                 <span class="badge bg-body-tertiary text-body border rounded-pill px-3 py-1.5">
-                    <i class="bi bi-folder me-1 text-primary"></i> @Model.TotalProjects Đề tài thực chiến
+                    <i class="bi bi-folder me-1 text-primary"></i> @(isEn ? $"{Model.TotalProjects} Capstone projects" : $"{Model.TotalProjects} Đề tài thực chiến")
                 </span>
                 <span class="badge bg-body-tertiary text-body border rounded-pill px-3 py-1.5">
-                    <i class="bi bi-award-fill me-1 text-warning"></i> Thưởng lên tới 350 XP / Đồ án
+                    <i class="bi bi-award-fill me-1 text-warning"></i> @(isEn ? "Earn up to 350 XP / project" : "Thưởng lên tới 350 XP / Đồ án")
                 </span>
                 <span class="badge bg-body-tertiary text-body border rounded-pill px-3 py-1.5">
-                    <i class="bi bi-patch-check-fill me-1 text-success"></i> Nhận huy hiệu "Kiến Trúc Sư .NET"
+                    <i class="bi bi-patch-check-fill me-1 text-success"></i> @(isEn ? "Earn \".NET Architect\" badge" : "Nhận huy hiệu \"Kiến Trúc Sư .NET\"")
                 </span>
             </div>
         </div>

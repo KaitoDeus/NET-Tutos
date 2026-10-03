@@ -1,6 +1,9 @@
 @model NET_Tutos.Models.ViewModels.CertificateVerifyViewModel
 @{
-    ViewData["Title"] = Model.IsFound ? $"Xác thực chứng chỉ: {Model.Certificate?.CertificateCode}" : "Tra cứu chứng chỉ";
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = Model.IsFound 
+        ? (isEn ? $"Verify Certificate: {Model.Certificate?.CertificateCode}" : $"Xác thực chứng chỉ: {Model.Certificate?.CertificateCode}") 
+        : (isEn ? "Verify Certificate" : "Tra cứu chứng chỉ");
 }
 
 <div class="container py-5">
@@ -17,38 +20,38 @@
                     </div>
 
                     <span class="badge bg-success px-3 py-1.5 rounded-pill mb-2 d-inline-block">
-                        CHỨNG CHỈ HỢP LỆ & ĐÃ ĐƯỢC XÁC THỰC
+                        @(isEn ? "VALID & VERIFIED DIGITAL CERTIFICATE" : "CHỨNG CHỈ HỢP LỆ & ĐÃ ĐƯỢC XÁC THỰC")
                     </span>
 
-                    <h2 class="fw-extrabold mb-1">Hệ Thống Xác Thực Chứng Nhận Số</h2>
-                    <p class="text-muted small">Cấp bởi NET-Tutos Academic Council theo chuẩn khảo thí tự động</p>
+                    <h2 class="fw-extrabold mb-1">@(isEn ? "Digital Certificate Verification System" : "Hệ Thống Xác Thực Chứng Nhận Số")</h2>
+                    <p class="text-muted small">@(isEn ? "Issued by NET-Tutos Academic Council via automated grading standards" : "Cấp bởi NET-Tutos Academic Council theo chuẩn khảo thí tự động")</p>
 
                     <div class="card border rounded-4 p-4 my-4 bg-body-tertiary text-start">
                         <div class="row g-3">
                             <div class="col-sm-6">
-                                <label class="text-muted small">Học viên được cấp:</label>
+                                <label class="text-muted small">@(isEn ? "Awarded to Learner:" : "Học viên được cấp:")</label>
                                 <h5 class="fw-bold text-primary mb-0">@Model.Certificate.StudentFullName</h5>
                             </div>
                             <div class="col-sm-6">
-                                <label class="text-muted small">Mã định danh chứng chỉ:</label>
+                                <label class="text-muted small">@(isEn ? "Certificate Code:" : "Mã định danh chứng chỉ:")</label>
                                 <h5 class="fw-bold text-dark mb-0"><code>@Model.Certificate.CertificateCode</code></h5>
                             </div>
                             <div class="col-sm-6">
-                                <label class="text-muted small">Chương trình / Khóa học:</label>
+                                <label class="text-muted small">@(isEn ? "Course / Specialization:" : "Chương trình / Khóa học:")</label>
                                 <h6 class="fw-bold mb-0">@Model.Certificate.CourseTitle</h6>
                             </div>
                             <div class="col-sm-6">
-                                <label class="text-muted small">Điểm số bài thi tốt nghiệp:</label>
-                                <h6 class="fw-bold text-success mb-0">@Model.Certificate.FinalScore.ToString("F1")% (Đạt loại Xuất sắc)</h6>
+                                <label class="text-muted small">@(isEn ? "Final Exam Score:" : "Điểm số bài thi tốt nghiệp:")</label>
+                                <h6 class="fw-bold text-success mb-0">@Model.Certificate.FinalScore.ToString("F1")% @(isEn ? "(Distinction)" : "(Đạt loại Xuất sắc)")</h6>
                             </div>
                             <div class="col-sm-6">
-                                <label class="text-muted small">Ngày cấp chính thức:</label>
+                                <label class="text-muted small">@(isEn ? "Official Issue Date:" : "Ngày cấp chính thức:")</label>
                                 <p class="fw-semibold mb-0">@Model.Certificate.IssuedAt.ToString("dd/MM/yyyy HH:mm:ss") (UTC)</p>
                             </div>
                             <div class="col-sm-6">
-                                <label class="text-muted small">Trạng thái hồ sơ:</label>
+                                <label class="text-muted small">@(isEn ? "Record Status:" : "Trạng thái hồ sơ:")</label>
                                 <p class="fw-bold text-success mb-0">
-                                    <i class="bi bi-shield-fill-check"></i> Đang hoạt động / Có hiệu lực vĩnh viễn
+                                    <i class="bi bi-shield-fill-check"></i> @(isEn ? "Active / Permanently Valid" : "Đang hoạt động / Có hiệu lực vĩnh viễn")
                                 </p>
                             </div>
                         </div>
@@ -56,7 +59,7 @@
 
                     <div class="d-flex justify-content-center gap-3 flex-wrap">
                         <a asp-action="DownloadPdf" asp-route-code="@Model.Certificate.CertificateCode" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
-                            <i class="bi bi-file-earmark-pdf me-1"></i> Tải file Chứng chỉ PDF
+                            <i class="bi bi-file-earmark-pdf me-1"></i> @(isEn ? "Download PDF Certificate" : "Tải file Chứng chỉ PDF")
                         </a>
                         <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" id="btnCopyVerifyLink">
                             <i class="bi bi-clipboard me-1"></i> Sao chép liên kết chia sẻ

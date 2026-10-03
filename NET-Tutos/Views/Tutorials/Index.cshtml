@@ -1,6 +1,7 @@
 @model NET_Tutos.Models.ViewModels.TutorialListViewModel
 @{
-    ViewData["Title"] = "Bài học";
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "Tutorials" : "Bài học";
 }
 
 <div class="container py-4">
@@ -10,20 +11,27 @@
             <h1 class="fw-bold mb-1">
                 @if (Model.CurrentCategory != null)
                 {
-                    <span>@Model.CurrentCategory.Name</span>
+                    <span>@Model.CurrentCategory.GetTitle(isEn)</span>
                 }
                 else
                 {
-                    <span>Tất Cả Bài Học .NET</span>
+                    <span>@(isEn ? "All .NET Tutorials" : "Tất Cả Bài Học .NET")</span>
                 }
             </h1>
             <p class="text-muted mb-0">
-                Tìm thấy <strong>@Model.TotalCount</strong> bài hướng dẫn chi tiết từ cơ bản đến nâng cao
+                @if (isEn)
+                {
+                    <span>Found <strong>@Model.TotalCount</strong> comprehensive step-by-step tutorials from basic to advanced</span>
+                }
+                else
+                {
+                    <span>Tìm thấy <strong>@Model.TotalCount</strong> bài hướng dẫn chi tiết từ cơ bản đến nâng cao</span>
+                }
             </p>
         </div>
         <div class="col-md-4 text-md-end mt-3 mt-md-0">
             <a asp-controller="Roadmap" asp-action="Index" class="btn btn-outline-primary">
-                <i class="bi bi-signpost-split me-1"></i> Xem theo lộ trình học
+                <i class="bi bi-signpost-split me-1"></i> @(isEn ? "View by Learning Roadmap" : "Xem theo lộ trình học")
             </a>
         </div>
     </div>
@@ -35,11 +43,11 @@
                 <!-- Category Select -->
                 <div class="col-md-4">
                     <select name="category" class="form-select" onchange="this.form.submit()">
-                        <option value="">-- Tất cả chuyên đề --</option>
+                        <option value="">@(isEn ? "-- All Topics --" : "-- Tất cả chuyên đề --")</option>
                         @foreach (var cat in Model.Categories)
                         {
                             <option value="@cat.Slug" selected="@(Model.CurrentCategorySlug == cat.Slug)">
-                                @cat.Name
+                                @cat.GetTitle(isEn)
                             </option>
                         }
                     </select>
@@ -48,18 +56,18 @@
                 <!-- Difficulty Select -->
                 <div class="col-md-3">
                     <select name="level" class="form-select" onchange="this.form.submit()">
-                        <option value="">-- Mọi cấp độ --</option>
-                        <option value="Beginner" selected="@(Model.CurrentDifficulty == DifficultyLevel.Beginner)">Cơ bản (Beginner)</option>
-                        <option value="Intermediate" selected="@(Model.CurrentDifficulty == DifficultyLevel.Intermediate)">Trung cấp (Intermediate)</option>
-                        <option value="Advanced" selected="@(Model.CurrentDifficulty == DifficultyLevel.Advanced)">Nâng cao (Advanced)</option>
+                        <option value="">@(isEn ? "-- All Levels --" : "-- Mọi cấp độ --")</option>
+                        <option value="Beginner" selected="@(Model.CurrentDifficulty == DifficultyLevel.Beginner)">@(isEn ? "Beginner" : "Cơ bản (Beginner)")</option>
+                        <option value="Intermediate" selected="@(Model.CurrentDifficulty == DifficultyLevel.Intermediate)">@(isEn ? "Intermediate" : "Trung cấp (Intermediate)")</option>
+                        <option value="Advanced" selected="@(Model.CurrentDifficulty == DifficultyLevel.Advanced)">@(isEn ? "Advanced" : "Nâng cao (Advanced)")</option>
                     </select>
                 </div>
 
                 <!-- Search Input -->
                 <div class="col-md-4">
                     <div class="input-group">
-                        <input type="text" name="search" class="form-control" placeholder="Từ khóa tìm kiếm..." value="@Model.SearchQuery" />
-                        <button type="submit" class="btn btn-primary">
+                        <input type="text" name="search" class="form-control" placeholder="@(isEn ? "Search keywords..." : "Từ khóa tìm kiếm...")" value="@Model.SearchQuery" />
+                        <button type="submit" class="btn btn-primary" title="@(isEn ? "Search" : "Tìm kiếm")">
                             <i class="bi bi-search"></i>
                         </button>
                     </div>
@@ -67,7 +75,7 @@
 
                 <!-- Reset Button -->
                 <div class="col-md-1 text-center">
-                    <a asp-action="Index" class="btn btn-outline-secondary w-100" title="Đặt lại bộ lọc">
+                    <a asp-action="Index" class="btn btn-outline-secondary w-100" title="@(isEn ? "Reset filter" : "Đặt lại bộ lọc")">
                         <i class="bi bi-arrow-counterclockwise"></i>
                     </a>
                 </div>
@@ -80,9 +88,9 @@
     {
         <div class="text-center py-5">
             <div class="fs-1 text-muted mb-3"><i class="bi bi-search"></i></div>
-            <h4>Không tìm thấy bài học nào phù hợp</h4>
-            <p class="text-muted">Vui lòng thử lại với từ khóa khác hoặc đặt lại bộ lọc tìm kiếm.</p>
-            <a asp-action="Index" class="btn btn-primary mt-2">Xem tất cả bài học</a>
+            <h4>@(isEn ? "No matching tutorials found" : "Không tìm thấy bài học nào phù hợp")</h4>
+            <p class="text-muted">@(isEn ? "Please try searching with different keywords or reset your filters." : "Vui lòng thử lại với từ khóa khác hoặc đặt lại bộ lọc tìm kiếm.")</p>
+            <a asp-action="Index" class="btn btn-primary mt-2">@(isEn ? "View all tutorials" : "Xem tất cả bài học")</a>
         </div>
     }
     else
@@ -95,29 +103,29 @@
                         <div class="card-body p-4 d-flex flex-column">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="badge bg-@item.Category?.BadgeColor bg-opacity-10 text-@item.Category?.BadgeColor border">
-                                    @item.Category?.Name
+                                    @item.Category.GetTitle(isEn)
                                 </span>
                                 <span class="text-muted small">
-                                    <i class="bi bi-clock me-1"></i>@item.EstimatedReadingMinutes phút
+                                    <i class="bi bi-clock me-1"></i>@(isEn ? $"{item.EstimatedReadingMinutes} mins" : $"{item.EstimatedReadingMinutes} phút")
                                 </span>
                             </div>
 
                             <h5 class="card-title fw-bold my-2">
                                 <a asp-action="Details" asp-route-slug="@item.Slug" class="text-decoration-none text-body-emphasis">
-                                    @item.Title
+                                    @item.GetTitle(isEn)
                                 </a>
                             </h5>
 
                             <p class="card-text text-muted small flex-grow-1">
-                                @item.Summary
+                                @item.GetSummary(isEn)
                             </p>
 
                             <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-3">
                                 <span class="badge bg-secondary-subtle text-secondary small">
-                                    <i class="bi bi-eye me-1"></i>@item.ViewCount lượt xem
+                                    <i class="bi bi-eye me-1"></i>@(isEn ? $"{item.ViewCount} views" : $"{item.ViewCount} lượt xem")
                                 </span>
                                 <a asp-action="Details" asp-route-slug="@item.Slug" class="btn btn-sm btn-primary rounded-pill px-3">
-                                    Học bài này <i class="bi bi-arrow-right ms-1"></i>
+                                    @(isEn ? "Start Lesson" : "Học bài này") <i class="bi bi-arrow-right ms-1"></i>
                                 </a>
                             </div>
                         </div>

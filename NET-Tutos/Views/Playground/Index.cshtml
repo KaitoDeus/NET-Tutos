@@ -1,8 +1,9 @@
 @model NET_Tutos.Models.ViewModels.PlaygroundIndexViewModel
 @{
+    bool isEn = Context.IsEnglish();
     var title = Model.ActiveChallenge != null 
-        ? $"Thử thách: {Model.ActiveChallenge.Title}" 
-        : "Thực hành Code C# Playground";
+        ? (isEn ? $"Challenge: {Model.ActiveChallenge.Title}" : $"Thử thách: {Model.ActiveChallenge.Title}")
+        : (isEn ? "C# Code Playground" : "Thực hành Code C# Playground");
     ViewData["Title"] = title;
 }
 
@@ -69,23 +70,23 @@
                 @if (Model.ActiveChallenge != null)
                 {
                     <span class="badge bg-warning-subtle border border-warning-subtle rounded-pill px-3 py-1 fw-bold">
-                        ⚡ Thử thách LeetCode-style (+@Model.ActiveChallenge.XpReward XP)
+                        ⚡ @(isEn ? $"LeetCode-style Challenge (+{Model.ActiveChallenge.XpReward} XP)" : $"Thử thách LeetCode-style (+{Model.ActiveChallenge.XpReward} XP)")
                     </span>
                 }
             </div>
             <h3 class="fw-bold mb-0">
-                @(Model.ActiveChallenge != null ? Model.ActiveChallenge.Title : "Trình Thực Hành Code C# Trực Tuyến")
+                @(Model.ActiveChallenge != null ? Model.ActiveChallenge.Title : (isEn ? "Online C# Code Playground" : "Trình Thực Hành Code C# Trực Tuyến"))
             </h3>
         </div>
 
         <div class="d-flex flex-wrap align-items-center gap-2">
             <a asp-action="Challenges" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-semibold">
-                <i class="bi bi-list-task me-1"></i> Kho thử thách (@Model.Challenges.Count bài)
+                <i class="bi bi-list-task me-1"></i> @(isEn ? $"Challenge Bank ({Model.Challenges.Count} tasks)" : $"Kho thử thách ({Model.Challenges.Count} bài)")
             </a>
             @if (Model.ActiveChallenge != null)
             {
                 <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3 py-2">
-                    <i class="bi bi-code-slash me-1"></i> Playground tự do
+                    <i class="bi bi-code-slash me-1"></i> @(isEn ? "Free Sandbox" : "Playground tự do")
                 </a>
             }
         </div>
@@ -98,24 +99,15 @@
             <div class="card-body p-4">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3 pb-2 border-bottom">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="fw-bold fs-5">Mô tả bài toán</span>
-                        @switch (Model.ActiveChallenge.Difficulty)
-                        {
-                            case NET_Tutos.Models.Entities.DifficultyLevel.Beginner:
-                                <span class="badge bg-success-subtle border border-success-subtle rounded-pill px-2.5 py-1">Cơ bản</span>
-                                break;
-                            case NET_Tutos.Models.Entities.DifficultyLevel.Intermediate:
-                                <span class="badge bg-primary-subtle border border-primary-subtle rounded-pill px-2.5 py-1">Trung cấp</span>
-                                break;
-                            case NET_Tutos.Models.Entities.DifficultyLevel.Advanced:
-                                <span class="badge bg-danger-subtle border border-danger-subtle rounded-pill px-2.5 py-1">Nâng cao</span>
-                                break;
-                        }
+                        <span class="fw-bold fs-5">@(isEn ? "Problem Description" : "Mô tả bài toán")</span>
+                        <span class="badge bg-primary-subtle border border-primary-subtle rounded-pill px-2.5 py-1">
+                            @LocalizationHelper.GetDifficultyName(Model.ActiveChallenge.Difficulty, isEn)
+                        </span>
                     </div>
                     @if (Model.LastSubmission != null && Model.LastSubmission.IsPassed)
                     {
                         <span class="badge bg-success-subtle border border-success-subtle rounded-pill px-3 py-1.5 fw-bold">
-                            <i class="bi bi-check-circle-fill me-1"></i> Bạn đã hoàn thành thử thách này (+@Model.LastSubmission.XpEarned XP)
+                            <i class="bi bi-check-circle-fill me-1"></i> @(isEn ? $"You have completed this challenge (+{Model.LastSubmission.XpEarned} XP)" : $"Bạn đã hoàn thành thử thách này (+{Model.LastSubmission.XpEarned} XP)")
                         </span>
                     }
                 </div>
