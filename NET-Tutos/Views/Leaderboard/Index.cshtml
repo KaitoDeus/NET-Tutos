@@ -81,7 +81,7 @@
                     <div class="card border-0 shadow-sm bg-body rounded-4 p-4 text-center position-relative h-100 border-top border-4 border-secondary">
                         <div class="position-absolute top-0 start-50 translate-middle">
                             <span class="badge bg-secondary text-white rounded-pill px-3 py-2 shadow-sm fs-6">
-                                <i class="bi bi-award-fill me-1"></i>Hạng 2
+                                <i class="bi bi-award-fill me-1"></i>@(isEn ? "Rank #2" : "Hạng 2")
                             </span>
                         </div>
                         <div class="mt-3 mb-3">
@@ -92,9 +92,9 @@
                         <h5 class="fw-bold mb-1 text-truncate">@top2.FullName</h5>
                         <div class="text-primary fw-bold fs-4 mb-2">@top2.ExperiencePoints <span class="fs-6 text-muted">XP</span></div>
                         <div class="d-flex justify-content-center gap-2 small text-muted">
-                            <span><i class="bi bi-book me-1"></i>@top2.CompletedLessonsCount bài</span>
+                            <span><i class="bi bi-book me-1"></i>@top2.CompletedLessonsCount @(isEn ? "lessons" : "bài")</span>
                             <span>·</span>
-                            <span><i class="bi bi-code-slash me-1"></i>@top2.CompletedChallengesCount code</span>
+                            <span><i class="bi bi-code-slash me-1"></i>@top2.CompletedChallengesCount @(isEn ? "challenges" : "code")</span>
                         </div>
                     </div>
                 </div>
@@ -107,7 +107,7 @@
                     <div class="card border-0 shadow-lg bg-body rounded-4 p-4 text-center position-relative h-100 border-top border-4 border-warning scale-highlight podium-rank-1">
                         <div class="position-absolute top-0 start-50 translate-middle">
                             <span class="badge bg-warning text-dark rounded-pill px-4 py-2 shadow-sm fw-bold fs-6">
-                                <i class="bi bi-trophy-fill me-1"></i>QUÁN QUÂN #1
+                                <i class="bi bi-trophy-fill me-1"></i>@(isEn ? "CHAMPION #1" : "QUÁN QUÂN #1")
                             </span>
                         </div>
                         <div class="mt-4 mb-3">
@@ -118,14 +118,16 @@
                         <h4 class="fw-bold mb-1 text-truncate">@top1.FullName</h4>
                         <div class="text-warning-emphasis fw-bold fs-3 mb-2">@top1.ExperiencePoints <span class="fs-6 text-muted">XP</span></div>
                         <div class="d-flex justify-content-center gap-2 small text-muted mb-3">
-                            <span><i class="bi bi-book me-1"></i>@top1.CompletedLessonsCount bài học</span>
+                            <span><i class="bi bi-book me-1"></i>@top1.CompletedLessonsCount @(isEn ? "lessons" : "bài học")</span>
                             <span>·</span>
-                            <span><i class="bi bi-code-slash me-1"></i>@top1.CompletedChallengesCount thuật toán</span>
+                            <span><i class="bi bi-code-slash me-1"></i>@top1.CompletedChallengesCount @(isEn ? "algorithms" : "thuật toán")</span>
                         </div>
                         <div class="d-flex justify-content-center gap-1">
                             @foreach (var b in top1.Badges.Take(4))
                             {
-                                <span class="badge bg-@b.ColorClass-subtle text-@b.ColorClass border border-@b.ColorClass-subtle rounded-pill" title="@b.Title: @b.Description">
+                                var bTitle = LocalizationHelper.GetBadgeTitle(b.BadgeCode, b.Title, isEn);
+                                var bDesc = LocalizationHelper.GetBadgeDescription(b.BadgeCode, b.Description, isEn);
+                                <span class="badge bg-@b.ColorClass-subtle text-@b.ColorClass border border-@b.ColorClass-subtle rounded-pill" title="@bTitle: @bDesc">
                                     <i class="bi @b.IconClass"></i>
                                 </span>
                             }
@@ -141,7 +143,7 @@
                     <div class="card border-0 shadow-sm bg-body rounded-4 p-4 text-center position-relative h-100 border-top border-4 border-danger">
                         <div class="position-absolute top-0 start-50 translate-middle">
                             <span class="badge bg-danger text-white rounded-pill px-3 py-2 shadow-sm fs-6">
-                                <i class="bi bi-award-fill me-1"></i>Hạng 3
+                                <i class="bi bi-award-fill me-1"></i>@(isEn ? "Rank #3" : "Hạng 3")
                             </span>
                         </div>
                         <div class="mt-3 mb-3">
@@ -152,9 +154,9 @@
                         <h5 class="fw-bold mb-1 text-truncate">@top3.FullName</h5>
                         <div class="text-primary fw-bold fs-4 mb-2">@top3.ExperiencePoints <span class="fs-6 text-muted">XP</span></div>
                         <div class="d-flex justify-content-center gap-2 small text-muted">
-                            <span><i class="bi bi-book me-1"></i>@top3.CompletedLessonsCount bài</span>
+                            <span><i class="bi bi-book me-1"></i>@top3.CompletedLessonsCount @(isEn ? "lessons" : "bài")</span>
                             <span>·</span>
-                            <span><i class="bi bi-code-slash me-1"></i>@top3.CompletedChallengesCount code</span>
+                            <span><i class="bi bi-code-slash me-1"></i>@top3.CompletedChallengesCount @(isEn ? "challenges" : "code")</span>
                         </div>
                     </div>
                 </div>
@@ -165,20 +167,20 @@
     <!-- Full Ranking Table -->
     <div class="card border-0 shadow-sm bg-body rounded-4 overflow-hidden mb-5">
         <div class="card-header bg-transparent py-3 px-4 border-bottom d-flex align-items-center justify-content-between">
-            <h5 class="fw-bold mb-0"><i class="bi bi-list-ol me-2 text-primary"></i>Bảng Tổng Sắp Học Viên</h5>
-            <span class="text-muted small">Cập nhật thời gian thực</span>
+            <h5 class="fw-bold mb-0"><i class="bi bi-list-ol me-2 text-primary"></i>@(isEn ? "Learner Leaderboard" : "Bảng Tổng Sắp Học Viên")</h5>
+            <span class="text-muted small">@(isEn ? "Real-time updates" : "Cập nhật thời gian thực")</span>
         </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-4" style="width: 80px;">Hạng</th>
-                        <th>Học viên</th>
-                        <th class="text-center">Bài học</th>
-                        <th class="text-center d-none d-sm-table-cell">Thuật toán</th>
-                        <th class="text-center d-none d-lg-table-cell">Chứng chỉ</th>
-                        <th class="d-none d-md-table-cell">Huy hiệu</th>
-                        <th class="text-end pe-4">Tổng XP</th>
+                        <th class="ps-4" style="width: 80px;">@(isEn ? "Rank" : "Hạng")</th>
+                        <th>@(isEn ? "Learner" : "Học viên")</th>
+                        <th class="text-center">@(isEn ? "Lessons" : "Bài học")</th>
+                        <th class="text-center d-none d-sm-table-cell">@(isEn ? "Algorithms" : "Thuật toán")</th>
+                        <th class="text-center d-none d-lg-table-cell">@(isEn ? "Certificates" : "Chứng chỉ")</th>
+                        <th class="d-none d-md-table-cell">@(isEn ? "Badges" : "Huy hiệu")</th>
+                        <th class="text-end pe-4">@(isEn ? "Total XP" : "Tổng XP")</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -214,11 +216,11 @@
                                             <span>@user.FullName</span>
                                             @if (isCurrent)
                                             {
-                                                <span class="badge bg-primary text-white">Bạn</span>
+                                                <span class="badge bg-primary text-white">@(isEn ? "You" : "Bạn")</span>
                                             }
                                             @if (user.CurrentStreak > 0)
                                             {
-                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5 small" title="Chuỗi @user.CurrentStreak ngày liên tiếp">
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5 small" title="@(isEn ? $"{user.CurrentStreak}-day streak" : $"Chuỗi {user.CurrentStreak} ngày liên tiếp")">
                                                     <i class="bi bi-fire me-0.5"></i>@user.CurrentStreak
                                                 </span>
                                             }
@@ -251,8 +253,10 @@
                                     {
                                         @foreach (var b in user.Badges)
                                         {
-                                            <span class="badge bg-@b.ColorClass-subtle text-@b.ColorClass border border-@b.ColorClass-subtle rounded-pill" title="@b.Title: @b.Description">
-                                                <i class="bi @b.IconClass me-1"></i>@b.Title
+                                            var bTitle = LocalizationHelper.GetBadgeTitle(b.BadgeCode, b.Title, isEn);
+                                            var bDesc = LocalizationHelper.GetBadgeDescription(b.BadgeCode, b.Description, isEn);
+                                            <span class="badge bg-@b.ColorClass-subtle text-@b.ColorClass border border-@b.ColorClass-subtle rounded-pill" title="@bTitle: @bDesc">
+                                                <i class="bi @b.IconClass me-1"></i>@bTitle
                                             </span>
                                         }
                                     }
@@ -272,14 +276,17 @@
     <!-- Badges Catalog Section -->
     <div class="mb-5">
         <div class="text-center mb-4">
-            <h3 class="fw-bold mb-2"><i class="bi bi-shield-check text-success me-2"></i>Hệ Thống Huy Hiệu Thành Tựu</h3>
-            <p class="text-muted small">Mở khóa các danh hiệu danh giá bằng cách hoàn thành mục tiêu học tập và cống hiến cho cộng đồng.</p>
+            <h3 class="fw-bold mb-2"><i class="bi bi-shield-check text-success me-2"></i>@(isEn ? "Achievement Badges System" : "Hệ Thống Huy Hiệu Thành Tựu")</h3>
+            <p class="text-muted small">@(isEn ? "Unlock prestigious achievements by reaching learning milestones and contributing to the community." : "Mở khóa các danh hiệu danh giá bằng cách hoàn thành mục tiêu học tập và cống hiến cho cộng đồng.")</p>
         </div>
 
         <div class="row g-3">
             @foreach (var b in Model.AllBadges)
             {
                 var isEarned = Model.CurrentUserItem?.Badges.Any(ub => ub.BadgeCode == b.BadgeCode) == true;
+                var bTitle = LocalizationHelper.GetBadgeTitle(b.BadgeCode, b.Title, isEn);
+                var bDesc = LocalizationHelper.GetBadgeDescription(b.BadgeCode, b.Description, isEn);
+                var bCond = LocalizationHelper.GetBadgeCondition(b.BadgeCode, b.ConditionDescription, isEn);
                 <div class="col-md-6 col-lg-4">
                     <div class="card border-0 shadow-sm bg-body rounded-4 p-3 h-100 @(isEarned ? "border-start border-4 border-success" : "opacity-75")">
                         <div class="d-flex align-items-start gap-3">
@@ -288,19 +295,19 @@
                             </div>
                             <div class="flex-grow-1">
                                 <div class="d-flex align-items-center justify-content-between mb-1">
-                                    <h6 class="fw-bold mb-0">@b.Title</h6>
+                                    <h6 class="fw-bold mb-0">@bTitle</h6>
                                     @if (isEarned)
                                     {
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small">✓ Đã đạt</span>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small">@(isEn ? "✓ Earned" : "✓ Đã đạt")</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill small">Chưa đạt</span>
+                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill small">@(isEn ? "Locked" : "Chưa đạt")</span>
                                     }
                                 </div>
-                                <p class="text-muted small mb-2">@b.Description</p>
+                                <p class="text-muted small mb-2">@bDesc</p>
                                 <div class="small fw-semibold text-primary">
-                                    <i class="bi bi-flag-fill me-1"></i>Điều kiện: @b.ConditionDescription
+                                    <i class="bi bi-flag-fill me-1"></i>@(isEn ? "Condition:" : "Điều kiện:") @bCond
                                 </div>
                             </div>
                         </div>

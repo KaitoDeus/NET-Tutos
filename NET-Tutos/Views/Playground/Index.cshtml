@@ -121,7 +121,7 @@
 
                 <!-- Public Test Cases preview -->
                 <div class="d-flex flex-wrap gap-2 align-items-center">
-                    <span class="small fw-bold text-body-secondary text-uppercase me-2">Test cases mẫu:</span>
+                    <span class="small fw-bold text-body-secondary text-uppercase me-2">@(isEn ? "Sample test cases:" : "Test cases mẫu:")</span>
                     @foreach (var tc in Model.ActiveChallenge.TestCases.Where(t => !t.IsHidden))
                     {
                         <div class="badge bg-body-tertiary text-body border rounded-3 p-2 font-monospace text-start">
@@ -145,7 +145,7 @@
                         @if (Model.ActiveChallenge == null)
                         {
                             <div class="d-flex align-items-center gap-2">
-                                <label class="small text-body-secondary fw-semibold text-nowrap">Mẫu code:</label>
+                                <label class="small text-body-secondary fw-semibold text-nowrap">@(isEn ? "Template:" : "Mẫu code:")</label>
                                 <select id="templateSelector" class="form-select form-select-sm rounded-pill font-monospace" style="max-width: 250px;">
                                     @foreach (var t in Model.Templates)
                                     {
@@ -163,16 +163,16 @@
 
                         <!-- Action Toolbar -->
                         <div class="d-flex align-items-center gap-2">
-                            <button type="button" id="btnResetCode" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="Đặt lại code ban đầu">
-                                <i class="bi bi-arrow-counterclockwise me-1"></i> Đặt lại
+                            <button type="button" id="btnResetCode" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="@(isEn ? "Reset code to default" : "Đặt lại code ban đầu")">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> @(isEn ? "Reset" : "Đặt lại")
                             </button>
-                            <button type="button" id="btnRunCode" class="btn btn-sm btn-success rounded-pill px-3.5 py-1.5 fw-bold shadow-sm" title="Phím tắt: Ctrl + Enter">
-                                <i class="bi bi-play-fill fs-6"></i> Chạy mã
+                            <button type="button" id="btnRunCode" class="btn btn-sm btn-success rounded-pill px-3.5 py-1.5 fw-bold shadow-sm" title="@(isEn ? "Shortcut: Ctrl + Enter" : "Phím tắt: Ctrl + Enter")">
+                                <i class="bi bi-play-fill fs-6"></i> @(isEn ? "Run Code" : "Chạy mã")
                             </button>
                             @if (Model.ActiveChallenge != null)
                             {
                                 <button type="button" id="btnSubmitChallenge" class="btn btn-sm btn-primary rounded-pill px-3.5 py-1.5 fw-bold shadow-sm">
-                                    <i class="bi bi-cloud-upload-fill me-1"></i> Nộp bài
+                                    <i class="bi bi-cloud-upload-fill me-1"></i> @(isEn ? "Submit Solution" : "Nộp bài")
                                 </button>
                             }
                         </div>
@@ -192,14 +192,14 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center gap-2">
                             <i class="bi bi-terminal fs-5 text-primary"></i>
-                            <span class="fw-bold">Cửa sổ Output & Console</span>
+                            <span class="fw-bold">@(isEn ? "Output & Console Window" : "Cửa sổ Output & Console")</span>
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <span id="execTimerBadge" class="badge bg-secondary-subtle border border-secondary-subtle rounded-pill small d-none">
                                 <i class="bi bi-stopwatch me-1"></i> <span id="execTimerVal">0ms</span>
                             </span>
-                            <button type="button" id="btnClearTerminal" class="btn btn-sm btn-link p-0 text-decoration-none text-body-secondary small" title="Xóa màn hình console">
-                                <i class="bi bi-trash"></i> Xóa
+                            <button type="button" id="btnClearTerminal" class="btn btn-sm btn-link p-0 text-decoration-none text-body-secondary small" title="@(isEn ? "Clear console" : "Xóa màn hình console")">
+                                <i class="bi bi-trash"></i> @(isEn ? "Clear" : "Xóa")
                             </button>
                         </div>
                     </div>
@@ -208,14 +208,13 @@
                 <div class="card-body p-3 pt-0 d-flex flex-column">
                     <!-- Terminal Console Box -->
                     <div id="terminalOutput" class="console-terminal flex-grow-1">
-<span class="text-muted">// Bấm "Chạy mã" (hoặc nhấn Ctrl + Enter) để thực thi C# script...
-// Kết quả Console.WriteLine() sẽ xuất hiện tại đây.</span></div>
+<span class="text-muted">@(isEn ? "// Click \"Run Code\" (or press Ctrl + Enter) to execute C# script...\n// Console.WriteLine() outputs will appear here." : "// Bấm \"Chạy mã\" (hoặc nhấn Ctrl + Enter) để thực thi C# script...\n// Kết quả Console.WriteLine() sẽ xuất hiện tại đây.")</span></div>
 
                     <!-- Challenge Test Cases Evaluation Box (Appears after submission) -->
                     <div id="challengeEvaluationBox" class="mt-3 d-none">
                         <div class="p-3 rounded-3 border" id="evalSummaryCard">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <h6 class="fw-bold mb-0" id="evalSummaryTitle">Kết quả chấm điểm</h6>
+                                <h6 class="fw-bold mb-0" id="evalSummaryTitle">@(isEn ? "Evaluation Results" : "Kết quả chấm điểm")</h6>
                                 <span class="badge rounded-pill fw-bold" id="evalSummaryBadge"></span>
                             </div>
                             <div class="small mb-3" id="evalSummaryText"></div>
@@ -227,9 +226,9 @@
                                         <tr>
                                             <th>Test</th>
                                             <th>Input</th>
-                                            <th>Kết quả</th>
-                                            <th>Kỳ vọng</th>
-                                            <th>Trạng thái</th>
+                                            <th>@(isEn ? "Output" : "Kết quả")</th>
+                                            <th>@(isEn ? "Expected" : "Kỳ vọng")</th>
+                                            <th>@(isEn ? "Status" : "Trạng thái")</th>
                                         </tr>
                                     </thead>
                                     <tbody id="evalTestCasesBody"></tbody>

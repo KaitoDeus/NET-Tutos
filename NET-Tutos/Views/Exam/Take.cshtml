@@ -1,6 +1,7 @@
 @model NET_Tutos.Models.ViewModels.ExamSessionViewModel
 @{
-    ViewData["Title"] = "Làm bài thi: " + Model.ExamTitle;
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = (isEn ? "Certification Exam: " : "Làm bài thi: ") + Model.ExamTitle;
 }
 
 <div class="container py-4">
@@ -8,7 +9,7 @@
     <div class="card border-0 shadow-sm rounded-4 p-3 bg-body mb-4 sticky-top" style="top: 70px; z-index: 1020;">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div>
-                <span class="badge bg-primary px-3 py-1.5 rounded-pill mb-1">Kỳ thi Đánh giá Năng lực</span>
+                <span class="badge bg-primary px-3 py-1.5 rounded-pill mb-1">@(isEn ? "Competence Assessment Exam" : "Kỳ thi Đánh giá Năng lực")</span>
                 <h4 class="fw-bold mb-0">@Model.ExamTitle</h4>
             </div>
 
@@ -20,7 +21,7 @@
                 </div>
 
                 <button type="button" class="btn btn-success rounded-pill px-4 fw-semibold shadow-sm" id="btnSubmitExamTop" data-bs-toggle="modal" data-bs-target="#confirmSubmitModal">
-                    <i class="bi bi-send-check-fill me-1"></i> Nộp bài thi
+                    <i class="bi bi-send-check-fill me-1"></i> @(isEn ? "Submit Exam" : "Nộp bài thi")
                 </button>
             </div>
         </div>
@@ -40,11 +41,11 @@
                     var q = Model.Questions[i];
                     <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-body mb-4 question-block" id="question_block_@(i+1)">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <span class="badge bg-primary rounded-pill px-3 py-1.5">Câu @(i + 1) / @Model.Questions.Count</span>
-                            <span class="text-muted small">Chọn 1 đáp án chính xác nhất</span>
+                            <span class="badge bg-primary rounded-pill px-3 py-1.5">@(isEn ? $"Question {i + 1} / {Model.Questions.Count}" : $"Câu {i + 1} / {Model.Questions.Count}")</span>
+                            <span class="text-muted small">@(isEn ? "Select the single best answer" : "Chọn 1 đáp án chính xác nhất")</span>
                         </div>
 
-                        <h5 class="fw-bold mb-3">@q.Question</h5>
+                        <h5 class="fw-bold mb-3">@q.GetQuestionText(isEn)</h5>
 
                         @if (!string.IsNullOrWhiteSpace(q.CodeSnippet))
                         {
@@ -54,22 +55,22 @@
                         <div class="d-flex flex-column gap-2 mt-3">
                             <label class="p-3 border rounded-3 d-flex align-items-center gap-3 option-label cursor-pointer" for="q_@(q.Id)_A">
                                 <input class="form-check-input mt-0 answer-radio" type="radio" name="answer_@q.Id" id="q_@(q.Id)_A" value="A" data-question-index="@(i+1)" data-question-id="@q.Id">
-                                <span><strong>A.</strong> @q.OptionA</span>
+                                <span><strong>A.</strong> @q.GetOptionA(isEn)</span>
                             </label>
 
                             <label class="p-3 border rounded-3 d-flex align-items-center gap-3 option-label cursor-pointer" for="q_@(q.Id)_B">
                                 <input class="form-check-input mt-0 answer-radio" type="radio" name="answer_@q.Id" id="q_@(q.Id)_B" value="B" data-question-index="@(i+1)" data-question-id="@q.Id">
-                                <span><strong>B.</strong> @q.OptionB</span>
+                                <span><strong>B.</strong> @q.GetOptionB(isEn)</span>
                             </label>
 
                             <label class="p-3 border rounded-3 d-flex align-items-center gap-3 option-label cursor-pointer" for="q_@(q.Id)_C">
                                 <input class="form-check-input mt-0 answer-radio" type="radio" name="answer_@q.Id" id="q_@(q.Id)_C" value="C" data-question-index="@(i+1)" data-question-id="@q.Id">
-                                <span><strong>C.</strong> @q.OptionC</span>
+                                <span><strong>C.</strong> @q.GetOptionC(isEn)</span>
                             </label>
 
                             <label class="p-3 border rounded-3 d-flex align-items-center gap-3 option-label cursor-pointer" for="q_@(q.Id)_D">
                                 <input class="form-check-input mt-0 answer-radio" type="radio" name="answer_@q.Id" id="q_@(q.Id)_D" value="D" data-question-index="@(i+1)" data-question-id="@q.Id">
-                                <span><strong>D.</strong> @q.OptionD</span>
+                                <span><strong>D.</strong> @q.GetOptionD(isEn)</span>
                             </label>
                         </div>
                     </div>
@@ -77,7 +78,7 @@
 
                 <div class="text-center py-4">
                     <button type="button" class="btn btn-success btn-lg rounded-pill px-5 fw-bold shadow" data-bs-toggle="modal" data-bs-target="#confirmSubmitModal">
-                        <i class="bi bi-send-check-fill me-2"></i> Hoàn thành & Nộp bài thi
+                        <i class="bi bi-send-check-fill me-2"></i> @(isEn ? "Finish & Submit Exam" : "Hoàn thành & Nộp bài thi")
                     </button>
                 </div>
             </form>
@@ -88,7 +89,7 @@
             <aside class="sticky-sidebar" style="top: 190px;">
                 <div class="card border-0 shadow-sm rounded-4 p-4 bg-body mb-3">
                     <h6 class="fw-bold mb-3 d-flex align-items-center">
-                        <i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i> Danh Sách Câu Hỏi
+                        <i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i> @(isEn ? "Questions List" : "Danh Sách Câu Hỏi")
                     </h6>
                     <div class="d-flex flex-wrap gap-2">
                         @for (int i = 1; i <= Model.Questions.Count; i++)
@@ -102,11 +103,11 @@
                     <div class="border-top mt-3 pt-3 small text-muted">
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <span class="badge bg-success rounded-pill" style="width:12px;height:12px;padding:0;"> </span>
-                            <span>Đã chọn đáp án</span>
+                            <span>@(isEn ? "Answered" : "Đã chọn đáp án")</span>
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge border bg-body rounded-pill" style="width:12px;height:12px;padding:0;"> </span>
-                            <span>Chưa trả lời</span>
+                            <span>@(isEn ? "Unanswered" : "Chưa trả lời")</span>
                         </div>
                     </div>
                 </div>
@@ -120,22 +121,22 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 p-3">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" id="confirmModalLabel">Xác nhận nộp bài thi?</h5>
+                <h5 class="modal-title fw-bold" id="confirmModalLabel">@(isEn ? "Confirm exam submission?" : "Xác nhận nộp bài thi?")</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body py-3">
                 <p class="text-muted mb-3" id="submitStatsText">
-                    Bạn đã trả lời được <strong id="answeredCountText">0</strong> / @Model.Questions.Count câu hỏi.
+                    @(isEn ? "You answered " : "Bạn đã trả lời được ")<strong id="answeredCountText">0</strong> / @Model.Questions.Count @(isEn ? "questions." : "câu hỏi.")
                 </p>
                 <div class="alert alert-info py-2 small mb-0">
-                    <i class="bi bi-info-circle-fill me-1"></i> Sau khi nộp, hệ thống sẽ chấm điểm tức thì và xét cấp chứng chỉ số nếu bạn đạt từ 80% trở lên.
+                    <i class="bi bi-info-circle-fill me-1"></i> @(isEn ? "Upon submitting, your score is calculated instantly and a digital certificate is granted if you score 80% or higher." : "Sau khi nộp, hệ thống sẽ chấm điểm tức thì và xét cấp chứng chỉ số nếu bạn đạt từ 80% trở lên.")
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Làm tiếp</button>
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">@(isEn ? "Continue" : "Làm tiếp")</button>
                 <button type="button" class="btn btn-success rounded-pill px-4 fw-semibold" id="btnConfirmSubmit">
                     <span class="spinner-border spinner-border-sm d-none me-1" id="submitSpinner"></span>
-                    Nộp bài ngay
+                    @(isEn ? "Submit Now" : "Nộp bài ngay")
                 </button>
             </div>
         </div>

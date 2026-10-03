@@ -1,7 +1,10 @@
 @model NET_Tutos.Models.ViewModels.ProjectDetailsViewModel
 @using NET_Tutos.Models.Entities
 @{
-    ViewData["Title"] = $"{Model.Project.Title} - Đồ Án Thực Chiến";
+    bool isEn = Context.IsEnglish();
+    var projectTitle = Model.Project.GetProjectTitle(isEn);
+    var projectDesc = Model.Project.GetProjectShortDesc(isEn);
+    ViewData["Title"] = isEn ? $"{projectTitle} - Capstone Project" : $"{projectTitle} - Đồ Án Thực Chiến";
     var levelBadgeClass = Model.Project.Level switch
     {
         DifficultyLevel.Beginner => "bg-success bg-opacity-10 text-success border-success border-opacity-25",
@@ -12,10 +15,10 @@
 
     var levelText = Model.Project.Level switch
     {
-        DifficultyLevel.Beginner => "Cơ bản",
-        DifficultyLevel.Intermediate => "Trung cấp",
-        DifficultyLevel.Advanced => "Nâng cao",
-        _ => "Mọi cấp độ"
+        DifficultyLevel.Beginner => isEn ? "Beginner" : "Cơ bản",
+        DifficultyLevel.Intermediate => isEn ? "Intermediate" : "Trung cấp",
+        DifficultyLevel.Advanced => isEn ? "Advanced" : "Nâng cao",
+        _ => isEn ? "All levels" : "Mọi cấp độ"
     };
 }
 
@@ -23,9 +26,9 @@
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb mb-0 small">
-            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none">Trang chủ</a></li>
-            <li class="breadcrumb-item"><a asp-controller="Project" asp-action="Index" class="text-decoration-none">Đồ án thực chiến</a></li>
-            <li class="breadcrumb-item active text-truncate" style="max-width: 300px;" aria-current="page">@Model.Project.Title</li>
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none">@(isEn ? "Home" : "Trang chủ")</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Project" asp-action="Index" class="text-decoration-none">@(isEn ? "Capstone Projects" : "Đồ án thực chiến")</a></li>
+            <li class="breadcrumb-item active text-truncate" style="max-width: 300px;" aria-current="page">@projectTitle</li>
         </ol>
     </nav>
 
@@ -54,24 +57,24 @@
                     <i class="bi bi-bar-chart-fill me-1"></i> @levelText
                 </span>
                 <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1.5 fw-semibold">
-                    <i class="bi bi-award-fill me-1 text-warning"></i> +@Model.Project.RewardXp XP Thưởng
+                    <i class="bi bi-award-fill me-1 text-warning"></i> +@Model.Project.RewardXp @(isEn ? "XP Reward" : "XP Thưởng")
                 </span>
                 <span class="badge bg-body-tertiary text-body border rounded-pill px-3 py-1.5 small">
-                    <i class="bi bi-clock me-1 text-info"></i> ~@Model.Project.EstimatedHours giờ hoàn thành
+                    <i class="bi bi-clock me-1 text-info"></i> @(isEn ? $"~{Model.Project.EstimatedHours} hours estimated" : $"~{Model.Project.EstimatedHours} giờ hoàn thành")
                 </span>
                 <span class="badge bg-body-tertiary text-body border rounded-pill px-3 py-1.5 small">
-                    <i class="bi bi-people me-1"></i> @Model.TotalSubmissionsCount lượt nộp (@Model.ApprovedSubmissionsCount đã đạt)
+                    <i class="bi bi-people me-1"></i> @(isEn ? $"{Model.TotalSubmissionsCount} submissions ({Model.ApprovedSubmissionsCount} passed)" : $"{Model.TotalSubmissionsCount} lượt nộp ({Model.ApprovedSubmissionsCount} đã đạt)")
                 </span>
             </div>
 
-            <h1 class="display-6 fw-bold mb-3">@Model.Project.Title</h1>
+            <h1 class="display-6 fw-bold mb-3">@projectTitle</h1>
             <p class="text-body-secondary lead fs-6 mb-4" style="max-width: 900px;">
-                @Model.Project.ShortDescription
+                @projectDesc
             </p>
 
             <div class="d-flex flex-wrap align-items-center gap-3 pt-2 border-top">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="small text-body-secondary fw-semibold">Công nghệ sử dụng:</span>
+                    <span class="small text-body-secondary fw-semibold">@(isEn ? "Tech stack:" : "Công nghệ sử dụng:")</span>
                     <div class="d-flex flex-wrap gap-1">
                         @foreach (var tech in Model.Project.TechStack.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
                         {
@@ -85,7 +88,7 @@
                 @if (!string.IsNullOrEmpty(Model.Project.GitHubTemplateUrl))
                 {
                     <a href="@Model.Project.GitHubTemplateUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 ms-md-auto fw-semibold">
-                        <i class="bi bi-github me-1"></i> Xem mẫu tham khảo (Template)
+                        <i class="bi bi-github me-1"></i> @(isEn ? "View starter template" : "Xem mẫu tham khảo (Template)")
                     </a>
                 }
             </div>
@@ -102,12 +105,12 @@
                     <ul class="nav nav-pills card-header-pills gap-2" id="projectTab" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active rounded-pill px-3 py-2 fw-semibold" id="req-tab" data-bs-toggle="pill" data-bs-target="#req-content" type="button" role="tab" aria-controls="req-content" aria-selected="true">
-                                <i class="bi bi-card-checklist me-1.5"></i> Yêu Cầu & Tiêu Chuẩn Đánh Giá
+                                <i class="bi bi-card-checklist me-1.5"></i> @(isEn ? "Requirements & Rubrics" : "Yêu Cầu & Tiêu Chuẩn Đánh Giá")
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link rounded-pill px-3 py-2 fw-semibold" id="guide-tab" data-bs-toggle="pill" data-bs-target="#guide-content" type="button" role="tab" aria-controls="guide-content" aria-selected="false">
-                                <i class="bi bi-journal-text me-1.5"></i> Hướng Dẫn & Gợi Ý Kiến Trúc
+                                <i class="bi bi-journal-text me-1.5"></i> @(isEn ? "Architecture Guide" : "Hướng Dẫn & Gợi Ý Kiến Trúc")
                             </button>
                         </li>
                     </ul>
@@ -132,31 +135,31 @@
             <div class="card border-0 shadow-sm rounded-4 bg-body">
                 <div class="card-body p-4">
                     <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-shield-check text-success"></i> Tiêu Chuẩn Chấm Điểm & Code Review
+                        <i class="bi bi-shield-check text-success"></i> @(isEn ? "Grading Standards & Code Review" : "Tiêu Chuẩn Chấm Điểm & Code Review")
                     </h5>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="p-3 rounded-3 bg-body-tertiary h-100">
-                                <h6 class="fw-bold mb-1 text-primary"><i class="bi bi-check2-circle me-1"></i> Kiến trúc & Clean Code (40%)</h6>
-                                <p class="small text-body-secondary mb-0">Cấu trúc thư mục mạch lạc, tách biệt tầng Domain/Infrastructure, đặt tên chuẩn C#, áp dụng SOLID & Dependency Injection.</p>
+                                <h6 class="fw-bold mb-1 text-primary"><i class="bi bi-check2-circle me-1"></i> @(isEn ? "Architecture & Clean Code (40%)" : "Kiến trúc & Clean Code (40%)")</h6>
+                                <p class="small text-body-secondary mb-0">@(isEn ? "Clear folder structure, separation of Domain/Infrastructure layers, C# naming conventions, SOLID & Dependency Injection." : "Cấu trúc thư mục mạch lạc, tách biệt tầng Domain/Infrastructure, đặt tên chuẩn C#, áp dụng SOLID & Dependency Injection.")</p>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="p-3 rounded-3 bg-body-tertiary h-100">
-                                <h6 class="fw-bold mb-1 text-success"><i class="bi bi-check2-circle me-1"></i> Nghiệp vụ & Dữ liệu (30%)</h6>
-                                <p class="small text-body-secondary mb-0">Đáp ứng đầy đủ các yêu cầu nghiệp vụ đề bài, sử dụng EF Core tối ưu, xử lý giao dịch an toàn và chống SQL Injection.</p>
+                                <h6 class="fw-bold mb-1 text-success"><i class="bi bi-check2-circle me-1"></i> @(isEn ? "Business Logic & Data (30%)" : "Nghiệp vụ & Dữ liệu (30%)")</h6>
+                                <p class="small text-body-secondary mb-0">@(isEn ? "Fully meet functional requirements, optimal EF Core queries, safe ACID transactions, and SQL Injection prevention." : "Đáp ứng đầy đủ các yêu cầu nghiệp vụ đề bài, sử dụng EF Core tối ưu, xử lý giao dịch an toàn và chống SQL Injection.")</p>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="p-3 rounded-3 bg-body-tertiary h-100">
-                                <h6 class="fw-bold mb-1 text-warning"><i class="bi bi-check2-circle me-1"></i> Xử lý Lỗi & Bảo mật (15%)</h6>
-                                <p class="small text-body-secondary mb-0">Bắt ngoại lệ tập trung (Global Exception Handling), validate dữ liệu đầu vào, không để lộ thông tin nhạy cảm trong response.</p>
+                                <h6 class="fw-bold mb-1 text-warning"><i class="bi bi-check2-circle me-1"></i> @(isEn ? "Error Handling & Security (15%)" : "Xử lý Lỗi & Bảo mật (15%)")</h6>
+                                <p class="small text-body-secondary mb-0">@(isEn ? "Global Exception Handling, input validation, no sensitive data leaked in responses." : "Bắt ngoại lệ tập trung (Global Exception Handling), validate dữ liệu đầu vào, không để lộ thông tin nhạy cảm trong response.")</p>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="p-3 rounded-3 bg-body-tertiary h-100">
-                                <h6 class="fw-bold mb-1 text-info"><i class="bi bi-check2-circle me-1"></i> Kiểm thử & Tài liệu (15%)</h6>
-                                <p class="small text-body-secondary mb-0">Tài liệu README.md rõ ràng hướng dẫn cài đặt chạy dự án, Swagger API documentation và Unit Tests nếu có.</p>
+                                <h6 class="fw-bold mb-1 text-info"><i class="bi bi-check2-circle me-1"></i> @(isEn ? "Testing & Documentation (15%)" : "Kiểm thử & Tài liệu (15%)")</h6>
+                                <p class="small text-body-secondary mb-0">@(isEn ? "Clear README.md with setup instructions, Swagger API documentation, and Unit Tests if applicable." : "Tài liệu README.md rõ ràng hướng dẫn cài đặt chạy dự án, Swagger API documentation và Unit Tests nếu có.")</p>
                             </div>
                         </div>
                     </div>
@@ -174,12 +177,12 @@
                         <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3 d-inline-block mx-auto mb-3" style="width: 64px; height: 64px;">
                             <i class="bi bi-lock-fill fs-3"></i>
                         </div>
-                        <h5 class="fw-bold mb-2">Đăng Nhập Để Nộp Bài</h5>
+                        <h5 class="fw-bold mb-2">@(isEn ? "Sign In to Submit Project" : "Đăng Nhập Để Nộp Bài")</h5>
                         <p class="text-body-secondary small mb-4">
-                            Đăng nhập tài khoản NET-Tutos để nộp link GitHub dự án, nhận điểm kinh nghiệm (+@Model.Project.RewardXp XP) và phản hồi Code Review từ Giảng viên.
+                            @(isEn ? $"Sign in to your NET-Tutos account to submit your GitHub repo, earn +{Model.Project.RewardXp} XP, and receive instructor code review." : $"Đăng nhập tài khoản NET-Tutos để nộp link GitHub dự án, nhận điểm kinh nghiệm (+{Model.Project.RewardXp} XP) và phản hồi Code Review từ Giảng viên.")
                         </p>
                         <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="btn btn-primary rounded-pill w-100 fw-semibold py-2">
-                            <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập ngay
+                            <i class="bi bi-box-arrow-in-right me-1"></i> @(isEn ? "Sign in now" : "Đăng nhập ngay")
                         </a>
                     </div>
                 }
@@ -191,22 +194,22 @@
                             <div class="rounded-circle bg-white text-success p-2 d-inline-flex align-items-center justify-content-center shadow-sm mb-2" style="width: 56px; height: 56px;">
                                 <i class="bi bi-patch-check-fill fs-2"></i>
                             </div>
-                            <h5 class="fw-bold mb-1">ĐỒ ÁN ĐẠT CHUẨN!</h5>
+                            <h5 class="fw-bold mb-1">@(isEn ? "PROJECT APPROVED!" : "ĐỒ ÁN ĐẠT CHUẨN!")</h5>
                             <span class="badge bg-white text-success rounded-pill px-3 py-1 fw-bold fs-6 shadow-sm">
-                                Điểm số: @Model.UserSubmission.Score / 100
+                                @(isEn ? "Score:" : "Điểm số:") @Model.UserSubmission.Score / 100
                             </span>
                         </div>
 
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom">
-                                <span class="text-body-secondary small">Điểm thưởng nhận được:</span>
+                                <span class="text-body-secondary small">@(isEn ? "XP Awarded:" : "Điểm thưởng nhận được:")</span>
                                 <span class="badge bg-primary text-white rounded-pill px-2.5 py-1 fw-bold">
                                     +@Model.UserSubmission.XpAwarded XP
                                 </span>
                             </div>
 
                             <div class="mb-3">
-                                <span class="text-body-secondary small d-block mb-1">Kho lưu trữ đã nộp:</span>
+                                <span class="text-body-secondary small d-block mb-1">@(isEn ? "Submitted Repository:" : "Kho lưu trữ đã nộp:")</span>
                                 <a href="@Model.UserSubmission.GitHubRepoUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary w-100 rounded-pill text-truncate text-start px-3 py-2">
                                     <i class="bi bi-github me-1.5"></i> @Model.UserSubmission.GitHubRepoUrl
                                 </a>
@@ -217,7 +220,7 @@
                                 <div class="p-3 rounded-3 bg-body-tertiary mb-3">
                                     <div class="d-flex align-items-center gap-2 mb-2">
                                         <i class="bi bi-chat-quote-fill text-success fs-5"></i>
-                                        <span class="fw-semibold small">Nhận xét từ Giảng viên / Reviewer:</span>
+                                        <span class="fw-semibold small">@(isEn ? "Feedback from Instructor / Reviewer:" : "Nhận xét từ Giảng viên / Reviewer:")</span>
                                     </div>
                                     <p class="small text-body mb-0" style="white-space: pre-line; line-height: 1.6;">
                                         @Model.UserSubmission.ReviewerFeedback
@@ -226,7 +229,7 @@
                                     {
                                         <div class="text-end mt-2">
                                             <span class="text-body-secondary" style="font-size: 0.75rem;">
-                                                Đã đánh giá: @Model.UserSubmission.ReviewedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                                @(isEn ? "Reviewed on:" : "Đã đánh giá:") @Model.UserSubmission.ReviewedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
                                             </span>
                                         </div>
                                     }
@@ -235,7 +238,7 @@
 
                             <div class="text-center">
                                 <a asp-action="MyProjects" class="btn btn-sm btn-link text-decoration-none small text-primary fw-semibold">
-                                    <i class="bi bi-arrow-left me-1"></i> Xem tất cả đồ án của bạn
+                                    <i class="bi bi-arrow-left me-1"></i> @(isEn ? "View all your projects" : "Xem tất cả đồ án của bạn")
                                 </a>
                             </div>
                         </div>
@@ -247,9 +250,9 @@
                     <div class="card border-0 shadow-sm rounded-4 bg-body overflow-hidden">
                         <div class="bg-warning text-dark p-3.5 text-center">
                             <i class="bi bi-exclamation-triangle-fill fs-2 mb-1 d-block"></i>
-                            <h5 class="fw-bold mb-1">CẦN HOÀN THIỆN LẠI</h5>
+                            <h5 class="fw-bold mb-1">@(isEn ? "NEEDS IMPROVEMENT" : "CẦN HOÀN THIỆN LẠI")</h5>
                             <span class="badge bg-dark text-white rounded-pill px-3 py-1 small">
-                                Điểm tạm tính: @Model.UserSubmission.Score / 100
+                                @(isEn ? "Provisional Score:" : "Điểm tạm tính:") @Model.UserSubmission.Score / 100
                             </span>
                         </div>
 
@@ -257,13 +260,13 @@
                             @if (!string.IsNullOrEmpty(Model.UserSubmission.ReviewerFeedback))
                             {
                                 <div class="alert alert-warning border-0 rounded-3 p-3 mb-3 small">
-                                    <strong class="d-block mb-1"><i class="bi bi-chat-dots-fill me-1"></i> Góp ý từ Giảng viên:</strong>
+                                    <strong class="d-block mb-1"><i class="bi bi-chat-dots-fill me-1"></i> @(isEn ? "Instructor Feedback:" : "Góp ý từ Giảng viên:")</strong>
                                     <div style="white-space: pre-line; line-height: 1.5;">@Model.UserSubmission.ReviewerFeedback</div>
                                 </div>
                             }
 
                             <p class="small text-body-secondary mb-3">
-                                Hãy cập nhật code trên GitHub theo các góp ý trên, sau đó cập nhật thông tin nộp bài bên dưới để được chấm lại:
+                                @(isEn ? "Update your GitHub code following the feedback above, then resubmit below for re-evaluation:" : "Hãy cập nhật code trên GitHub theo các góp ý trên, sau đó cập nhật thông tin nộp bài bên dưới để được chấm lại:")
                             </p>
 
                             <!-- Resubmit Form -->
@@ -280,7 +283,7 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold">Live Demo URL (Tùy chọn)</label>
+                                    <label class="form-label small fw-semibold">@(isEn ? "Live Demo URL (Optional)" : "Live Demo URL (Tùy chọn)")</label>
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text"><i class="bi bi-globe"></i></span>
                                         <input type="url" name="LiveDemoUrl" class="form-control" value="@Model.UserSubmission.LiveDemoUrl" placeholder="https://my-demo.com" />
@@ -288,12 +291,12 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold">Ghi chú chỉnh sửa <span class="text-danger">*</span></label>
-                                    <textarea name="Notes" class="form-control form-control-sm" rows="3" required placeholder="Mô tả các nội dung bạn đã bổ sung và khắc phục theo nhận xét...">@Model.UserSubmission.Notes</textarea>
+                                    <label class="form-label small fw-semibold">@(isEn ? "Revision Notes" : "Ghi chú chỉnh sửa") <span class="text-danger">*</span></label>
+                                    <textarea name="Notes" class="form-control form-control-sm" rows="3" required placeholder="@(isEn ? "Describe what changes you made according to the feedback..." : "Mô tả các nội dung bạn đã bổ sung và khắc phục theo nhận xét...")">@Model.UserSubmission.Notes</textarea>
                                 </div>
 
                                 <button type="submit" class="btn btn-warning rounded-pill w-100 fw-semibold py-2">
-                                    <i class="bi bi-arrow-repeat me-1"></i> Cập nhật & Nộp lại bài
+                                    <i class="bi bi-arrow-repeat me-1"></i> @(isEn ? "Update & Resubmit" : "Cập nhật & Nộp lại bài")
                                 </button>
                             </form>
                         </div>
@@ -305,33 +308,33 @@
                     <div class="card border-0 shadow-sm rounded-4 bg-body overflow-hidden">
                         <div class="bg-info bg-opacity-10 text-info p-3.5 text-center border-bottom">
                             <i class="bi bi-hourglass-split fs-2 mb-1 d-block text-primary"></i>
-                            <h5 class="fw-bold mb-1 text-primary">ĐÃ NỘP BÀI THÀNH CÔNG</h5>
+                            <h5 class="fw-bold mb-1 text-primary">@(isEn ? "SUBMISSION SUCCESSFUL" : "ĐÃ NỘP BÀI THÀNH CÔNG")</h5>
                             <span class="badge bg-primary rounded-pill px-3 py-1 small">
-                                Đang chờ giảng viên chấm
+                                @(isEn ? "Pending instructor review" : "Đang chờ giảng viên chấm")
                             </span>
                         </div>
 
                         <div class="card-body p-4">
                             <p class="small text-body-secondary mb-3">
-                                Bài nộp của bạn đã được ghi nhận vào hàng đợi chấm bài của Giảng viên. Bạn sẽ nhận được thông báo thời gian thực ngay khi có kết quả Code Review!
+                                @(isEn ? "Your submission has been queued for instructor review. You will receive a real-time notification once reviewed!" : "Bài nộp của bạn đã được ghi nhận vào hàng đợi chấm bài của Giảng viên. Bạn sẽ nhận được thông báo thời gian thực ngay khi có kết quả Code Review!")
                             </p>
 
                             <div class="p-3 rounded-3 bg-body-tertiary mb-3 small">
-                                <div class="text-body-secondary mb-1">Repo GitHub:</div>
+                                <div class="text-body-secondary mb-1">@(isEn ? "GitHub Repo:" : "Repo GitHub:")</div>
                                 <a href="@Model.UserSubmission.GitHubRepoUrl" target="_blank" rel="noopener noreferrer" class="text-truncate d-block fw-semibold text-decoration-none">
                                     <i class="bi bi-github me-1"></i> @Model.UserSubmission.GitHubRepoUrl
                                 </a>
 
-                                <div class="text-body-secondary mt-2 mb-1">Thời gian nộp:</div>
+                                <div class="text-body-secondary mt-2 mb-1">@(isEn ? "Submitted at:" : "Thời gian nộp:")</div>
                                 <span class="fw-semibold">@Model.UserSubmission.SubmittedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
 
-                                <div class="text-body-secondary mt-2 mb-1">Ghi chú của bạn:</div>
+                                <div class="text-body-secondary mt-2 mb-1">@(isEn ? "Your notes:" : "Ghi chú của bạn:")</div>
                                 <div class="text-muted" style="line-height: 1.5;">@Model.UserSubmission.Notes</div>
                             </div>
 
                             <!-- Button to toggle update form -->
                             <button class="btn btn-outline-secondary rounded-pill btn-sm w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUpdateForm">
-                                <i class="bi bi-pencil-square me-1"></i> Chỉnh sửa link / ghi chú nộp bài
+                                <i class="bi bi-pencil-square me-1"></i> @(isEn ? "Edit link / submission notes" : "Chỉnh sửa link / ghi chú nộp bài")
                             </button>
 
                             <div class="collapse mt-3" id="collapseUpdateForm">
@@ -344,15 +347,15 @@
                                         <input type="url" name="GitHubRepoUrl" class="form-control form-control-sm" value="@Model.UserSubmission.GitHubRepoUrl" required />
                                     </div>
                                     <div class="mb-2">
-                                        <label class="form-label small fw-semibold">Live Demo (Tùy chọn)</label>
+                                        <label class="form-label small fw-semibold">@(isEn ? "Live Demo (Optional)" : "Live Demo (Tùy chọn)")</label>
                                         <input type="url" name="LiveDemoUrl" class="form-control form-control-sm" value="@Model.UserSubmission.LiveDemoUrl" />
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label small fw-semibold">Ghi chú kiến trúc</label>
+                                        <label class="form-label small fw-semibold">@(isEn ? "Architecture Notes" : "Ghi chú kiến trúc")</label>
                                         <textarea name="Notes" class="form-control form-control-sm" rows="3" required>@Model.UserSubmission.Notes</textarea>
                                     </div>
                                     <button type="submit" class="btn btn-primary btn-sm rounded-pill w-100 fw-semibold">
-                                        Lưu thay đổi
+                                        @(isEn ? "Save changes" : "Lưu thay đổi")
                                     </button>
                                 </form>
                             </div>
@@ -365,10 +368,10 @@
                     <div class="card border-0 shadow-sm rounded-4 bg-body overflow-hidden">
                         <div class="p-3.5 bg-primary bg-opacity-10 border-bottom text-center">
                             <h5 class="fw-bold mb-1 text-primary">
-                                <i class="bi bi-upload me-1.5"></i> Nộp Bài Đồ Án
+                                <i class="bi bi-upload me-1.5"></i> @(isEn ? "Submit Capstone Project" : "Nộp Bài Đồ Án")
                             </h5>
                             <span class="small text-body-secondary">
-                                Hoàn thành để nhận +@Model.Project.RewardXp XP
+                                @(isEn ? $"Complete to earn +{Model.Project.RewardXp} XP" : $"Hoàn thành để nhận +{Model.Project.RewardXp} XP")
                             </span>
                         </div>
 
@@ -386,13 +389,13 @@
                                         <input type="url" name="GitHubRepoUrl" class="form-control form-control-sm" required placeholder="https://github.com/user/my-project" />
                                     </div>
                                     <div class="form-text small" style="font-size: 0.75rem;">
-                                        Repository cần đặt chế độ <strong>Public</strong> để giảng viên có thể xem code.
+                                        @(isEn ? "The repository must be Public so reviewers can inspect your code." : "Repository cần đặt chế độ Public để giảng viên có thể xem code.")
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label small fw-semibold">
-                                        Live Demo URL <span class="text-body-secondary font-monospace small">(Tùy chọn)</span>
+                                        @(isEn ? "Live Demo URL" : "Live Demo URL") <span class="text-body-secondary font-monospace small">@(isEn ? "(Optional)" : "(Tùy chọn)")</span>
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-globe"></i></span>
@@ -402,13 +405,13 @@
 
                                 <div class="mb-4">
                                     <label class="form-label small fw-semibold">
-                                        Ghi chú kiến trúc & Báo cáo kỹ thuật <span class="text-danger">*</span>
+                                        @(isEn ? "Architecture Notes & Technical Summary" : "Ghi chú kiến trúc & Báo cáo kỹ thuật") <span class="text-danger">*</span>
                                     </label>
-                                    <textarea name="Notes" class="form-control form-control-sm" rows="4" required placeholder="Tóm tắt kiến trúc đã chọn, cách giải quyết các bài toán hóc búa, pattern áp dụng hoặc hướng dẫn chạy dự án..."></textarea>
+                                    <textarea name="Notes" class="form-control form-control-sm" rows="4" required placeholder="@(isEn ? "Summarize the architecture chosen, solutions to tricky problems, patterns applied, or instructions to run the project..." : "Tóm tắt kiến trúc đã chọn, cách giải quyết các bài toán hóc búa, pattern áp dụng hoặc hướng dẫn chạy dự án...")"></textarea>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary rounded-pill w-100 fw-semibold py-2.5 shadow-sm">
-                                    <i class="bi bi-send-fill me-1.5"></i> Nộp Đồ Án & Nhận Review
+                                    <i class="bi bi-send-fill me-1.5"></i> @(isEn ? "Submit Project & Request Review" : "Nộp Đồ Án & Nhận Review")
                                 </button>
                             </form>
                         </div>

@@ -69,7 +69,9 @@ public class TutorialsController : Controller
 
         var previous = await _tutorialService.GetPreviousTutorialAsync(tutorial.Id);
         var next = await _tutorialService.GetNextTutorialAsync(tutorial.Id);
-        var renderedHtml = _markdownService.ToHtml(tutorial.ContentMarkdown);
+        bool isEn = HttpContext.IsEnglish();
+        var markdownContent = tutorial.GetContentMarkdown(isEn);
+        var renderedHtml = _markdownService.ToHtml(markdownContent);
 
         var viewModel = new TutorialDetailViewModel
         {

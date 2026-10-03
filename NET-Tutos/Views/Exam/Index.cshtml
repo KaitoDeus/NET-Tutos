@@ -55,7 +55,7 @@
                     @if (exam.HasPassed)
                     {
                         <span class="position-absolute top-0 end-0 m-3 badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5">
-                            <i class="bi bi-patch-check-fill me-1"></i> Đã có chứng chỉ
+                            <i class="bi bi-patch-check-fill me-1"></i> @(isEn ? "Certified" : "Đã có chứng chỉ")
                         </span>
                     }
 
@@ -69,28 +69,28 @@
 
                     <div>
                         <div class="d-flex justify-content-between text-muted small border-top pt-3 mb-3">
-                            <span><i class="bi bi-clock me-1"></i>@exam.DurationMinutes phút</span>
-                            <span><i class="bi bi-patch-question me-1"></i>@exam.QuestionCount câu</span>
-                            <span><i class="bi bi-trophy me-1"></i>Đạt từ @exam.PassingScorePercent%</span>
+                            <span><i class="bi bi-clock me-1"></i>@exam.DurationMinutes @(isEn ? "mins" : "phút")</span>
+                            <span><i class="bi bi-patch-question me-1"></i>@exam.QuestionCount @(isEn ? "questions" : "câu")</span>
+                            <span><i class="bi bi-trophy me-1"></i>@(isEn ? $"Pass: {exam.PassingScorePercent}%" : $"Đạt từ {exam.PassingScorePercent}%")</span>
                         </div>
 
                         @if (exam.BestScore.HasValue)
                         {
                             <div class="alert @(exam.HasPassed ? "alert-success" : "alert-warning") py-2 px-3 small mb-3">
-                                Điểm cao nhất của bạn: <strong>@exam.BestScore.Value.ToString("F1")%</strong>
+                                @(isEn ? "Your highest score:" : "Điểm cao nhất của bạn:") <strong>@exam.BestScore.Value.ToString("F1")%</strong>
                             </div>
                         }
 
                         <div class="d-grid gap-2">
                             <a asp-action="Take" asp-route-categoryId="@exam.CategoryId" 
                                class="btn @(exam.HasPassed ? "btn-outline-primary" : "btn-primary") rounded-pill fw-semibold">
-                                <i class="bi bi-play-circle me-1"></i> @(exam.HasPassed ? "Thi lại cải thiện điểm" : "Bắt đầu làm bài thi")
+                                <i class="bi bi-play-circle me-1"></i> @(exam.HasPassed ? (isEn ? "Retake to improve score" : "Thi lại cải thiện điểm") : (isEn ? "Start Exam" : "Bắt đầu làm bài thi"))
                             </a>
                             @if (exam.Certificate != null)
                             {
                                 <a asp-controller="Certificate" asp-action="Verify" asp-route-code="@exam.Certificate.CertificateCode" 
                                    class="btn btn-outline-success btn-sm rounded-pill fw-semibold">
-                                    <i class="bi bi-award me-1"></i> Xem Chứng chỉ (@exam.Certificate.CertificateCode)
+                                    <i class="bi bi-award me-1"></i> @(isEn ? $"View Certificate ({exam.Certificate.CertificateCode})" : $"Xem Chứng chỉ ({exam.Certificate.CertificateCode})")
                                 </a>
                             }
                         </div>
@@ -109,7 +109,7 @@
                 <div class="col-lg-6">
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
                         <h4 class="fw-bold mb-3 text-success">
-                            <i class="bi bi-award-fill me-2"></i> Chứng Chỉ Của Bạn
+                            <i class="bi bi-award-fill me-2"></i> @(isEn ? "Your Digital Certificates" : "Chứng Chỉ Của Bạn")
                         </h4>
                         <div class="list-group list-group-flush">
                             @foreach (var cert in Model.Certificates)
@@ -118,15 +118,15 @@
                                     <div>
                                         <h6 class="fw-bold mb-1">@cert.CourseTitle</h6>
                                         <span class="text-muted small">
-                                            Mã: <code>@cert.CertificateCode</code> • Điểm: <strong>@cert.FinalScore.ToString("F1")%</strong> • Ngày cấp: @cert.IssuedAt.ToString("dd/MM/yyyy")
+                                            @(isEn ? "Code:" : "Mã:") <code>@cert.CertificateCode</code> • @(isEn ? "Score:" : "Điểm:") <strong>@cert.FinalScore.ToString("F1")%</strong> • @(isEn ? "Issued:" : "Ngày cấp:") @cert.IssuedAt.ToString("dd/MM/yyyy")
                                         </span>
                                     </div>
                                     <div class="d-flex gap-2">
-                                        <a asp-controller="Certificate" asp-action="DownloadPdf" asp-route-code="@cert.CertificateCode" class="btn btn-sm btn-outline-primary rounded-pill" title="Tải PDF">
+                                        <a asp-controller="Certificate" asp-action="DownloadPdf" asp-route-code="@cert.CertificateCode" class="btn btn-sm btn-outline-primary rounded-pill" title="@(isEn ? "Download PDF" : "Tải PDF")">
                                             <i class="bi bi-file-earmark-pdf"></i> PDF
                                         </a>
                                         <a asp-controller="Certificate" asp-action="Verify" asp-route-code="@cert.CertificateCode" class="btn btn-sm btn-primary rounded-pill">
-                                            Xác thực
+                                            @(isEn ? "Verify" : "Xác thực")
                                         </a>
                                     </div>
                                 </div>
@@ -141,16 +141,16 @@
                 <div class="col-lg-@(Model.Certificates.Any() ? "6" : "12")">
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
                         <h4 class="fw-bold mb-3">
-                            <i class="bi bi-clock-history me-2 text-primary"></i> Lịch Sử Thi Gần Đây
+                            <i class="bi bi-clock-history me-2 text-primary"></i> @(isEn ? "Recent Exam History" : "Lịch Sử Thi Gần Đây")
                         </h4>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle small mb-0">
                                 <thead>
                                     <tr class="text-muted">
-                                        <th>Kỳ thi</th>
-                                        <th>Kết quả</th>
-                                        <th>Thời gian</th>
-                                        <th>Ngày thi</th>
+                                        <th>@(isEn ? "Exam" : "Kỳ thi")</th>
+                                        <th>@(isEn ? "Result" : "Kết quả")</th>
+                                        <th>@(isEn ? "Duration" : "Thời gian")</th>
+                                        <th>@(isEn ? "Date" : "Ngày thi")</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -160,7 +160,7 @@
                                             <td class="fw-semibold">@attempt.ExamTitle</td>
                                             <td>
                                                 <span class="badge @(attempt.IsPassed ? "bg-success" : "bg-danger") rounded-pill">
-                                                    @(attempt.IsPassed ? "Đạt" : "Chưa đạt"): @attempt.ScorePercentage.ToString("F1")% (@attempt.CorrectAnswers/@attempt.TotalQuestions)
+                                                    @(attempt.IsPassed ? (isEn ? "Passed" : "Đạt") : (isEn ? "Failed" : "Chưa đạt")): @attempt.ScorePercentage.ToString("F1")% (@attempt.CorrectAnswers/@attempt.TotalQuestions)
                                                 </span>
                                             </td>
                                             <td>@(attempt.DurationSeconds / 60)m @(attempt.DurationSeconds % 60)s</td>

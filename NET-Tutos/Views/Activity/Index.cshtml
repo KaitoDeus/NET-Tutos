@@ -56,12 +56,12 @@
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 small fw-semibold @(activeFilter == "badge" ? "active" : "text-body-secondary")"
                    asp-action="Index" asp-route-filter="badge">
-                    <i class="bi bi-fire me-1"></i> Huy hiệu & Streak
+                    <i class="bi bi-fire me-1"></i> @(isEn ? "Badges & Streaks" : "Huy hiệu & Streak")
                 </a>
             </li>
         </ul>
         <span class="text-muted small fw-medium">
-            Tổng số: <strong>@Model.TotalCount</strong> hoạt động
+            @(isEn ? $"Total: <strong>{Model.TotalCount}</strong> activities" : $"Tổng số: <strong>{Model.TotalCount}</strong> hoạt động")
         </span>
     </div>
 
@@ -141,11 +141,11 @@
                              style="width: 64px; height: 64px;">
                             <i class="bi bi-clock-history fs-2"></i>
                         </div>
-                        <h5 class="fw-bold">Chưa có hoạt động nào trong danh mục này</h5>
-                        <p class="text-muted small mb-3">Hãy hoàn thành một bài học hoặc giải thử thách C# để trở thành người đầu tiên xuất hiện tại đây!</p>
+                        <h5 class="fw-bold">@(isEn ? "No activities in this category yet" : "Chưa có hoạt động nào trong danh mục này")</h5>
+                        <p class="text-muted small mb-3">@(isEn ? "Complete a lesson or solve a C# challenge to be the first to appear here!" : "Hãy hoàn thành một bài học hoặc giải thử thách C# để trở thành người đầu tiên xuất hiện tại đây!")</p>
                         <div>
                             <a asp-controller="Tutorials" asp-action="Index" class="btn btn-sm btn-primary rounded-pill px-3 py-2 fw-semibold">
-                                <i class="bi bi-book-half me-1"></i> Khám phá bài học
+                                <i class="bi bi-book-half me-1"></i> @(isEn ? "Explore Lessons" : "Khám phá bài học")
                             </a>
                         </div>
                     </div>
@@ -155,21 +155,21 @@
             <!-- Pagination -->
             @if (Model.TotalPages > 1)
             {
-                <nav class="mt-4 pt-2 d-flex justify-content-center" aria-label="Phân trang bảng tin">
+                <nav class="mt-4 pt-2 d-flex justify-content-center" aria-label="Pagination">
                     <ul class="pagination pagination-sm">
                         <li class="page-item @(Model.CurrentPage <= 1 ? "disabled" : "")">
                             <a class="page-link rounded-start-pill px-3" asp-action="Index" asp-route-page="@(Model.CurrentPage - 1)" asp-route-filter="@activeFilter">
-                                <i class="bi bi-chevron-left me-1"></i> Trước
+                                <i class="bi bi-chevron-left me-1"></i> @(isEn ? "Previous" : "Trước")
                             </a>
                         </li>
                         <li class="page-item disabled">
                             <span class="page-link px-3 text-muted">
-                                Trang @Model.CurrentPage / @Model.TotalPages
+                                @(isEn ? $"Page {Model.CurrentPage} of {Model.TotalPages}" : $"Trang {Model.CurrentPage} / {Model.TotalPages}")
                             </span>
                         </li>
                         <li class="page-item @(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")">
                             <a class="page-link rounded-end-pill px-3" asp-action="Index" asp-route-page="@(Model.CurrentPage + 1)" asp-route-filter="@activeFilter">
-                                Tiếp <i class="bi bi-chevron-right ms-1"></i>
+                                @(isEn ? "Next" : "Tiếp") <i class="bi bi-chevron-right ms-1"></i>
                             </a>
                         </li>
                     </ul>

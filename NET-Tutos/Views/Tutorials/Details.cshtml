@@ -81,29 +81,29 @@
                                 <div class="accordion-item border rounded-3 mb-3 overflow-hidden">
                                     <h2 class="accordion-header" id="heading_@q.Id">
                                         <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_@q.Id" aria-expanded="false" aria-controls="collapse_@q.Id">
-                                            <span class="badge bg-primary me-2">@(isEn ? $"Question {i + 1}" : $"Câu {i + 1}")</span> @q.Question
+                                            <span class="badge bg-primary me-2">@(isEn ? $"Question {i + 1}" : $"Câu {i + 1}")</span> @q.GetQuestionText(isEn)
                                         </button>
                                     </h2>
                                     <div id="collapse_@q.Id" class="accordion-collapse collapse" aria-labelledby="heading_@q.Id" data-bs-parent="#quizAccordion">
                                         <div class="accordion-body bg-body-tertiary">
                                             <div class="list-group mb-3">
                                                 <div class="list-group-item @(q.CorrectOption == "A" ? "list-group-item-success fw-bold" : "")">
-                                                    <strong>A.</strong> @q.OptionA @(q.CorrectOption == "A" ? (isEn ? "✓ (Correct answer)" : "✓ (Đáp án chính xác)") : "")
+                                                    <strong>A.</strong> @q.GetOptionA(isEn) @(q.CorrectOption == "A" ? (isEn ? "✓ (Correct answer)" : "✓ (Đáp án chính xác)") : "")
                                                 </div>
                                                 <div class="list-group-item @(q.CorrectOption == "B" ? "list-group-item-success fw-bold" : "")">
-                                                    <strong>B.</strong> @q.OptionB @(q.CorrectOption == "B" ? (isEn ? "✓ (Correct answer)" : "✓ (Đáp án chính xác)") : "")
+                                                    <strong>B.</strong> @q.GetOptionB(isEn) @(q.CorrectOption == "B" ? (isEn ? "✓ (Correct answer)" : "✓ (Đáp án chính xác)") : "")
                                                 </div>
                                                 <div class="list-group-item @(q.CorrectOption == "C" ? "list-group-item-success fw-bold" : "")">
-                                                    <strong>C.</strong> @q.OptionC @(q.CorrectOption == "C" ? (isEn ? "✓ (Correct answer)" : "✓ (Đáp án chính xác)") : "")
+                                                    <strong>C.</strong> @q.GetOptionC(isEn) @(q.CorrectOption == "C" ? (isEn ? "✓ (Correct answer)" : "✓ (Đáp án chính xác)") : "")
                                                 </div>
                                                 <div class="list-group-item @(q.CorrectOption == "D" ? "list-group-item-success fw-bold" : "")">
-                                                    <strong>D.</strong> @q.OptionD @(q.CorrectOption == "D" ? (isEn ? "✓ (Correct answer)" : "✓ (Đáp án chính xác)") : "")
+                                                    <strong>D.</strong> @q.GetOptionD(isEn) @(q.CorrectOption == "D" ? (isEn ? "✓ (Correct answer)" : "✓ (Đáp án chính xác)") : "")
                                                 </div>
                                             </div>
                                             @if (!string.IsNullOrEmpty(q.Explanation))
                                             {
                                                 <div class="alert alert-info py-2 small mb-0">
-                                                    <i class="bi bi-info-circle-fill me-1"></i><strong>@(isEn ? "Explanation:" : "Giải thích:")</strong> @q.Explanation
+                                                    <i class="bi bi-info-circle-fill me-1"></i><strong>@(isEn ? "Explanation:" : "Giải thích:")</strong> @q.GetExplanation(isEn)
                                                 </div>
                                             }
                                         </div>

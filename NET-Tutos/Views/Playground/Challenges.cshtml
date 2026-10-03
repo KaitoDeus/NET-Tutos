@@ -1,6 +1,7 @@
 @model IEnumerable<NET_Tutos.Models.Entities.CodingChallenge>
 @{
-    ViewData["Title"] = "Kho Thử Thách Lập Trình C#";
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "C# Coding Challenge Bank" : "Kho Thử Thách Lập Trình C#";
     var categories = ViewBag.Categories as IEnumerable<NET_Tutos.Models.Entities.Category> ?? Enumerable.Empty<NET_Tutos.Models.Entities.Category>();
     var selectedDifficulty = ViewBag.SelectedDifficulty as NET_Tutos.Models.Entities.DifficultyLevel?;
     var selectedCategory = ViewBag.SelectedCategory as int?;
@@ -13,13 +14,13 @@
         <span class="badge bg-primary-subtle border border-primary-subtle px-3 py-2 rounded-pill fw-bold mb-2">
             <i class="bi bi-code-square me-1"></i> Learn by Doing
         </span>
-        <h1 class="display-5 fw-extrabold text-body-emphasis">Kho Thử Thách Lập Trình C#</h1>
+        <h1 class="display-5 fw-extrabold text-body-emphasis">@(isEn ? "C# Coding Challenge Bank" : "Kho Thử Thách Lập Trình C#")</h1>
         <p class="lead text-muted mx-auto" style="max-width: 720px;">
-            Rèn luyện tư duy thuật toán, củng cố kỹ năng C# và tích lũy điểm XP thông qua hệ thống bài tập thực chiến có chấm điểm tự động LeetCode-style.
+            @(isEn ? "Sharpen algorithmic thinking, consolidate C# skills, and earn XP points through practical LeetCode-style challenges with automated testing." : "Rèn luyện tư duy thuật toán, củng cố kỹ năng C# và tích lũy điểm XP thông qua hệ thống bài tập thực chiến có chấm điểm tự động LeetCode-style.")
         </p>
         <div class="d-flex justify-content-center gap-2 mt-3">
             <a asp-action="Index" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
-                <i class="bi bi-terminal-fill me-1"></i> Mở C# Playground tự do
+                <i class="bi bi-terminal-fill me-1"></i> @(isEn ? "Open C# Sandbox" : "Mở C# Playground tự do")
             </a>
         </div>
     </div>
@@ -30,22 +31,22 @@
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                 <!-- Difficulty filters -->
                 <div class="d-flex flex-wrap align-items-center gap-1">
-                    <span class="small fw-semibold text-body-secondary me-2">Độ khó:</span>
+                    <span class="small fw-semibold text-body-secondary me-2">@(isEn ? "Difficulty:" : "Độ khó:")</span>
                     <a asp-action="Challenges" asp-route-categoryId="@selectedCategory" 
                        class="btn btn-sm rounded-pill px-3 @(!selectedDifficulty.HasValue ? "btn-primary" : "btn-outline-secondary")">
-                        Tất cả
+                        @(isEn ? "All" : "Tất cả")
                     </a>
                     <a asp-action="Challenges" asp-route-difficulty="@NET_Tutos.Models.Entities.DifficultyLevel.Beginner" asp-route-categoryId="@selectedCategory" 
                        class="btn btn-sm rounded-pill px-3 @(selectedDifficulty == NET_Tutos.Models.Entities.DifficultyLevel.Beginner ? "btn-success" : "btn-outline-secondary")">
-                        Cơ bản
+                        @(isEn ? "Beginner" : "Cơ bản")
                     </a>
                     <a asp-action="Challenges" asp-route-difficulty="@NET_Tutos.Models.Entities.DifficultyLevel.Intermediate" asp-route-categoryId="@selectedCategory" 
                        class="btn btn-sm rounded-pill px-3 @(selectedDifficulty == NET_Tutos.Models.Entities.DifficultyLevel.Intermediate ? "btn-primary" : "btn-outline-secondary")">
-                        Trung cấp
+                        @(isEn ? "Intermediate" : "Trung cấp")
                     </a>
                     <a asp-action="Challenges" asp-route-difficulty="@NET_Tutos.Models.Entities.DifficultyLevel.Advanced" asp-route-categoryId="@selectedCategory" 
                        class="btn btn-sm rounded-pill px-3 @(selectedDifficulty == NET_Tutos.Models.Entities.DifficultyLevel.Advanced ? "btn-danger" : "btn-outline-secondary")">
-                        Nâng cao
+                        @(isEn ? "Advanced" : "Nâng cao")
                     </a>
                 </div>
 
@@ -54,18 +55,18 @@
                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill px-3 py-1.5" type="button" data-bs-toggle="dropdown">
                         <i class="bi bi-funnel me-1"></i>
                         @(selectedCategory.HasValue 
-                            ? categories.FirstOrDefault(c => c.Id == selectedCategory.Value)?.Name ?? "Chuyên đề" 
-                            : "Tất cả chuyên đề")
+                            ? categories.FirstOrDefault(c => c.Id == selectedCategory.Value)?.GetTitle(isEn) ?? (isEn ? "Topic" : "Chuyên đề") 
+                            : (isEn ? "All Topics" : "Tất cả chuyên đề"))
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
-                        <li><a class="dropdown-item @(!selectedCategory.HasValue ? "active" : "")" asp-action="Challenges" asp-route-difficulty="@selectedDifficulty">Tất cả chuyên đề</a></li>
+                        <li><a class="dropdown-item @(!selectedCategory.HasValue ? "active" : "")" asp-action="Challenges" asp-route-difficulty="@selectedDifficulty">@(isEn ? "All Topics" : "Tất cả chuyên đề")</a></li>
                         <li><hr class="dropdown-divider"></li>
                         @foreach (var cat in categories)
                         {
                             <li>
                                 <a class="dropdown-item @(selectedCategory == cat.Id ? "active" : "")" 
                                    asp-action="Challenges" asp-route-categoryId="@cat.Id" asp-route-difficulty="@selectedDifficulty">
-                                    @cat.Name
+                                    @cat.GetTitle(isEn)
                                 </a>
                             </li>
                         }
@@ -81,8 +82,8 @@
         {
             <div class="col-12 text-center py-5 text-body-secondary">
                 <i class="bi bi-clipboard-x display-4 d-block mb-3 opacity-50"></i>
-                <p>Không tìm thấy thử thách nào phù hợp với bộ lọc hiện tại.</p>
-                <a asp-action="Challenges" class="btn btn-sm btn-primary rounded-pill px-3">Xóa bộ lọc</a>
+                <p>@(isEn ? "No challenges match the current filter criteria." : "Không tìm thấy thử thách nào phù hợp với bộ lọc hiện tại.")</p>
+                <a asp-action="Challenges" class="btn btn-sm btn-primary rounded-pill px-3">@(isEn ? "Clear filters" : "Xóa bộ lọc")</a>
             </div>
         }
         else
@@ -95,18 +96,9 @@
                         <div>
                             <div class="d-flex align-items-center justify-content-between mb-3">
                                 <div>
-                                    @switch (challenge.Difficulty)
-                                    {
-                                        case NET_Tutos.Models.Entities.DifficultyLevel.Beginner:
-                                            <span class="badge bg-success-subtle border border-success-subtle rounded-pill px-2.5 py-1">Cơ bản</span>
-                                            break;
-                                        case NET_Tutos.Models.Entities.DifficultyLevel.Intermediate:
-                                            <span class="badge bg-primary-subtle border border-primary-subtle rounded-pill px-2.5 py-1">Trung cấp</span>
-                                            break;
-                                        case NET_Tutos.Models.Entities.DifficultyLevel.Advanced:
-                                            <span class="badge bg-danger-subtle border border-danger-subtle rounded-pill px-2.5 py-1">Nâng cao</span>
-                                            break;
-                                    }
+                                    <span class="badge bg-primary-subtle border border-primary-subtle rounded-pill px-2.5 py-1">
+                                        @LocalizationHelper.GetDifficultyName(challenge.Difficulty, isEn)
+                                    </span>
                                 </div>
                                 <span class="badge bg-warning-subtle border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold">
                                     ⚡ +@challenge.XpReward XP
@@ -130,18 +122,18 @@
                                     @if (isPassed)
                                     {
                                         <span class="badge bg-success-subtle border border-success-subtle text-success rounded-pill px-2.5 py-1 small">
-                                            <i class="bi bi-check-circle-fill me-1"></i> Đã hoàn thành
+                                            <i class="bi bi-check-circle-fill me-1"></i> @(isEn ? "Completed" : "Đã hoàn thành")
                                         </span>
                                     }
                                     else
                                     {
                                         <span class="badge bg-secondary-subtle border border-secondary-subtle text-body-secondary rounded-pill px-2.5 py-1 small">
-                                            Chưa giải
+                                            @(isEn ? "Unsolved" : "Chưa giải")
                                         </span>
                                     }
                                 </div>
                                 <a asp-action="Index" asp-route-slug="@challenge.Slug" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold">
-                                    Luyện tập <i class="bi bi-arrow-right ms-1"></i>
+                                    @(isEn ? "Solve Challenge" : "Luyện tập") <i class="bi bi-arrow-right ms-1"></i>
                                 </a>
                             </div>
                         </div>

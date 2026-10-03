@@ -1,6 +1,7 @@
 @model NET_Tutos.Models.ViewModels.ExamResultViewModel
 @{
-    ViewData["Title"] = "Kết quả thi: " + Model.ExamTitle;
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = (isEn ? "Exam Result: " : "Kết quả thi: ") + Model.ExamTitle;
 }
 
 <div class="container py-5">
@@ -15,7 +16,7 @@
                 </div>
 
                 <span class="badge @(Model.IsPassed ? "bg-success" : "bg-danger") px-3 py-1.5 rounded-pill mb-2">
-                    @(Model.IsPassed ? "CHÚC MỪNG - ĐÃ VƯỢT QUA KỲ THI" : "CHƯA ĐẠT CHUẨN ĐỖ (CẦN TỪ 80%)")
+                    @(Model.IsPassed ? (isEn ? "CONGRATULATIONS - YOU PASSED THE EXAM" : "CHÚC MỪNG - ĐÃ VƯỢT QUA KỲ THI") : (isEn ? "FAILED (80% OR HIGHER REQUIRED)" : "CHƯA ĐẠT CHUẨN ĐỖ (CẦN TỪ 80%)"))
                 </span>
 
                 <h2 class="fw-extrabold mb-1">@Model.ExamTitle</h2>
@@ -24,8 +25,7 @@
                 </div>
 
                 <p class="text-muted lead mb-4">
-                    Bạn đã trả lời đúng <strong>@Model.CorrectAnswers</strong> / <strong>@Model.TotalQuestions</strong> câu hỏi 
-                    trong thời gian <strong>@(Model.DurationSeconds / 60) phút @(Model.DurationSeconds % 60) giây</strong>.
+                    @(isEn ? "You answered " : "Bạn đã trả lời đúng ")<strong>@Model.CorrectAnswers</strong> / <strong>@Model.TotalQuestions</strong> @(isEn ? "questions correctly in " : "câu hỏi trong thời gian ")<strong>@(Model.DurationSeconds / 60) @(isEn ? "mins" : "phút") @(Model.DurationSeconds % 60) @(isEn ? "secs" : "giây")</strong>.
                 </p>
 
                 <!-- Certification Announcement if Passed -->
@@ -35,18 +35,18 @@
                         <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
                             <div>
                                 <h5 class="fw-bold text-success mb-1">
-                                    <i class="bi bi-award-fill me-1"></i> Chứng chỉ số đã được cấp thành công!
+                                    <i class="bi bi-award-fill me-1"></i> @(isEn ? "Digital Certificate Issued Successfully!" : "Chứng chỉ số đã được cấp thành công!")
                                 </h5>
                                 <p class="small text-muted mb-0">
-                                    Mã chứng chỉ: <code>@Model.Certificate.CertificateCode</code> • Được ký điện tử bởi NET-Tutos Academic Council.
+                                    @(isEn ? "Certificate Code:" : "Mã chứng chỉ:") <code>@Model.Certificate.CertificateCode</code> • @(isEn ? "Digitally signed by NET-Tutos Academic Council." : "Được ký điện tử bởi NET-Tutos Academic Council.")
                                 </p>
                             </div>
                             <div class="d-flex gap-2">
                                 <a asp-controller="Certificate" asp-action="DownloadPdf" asp-route-code="@Model.Certificate.CertificateCode" class="btn btn-success rounded-pill px-3 py-2 fw-semibold">
-                                    <i class="bi bi-file-earmark-pdf me-1"></i> Tải PDF
+                                    <i class="bi bi-file-earmark-pdf me-1"></i> @(isEn ? "Download PDF" : "Tải PDF")
                                 </a>
                                 <a asp-controller="Certificate" asp-action="Verify" asp-route-code="@Model.Certificate.CertificateCode" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold">
-                                    <i class="bi bi-shield-check me-1"></i> Trang xác thực
+                                    <i class="bi bi-shield-check me-1"></i> @(isEn ? "Verification Page" : "Trang xác thực")
                                 </a>
                             </div>
                         </div>
@@ -55,10 +55,10 @@
 
                 <div class="d-flex justify-content-center gap-3 flex-wrap">
                     <a asp-action="Index" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
-                        <i class="bi bi-arrow-left me-1"></i> Danh sách kỳ thi
+                        <i class="bi bi-arrow-left me-1"></i> @(isEn ? "Exams List" : "Danh sách kỳ thi")
                     </a>
                     <a asp-controller="Account" asp-action="Profile" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
-                        <i class="bi bi-person-lines-fill me-1"></i> Về góc học tập
+                        <i class="bi bi-person-lines-fill me-1"></i> @(isEn ? "Back to Dashboard" : "Về góc học tập")
                     </a>
                 </div>
             </div>
@@ -66,7 +66,7 @@
             <!-- Detailed Question Review -->
             @if (Model.QuestionResults.Any())
             {
-                <h4 class="fw-bold mb-3 mt-5">Chi Tiết Từng Câu Hỏi</h4>
+                <h4 class="fw-bold mb-3 mt-5">@(isEn ? "Detailed Question Review" : "Chi Tiết Từng Câu Hỏi")</h4>
                 <div class="d-flex flex-column gap-3 mb-5">
                     @for (int i = 0; i < Model.QuestionResults.Count; i++)
                     {
@@ -74,34 +74,34 @@
                         <div class="card border-0 shadow-sm rounded-4 p-4 bg-body border-start border-4 @(qr.IsCorrect ? "border-success" : "border-danger")">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="badge @(qr.IsCorrect ? "bg-success" : "bg-danger") rounded-pill">
-                                    Câu @(i + 1): @(qr.IsCorrect ? "Chính xác ✓" : "Chưa chính xác ✗")
+                                    @(isEn ? $"Question {i + 1}: " : $"Câu {i + 1}: ")@(qr.IsCorrect ? (isEn ? "Correct ✓" : "Chính xác ✓") : (isEn ? "Incorrect ✗" : "Chưa chính xác ✗"))
                                 </span>
                                 <span class="small text-muted">
-                                    Lựa chọn: <strong>@qr.SelectedOption</strong> | Đáp án đúng: <strong class="text-success">@qr.CorrectOption</strong>
+                                    @(isEn ? "Your choice:" : "Lựa chọn:") <strong>@qr.SelectedOption</strong> | @(isEn ? "Correct answer:" : "Đáp án đúng:") <strong class="text-success">@qr.CorrectOption</strong>
                                 </span>
                             </div>
 
-                            <h6 class="fw-bold mb-3">@qr.Question</h6>
+                            <h6 class="fw-bold mb-3">@qr.GetQuestionText(isEn)</h6>
 
                             <div class="list-group small mb-3">
                                 <div class="list-group-item @(qr.CorrectOption == "A" ? "list-group-item-success fw-bold" : (qr.SelectedOption == "A" ? "list-group-item-danger" : ""))">
-                                    <strong>A.</strong> @qr.OptionA @(qr.CorrectOption == "A" ? "✓" : "")
+                                    <strong>A.</strong> @qr.GetOptionA(isEn) @(qr.CorrectOption == "A" ? "✓" : "")
                                 </div>
                                 <div class="list-group-item @(qr.CorrectOption == "B" ? "list-group-item-success fw-bold" : (qr.SelectedOption == "B" ? "list-group-item-danger" : ""))">
-                                    <strong>B.</strong> @qr.OptionB @(qr.CorrectOption == "B" ? "✓" : "")
+                                    <strong>B.</strong> @qr.GetOptionB(isEn) @(qr.CorrectOption == "B" ? "✓" : "")
                                 </div>
                                 <div class="list-group-item @(qr.CorrectOption == "C" ? "list-group-item-success fw-bold" : (qr.SelectedOption == "C" ? "list-group-item-danger" : ""))">
-                                    <strong>C.</strong> @qr.OptionC @(qr.CorrectOption == "C" ? "✓" : "")
+                                    <strong>C.</strong> @qr.GetOptionC(isEn) @(qr.CorrectOption == "C" ? "✓" : "")
                                 </div>
                                 <div class="list-group-item @(qr.CorrectOption == "D" ? "list-group-item-success fw-bold" : (qr.SelectedOption == "D" ? "list-group-item-danger" : ""))">
-                                    <strong>D.</strong> @qr.OptionD @(qr.CorrectOption == "D" ? "✓" : "")
+                                    <strong>D.</strong> @qr.GetOptionD(isEn) @(qr.CorrectOption == "D" ? "✓" : "")
                                 </div>
                             </div>
 
                             @if (!string.IsNullOrEmpty(qr.Explanation))
                             {
                                 <div class="alert alert-info py-2 small mb-0">
-                                    <i class="bi bi-info-circle-fill me-1"></i><strong>Giải thích:</strong> @qr.Explanation
+                                    <i class="bi bi-info-circle-fill me-1"></i><strong>@(isEn ? "Explanation:" : "Giải thích:")</strong> @qr.GetExplanation(isEn)
                                 </div>
                             }
                         </div>

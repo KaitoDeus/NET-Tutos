@@ -1,6 +1,7 @@
-﻿@model NET_Tutos.Models.ViewModels.QuizSubmissionViewModel
+@model NET_Tutos.Models.ViewModels.QuizSubmissionViewModel
 @{
-    ViewData["Title"] = "Làm bài trắc nghiệm - " + (Model.TopicTitle ?? ".NET Quiz");
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = (isEn ? "Take Quiz - " : "Làm bài trắc nghiệm - ") + (Model.TopicTitle ?? ".NET Quiz");
 }
 
 <div class="container py-5">
@@ -10,10 +11,10 @@
             <div class="d-flex align-items-center justify-content-between mb-4">
                 <div>
                     <a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-2">
-                        <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách đề thi
+                        <i class="bi bi-arrow-left me-1"></i> @(isEn ? "Back to Quiz List" : "Quay lại danh sách đề thi")
                     </a>
                     <h2 class="fw-bold mb-0">@Model.TopicTitle</h2>
-                    <p class="text-muted small mb-0">Tổng cộng: @Model.Questions.Count câu hỏi trắc nghiệm</p>
+                    <p class="text-muted small mb-0">@(isEn ? $"Total: {Model.Questions.Count} practice questions" : $"Tổng cộng: {Model.Questions.Count} câu hỏi trắc nghiệm")</p>
                 </div>
             </div>
 
@@ -28,29 +29,29 @@
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                         <div>
                             <h4 class="alert-heading fw-bold mb-1">
-                                Kết Quả Bài Làm: <span class="badge @badgeClass">@Model.Score / @Model.TotalQuestions Điểm (@percentage%)</span>
+                                @(isEn ? "Quiz Result:" : "Kết Quả Bài Làm:") <span class="badge @badgeClass">@Model.Score / @Model.TotalQuestions @(isEn ? "Points" : "Điểm") (@percentage%)</span>
                             </h4>
                             <p class="mb-0">
                                 @if (percentage >= 80)
                                 {
-                                    <span>Xuất sắc! Bạn đã nắm rất vững kiến thức phần này.</span>
+                                    <span>@(isEn ? "Outstanding! You have mastered this topic thoroughly." : "Xuất sắc! Bạn đã nắm rất vững kiến thức phần này.")</span>
                                 }
                                 else if (percentage >= 50)
                                 {
-                                    <span>Khá tốt! Bạn đã vượt qua bài test, hãy xem lại các câu sai để hoàn thiện hơn nhé.</span>
+                                    <span>@(isEn ? "Good job! You passed the test. Review missed questions to improve further." : "Khá tốt! Bạn đã vượt qua bài test, hãy xem lại các câu sai để hoàn thiện hơn nhé.")</span>
                                 }
                                 else
                                 {
-                                    <span>Bạn cần ôn tập thêm lý thuyết bài này trước khi làm lại nhé!</span>
+                                    <span>@(isEn ? "Please review the lesson theory before attempting again!" : "Bạn cần ôn tập thêm lý thuyết bài này trước khi làm lại nhé!")</span>
                                 }
                             </p>
                         </div>
                         <div class="d-flex gap-2">
                             <a asp-action="Take" asp-route-tutorialId="@Model.TutorialId" class="btn btn-primary fw-semibold">
-                                <i class="bi bi-arrow-repeat me-1"></i> Làm lại bài thi
+                                <i class="bi bi-arrow-repeat me-1"></i> @(isEn ? "Retake Quiz" : "Làm lại bài thi")
                             </a>
                             <a asp-action="Index" class="btn btn-outline-dark fw-semibold">
-                                Đề thi khác
+                                @(isEn ? "Other Quizzes" : "Đề thi khác")
                             </a>
                         </div>
                     </div>
@@ -77,21 +78,21 @@
 
                     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-body">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <span class="badge bg-primary px-3 py-1.5 rounded-pill">Câu @(i + 1)</span>
+                            <span class="badge bg-primary px-3 py-1.5 rounded-pill">@(isEn ? $"Question {i + 1}" : $"Câu {i + 1}")</span>
                             @if (Model.IsSubmitted)
                             {
                                 if (q.IsCorrect == true)
                                 {
-                                    <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Đúng</span>
+                                    <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>@(isEn ? "Correct" : "Đúng")</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-danger"><i class="bi bi-x-circle-fill me-1"></i>Sai</span>
+                                    <span class="badge bg-danger"><i class="bi bi-x-circle-fill me-1"></i>@(isEn ? "Incorrect" : "Sai")</span>
                                 }
                             }
                         </div>
 
-                        <h5 class="fw-bold mb-4">@q.Question</h5>
+                        <h5 class="fw-bold mb-4">@q.GetQuestionText(isEn)</h5>
 
                         <div class="d-flex flex-column gap-2 mb-3">
                             <!-- Option A -->
@@ -107,7 +108,7 @@
                                 <input type="radio" class="btn-check quiz-option-input" name="Questions[@i].SelectedOption" id="q_@(i)_A" value="A"
                                        checked="@(q.SelectedOption == "A")" disabled="@Model.IsSubmitted" />
                                 <label class="quiz-option-label @stateClassA" for="q_@(i)_A">
-                                    <strong class="me-2">A.</strong> @q.OptionA
+                                    <strong class="me-2">A.</strong> @q.GetOptionA(isEn)
                                 </label>
                             </div>
 
@@ -124,7 +125,7 @@
                                 <input type="radio" class="btn-check quiz-option-input" name="Questions[@i].SelectedOption" id="q_@(i)_B" value="B"
                                        checked="@(q.SelectedOption == "B")" disabled="@Model.IsSubmitted" />
                                 <label class="quiz-option-label @stateClassB" for="q_@(i)_B">
-                                    <strong class="me-2">B.</strong> @q.OptionB
+                                    <strong class="me-2">B.</strong> @q.GetOptionB(isEn)
                                 </label>
                             </div>
 
@@ -141,7 +142,7 @@
                                 <input type="radio" class="btn-check quiz-option-input" name="Questions[@i].SelectedOption" id="q_@(i)_C" value="C"
                                        checked="@(q.SelectedOption == "C")" disabled="@Model.IsSubmitted" />
                                 <label class="quiz-option-label @stateClassC" for="q_@(i)_C">
-                                    <strong class="me-2">C.</strong> @q.OptionC
+                                    <strong class="me-2">C.</strong> @q.GetOptionC(isEn)
                                 </label>
                             </div>
 
@@ -158,7 +159,7 @@
                                 <input type="radio" class="btn-check quiz-option-input" name="Questions[@i].SelectedOption" id="q_@(i)_D" value="D"
                                        checked="@(q.SelectedOption == "D")" disabled="@Model.IsSubmitted" />
                                 <label class="quiz-option-label @stateClassD" for="q_@(i)_D">
-                                    <strong class="me-2">D.</strong> @q.OptionD
+                                    <strong class="me-2">D.</strong> @q.GetOptionD(isEn)
                                 </label>
                             </div>
                         </div>
@@ -167,7 +168,7 @@
                         @if (Model.IsSubmitted && !string.IsNullOrEmpty(q.Explanation))
                         {
                             <div class="alert alert-info py-2 px-3 small mb-0 rounded-3">
-                                <i class="bi bi-info-circle-fill me-1"></i><strong>Giải thích chi tiết:</strong> @q.Explanation
+                                <i class="bi bi-info-circle-fill me-1"></i><strong>@(isEn ? "Detailed Explanation:" : "Giải thích chi tiết:")</strong> @q.GetExplanation(isEn)
                             </div>
                         }
                     </div>
@@ -177,7 +178,7 @@
                 {
                     <div class="text-center mt-4">
                         <button type="submit" class="btn btn-primary btn-lg px-5 shadow fw-semibold">
-                            <i class="bi bi-send-check me-2"></i> Nộp Bài & Xem Điểm
+                            <i class="bi bi-send-check me-2"></i> @(isEn ? "Submit & View Score" : "Nộp Bài & Xem Điểm")
                         </button>
                     </div>
                 }
