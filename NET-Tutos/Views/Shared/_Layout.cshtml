@@ -1,5 +1,12 @@
 @inject NET_Tutos.Data.AppDbContext DbContext
+@using Microsoft.AspNetCore.Localization
 @{
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>()?.RequestCulture.UICulture.TwoLetterISOLanguageName ?? "vi";
+    bool isEn = requestCulture.Equals("en", StringComparison.OrdinalIgnoreCase);
+    var currentFlagPath = isEn ? "/images/flags/en.svg" : "/images/flags/vn.svg";
+    var currentLangText = isEn ? "English" : "Tiếng Việt";
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+
     List<NET_Tutos.Models.Entities.Category> navCategories = new();
     try
     {
@@ -19,7 +26,7 @@
     bool isCommunityActive = currentController == "Leaderboard" || currentController == "Activity";
 }
 <!DOCTYPE html>
-<html lang="vi" data-bs-theme="light">
+<html lang="@(isEn ? "en" : "vi")" data-bs-theme="light">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -60,30 +67,54 @@
                     <span class="brand-text fw-extrabold fs-4"><span class="text-dotnet">.NET</span><span class="text-body-emphasis"> Tutos</span></span>
                 </a>
 
-                <!-- Mobile Quick Actions Bar (Theme Switch & Toggler) -->
+                <!-- Mobile Quick Actions Bar (Language Switch, Theme Switch & Toggler) -->
                 <div class="d-flex align-items-center gap-2 d-lg-none ms-auto">
-                    <button class="btn btn-sm btn-outline-secondary rounded-circle theme-btn p-1.5" type="button" onclick="document.getElementById('themeToggleBtn').click()" title="Chuyển chế độ Sáng / Tối">
+                    <!-- Mobile Language Switcher Dropdown -->
+                    <div class="dropdown lang-dropdown-container">
+                        <button class="btn btn-sm lang-switcher-btn rounded-circle p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="@(isEn ? "Language" : "Ngôn ngữ")" style="width: 32px; height: 32px;">
+                            <img src="@currentFlagPath" alt="@currentLangText" class="lang-flag-current" style="width: 22px; height: 22px;" />
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 lang-dropdown-menu py-1.5 px-1 mt-1">
+                            <li>
+                                <a class="dropdown-item lang-item d-flex align-items-center gap-2 py-1.5 px-2.5 rounded-2 @(isEn ? "active fw-semibold" : "")"
+                                   asp-controller="Language" asp-action="SetLanguage" asp-route-culture="en" asp-route-returnUrl="@returnUrl">
+                                    <img src="/images/flags/en.svg" alt="English" class="lang-flag-option" width="20" height="20" />
+                                    <span>English</span>
+                                    @if (isEn) { <i class="bi bi-check2 ms-auto text-primary"></i> }
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item lang-item d-flex align-items-center gap-2 py-1.5 px-2.5 rounded-2 @(!isEn ? "active fw-semibold" : "")"
+                                   asp-controller="Language" asp-action="SetLanguage" asp-route-culture="vi" asp-route-returnUrl="@returnUrl">
+                                    <img src="/images/flags/vn.svg" alt="Tiếng Việt" class="lang-flag-option" width="20" height="20" />
+                                    <span>Tiếng Việt</span>
+                                    @if (!isEn) { <i class="bi bi-check2 ms-auto text-primary"></i> }
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary rounded-circle theme-btn p-1.5" type="button" onclick="document.getElementById('themeToggleBtn').click()" title="@(isEn ? "Toggle theme" : "Chuyển chế độ Sáng / Tối")">
                         <i class="bi bi-moon-stars-fill mobile-theme-icon"></i>
                     </button>
                     @if (User.Identity?.IsAuthenticated == true)
                     {
                         <button class="btn btn-sm btn-outline-warning rounded-circle p-1 d-flex align-items-center justify-content-center mobile-streak-btn"
-                                style="width: 32px; height: 32px;" type="button" data-bs-toggle="modal" data-bs-target="#streakModal" title="Chuỗi học tập hàng ngày">
+                                style="width: 32px; height: 32px;" type="button" data-bs-toggle="modal" data-bs-target="#streakModal" title="@(isEn ? "Daily Learning Streak" : "Chuỗi học tập hàng ngày")">
                             <i class="bi bi-fire text-danger"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-secondary rounded-circle p-1 position-relative d-flex align-items-center justify-content-center"
-                                style="width: 32px; height: 32px;" type="button" onclick="document.getElementById('btnNavNotification')?.click()" title="Thông báo">
+                                style="width: 32px; height: 32px;" type="button" onclick="document.getElementById('btnNavNotification')?.click()" title="@(isEn ? "Notifications" : "Thông báo")">
                             <i class="bi bi-bell-fill"></i>
                             <span id="mobileNotificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.6rem;">0</span>
                         </button>
-                        <a asp-controller="Account" asp-action="Profile" class="btn btn-sm btn-outline-primary rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Góc học tập">
+                        <a asp-controller="Account" asp-action="Profile" class="btn btn-sm btn-outline-primary rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="@(isEn ? "Learning Dashboard" : "Góc học tập")">
                             <i class="bi bi-person-fill"></i>
                         </a>
                     }
                     else
                     {
-                        <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 small fw-semibold" title="Đăng nhập">
-                            Đăng nhập
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 small fw-semibold" title="@(isEn ? "Login" : "Đăng nhập")">
+                            @(isEn ? "Login" : "Đăng nhập")
                         </a>
                     }
                     <button class="navbar-toggler border-0 p-1.5 rounded-3 shadow-none bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
@@ -98,7 +129,7 @@
                         <li class="nav-item">
                             <a class="nav-link text-nowrap @(isHomeActive ? "active fw-semibold" : "")"
                                asp-controller="Home" asp-action="Index">
-                                <i class="bi bi-house-door me-1"></i> Trang chủ
+                                <i class="bi bi-house-door me-1"></i> <span data-lang-key="nav_home">@(isEn ? "Home" : "Trang chủ")</span>
                             </a>
                         </li>
 
@@ -106,7 +137,7 @@
                         <li class="nav-item dropdown nav-category-dropdown">
                             <a class="nav-link dropdown-toggle text-nowrap @(isCoursesActive ? "active fw-semibold" : "")"
                                href="#" id="navCoursesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-grid-fill me-1 text-primary"></i> Khóa học & Lộ trình
+                                <i class="bi bi-grid-fill me-1 text-primary"></i> <span data-lang-key="nav_courses">@(isEn ? "Courses & Roadmap" : "Khóa học & Lộ trình")</span>
                             </a>
                             <div class="dropdown-menu dropdown-menu-start shadow-lg border-0 rounded-4 p-3 mt-0 nav-mega-dropdown" aria-labelledby="navCoursesDropdown">
                                 <div class="mega-menu-grid">
@@ -114,10 +145,10 @@
                                     <div class="mega-menu-col mega-menu-divider">
                                         <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                                             <span class="text-uppercase fw-bold text-muted small" style="font-size: 0.72rem; letter-spacing: 0.05em;">
-                                                <i class="bi bi-collection-play me-1 text-primary"></i> Danh mục chuyên đề
+                                                <i class="bi bi-collection-play me-1 text-primary"></i> <span data-lang-key="nav_topics">@(isEn ? "Topic Categories" : "Danh mục chuyên đề")</span>
                                             </span>
                                             <a asp-controller="Tutorials" asp-action="Index" class="small text-primary text-decoration-none fw-semibold">
-                                                Xem tất cả <i class="bi bi-arrow-right"></i>
+                                                <span data-lang-key="nav_view_all">@(isEn ? "View all" : "Xem tất cả")</span> <i class="bi bi-arrow-right"></i>
                                             </a>
                                         </div>
                                         <div class="d-flex flex-column gap-1">
@@ -127,10 +158,10 @@
                                                 {
                                                     string levelBadge = cat.Level switch
                                                     {
-                                                        DifficultyLevel.Beginner => "Cơ bản",
-                                                        DifficultyLevel.Intermediate => "Trung cấp",
-                                                        DifficultyLevel.Advanced => "Nâng cao",
-                                                        _ => "Cơ bản"
+                                                        DifficultyLevel.Beginner => isEn ? "Beginner" : "Cơ bản",
+                                                        DifficultyLevel.Intermediate => isEn ? "Intermediate" : "Trung cấp",
+                                                        DifficultyLevel.Advanced => isEn ? "Advanced" : "Nâng cao",
+                                                        _ => isEn ? "Beginner" : "Cơ bản"
                                                     };
                                                     <a class="dropdown-item category-item-card p-2 rounded-3 @(currentController == "Tutorials" && Context.Request.Query["category"] == cat.Slug ? "active" : "")"
                                                        asp-controller="Tutorials" asp-action="Index" asp-route-category="@cat.Slug">
@@ -156,7 +187,7 @@
                                     <div class="mega-menu-col">
                                         <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                                             <span class="text-uppercase fw-bold text-muted small" style="font-size: 0.72rem; letter-spacing: 0.05em;">
-                                                <i class="bi bi-compass me-1 text-warning"></i> Lối tắt học tập
+                                                <i class="bi bi-compass me-1 text-warning"></i> <span data-lang-key="nav_shortcuts">@(isEn ? "Quick Learning" : "Lối tắt học tập")</span>
                                             </span>
                                         </div>
                                         <div class="d-flex flex-column gap-1">
@@ -166,8 +197,8 @@
                                                     <i class="bi bi-signpost-split"></i>
                                                 </div>
                                                 <div class="category-content-box">
-                                                    <span class="category-text-title">Lộ trình học chuẩn</span>
-                                                    <span class="category-text-desc">Bản đồ từ Zero đến Senior .NET</span>
+                                                    <span class="category-text-title" data-lang-key="nav_roadmap">@(isEn ? "Standard Roadmap" : "Lộ trình học chuẩn")</span>
+                                                    <span class="category-text-desc" data-lang-key="nav_roadmap_desc">@(isEn ? "Roadmap from Zero to Senior .NET" : "Bản đồ từ Zero đến Senior .NET")</span>
                                                 </div>
                                             </a>
 
@@ -177,8 +208,8 @@
                                                     <i class="bi bi-code-square"></i>
                                                 </div>
                                                 <div class="category-content-box">
-                                                    <span class="category-text-title">Tra cứu Code C#</span>
-                                                    <span class="category-text-desc">Sổ tay cú pháp & ví dụ mẫu</span>
+                                                    <span class="category-text-title" data-lang-key="nav_cheatsheet">@(isEn ? "C# Cheatsheet" : "Tra cứu Code C#")</span>
+                                                    <span class="category-text-desc" data-lang-key="nav_cheatsheet_desc">@(isEn ? "Quick syntax guide & code samples" : "Sổ tay cú pháp & ví dụ mẫu")</span>
                                                 </div>
                                             </a>
 
@@ -188,8 +219,8 @@
                                                     <i class="bi bi-book"></i>
                                                 </div>
                                                 <div class="category-content-box">
-                                                    <span class="category-text-title">Thư viện bài học</span>
-                                                    <span class="category-text-desc">Toàn bộ kho tàng bài viết C#/.NET</span>
+                                                    <span class="category-text-title" data-lang-key="nav_library">@(isEn ? "Tutorials Library" : "Thư viện bài học")</span>
+                                                    <span class="category-text-desc" data-lang-key="nav_library_desc">@(isEn ? "Full treasury of C#/.NET tutorials" : "Toàn bộ kho tàng bài viết C#/.NET")</span>
                                                 </div>
                                             </a>
                                         </div>
@@ -199,11 +230,11 @@
                                 <!-- Bottom quick link banner -->
                                 <div class="pt-2 mt-2 border-top">
                                     <div class="d-flex align-items-center justify-content-between px-1">
-                                        <span class="small text-muted">
-                                            <i class="bi bi-stars text-warning me-1"></i>Hơn 50+ bài học & thử thách miễn phí
+                                        <span class="small text-muted" data-lang-key="nav_lessons_count">
+                                            <i class="bi bi-stars text-warning me-1"></i>@(isEn ? "Over 50+ free lessons & interactive challenges" : "Hơn 50+ bài học & thử thách miễn phí")
                                         </span>
                                         <a asp-controller="Roadmap" asp-action="Index" class="small fw-semibold text-primary text-decoration-none">
-                                            Bắt đầu lộ trình ngay <i class="bi bi-chevron-right"></i>
+                                            <span data-lang-key="nav_start_roadmap">@(isEn ? "Start roadmap now" : "Bắt đầu lộ trình ngay")</span> <i class="bi bi-chevron-right"></i>
                                         </a>
                                     </div>
                                 </div>
@@ -214,7 +245,7 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle text-nowrap @(isPracticeActive ? "active fw-semibold" : "")"
                                href="#" id="navPracticeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-cpu me-1 text-danger"></i> Thực hành & Thi đấu
+                                <i class="bi bi-cpu me-1 text-danger"></i> <span data-lang-key="nav_practice">@(isEn ? "Practice & Arena" : "Thực hành & Thi đấu")</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-start shadow-lg border-0 rounded-4 p-2 mt-0 nav-standard-dropdown" aria-labelledby="navPracticeDropdown" style="min-width: 300px;">
                                 <li>
@@ -224,8 +255,8 @@
                                             <i class="bi bi-terminal-fill"></i>
                                         </div>
                                         <div class="category-content-box">
-                                            <span class="category-text-title">Luyện Code C# Sandbox</span>
-                                            <span class="category-text-desc">Biên dịch trực tiếp & giải thử thách</span>
+                                            <span class="category-text-title" data-lang-key="nav_sandbox">@(isEn ? "C# Sandbox Playground" : "Luyện Code C# Sandbox")</span>
+                                            <span class="category-text-desc" data-lang-key="nav_sandbox_desc">@(isEn ? "Live compile & solve challenges" : "Biên dịch trực tiếp & giải thử thách")</span>
                                         </div>
                                     </a>
                                 </li>
@@ -236,8 +267,8 @@
                                             <i class="bi bi-patch-question"></i>
                                         </div>
                                         <div class="category-content-box">
-                                            <span class="category-text-title">Trắc nghiệm kiến thức</span>
-                                            <span class="category-text-desc">Ôn tập nhanh củng cố lý thuyết</span>
+                                            <span class="category-text-title" data-lang-key="nav_quiz">@(isEn ? "Knowledge Quiz" : "Trắc nghiệm kiến thức")</span>
+                                            <span class="category-text-desc" data-lang-key="nav_quiz_desc">@(isEn ? "Quick revision & theory booster" : "Ôn tập nhanh củng cố lý thuyết")</span>
                                         </div>
                                     </a>
                                 </li>
@@ -248,8 +279,8 @@
                                             <i class="bi bi-mortarboard"></i>
                                         </div>
                                         <div class="category-content-box">
-                                            <span class="category-text-title">Thi & Cấp chứng chỉ</span>
-                                            <span class="category-text-desc">Sát hạch tốt nghiệp nhận chứng chỉ số</span>
+                                            <span class="category-text-title" data-lang-key="nav_exam">@(isEn ? "Exams & Certification" : "Thi & Cấp chứng chỉ")</span>
+                                            <span class="category-text-desc" data-lang-key="nav_exam_desc">@(isEn ? "Graduation exam & earn digital certificate" : "Sát hạch tốt nghiệp nhận chứng chỉ số")</span>
                                         </div>
                                     </a>
                                 </li>
@@ -260,8 +291,8 @@
                                             <i class="bi bi-folder-check"></i>
                                         </div>
                                         <div class="category-content-box">
-                                            <span class="category-text-title">Đồ án thực chiến (Capstone)</span>
-                                            <span class="category-text-desc">Xây dựng sản phẩm chuẩn doanh nghiệp</span>
+                                            <span class="category-text-title" data-lang-key="nav_project">@(isEn ? "Capstone Projects" : "Đồ án thực chiến (Capstone)")</span>
+                                            <span class="category-text-desc" data-lang-key="nav_project_desc">@(isEn ? "Build production-grade applications" : "Xây dựng sản phẩm chuẩn doanh nghiệp")</span>
                                         </div>
                                     </a>
                                 </li>
@@ -272,7 +303,7 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle text-nowrap @(isCommunityActive ? "active fw-semibold" : "")"
                                href="#" id="navCommunityDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-people-fill me-1 text-warning"></i> Cộng đồng
+                                <i class="bi bi-people-fill me-1 text-warning"></i> <span data-lang-key="nav_community">@(isEn ? "Community" : "Cộng đồng")</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-start shadow-lg border-0 rounded-4 p-2 mt-0 nav-standard-dropdown" aria-labelledby="navCommunityDropdown" style="min-width: 280px;">
                                 <li>
@@ -282,8 +313,8 @@
                                             <i class="bi bi-trophy-fill"></i>
                                         </div>
                                         <div class="category-content-box">
-                                            <span class="category-text-title">Bảng vinh danh</span>
-                                            <span class="category-text-desc">Top 1.000 học viên xuất sắc</span>
+                                            <span class="category-text-title" data-lang-key="nav_leaderboard">@(isEn ? "Hall of Fame" : "Bảng vinh danh")</span>
+                                            <span class="category-text-desc" data-lang-key="nav_leaderboard_desc">@(isEn ? "Top 1,000 outstanding learners" : "Top 1.000 học viên xuất sắc")</span>
                                         </div>
                                     </a>
                                 </li>
@@ -294,8 +325,8 @@
                                             <i class="bi bi-activity"></i>
                                         </div>
                                         <div class="category-content-box">
-                                            <span class="category-text-title">Bảng tin hoạt động</span>
-                                            <span class="category-text-desc">Nhịp đập học tập của cộng đồng</span>
+                                            <span class="category-text-title" data-lang-key="nav_activity">@(isEn ? "Activity Feed" : "Bảng tin hoạt động")</span>
+                                            <span class="category-text-desc" data-lang-key="nav_activity_desc">@(isEn ? "Live learning pulse of community" : "Nhịp đập học tập của cộng đồng")</span>
                                         </div>
                                     </a>
                                 </li>
@@ -306,8 +337,8 @@
                     <!-- Search Box -->
                     <form class="d-flex my-2 my-lg-0 me-lg-2 w-100 w-lg-auto" asp-controller="Tutorials" asp-action="Index" method="get">
                         <div class="input-group input-group-sm search-group w-100">
-                            <input class="form-control" type="search" name="search" placeholder="Tìm bài học..." aria-label="Search" value="@Context.Request.Query["search"]">
-                            <button class="btn btn-outline-primary" type="submit" title="Tìm kiếm">
+                            <input class="form-control" type="search" name="search" placeholder="@(isEn ? "Search lessons..." : "Tìm bài học...")" aria-label="Search" value="@Context.Request.Query["search"]" data-lang-placeholder="search_placeholder">
+                            <button class="btn btn-outline-primary" type="submit" title="@(isEn ? "Search" : "Tìm kiếm")">
                                 <i class="bi bi-search"></i>
                             </button>
                         </div>
@@ -317,17 +348,42 @@
                     <div class="d-flex align-items-center gap-2 me-lg-2 my-2 my-lg-0 mobile-nav-auth">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
+                            <!-- Desktop Language Switcher Dropdown (Authenticated) -->
+                            <div class="dropdown lang-dropdown-container">
+                                <button class="btn btn-sm lang-switcher-btn rounded-circle p-0" type="button" id="langDropdownUser" data-bs-toggle="dropdown" aria-expanded="false" title="@(isEn ? "Language" : "Ngôn ngữ")">
+                                    <img src="@currentFlagPath" alt="@currentLangText" class="lang-flag-current" width="28" height="28" />
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 lang-dropdown-menu py-1.5 px-1 mt-1" aria-labelledby="langDropdownUser">
+                                    <li>
+                                        <a class="dropdown-item lang-item d-flex align-items-center gap-2.5 py-1.5 px-2.5 rounded-2 @(isEn ? "active fw-semibold" : "")"
+                                           asp-controller="Language" asp-action="SetLanguage" asp-route-culture="en" asp-route-returnUrl="@returnUrl">
+                                            <img src="/images/flags/en.svg" alt="English" class="lang-flag-option" width="22" height="22" />
+                                            <span>English</span>
+                                            @if (isEn) { <i class="bi bi-check2 ms-auto text-primary small"></i> }
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item lang-item d-flex align-items-center gap-2.5 py-1.5 px-2.5 rounded-2 @(!isEn ? "active fw-semibold" : "")"
+                                           asp-controller="Language" asp-action="SetLanguage" asp-route-culture="vi" asp-route-returnUrl="@returnUrl">
+                                            <img src="/images/flags/vn.svg" alt="Tiếng Việt" class="lang-flag-option" width="22" height="22" />
+                                            <span>Tiếng Việt</span>
+                                            @if (!isEn) { <i class="bi bi-check2 ms-auto text-primary small"></i> }
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+
                             <!-- Streak Quick Badge Button -->
                             <button id="btnNavStreak" class="btn btn-sm btn-outline-warning rounded-pill px-2.5 py-1.5 d-flex align-items-center gap-1.5 text-nowrap fw-bold shadow-none"
-                                    type="button" data-bs-toggle="modal" data-bs-target="#streakModal" title="Chuỗi học tập hàng ngày (Streak)">
+                                    type="button" data-bs-toggle="modal" data-bs-target="#streakModal" title="@(isEn ? "Daily Learning Streak" : "Chuỗi học tập hàng ngày (Streak)")">
                                 <i class="bi bi-fire text-danger fs-6 streak-fire-icon"></i>
-                                <span id="navStreakCountText">0 ngày</span>
+                                <span id="navStreakCountText">0 @(isEn ? "days" : "ngày")</span>
                             </button>
 
                             <!-- Notification Center Dropdown -->
                             <div class="dropdown" id="notificationDropdownContainer">
                                 <button id="btnNavNotification" class="btn btn-sm btn-outline-secondary rounded-circle position-relative p-1.5 d-flex align-items-center justify-content-center shadow-none"
-                                        type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Trung tâm Thông báo" style="width: 34px; height: 34px;">
+                                        type="button" data-bs-toggle="dropdown" aria-expanded="false" title="@(isEn ? "Notification Center" : "Trung tâm Thông báo")" style="width: 34px; height: 34px;">
                                     <i class="bi bi-bell-fill fs-6" id="navBellIcon"></i>
                                     <span id="navNotificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.65rem;">
                                         0
@@ -336,22 +392,22 @@
                                 <div class="dropdown-menu dropdown-menu-end shadow-lg border rounded-4 p-0 mt-2 notification-menu" style="width: 360px; max-width: 92vw;">
                                     <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-body-tertiary rounded-top-4">
                                         <div class="d-flex align-items-center gap-2">
-                                            <h6 class="fw-bold mb-0"><i class="bi bi-bell-fill text-primary me-1.5"></i>Thông báo</h6>
-                                            <span id="notificationUnreadPill" class="badge bg-danger rounded-pill d-none">0 mới</span>
+                                            <h6 class="fw-bold mb-0"><i class="bi bi-bell-fill text-primary me-1.5"></i>@(isEn ? "Notifications" : "Thông báo")</h6>
+                                            <span id="notificationUnreadPill" class="badge bg-danger rounded-pill d-none">0 @(isEn ? "new" : "mới")</span>
                                         </div>
                                         <button id="btnMarkAllRead" class="btn btn-sm btn-link text-decoration-none p-0 small fw-semibold text-muted" type="button">
-                                            <i class="bi bi-check2-all me-1"></i>Đọc tất cả
+                                            <i class="bi bi-check2-all me-1"></i>@(isEn ? "Mark all read" : "Đọc tất cả")
                                         </button>
                                     </div>
                                     <div id="notificationListItems" class="notification-scroll-container overflow-y-auto" style="max-height: 380px;">
                                         <div class="text-center py-4 text-muted small" id="notificationLoadingState">
                                             <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
-                                            <div>Đang tải thông báo...</div>
+                                            <div>@(isEn ? "Loading notifications..." : "Đang tải thông báo...")</div>
                                         </div>
                                     </div>
                                     <div class="p-2 border-top text-center bg-body-tertiary rounded-bottom-4">
                                         <a asp-controller="Activity" asp-action="Index" class="btn btn-sm btn-link text-decoration-none small fw-semibold text-primary">
-                                            Xem bảng tin hoạt động cộng đồng <i class="bi bi-arrow-right"></i>
+                                            @(isEn ? "View community activity feed" : "Xem bảng tin hoạt động cộng đồng") <i class="bi bi-arrow-right"></i>
                                         </a>
                                     </div>
                                 </div>
@@ -361,30 +417,30 @@
                                 <button class="btn btn-sm btn-outline-primary dropdown-toggle d-flex align-items-center justify-content-between justify-content-lg-start gap-2 rounded-pill px-3 py-1.5 text-nowrap w-100 w-lg-auto" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <span class="d-flex align-items-center gap-2">
                                         <i class="bi bi-person-circle fs-6"></i>
-                                        <span class="fw-semibold text-truncate" style="max-width: 140px;">@(User.Identity.Name?.Split('@')[0] ?? "Học viên")</span>
+                                        <span class="fw-semibold text-truncate" style="max-width: 140px;">@(User.Identity.Name?.Split('@')[0] ?? (isEn ? "Learner" : "Học viên"))</span>
                                     </span>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 mt-2 w-100 w-lg-auto">
                                     <li>
                                         <a class="dropdown-item py-2 d-flex align-items-center gap-2" asp-controller="Account" asp-action="Profile">
-                                            <i class="bi bi-mortarboard text-primary"></i> Góc học tập (Dashboard)
+                                            <i class="bi bi-mortarboard text-primary"></i> @(isEn ? "Learning Dashboard" : "Góc học tập (Dashboard)")
                                         </a>
                                     </li>
                                     <li>
                                         <a class="dropdown-item py-2 d-flex align-items-center gap-2" asp-controller="Project" asp-action="MyProjects">
-                                            <i class="bi bi-folder-check text-success"></i> Đồ án của tôi
+                                            <i class="bi bi-folder-check text-success"></i> @(isEn ? "My Projects" : "Đồ án của tôi")
                                         </a>
                                     </li>
                                     @if (User.IsInRole("Admin"))
                                     {
                                         <li>
                                             <a class="dropdown-item py-2 d-flex align-items-center gap-2 text-primary fw-semibold" asp-controller="Admin" asp-action="Index">
-                                                <i class="bi bi-speedometer2"></i> Quản trị LMS
+                                                <i class="bi bi-speedometer2"></i> @(isEn ? "LMS Admin" : "Quản trị LMS")
                                             </a>
                                         </li>
                                         <li>
                                             <a class="dropdown-item py-2 d-flex align-items-center gap-2 text-warning fw-semibold" asp-controller="AdminProjects" asp-action="Submissions">
-                                                <i class="bi bi-inbox-fill"></i> Duyệt đồ án học viên
+                                                <i class="bi bi-inbox-fill"></i> @(isEn ? "Review Submissions" : "Duyệt đồ án học viên")
                                             </a>
                                         </li>
                                     }
@@ -392,7 +448,7 @@
                                     <li>
                                         <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
                                             <button type="submit" class="dropdown-item py-2 d-flex align-items-center gap-2 text-danger">
-                                                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                                                <i class="bi bi-box-arrow-right"></i> @(isEn ? "Logout" : "Đăng xuất")
                                             </button>
                                         </form>
                                     </li>
@@ -402,11 +458,35 @@
                         else
                         {
                             <div class="auth-btn-group d-flex align-items-center w-100 w-lg-auto" style="gap: 8px;">
+                                <!-- Language Switcher Dropdown (Matches Image 2) -->
+                                <div class="dropdown lang-dropdown-container">
+                                    <button class="btn btn-sm lang-switcher-btn rounded-circle p-0" type="button" id="langDropdownAuth" data-bs-toggle="dropdown" aria-expanded="false" title="@(isEn ? "Language" : "Ngôn ngữ")">
+                                        <img src="@currentFlagPath" alt="@currentLangText" class="lang-flag-current" width="28" height="28" />
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 lang-dropdown-menu py-1.5 px-1 mt-1" aria-labelledby="langDropdownAuth">
+                                        <li>
+                                            <a class="dropdown-item lang-item d-flex align-items-center gap-2.5 py-1.5 px-2.5 rounded-2 @(isEn ? "active fw-semibold" : "")"
+                                               asp-controller="Language" asp-action="SetLanguage" asp-route-culture="en" asp-route-returnUrl="@returnUrl">
+                                                <img src="/images/flags/en.svg" alt="English" class="lang-flag-option" width="22" height="22" />
+                                                <span>English</span>
+                                                @if (isEn) { <i class="bi bi-check2 ms-auto text-primary small"></i> }
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item lang-item d-flex align-items-center gap-2.5 py-1.5 px-2.5 rounded-2 @(!isEn ? "active fw-semibold" : "")"
+                                               asp-controller="Language" asp-action="SetLanguage" asp-route-culture="vi" asp-route-returnUrl="@returnUrl">
+                                                <img src="/images/flags/vn.svg" alt="Tiếng Việt" class="lang-flag-option" width="22" height="22" />
+                                                <span>Tiếng Việt</span>
+                                                @if (!isEn) { <i class="bi bi-check2 ms-auto text-primary small"></i> }
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                                 <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold text-nowrap flex-grow-1 flex-lg-grow-0 text-center">
-                                    <i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>@(isEn ? "Login" : "Đăng nhập")
                                 </a>
                                 <a asp-controller="Account" asp-action="Register" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-semibold text-nowrap flex-grow-1 flex-lg-grow-0 text-center">
-                                    Đăng ký
+                                    @(isEn ? "Register" : "Đăng ký")
                                 </a>
                             </div>
                         }
@@ -440,8 +520,8 @@
                     </div>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
-                    <p class="text-muted small mb-0">
-                        © @DateTime.Now.Year .NET Tutos. Nền tảng học tập & thực hành lập trình .NET chất lượng cao.
+                    <p class="text-muted small mb-0" data-lang-key="footer_copyright">
+                        © @DateTime.Now.Year .NET Tutos. @(isEn ? "High-quality .NET programming learning & practice platform." : "Nền tảng học tập & thực hành lập trình .NET chất lượng cao.")
                     </p>
                 </div>
             </div>

@@ -82,10 +82,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Desktop Hover Navigation Dropdowns
     initNavDropdownHover();
+
+    // Language Switcher System
+    initLanguageSwitcher();
 });
 
 function initNavDropdownHover() {
-    const navDropdowns = document.querySelectorAll('.navbar-nav .dropdown');
+    const navDropdowns = document.querySelectorAll('.navbar-nav .dropdown, .lang-dropdown-container');
     navDropdowns.forEach(dropdown => {
         let hideTimeout;
         const toggle = dropdown.querySelector('[data-bs-toggle="dropdown"]');
@@ -134,6 +137,24 @@ function initNavDropdownHover() {
                     toggle.classList.remove('show');
                     toggle.setAttribute('aria-expanded', 'false');
                 }
+            });
+        });
+    });
+}
+
+function initLanguageSwitcher() {
+    const langItems = document.querySelectorAll('.lang-item');
+    langItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const href = this.getAttribute('href') || '';
+            const isEn = href.includes('culture=en');
+            const targetCulture = isEn ? 'en' : 'vi';
+            localStorage.setItem('nettutos-culture', targetCulture);
+
+            // Instantly update flag images before reload for zero flicker UX
+            document.querySelectorAll('.lang-flag-current').forEach(flag => {
+                flag.src = isEn ? '/images/flags/en.svg' : '/images/flags/vn.svg';
+                flag.alt = isEn ? 'English' : 'Tiếng Việt';
             });
         });
     });
