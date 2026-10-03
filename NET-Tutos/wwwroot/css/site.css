@@ -368,8 +368,8 @@ body {
 
 /* Language Switcher Dropdown (Matches Image 2) */
 .lang-dropdown-container {
-    position: relative;
-    display: inline-flex;
+    position: relative !important;
+    display: inline-flex !important;
     align-items: center;
 }
 
@@ -380,7 +380,7 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--bs-border-color);
+    border: 1.5px solid var(--bs-border-color);
     background-color: transparent;
     transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
     cursor: pointer;
@@ -389,8 +389,8 @@ body {
 
 .lang-switcher-btn:hover,
 .lang-switcher-btn:focus,
-.lang-dropdown-container:hover .lang-switcher-btn {
-    transform: scale(1.05);
+.lang-switcher-btn:active {
+    transform: scale(1.06);
     border-color: var(--bs-primary);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
@@ -404,15 +404,46 @@ body {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
-.lang-dropdown-menu {
+/* Strictly drop DOWN beneath the circular button, aligned to button's left */
+.lang-dropdown-container .lang-dropdown-menu {
+    position: absolute !important;
+    top: 100% !important;
+    bottom: auto !important;
+    left: 0 !important;
+    right: auto !important;
+    margin-top: 8px !important;
+    margin-bottom: 0 !important;
+    transform: none !important;
     min-width: 155px;
     border-radius: 8px !important;
     border: 1px solid var(--bs-border-color) !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12) !important;
     background-color: var(--bs-body-bg);
-    margin-top: 6px !important;
     padding: 6px !important;
-    z-index: 1050;
+    z-index: 1060 !important;
+}
+
+.lang-dropdown-container .lang-dropdown-menu.show {
+    display: block !important;
+    animation: langDropdownSlideDown 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes langDropdownSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 991.98px) {
+    .d-lg-none .lang-dropdown-container .lang-dropdown-menu {
+        left: auto !important;
+        right: 0 !important;
+    }
 }
 
 [data-bs-theme="dark"] .lang-dropdown-menu {
@@ -448,23 +479,6 @@ body {
     object-fit: cover;
     flex-shrink: 0;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
-}
-
-@media (min-width: 992px) {
-    .lang-dropdown-container:hover .lang-dropdown-menu {
-        display: block;
-        animation: navDropdownFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .lang-dropdown-container .lang-dropdown-menu::before {
-        content: "";
-        position: absolute;
-        top: -10px;
-        left: 0;
-        right: 0;
-        height: 10px;
-        background: transparent;
-        display: block;
-    }
 }
 
 /* Hero Learn .NET Section (Inspired by Microsoft Learn .NET) */

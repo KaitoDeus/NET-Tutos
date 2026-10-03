@@ -71,10 +71,10 @@
                 <div class="d-flex align-items-center gap-2 d-lg-none ms-auto">
                     <!-- Mobile Language Switcher Dropdown -->
                     <div class="dropdown lang-dropdown-container">
-                        <button class="btn btn-sm lang-switcher-btn rounded-circle p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="@(isEn ? "Language" : "Ngôn ngữ")" style="width: 32px; height: 32px;">
+                        <button class="btn btn-sm lang-switcher-btn rounded-circle p-0" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" title="@(isEn ? "Language" : "Ngôn ngữ")" style="width: 32px; height: 32px;">
                             <img src="@currentFlagPath" alt="@currentLangText" class="lang-flag-current" style="width: 22px; height: 22px;" />
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 lang-dropdown-menu py-1.5 px-1 mt-1">
+                        <ul class="dropdown-menu shadow border-0 lang-dropdown-menu py-1.5 px-1 mt-1">
                             <li>
                                 <a class="dropdown-item lang-item d-flex align-items-center gap-2 py-1.5 px-2.5 rounded-2 @(isEn ? "active fw-semibold" : "")"
                                    asp-controller="Language" asp-action="SetLanguage" asp-route-culture="en" asp-route-returnUrl="@returnUrl">
@@ -350,10 +350,10 @@
                         {
                             <!-- Desktop Language Switcher Dropdown (Authenticated) -->
                             <div class="dropdown lang-dropdown-container">
-                                <button class="btn btn-sm lang-switcher-btn rounded-circle p-0" type="button" id="langDropdownUser" data-bs-toggle="dropdown" aria-expanded="false" title="@(isEn ? "Language" : "Ngôn ngữ")">
+                                <button class="btn btn-sm lang-switcher-btn rounded-circle p-0" type="button" id="langDropdownUser" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" title="@(isEn ? "Language" : "Ngôn ngữ")">
                                     <img src="@currentFlagPath" alt="@currentLangText" class="lang-flag-current" width="28" height="28" />
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 lang-dropdown-menu py-1.5 px-1 mt-1" aria-labelledby="langDropdownUser">
+                                <ul class="dropdown-menu shadow border-0 lang-dropdown-menu py-1.5 px-1 mt-1" aria-labelledby="langDropdownUser">
                                     <li>
                                         <a class="dropdown-item lang-item d-flex align-items-center gap-2.5 py-1.5 px-2.5 rounded-2 @(isEn ? "active fw-semibold" : "")"
                                            asp-controller="Language" asp-action="SetLanguage" asp-route-culture="en" asp-route-returnUrl="@returnUrl">
@@ -460,10 +460,10 @@
                             <div class="auth-btn-group d-flex align-items-center w-100 w-lg-auto" style="gap: 8px;">
                                 <!-- Language Switcher Dropdown (Matches Image 2) -->
                                 <div class="dropdown lang-dropdown-container">
-                                    <button class="btn btn-sm lang-switcher-btn rounded-circle p-0" type="button" id="langDropdownAuth" data-bs-toggle="dropdown" aria-expanded="false" title="@(isEn ? "Language" : "Ngôn ngữ")">
+                                    <button class="btn btn-sm lang-switcher-btn rounded-circle p-0" type="button" id="langDropdownAuth" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" title="@(isEn ? "Language" : "Ngôn ngữ")">
                                         <img src="@currentFlagPath" alt="@currentLangText" class="lang-flag-current" width="28" height="28" />
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 lang-dropdown-menu py-1.5 px-1 mt-1" aria-labelledby="langDropdownAuth">
+                                    <ul class="dropdown-menu shadow border-0 lang-dropdown-menu py-1.5 px-1 mt-1" aria-labelledby="langDropdownAuth">
                                         <li>
                                             <a class="dropdown-item lang-item d-flex align-items-center gap-2.5 py-1.5 px-2.5 rounded-2 @(isEn ? "active fw-semibold" : "")"
                                                asp-controller="Language" asp-action="SetLanguage" asp-route-culture="en" asp-route-returnUrl="@returnUrl">

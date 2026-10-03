@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initNavDropdownHover() {
-    const navDropdowns = document.querySelectorAll('.navbar-nav .dropdown, .lang-dropdown-container');
+    const navDropdowns = document.querySelectorAll('.navbar-nav .dropdown');
     navDropdowns.forEach(dropdown => {
         let hideTimeout;
         const toggle = dropdown.querySelector('[data-bs-toggle="dropdown"]');
