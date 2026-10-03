@@ -160,11 +160,38 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Custom friendly route for tutorials: /bai-hoc/{slug}
+// Bilingual friendly routes for tutorials: /lessons/{slug}, /tutorials/{slug}, /bai-hoc/{slug}
+app.MapControllerRoute(
+    name: "tutorial-slug-en",
+    pattern: "lessons/{slug}",
+    defaults: new { controller = "Tutorials", action = "Details" });
+
+app.MapControllerRoute(
+    name: "tutorial-slug-tutorials",
+    pattern: "tutorials/{slug}",
+    defaults: new { controller = "Tutorials", action = "Details" });
+
 app.MapControllerRoute(
     name: "tutorial-slug",
     pattern: "bai-hoc/{slug}",
     defaults: new { controller = "Tutorials", action = "Details" });
+
+// Bilingual friendly routes for capstone projects: /projects/{slug}, /do-an/{slug}
+app.MapControllerRoute(
+    name: "project-slug-en",
+    pattern: "projects/{slug}",
+    defaults: new { controller = "Project", action = "Details" });
+
+app.MapControllerRoute(
+    name: "project-slug-vi",
+    pattern: "do-an/{slug}",
+    defaults: new { controller = "Project", action = "Details" });
+
+// Friendly certificate verify route: /verify-certificate/{code}
+app.MapControllerRoute(
+    name: "certificate-verify",
+    pattern: "verify-certificate/{code}",
+    defaults: new { controller = "Certificate", action = "Verify" });
 
 // SignalR Hub endpoints
 app.MapHub<DiscussionHub>("/hubs/discussion");

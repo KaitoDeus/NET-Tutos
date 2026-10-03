@@ -13,7 +13,7 @@
             @if (Model.Tutorial.Category != null)
             {
                 <li class="breadcrumb-item">
-                    <a asp-controller="Tutorials" asp-action="Index" asp-route-category="@Model.Tutorial.Category.Slug" class="text-decoration-none">
+                    <a asp-controller="Tutorials" asp-action="Index" asp-route-category="@Model.Tutorial.Category.GetSlug(isEn)" class="text-decoration-none">
                         @Model.Tutorial.Category.GetTitle(isEn)
                     </a>
                 </li>
@@ -154,7 +154,7 @@
                     <div class="flex-grow-1 flex-sm-grow-0">
                         @if (Model.PreviousTutorial != null)
                         {
-                            <a asp-action="Details" asp-route-slug="@Model.PreviousTutorial.Slug" class="btn btn-outline-secondary text-start w-100 w-sm-auto">
+                            <a asp-action="Details" asp-route-slug="@Model.PreviousTutorial.GetSlug(isEn)" class="btn btn-outline-secondary text-start w-100 w-sm-auto">
                                 <small class="d-block text-muted">@(isEn ? "← Previous lesson" : "← Bài trước")</small>
                                 <span class="fw-semibold">@Model.PreviousTutorial.GetTitle(isEn)</span>
                             </a>
@@ -163,7 +163,7 @@
                     <div class="text-start text-sm-end flex-grow-1 flex-sm-grow-0">
                         @if (Model.NextTutorial != null)
                         {
-                            <a asp-action="Details" asp-route-slug="@Model.NextTutorial.Slug" class="btn btn-primary text-start text-sm-end w-100 w-sm-auto">
+                            <a asp-action="Details" asp-route-slug="@Model.NextTutorial.GetSlug(isEn)" class="btn btn-primary text-start text-sm-end w-100 w-sm-auto">
                                 <small class="d-block opacity-75">@(isEn ? "Next lesson →" : "Bài tiếp theo →")</small>
                                 <span class="fw-semibold">@Model.NextTutorial.GetTitle(isEn)</span>
                             </a>
@@ -197,7 +197,7 @@
                         {
                             @foreach (var tut in Model.Tutorial.Category.Tutorials.OrderBy(t => t.OrderIndex))
                             {
-                                <a asp-action="Details" asp-route-slug="@tut.Slug"
+                                <a asp-action="Details" asp-route-slug="@tut.GetSlug(isEn)"
                                    class="list-group-item list-group-item-action py-2.5 px-2 rounded-2 mb-1 @(tut.Id == Model.Tutorial.Id ? "active fw-semibold" : "")">
                                     <i class="bi @(tut.Id == Model.Tutorial.Id ? "bi-check2-circle" : "bi-circle") me-1.5 opacity-75"></i>
                                     @tut.GetTitle(isEn)

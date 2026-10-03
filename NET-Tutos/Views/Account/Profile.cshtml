@@ -1,9 +1,14 @@
 @model NET_Tutos.Models.ViewModels.StudentProfileViewModel
 @{
-    ViewData["Title"] = "Góc học tập";
-    string rankTitle = Model.User.ExperiencePoints >= 200 ? ".NET Master" :
-                       (Model.User.ExperiencePoints >= 100 ? "Lập trình viên Trung cấp" :
-                       (Model.User.ExperiencePoints >= 40 ? "Lập trình viên Tập sự" : "Tân binh .NET"));
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "Student Dashboard" : "Góc học tập";
+    string rankTitle = isEn
+        ? (Model.User.ExperiencePoints >= 200 ? ".NET Master" :
+           Model.User.ExperiencePoints >= 100 ? "Intermediate Developer" :
+           Model.User.ExperiencePoints >= 40 ? "Junior Developer" : "NET Rookie")
+        : (Model.User.ExperiencePoints >= 200 ? ".NET Master" :
+           Model.User.ExperiencePoints >= 100 ? "Lập trình viên Trung cấp" :
+           Model.User.ExperiencePoints >= 40 ? "Lập trình viên Tập sự" : "Tân binh .NET");
 }
 
 <div class="container py-5">
@@ -16,7 +21,7 @@
                          style="width: 88px; height: 88px; font-size: 2.2rem; font-weight: bold;">
                         @(string.IsNullOrEmpty(Model.User.FullName) ? "U" : Model.User.FullName.Substring(0, 1).ToUpper())
                     </div>
-                    <span class="position-absolute bottom-0 end-0 badge rounded-pill bg-success p-1.5" title="Đang hoạt động">
+                    <span class="position-absolute bottom-0 end-0 badge rounded-pill bg-success p-1.5" title="@(isEn ? "Active" : "Đang hoạt động")">
                         <span class="visually-hidden">Online</span>
                     </span>
                 </div>
@@ -34,28 +39,28 @@
                 </div>
                 <p class="text-muted small mb-0">
                     <i class="bi bi-envelope me-1"></i> @Model.User.Email &nbsp;•&nbsp; 
-                    <i class="bi bi-calendar-check me-1"></i> Tham gia: @Model.User.CreatedAt.ToString("dd/MM/yyyy")
+                    <i class="bi bi-calendar-check me-1"></i> @(isEn ? "Joined:" : "Tham gia:") @Model.User.CreatedAt.ToString(isEn ? "MMM dd, yyyy" : "dd/MM/yyyy")
                 </p>
             </div>
 
                 <div class="col-md-auto text-center text-md-end">
                     @if (Model.LastAccessedTutorial != null)
                     {
-                        <span class="small text-muted d-block mb-1">Bài học xem gần nhất:</span>
+                        <span class="small text-muted d-block mb-1">@(isEn ? "Recently viewed lesson:" : "Bài học xem gần nhất:")</span>
                         <div class="d-flex gap-2 justify-content-center justify-content-md-end flex-wrap">
                             <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@Model.LastAccessedTutorial.Slug" 
                                class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold">
-                                <i class="bi bi-play-circle-fill me-1"></i> Tiếp tục học
+                                <i class="bi bi-play-circle-fill me-1"></i> @(isEn ? "Continue learning" : "Tiếp tục học")
                             </a>
                             <a asp-controller="Project" asp-action="MyProjects" class="btn btn-outline-primary rounded-pill px-3 shadow-sm fw-semibold">
-                                <i class="bi bi-folder-check me-1"></i> Đồ án của tôi
+                                <i class="bi bi-folder-check me-1"></i> @(isEn ? "My Capstones" : "Đồ án của tôi")
                             </a>
                         </div>
                     }
                     else
                     {
                         <a asp-controller="Project" asp-action="MyProjects" class="btn btn-outline-primary rounded-pill px-3 shadow-sm fw-semibold">
-                            <i class="bi bi-folder-check me-1"></i> Đồ án của tôi
+                            <i class="bi bi-folder-check me-1"></i> @(isEn ? "My Capstones" : "Đồ án của tôi")
                         </a>
                     }
                 </div>
@@ -67,39 +72,39 @@
         <div class="col-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-body h-100 card-hover">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold">Tiến độ tổng thể</span>
+                    <span class="text-muted small fw-semibold">@(isEn ? "Overall Progress" : "Tiến độ tổng thể")</span>
                     <span class="fs-4 text-primary"><i class="bi bi-pie-chart-fill"></i></span>
                 </div>
                 <div class="display-6 fw-bold text-primary mb-2">@Model.OverallProgressPercentage%</div>
                 <div class="progress" style="height: 6px;">
                     <div class="progress-bar bg-primary" role="progressbar" style="width: @Model.OverallProgressPercentage%" aria-valuenow="@Model.OverallProgressPercentage" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
-                <span class="small text-muted mt-2 d-block">Hoàn thành @Model.TotalCompletedLessons/@Model.TotalLessons bài</span>
+                <span class="small text-muted mt-2 d-block">@(isEn ? $"Completed {Model.TotalCompletedLessons}/{Model.TotalLessons} lessons" : $"Hoàn thành {Model.TotalCompletedLessons}/{Model.TotalLessons} bài")</span>
             </div>
         </div>
 
         <div class="col-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-body h-100 card-hover">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold">Bài học hoàn tất</span>
+                    <span class="text-muted small fw-semibold">@(isEn ? "Completed Lessons" : "Bài học hoàn tất")</span>
                     <span class="fs-4 text-success"><i class="bi bi-check-circle-fill"></i></span>
                 </div>
                 <div class="display-6 fw-bold text-success mb-2">@Model.TotalCompletedLessons</div>
-                <span class="small text-muted d-block">+20 XP cho mỗi bài học</span>
+                <span class="small text-muted d-block">@(isEn ? "+20 XP per completed lesson" : "+20 XP cho mỗi bài học")</span>
             </div>
         </div>
 
         <div class="col-6 col-lg-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-body h-100 card-hover" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#streakModal" title="Bấm để xem chi tiết chuỗi học tập">
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-body h-100 card-hover" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#streakModal" title="@(isEn ? "Click to view learning streak details" : "Bấm để xem chi tiết chuỗi học tập")">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold">Chuỗi ngày học</span>
+                    <span class="text-muted small fw-semibold">@(isEn ? "Learning Streak" : "Chuỗi ngày học")</span>
                     <span class="fs-4 text-danger"><i class="bi bi-fire"></i></span>
                 </div>
                 <div class="display-6 fw-bold text-danger mb-1">
-                    @Model.User.CurrentStreak <span class="fs-6 text-muted">ngày</span>
+                    @Model.User.CurrentStreak <span class="fs-6 text-muted">@(isEn ? "days" : "ngày")</span>
                 </div>
                 <span class="small text-muted d-block">
-                    Kỷ lục: <strong>@Model.User.LongestStreak ngày</strong> · Điểm danh
+                    @(isEn ? $"Record: {Model.User.LongestStreak} days · Check-in" : $"Kỷ lục: {Model.User.LongestStreak} ngày · Điểm danh")
                 </span>
             </div>
         </div>
@@ -107,14 +112,14 @@
         <div class="col-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-body h-100 card-hover">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold">Chứng chỉ khóa học</span>
+                    <span class="text-muted small fw-semibold">@(isEn ? "Course Certificate" : "Chứng chỉ khóa học")</span>
                     <span class="fs-4 text-warning"><i class="bi bi-award"></i></span>
                 </div>
                 <div class="display-6 fw-bold text-warning mb-2">
                     @(Model.OverallProgressPercentage >= 100 ? "1" : "0")
                 </div>
                 <span class="small text-muted d-block">
-                    @(Model.OverallProgressPercentage >= 100 ? "Đủ điều kiện cấp chứng chỉ!" : "Đạt 100% để mở khóa")
+                    @(Model.OverallProgressPercentage >= 100 ? (isEn ? "Eligible for certificate!" : "Đủ điều kiện cấp chứng chỉ!") : (isEn ? "Reach 100% to unlock" : "Đạt 100% để mở khóa"))
                 </span>
             </div>
         </div>
@@ -125,7 +130,7 @@
         <div class="col-lg-7">
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
                 <h4 class="fw-bold mb-4 d-flex align-items-center">
-                    <i class="bi bi-bar-chart-steps text-primary me-2"></i> Tiến độ theo chuyên đề
+                    <i class="bi bi-bar-chart-steps text-primary me-2"></i> @(isEn ? "Progress by Topic" : "Tiến độ theo chuyên đề")
                 </h4>
 
                 <div class="d-flex flex-column gap-4">
@@ -135,10 +140,10 @@
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <span class="fw-semibold">
                                     <i class="bi @prog.Category.IconClass text-@prog.Category.BadgeColor me-1.5"></i>
-                                    @prog.Category.Name
+                                    @prog.Category.GetTitle(isEn)
                                 </span>
                                 <span class="badge bg-@prog.Category.BadgeColor bg-opacity-10 text-@prog.Category.BadgeColor">
-                                    @prog.CompletedCount / @prog.TotalCount bài (@prog.Percentage%)
+                                    @prog.CompletedCount / @prog.TotalCount @(isEn ? "lessons" : "bài") (@prog.Percentage%)
                                 </span>
                             </div>
                             <div class="progress" style="height: 10px;">
@@ -153,17 +158,17 @@
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
                 <h4 class="fw-bold mb-4 d-flex align-items-center">
-                    <i class="bi bi-clock-history text-info me-2"></i> Bài học vừa hoàn thành
+                    <i class="bi bi-clock-history text-info me-2"></i> @(isEn ? "Recently Completed Lessons" : "Bài học vừa hoàn thành")
                 </h4>
 
                 @if (!Model.RecentCompletedLessons.Any())
                 {
                     <div class="text-center py-4 text-muted">
                         <i class="bi bi-journal-x fs-1 d-block mb-2"></i>
-                        <span>Bạn chưa hoàn thành bài học nào. Hãy bắt đầu ngay nhé!</span>
+                        <span>@(isEn ? "You haven't completed any lessons yet. Start learning now!" : "Bạn chưa hoàn thành bài học nào. Hãy bắt đầu ngay nhé!")</span>
                         <div class="mt-3">
                             <a asp-controller="Roadmap" asp-action="Index" class="btn btn-sm btn-outline-primary rounded-pill">
-                                Khám phá lộ trình
+                                @(isEn ? "Explore Roadmap" : "Khám phá lộ trình")
                             </a>
                         </div>
                     </div>
@@ -176,9 +181,9 @@
                             <div class="list-group-item bg-transparent px-0 py-2.5 d-flex align-items-center justify-content-between">
                                 <div class="d-flex align-items-center gap-2 text-truncate me-2">
                                     <i class="bi bi-check-circle-fill text-success"></i>
-                                    <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.Tutorial?.Slug" 
+                                    <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.Tutorial?.GetSlug(isEn)" 
                                        class="text-decoration-none text-body-emphasis small fw-medium text-truncate">
-                                        @item.Tutorial?.Title
+                                        @item.Tutorial?.GetTitle(isEn)
                                     </a>
                                 </div>
                                 <span class="text-muted small" style="white-space:nowrap">
@@ -199,10 +204,10 @@
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <h4 class="fw-bold mb-0 d-flex align-items-center">
-                        <i class="bi bi-award-fill text-warning me-2"></i> Chứng chỉ số của tôi
+                        <i class="bi bi-award-fill text-warning me-2"></i> @(isEn ? "My Digital Certificates" : "Chứng chỉ số của tôi")
                     </h4>
                     <a asp-controller="Exam" asp-action="Index" class="btn btn-sm btn-outline-primary rounded-pill">
-                        <i class="bi bi-plus-circle me-1"></i> Thi lấy chứng chỉ mới
+                        <i class="bi bi-plus-circle me-1"></i> @(isEn ? "Take Exam for New Certificate" : "Thi lấy chứng chỉ mới")
                     </a>
                 </div>
 
@@ -210,10 +215,10 @@
                 {
                     <div class="text-center py-4 text-muted">
                         <i class="bi bi-award fs-1 d-block mb-2 text-warning opacity-50"></i>
-                        <span>Bạn chưa có chứng chỉ nào. Hoàn thành khóa học và thi đạt từ 80% để nhận chứng chỉ nhé!</span>
+                        <span>@(isEn ? "No certificates earned yet. Complete the course and score 80%+ on the exam to receive your certificate!" : "Bạn chưa có chứng chỉ nào. Hoàn thành khóa học và thi đạt từ 80% để nhận chứng chỉ nhé!")</span>
                         <div class="mt-3">
                             <a asp-controller="Exam" asp-action="Index" class="btn btn-sm btn-primary rounded-pill px-3">
-                                Xem danh sách kỳ thi
+                                @(isEn ? "View Exam Catalog" : "Xem danh sách kỳ thi")
                             </a>
                         </div>
                     </div>
@@ -229,18 +234,18 @@
                                         <div>
                                             <div class="d-flex align-items-center gap-2 mb-1">
                                                 <i class="bi bi-patch-check-fill text-warning fs-5"></i>
-                                                <h6 class="fw-bold mb-0">@cert.CourseTitle</h6>
+                                                <h6 class="fw-bold mb-0">@(isEn ? "ASP.NET Core & C# Full-Stack Certification" : cert.CourseTitle)</h6>
                                             </div>
                                             <p class="text-muted small mb-0">
-                                                Mã số: <code>@cert.CertificateCode</code> • Điểm thi: <strong class="text-success">@cert.FinalScore.ToString("F1")%</strong> • Ngày cấp: @cert.IssuedAt.ToString("dd/MM/yyyy")
+                                                @(isEn ? "Code:" : "Mã số:") <code>@cert.CertificateCode</code> • @(isEn ? "Score:" : "Điểm thi:") <strong class="text-success">@cert.FinalScore.ToString("F1")%</strong> • @(isEn ? "Issued:" : "Ngày cấp:") @cert.IssuedAt.ToString("dd/MM/yyyy")
                                             </p>
                                         </div>
                                         <div class="d-flex gap-2">
                                             <a asp-controller="Certificate" asp-action="DownloadPdf" asp-route-code="@cert.CertificateCode" class="btn btn-sm btn-outline-primary rounded-pill">
-                                                <i class="bi bi-file-earmark-pdf"></i> Tải PDF
+                                                <i class="bi bi-file-earmark-pdf"></i> @(isEn ? "Download PDF" : "Tải PDF")
                                             </a>
                                             <a asp-controller="Certificate" asp-action="Verify" asp-route-code="@cert.CertificateCode" class="btn btn-sm btn-primary rounded-pill">
-                                                Xác thực
+                                                @(isEn ? "Verify" : "Xác thực")
                                             </a>
                                         </div>
                                     </div>
@@ -256,17 +261,17 @@
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
                 <h4 class="fw-bold mb-4 d-flex align-items-center">
-                    <i class="bi bi-ui-checks text-success me-2"></i> Lịch sử thi gần đây
+                    <i class="bi bi-ui-checks text-success me-2"></i> @(isEn ? "Recent Exam History" : "Lịch sử thi gần đây")
                 </h4>
 
                 @if (!Model.RecentQuizAttempts.Any())
                 {
                     <div class="text-center py-4 text-muted">
                         <i class="bi bi-clipboard-x fs-1 d-block mb-2 opacity-50"></i>
-                        <span>Bạn chưa tham gia kỳ thi nào.</span>
+                        <span>@(isEn ? "You haven't taken any exams yet." : "Bạn chưa tham gia kỳ thi nào.")</span>
                         <div class="mt-3">
                             <a asp-controller="Exam" asp-action="Index" class="btn btn-sm btn-outline-success rounded-pill">
-                                Thử sức làm bài thi
+                                @(isEn ? "Take an Exam Now" : "Thử sức làm bài thi")
                             </a>
                         </div>
                     </div>
@@ -278,7 +283,7 @@
                         {
                             <div class="list-group-item bg-transparent px-0 py-2.5 d-flex align-items-center justify-content-between">
                                 <div class="text-truncate me-2">
-                                    <div class="fw-semibold text-truncate">@attempt.ExamTitle</div>
+                                    <div class="fw-semibold text-truncate">@(isEn && attempt.ExamTitle.Contains("Bài thi tổng kết") ? "Graduation Certification Exam: Full-Stack ASP.NET Core & C#" : attempt.ExamTitle)</div>
                                     <div class="text-muted" style="font-size:0.75rem">
                                         @attempt.CompletedAt.ToString("dd/MM/yyyy HH:mm") • @(attempt.DurationSeconds / 60)m @(attempt.DurationSeconds % 60)s
                                     </div>

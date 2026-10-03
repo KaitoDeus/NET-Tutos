@@ -38,7 +38,9 @@ public class ProjectController : Controller
         }
 
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var viewModel = await _projectService.GetProjectDetailsAsync(slug, userId);
+        var canonicalSlug = LocalizationHelper.GetCanonicalSlug(slug);
+        var viewModel = await _projectService.GetProjectDetailsAsync(canonicalSlug, userId)
+                     ?? await _projectService.GetProjectDetailsAsync(slug, userId);
 
         if (viewModel == null)
         {

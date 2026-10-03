@@ -29,11 +29,12 @@ public class TutorialsController : Controller
     public async Task<IActionResult> Index(string? category, DifficultyLevel? level, string? search, int page = 1)
     {
         const int pageSize = 9;
-        var (items, totalCount) = await _tutorialService.GetTutorialsAsync(category, level, search, page, pageSize);
+        var canonicalCategory = !string.IsNullOrWhiteSpace(category) ? LocalizationHelper.GetCanonicalSlug(category) : category;
+        var (items, totalCount) = await _tutorialService.GetTutorialsAsync(canonicalCategory, level, search, page, pageSize);
         var categories = await _tutorialService.GetCategoriesWithTutorialsAsync();
 
         var currentCategory = !string.IsNullOrWhiteSpace(category) 
-            ? categories.FirstOrDefault(c => c.Slug == category) 
+            ? categories.FirstOrDefault(c => c.Slug == category || c.Slug == canonicalCategory) 
             : null;
 
         var viewModel = new TutorialListViewModel
@@ -58,7 +59,8 @@ public class TutorialsController : Controller
             return NotFound();
         }
 
-        var tutorial = await _tutorialService.GetTutorialBySlugAsync(slug);
+        var canonicalSlug = LocalizationHelper.GetCanonicalSlug(slug);
+        var tutorial = await _tutorialService.GetTutorialBySlugAsync(canonicalSlug) ?? await _tutorialService.GetTutorialBySlugAsync(slug);
         if (tutorial == null)
         {
             return NotFound();

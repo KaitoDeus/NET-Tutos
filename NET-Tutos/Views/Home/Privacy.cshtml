@@ -1,6 +1,15 @@
-﻿@{
-    ViewData["Title"] = "Privacy Policy";
+@{
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "Privacy Policy" : "Chính sách Bảo mật";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="container py-5">
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-body">
+        <h2 class="fw-bold mb-3">@(isEn ? "Privacy Policy" : "Chính sách Bảo mật")</h2>
+        <p class="text-body-secondary lead">
+            @(isEn 
+                ? "NET-Tutos respects your privacy. All user profile data, quiz submissions, and learning analytics are stored securely and encrypted according to modern software security standards. We do not share your personal information with third parties." 
+                : "NET-Tutos tôn trọng quyền riêng tư của người học. Toàn bộ dữ liệu hồ sơ cá nhân, kết quả bài thi và tiến độ học tập đều được bảo mật và mã hóa an toàn theo tiêu chuẩn phần mềm hiện đại. Chúng tôi cam kết không chia sẻ thông tin cho bên thứ ba.")
+        </p>
+    </div>
+</div>

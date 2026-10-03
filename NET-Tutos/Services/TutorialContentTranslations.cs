@@ -800,6 +800,8 @@ builder.Services.AddSingleton<IMemoryCacheService, MemoryCacheService>();
     public static string? GetContentMarkdownEn(string slug)
     {
         if (string.IsNullOrWhiteSpace(slug)) return null;
-        return EnglishMarkdown.TryGetValue(slug, out var md) ? md : null;
+        var canonical = LocalizationHelper.GetCanonicalSlug(slug);
+        if (EnglishMarkdown.TryGetValue(canonical, out var md)) return md;
+        return EnglishMarkdown.TryGetValue(slug, out md) ? md : null;
     }
 }

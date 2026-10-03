@@ -62,7 +62,7 @@
                             <i class="bi bi-file-earmark-pdf me-1"></i> @(isEn ? "Download PDF Certificate" : "Tải file Chứng chỉ PDF")
                         </a>
                         <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" id="btnCopyVerifyLink">
-                            <i class="bi bi-clipboard me-1"></i> Sao chép liên kết chia sẻ
+                            <i class="bi bi-clipboard me-1"></i> @(isEn ? "Copy Verification Link" : "Sao chép liên kết chia sẻ")
                         </button>
                     </div>
                 </div>
@@ -77,22 +77,22 @@
                         </div>
                     </div>
 
-                    <h2 class="fw-extrabold mb-2">Tra Cứu Chứng Chỉ Số .NET</h2>
+                    <h2 class="fw-extrabold mb-2">@(isEn ? "Verify .NET Digital Certificate" : "Tra Cứu Chứng Chỉ Số .NET")</h2>
                     <p class="text-muted mb-4">
-                        Nhập mã chứng chỉ (ví dụ: <code>NET-2026-A1B2C3</code>) để kiểm tra tính hợp lệ và thông tin học viên tốt nghiệp.
+                        @(isEn ? "Enter the certificate code (e.g., NET-2026-A1B2C3) to verify authenticity and graduate details." : "Nhập mã chứng chỉ (ví dụ: NET-2026-A1B2C3) để kiểm tra tính hợp lệ và thông tin học viên tốt nghiệp.")
                     </p>
 
                     <form method="get" onsubmit="event.preventDefault(); var code = document.getElementById('searchCode').value.trim(); if(code) window.location.href='/verify-certificate/' + encodeURIComponent(code);">
                         <div class="input-group input-group-lg max-w-md mx-auto mb-3" style="max-width: 480px;">
-                            <input type="text" class="form-control" id="searchCode" placeholder="Nhập mã chứng chỉ..." required>
+                            <input type="text" class="form-control" id="searchCode" placeholder="@(isEn ? "Enter certificate code..." : "Nhập mã chứng chỉ...")" required>
                             <button class="btn btn-primary px-4 fw-semibold" type="submit">
-                                Tra cứu
+                                @(isEn ? "Verify" : "Tra cứu")
                             </button>
                         </div>
                     </form>
 
                     <div class="alert alert-warning small py-2 d-inline-block mx-auto">
-                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Không tìm thấy chứng chỉ với mã số này hoặc mã chưa được cấp.
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> @(isEn ? "Certificate code not found or has not been issued yet." : "Không tìm thấy chứng chỉ với mã số này hoặc mã chưa được cấp.")
                     </div>
                 </div>
             }
@@ -107,7 +107,7 @@
             btn.addEventListener('click', function () {
                 navigator.clipboard.writeText(window.location.href).then(() => {
                     const orig = btn.innerHTML;
-                    btn.innerHTML = '<i class="bi bi-check2 me-1"></i> Đã sao chép!';
+                    btn.innerHTML = '<i class="bi bi-check2 me-1"></i> @(isEn ? "Copied!" : "Đã sao chép!")';
                     setTimeout(() => btn.innerHTML = orig, 2000);
                 });
             });

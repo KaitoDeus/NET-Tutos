@@ -5,6 +5,36 @@ namespace NET_Tutos.Services;
 
 public static class LocalizationHelper
 {
+    public static readonly Dictionary<string, string> ViToEnTutorialSlugs = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["tong-quan-he-sinh-thai-dotnet-cai-dat-moi-truong"] = "dotnet-ecosystem-overview-and-environment-setup",
+        ["cu-phap-csharp-nen-tang-bien-kieu-du-lieu-luong-dieu-khien"] = "csharp-core-syntax-variables-data-types-control-flow",
+        ["cau-truc-du-lieu-xu-ly-chuoi-list-dictionary-stringbuilder"] = "data-structures-and-strings-list-dictionary-stringbuilder",
+        ["4-tru-cot-lap-trinh-huong-doi-tuong-oop-trong-csharp"] = "4-pillars-of-object-oriented-programming-in-csharp",
+        ["interface-va-generics-trong-csharp-hien-dai"] = "interfaces-and-generics-in-modern-csharp",
+        ["linq-language-integrated-query-va-lambda-expressions"] = "linq-and-lambda-expressions-in-csharp",
+        ["lap-trinh-bat-dong-bo-async-await-trong-dotnet"] = "asynchronous-programming-async-await-in-dotnet",
+        ["entity-framework-core-code-first-dbcontext-migrations"] = "ef-core-code-first-dbcontext-and-migrations",
+        ["kien-truc-aspnet-core-mvc-programcs-middleware-controller"] = "aspnet-core-mvc-architecture-pipeline-controllers",
+        ["xay-dung-restful-web-api-chuan-voi-aspnet-core"] = "building-restful-web-apis-with-aspnet-core",
+        ["dependency-injection-va-nguyen-ly-solid-trong-aspnet-core"] = "dependency-injection-and-solid-in-aspnet-core"
+    };
+
+    public static readonly Dictionary<string, string> ViToEnProjectSlugs = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["xay-dung-restful-web-api-quan-ly-thu-vien-sach"] = "restful-web-api-book-library-management",
+        ["he-thong-dat-hang-mini-clean-architecture-cqrs"] = "mini-ordering-clean-architecture-cqrs",
+        ["nen-tang-dau-gia-truc-tuyen-realtime-signalr"] = "realtime-online-auction-signalr"
+    };
+
+    public static readonly Dictionary<string, string> ViToEnCategorySlugs = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["csharp-co-ban"] = "csharp-fundamentals",
+        ["oop-csharp-nang-cao"] = "oop-advanced-csharp",
+        ["entity-framework-core"] = "entity-framework-core",
+        ["aspnet-core-mvc-api"] = "aspnet-core-mvc-api"
+    };
+
     private static readonly Dictionary<string, (string NameEn, string DescEn)> CategoryTranslations = new(StringComparer.OrdinalIgnoreCase)
     {
         ["csharp-co-ban"] = (
@@ -236,12 +266,81 @@ public static class LocalizationHelper
         )
     };
 
+    public static string GetCanonicalSlug(string? slug)
+    {
+        if (string.IsNullOrWhiteSpace(slug)) return string.Empty;
+
+        foreach (var kvp in ViToEnTutorialSlugs)
+        {
+            if (kvp.Value.Equals(slug, StringComparison.OrdinalIgnoreCase))
+                return kvp.Key;
+        }
+
+        foreach (var kvp in ViToEnProjectSlugs)
+        {
+            if (kvp.Value.Equals(slug, StringComparison.OrdinalIgnoreCase))
+                return kvp.Key;
+        }
+
+        foreach (var kvp in ViToEnCategorySlugs)
+        {
+            if (kvp.Value.Equals(slug, StringComparison.OrdinalIgnoreCase))
+                return kvp.Key;
+        }
+
+        return slug;
+    }
+
+    public static string GetSlug(this Tutorial? tut, bool isEn)
+    {
+        if (tut == null) return string.Empty;
+        if (isEn && !string.IsNullOrEmpty(tut.Slug) && ViToEnTutorialSlugs.TryGetValue(tut.Slug, out var enSlug))
+        {
+            return enSlug;
+        }
+        return tut.Slug ?? string.Empty;
+    }
+
+    public static string GetSlug(this CapstoneProject? project, bool isEn)
+    {
+        if (project == null) return string.Empty;
+        if (isEn && !string.IsNullOrEmpty(project.Slug) && ViToEnProjectSlugs.TryGetValue(project.Slug, out var enSlug))
+        {
+            return enSlug;
+        }
+        return project.Slug ?? string.Empty;
+    }
+
+    public static string GetSlug(this ProjectCardViewModel? project, bool isEn)
+    {
+        if (project == null) return string.Empty;
+        if (isEn && !string.IsNullOrEmpty(project.Slug) && ViToEnProjectSlugs.TryGetValue(project.Slug, out var enSlug))
+        {
+            return enSlug;
+        }
+        return project.Slug ?? string.Empty;
+    }
+
+    public static string GetSlug(this Category? cat, bool isEn)
+    {
+        if (cat == null) return string.Empty;
+        if (isEn && !string.IsNullOrEmpty(cat.Slug) && ViToEnCategorySlugs.TryGetValue(cat.Slug, out var enSlug))
+        {
+            return enSlug;
+        }
+        return cat.Slug ?? string.Empty;
+    }
+
     public static string GetTitle(this Category? cat, bool isEn)
     {
         if (cat == null) return string.Empty;
-        if (isEn && !string.IsNullOrEmpty(cat.Slug) && CategoryTranslations.TryGetValue(cat.Slug, out var trans))
+        if (isEn && !string.IsNullOrEmpty(cat.Slug))
         {
-            return trans.NameEn;
+            var canonical = GetCanonicalSlug(cat.Slug);
+            if (CategoryTranslations.TryGetValue(canonical, out var trans) || CategoryTranslations.TryGetValue(cat.Slug, out trans))
+            {
+                return trans.NameEn;
+            }
         }
         return cat.Name ?? string.Empty;
     }
@@ -249,9 +348,13 @@ public static class LocalizationHelper
     public static string GetDesc(this Category? cat, bool isEn)
     {
         if (cat == null) return string.Empty;
-        if (isEn && !string.IsNullOrEmpty(cat.Slug) && CategoryTranslations.TryGetValue(cat.Slug, out var trans))
+        if (isEn && !string.IsNullOrEmpty(cat.Slug))
         {
-            return trans.DescEn;
+            var canonical = GetCanonicalSlug(cat.Slug);
+            if (CategoryTranslations.TryGetValue(canonical, out var trans) || CategoryTranslations.TryGetValue(cat.Slug, out trans))
+            {
+                return trans.DescEn;
+            }
         }
         return cat.Description ?? string.Empty;
     }
@@ -261,9 +364,13 @@ public static class LocalizationHelper
         if (tut == null) return string.Empty;
         if (!isEn) return tut.Title ?? string.Empty;
 
-        if (!string.IsNullOrEmpty(tut.Slug) && TutorialTranslations.TryGetValue(tut.Slug, out var trans))
+        if (!string.IsNullOrEmpty(tut.Slug))
         {
-            return trans.TitleEn;
+            var canonical = GetCanonicalSlug(tut.Slug);
+            if (TutorialTranslations.TryGetValue(canonical, out var trans) || TutorialTranslations.TryGetValue(tut.Slug, out trans))
+            {
+                return trans.TitleEn;
+            }
         }
 
         if (!string.IsNullOrEmpty(tut.Title))
@@ -292,9 +399,13 @@ public static class LocalizationHelper
         if (tut == null) return string.Empty;
         if (!isEn) return tut.Summary ?? string.Empty;
 
-        if (!string.IsNullOrEmpty(tut.Slug) && TutorialTranslations.TryGetValue(tut.Slug, out var trans))
+        if (!string.IsNullOrEmpty(tut.Slug))
         {
-            return trans.SummaryEn;
+            var canonical = GetCanonicalSlug(tut.Slug);
+            if (TutorialTranslations.TryGetValue(canonical, out var trans) || TutorialTranslations.TryGetValue(tut.Slug, out trans))
+            {
+                return trans.SummaryEn;
+            }
         }
 
         if (!string.IsNullOrEmpty(tut.Title))
@@ -325,7 +436,8 @@ public static class LocalizationHelper
 
         if (!string.IsNullOrEmpty(tut.Slug))
         {
-            var en = TutorialContentTranslations.GetContentMarkdownEn(tut.Slug);
+            var canonical = GetCanonicalSlug(tut.Slug);
+            var en = TutorialContentTranslations.GetContentMarkdownEn(canonical) ?? TutorialContentTranslations.GetContentMarkdownEn(tut.Slug);
             if (!string.IsNullOrEmpty(en)) return en;
         }
 
@@ -345,10 +457,36 @@ public static class LocalizationHelper
 
     public static bool IsEnglish(this Microsoft.AspNetCore.Http.HttpContext? context)
     {
-        if (context == null) return false;
+        if (context == null)
+        {
+            return System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("en", StringComparison.OrdinalIgnoreCase);
+        }
+
+        if (context.Request.Query.TryGetValue("culture", out var queryCulture))
+        {
+            if (queryCulture.ToString().StartsWith("en", StringComparison.OrdinalIgnoreCase)) return true;
+            if (queryCulture.ToString().StartsWith("vi", StringComparison.OrdinalIgnoreCase)) return false;
+        }
+
+        if (context.Request.Cookies.TryGetValue(Microsoft.AspNetCore.Localization.CookieRequestCultureProvider.DefaultCookieName, out var cookieVal))
+        {
+            if (!string.IsNullOrEmpty(cookieVal) && cookieVal.Contains("uic=en", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            if (!string.IsNullOrEmpty(cookieVal) && cookieVal.Contains("uic=vi", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
         var feature = context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>();
-        var culture = feature?.RequestCulture.UICulture.TwoLetterISOLanguageName ?? "vi";
-        return culture.Equals("en", StringComparison.OrdinalIgnoreCase);
+        if (feature != null)
+        {
+            return feature.RequestCulture.UICulture.TwoLetterISOLanguageName.Equals("en", StringComparison.OrdinalIgnoreCase);
+        }
+
+        return System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("en", StringComparison.OrdinalIgnoreCase);
     }
 
     public static string GetStepTitle(int stepNumber, bool isEn, string fallback)
@@ -459,12 +597,19 @@ public static class LocalizationHelper
         )
     };
 
+    public static string GetTitle(this CapstoneProject? project, bool isEn) => project.GetProjectTitle(isEn);
+    public static string GetTitle(this ProjectCardViewModel? project, bool isEn) => project.GetProjectTitle(isEn);
+
     public static string GetProjectTitle(this CapstoneProject? project, bool isEn)
     {
         if (project == null) return string.Empty;
-        if (isEn && !string.IsNullOrEmpty(project.Slug) && CapstoneProjectTranslations.TryGetValue(project.Slug, out var trans))
+        if (isEn && !string.IsNullOrEmpty(project.Slug))
         {
-            return trans.TitleEn;
+            var canonical = GetCanonicalSlug(project.Slug);
+            if (CapstoneProjectTranslations.TryGetValue(canonical, out var trans) || CapstoneProjectTranslations.TryGetValue(project.Slug, out trans))
+            {
+                return trans.TitleEn;
+            }
         }
         return project.Title ?? string.Empty;
     }
@@ -472,9 +617,13 @@ public static class LocalizationHelper
     public static string GetProjectShortDesc(this CapstoneProject? project, bool isEn)
     {
         if (project == null) return string.Empty;
-        if (isEn && !string.IsNullOrEmpty(project.Slug) && CapstoneProjectTranslations.TryGetValue(project.Slug, out var trans))
+        if (isEn && !string.IsNullOrEmpty(project.Slug))
         {
-            return trans.ShortDescEn;
+            var canonical = GetCanonicalSlug(project.Slug);
+            if (CapstoneProjectTranslations.TryGetValue(canonical, out var trans) || CapstoneProjectTranslations.TryGetValue(project.Slug, out trans))
+            {
+                return trans.ShortDescEn;
+            }
         }
         return project.ShortDescription ?? string.Empty;
     }
@@ -482,9 +631,13 @@ public static class LocalizationHelper
     public static string GetProjectTitle(this ProjectCardViewModel? project, bool isEn)
     {
         if (project == null) return string.Empty;
-        if (isEn && !string.IsNullOrEmpty(project.Slug) && CapstoneProjectTranslations.TryGetValue(project.Slug, out var trans))
+        if (isEn && !string.IsNullOrEmpty(project.Slug))
         {
-            return trans.TitleEn;
+            var canonical = GetCanonicalSlug(project.Slug);
+            if (CapstoneProjectTranslations.TryGetValue(canonical, out var trans) || CapstoneProjectTranslations.TryGetValue(project.Slug, out trans))
+            {
+                return trans.TitleEn;
+            }
         }
         return project.Title ?? string.Empty;
     }
@@ -492,9 +645,13 @@ public static class LocalizationHelper
     public static string GetProjectShortDesc(this ProjectCardViewModel? project, bool isEn)
     {
         if (project == null) return string.Empty;
-        if (isEn && !string.IsNullOrEmpty(project.Slug) && CapstoneProjectTranslations.TryGetValue(project.Slug, out var trans))
+        if (isEn && !string.IsNullOrEmpty(project.Slug))
         {
-            return trans.ShortDescEn;
+            var canonical = GetCanonicalSlug(project.Slug);
+            if (CapstoneProjectTranslations.TryGetValue(canonical, out var trans) || CapstoneProjectTranslations.TryGetValue(project.Slug, out trans))
+            {
+                return trans.ShortDescEn;
+            }
         }
         return project.ShortDescription ?? string.Empty;
     }

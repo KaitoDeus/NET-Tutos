@@ -46,7 +46,7 @@
                         <option value="">@(isEn ? "-- All Topics --" : "-- Tất cả chuyên đề --")</option>
                         @foreach (var cat in Model.Categories)
                         {
-                            <option value="@cat.Slug" selected="@(Model.CurrentCategorySlug == cat.Slug)">
+                            <option value="@cat.GetSlug(isEn)" selected="@(Model.CurrentCategorySlug == cat.Slug || Model.CurrentCategorySlug == cat.GetSlug(true))">
                                 @cat.GetTitle(isEn)
                             </option>
                         }
@@ -111,7 +111,7 @@
                             </div>
 
                             <h5 class="card-title fw-bold my-2">
-                                <a asp-action="Details" asp-route-slug="@item.Slug" class="text-decoration-none text-body-emphasis">
+                                <a asp-action="Details" asp-route-slug="@item.GetSlug(isEn)" class="text-decoration-none text-body-emphasis">
                                     @item.GetTitle(isEn)
                                 </a>
                             </h5>
@@ -124,7 +124,7 @@
                                 <span class="badge bg-secondary-subtle text-secondary small">
                                     <i class="bi bi-eye me-1"></i>@(isEn ? $"{item.ViewCount} views" : $"{item.ViewCount} lượt xem")
                                 </span>
-                                <a asp-action="Details" asp-route-slug="@item.Slug" class="btn btn-sm btn-primary rounded-pill px-3">
+                                <a asp-action="Details" asp-route-slug="@item.GetSlug(isEn)" class="btn btn-sm btn-primary rounded-pill px-3">
                                     @(isEn ? "Start Lesson" : "Học bài này") <i class="bi bi-arrow-right ms-1"></i>
                                 </a>
                             </div>

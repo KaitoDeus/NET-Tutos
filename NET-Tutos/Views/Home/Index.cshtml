@@ -1,8 +1,8 @@
 @model NET_Tutos.Models.ViewModels.HomeViewModel
 @using Microsoft.AspNetCore.Localization
+@using NET_Tutos.Services
 @{
-    var requestCulture = Context.Features.Get<IRequestCultureFeature>()?.RequestCulture.UICulture.TwoLetterISOLanguageName ?? "vi";
-    bool isEn = requestCulture.Equals("en", StringComparison.OrdinalIgnoreCase);
+    bool isEn = Context.IsEnglish();
     ViewData["Title"] = isEn ? "Home" : "Trang chủ";
 }
 
@@ -44,7 +44,7 @@
                             <div class="d-flex align-items-center gap-2 flex-wrap">
                                 @if (Model.LastAccessedTutorial != null)
                                 {
-                                    <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@Model.LastAccessedTutorial.Slug" 
+                                    <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@Model.LastAccessedTutorial.GetSlug(isEn)" 
                                        class="btn btn-primary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2 shadow-sm text-truncate" style="max-width: 320px;">
                                         <i class="bi bi-play-circle-fill"></i>
                                         <span class="text-truncate">@(isEn ? "Continue:" : "Học tiếp:") @Model.LastAccessedTutorial.GetTitle(isEn)</span>
@@ -148,7 +148,7 @@
                                 </p>
 
                                 <div class="d-flex flex-column gap-2 mb-4">
-                                    <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="tong-quan-he-sinh-thai-dotnet-cai-dat-moi-truong"
+                                    <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@(isEn ? "dotnet-ecosystem-overview-and-environment-setup" : "tong-quan-he-sinh-thai-dotnet-cai-dat-moi-truong")"
                                        class="hero-feature-link text-primary fw-bold text-decoration-none d-inline-flex align-items-center">
                                         <span>@(isEn ? "Start learning now with Lesson 1 (Overview & Setup)" : "Bắt đầu học ngay với Bài 1 (Tổng quan & Cài đặt)")</span>
                                         <i class="bi bi-arrow-right ms-2 fs-5"></i>
@@ -207,7 +207,7 @@
                 <a href="https://www.youtube.com/watch?v=6BcPIvVfVAw" target="_blank" rel="noopener noreferrer" class="btn btn-outline-danger btn-sm">
                     <i class="bi bi-youtube me-1"></i> @(isEn ? "Watch on YouTube" : "Xem trên YouTube")
                 </a>
-                <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="tong-quan-he-sinh-thai-dotnet-cai-dat-moi-truong" class="btn btn-primary fw-semibold">
+                <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@(isEn ? "dotnet-ecosystem-overview-and-environment-setup" : "tong-quan-he-sinh-thai-dotnet-cai-dat-moi-truong")" class="btn btn-primary fw-semibold">
                     @(isEn ? "Read Full Lesson 1" : "Đọc Bài 1 Đầy Đủ") <i class="bi bi-arrow-right ms-1"></i>
                 </a>
             </div>
@@ -271,7 +271,7 @@
                         <span class="text-muted small">
                             <i class="bi bi-file-earmark-text me-1"></i> @cat.Tutorials.Count @(isEn ? "lessons" : "bài học")
                         </span>
-                        <a asp-controller="Tutorials" asp-action="Index" asp-route-category="@cat.Slug" class="btn btn-sm btn-outline-@cat.BadgeColor rounded-pill">
+                        <a asp-controller="Tutorials" asp-action="Index" asp-route-category="@cat.GetSlug(isEn)" class="btn btn-sm btn-outline-@cat.BadgeColor rounded-pill">
                             @(isEn ? "Start Learning" : "Vào học") <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
@@ -306,7 +306,7 @@
                             </span>
                         </div>
                         <h5 class="card-title fw-bold mb-2">
-                            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.Slug" class="text-decoration-none text-body-emphasis">
+                            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.GetSlug(isEn)" class="text-decoration-none text-body-emphasis">
                                 @item.GetTitle(isEn)
                             </a>
                         </h5>
@@ -317,7 +317,7 @@
                             <span class="badge bg-@item.Category?.BadgeColor bg-opacity-10 text-@item.Category?.BadgeColor">
                                 @LocalizationHelper.GetDifficultyName(item.Difficulty, isEn)
                             </span>
-                            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.Slug" class="btn btn-sm btn-link text-decoration-none p-0 fw-semibold">
+                            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.GetSlug(isEn)" class="btn btn-sm btn-link text-decoration-none p-0 fw-semibold">
                                 @(isEn ? "Read article" : "Đọc bài viết") <i class="bi bi-arrow-right"></i>
                             </a>
                         </div>
@@ -451,7 +451,7 @@
             @(isEn ? "Start from your first C# lines of code and step-by-step master Microsoft's cutting-edge application platform." : "Hãy bắt đầu từ những dòng lệnh C# đầu tiên và từng bước làm chủ toàn bộ nền tảng phát triển ứng dụng hiện đại của Microsoft.")
         </p>
         <div class="d-flex justify-content-center gap-3 flex-wrap">
-            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="tong-quan-he-sinh-thai-dotnet-cai-dat-moi-truong" class="btn btn-light btn-lg fw-bold text-primary px-4 shadow">
+            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@(isEn ? "dotnet-ecosystem-overview-and-environment-setup" : "tong-quan-he-sinh-thai-dotnet-cai-dat-moi-truong")" class="btn btn-light btn-lg fw-bold text-primary px-4 shadow">
                 <i class="bi bi-play-circle-fill me-2"></i> @(isEn ? "Start Lesson 1 Now" : "Bắt đầu Bài 1 ngay")
             </a>
             <a asp-controller="CheatSheet" asp-action="Index" class="btn btn-outline-light btn-lg fw-semibold px-4">

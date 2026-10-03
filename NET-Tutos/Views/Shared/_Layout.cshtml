@@ -1,8 +1,8 @@
 @inject NET_Tutos.Data.AppDbContext DbContext
 @using Microsoft.AspNetCore.Localization
+@using NET_Tutos.Services
 @{
-    var requestCulture = Context.Features.Get<IRequestCultureFeature>()?.RequestCulture.UICulture.TwoLetterISOLanguageName ?? "vi";
-    bool isEn = requestCulture.Equals("en", StringComparison.OrdinalIgnoreCase);
+    bool isEn = Context.IsEnglish();
     var currentFlagPath = isEn ? "/images/flags/en.svg" : "/images/flags/vn.svg";
     var currentLangText = isEn ? "English" : "Tiếng Việt";
     var returnUrl = Context.Request.Path + Context.Request.QueryString;
@@ -30,7 +30,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@(string.IsNullOrWhiteSpace(ViewData["Title"]?.ToString()) || ViewData["Title"]?.ToString() == "Trang chủ" ? "NET-Tutos" : $"{ViewData["Title"]} | NET-Tutos")</title>
+    <title>@(string.IsNullOrWhiteSpace(ViewData["Title"]?.ToString()) || ViewData["Title"]?.ToString() == "Trang chủ" ? (isEn ? "Home | NET-Tutos" : "Trang chủ | NET-Tutos") : $"{ViewData["Title"]} | NET-Tutos")</title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="~/images/csharp-logo.png" />
@@ -163,8 +163,8 @@
                                                         DifficultyLevel.Advanced => isEn ? "Advanced" : "Nâng cao",
                                                         _ => isEn ? "Beginner" : "Cơ bản"
                                                     };
-                                                    <a class="dropdown-item category-item-card p-2 rounded-3 @(currentController == "Tutorials" && Context.Request.Query["category"] == cat.Slug ? "active" : "")"
-                                                       asp-controller="Tutorials" asp-action="Index" asp-route-category="@cat.Slug">
+                                                    <a class="dropdown-item category-item-card p-2 rounded-3 @(currentController == "Tutorials" && (Context.Request.Query["category"] == cat.Slug || Context.Request.Query["category"] == cat.GetSlug(true)) ? "active" : "")"
+                                                       asp-controller="Tutorials" asp-action="Index" asp-route-category="@cat.GetSlug(isEn)">
                                                         <div class="category-icon-box bg-@cat.BadgeColor-subtle text-@cat.BadgeColor">
                                                             <i class="bi @cat.IconClass"></i>
                                                         </div>
