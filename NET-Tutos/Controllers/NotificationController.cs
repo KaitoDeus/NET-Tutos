@@ -25,6 +25,15 @@ public class NotificationController : Controller
         }
 
         var result = await _notificationService.GetUserNotificationsAsync(userId, take);
+        bool isEn = HttpContext.IsEnglish();
+        if (isEn)
+        {
+            foreach (var item in result.Items)
+            {
+                item.TimeAgo = NotificationService.FormatTimeAgo(item.CreatedAt, true);
+                item.TypeName = LocalizationHelper.GetNotificationTypeName(item.Type, true);
+            }
+        }
         return Json(result);
     }
 

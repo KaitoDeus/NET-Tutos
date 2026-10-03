@@ -75,7 +75,7 @@
                 }
             </div>
             <h3 class="fw-bold mb-0">
-                @(Model.ActiveChallenge != null ? Model.ActiveChallenge.Title : (isEn ? "Online C# Code Playground" : "Trình Thực Hành Code C# Trực Tuyến"))
+                @(Model.ActiveChallenge != null ? Model.ActiveChallenge.GetChallengeTitle(isEn) : (isEn ? "Online C# Code Playground" : "Trình Thực Hành Code C# Trực Tuyến"))
             </h3>
         </div>
 
@@ -113,9 +113,9 @@
                 </div>
 
                 <div class="challenge-instruction tutorial-markdown-content mb-3">
-                    <p class="lead fs-6 mb-3">@Model.ActiveChallenge.ShortDescription</p>
+                    <p class="lead fs-6 mb-3">@Model.ActiveChallenge.GetChallengeShortDesc(isEn)</p>
                     <div class="p-3 bg-body-tertiary rounded-3">
-                        <pre class="mb-0 bg-transparent p-0 text-body" style="white-space: pre-wrap; font-family: inherit;">@Model.ActiveChallenge.InstructionsMarkdown</pre>
+                        <pre class="mb-0 bg-transparent p-0 text-body" style="white-space: pre-wrap; font-family: inherit;">@Model.ActiveChallenge.GetChallengeInstructions(isEn)</pre>
                     </div>
                 </div>
 

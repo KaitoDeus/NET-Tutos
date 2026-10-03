@@ -227,13 +227,25 @@ public class NotificationService : INotificationService
         _ => "Hệ thống"
     };
 
-    public static string FormatTimeAgo(DateTime utcDate)
+    public static string FormatTimeAgo(DateTime utcDate, bool isEn = false)
     {
         var diff = DateTime.UtcNow - utcDate;
-        if (diff.TotalSeconds < 60) return "Vừa xong";
-        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes} phút trước";
-        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours} giờ trước";
-        if (diff.TotalDays < 30) return $"{(int)diff.TotalDays} ngày trước";
-        return utcDate.ToLocalTime().ToString("dd/MM/yyyy");
+        if (diff.TotalSeconds < 60) return isEn ? "Just now" : "Vừa xong";
+        if (diff.TotalMinutes < 60)
+        {
+            int m = Math.Max(1, (int)diff.TotalMinutes);
+            return isEn ? $"{m} min{(m > 1 ? "s" : "")} ago" : $"{m} phút trước";
+        }
+        if (diff.TotalHours < 24)
+        {
+            int h = Math.Max(1, (int)diff.TotalHours);
+            return isEn ? $"{h} hour{(h > 1 ? "s" : "")} ago" : $"{h} giờ trước";
+        }
+        if (diff.TotalDays < 30)
+        {
+            int d = Math.Max(1, (int)diff.TotalDays);
+            return isEn ? $"{d} day{(d > 1 ? "s" : "")} ago" : $"{d} ngày trước";
+        }
+        return isEn ? utcDate.ToLocalTime().ToString("MMM dd, yyyy") : utcDate.ToLocalTime().ToString("dd/MM/yyyy");
     }
 }

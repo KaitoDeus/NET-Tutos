@@ -690,4 +690,330 @@ public static class LocalizationHelper
             return trans.CondEn;
         return fallback;
     }
+
+    private static readonly Dictionary<string, (string TitleEn, string ShortDescEn, string InstructionsEn)> ChallengeTranslations = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["tinh-tong-hai-so"] = (
+            "1. Sum of Two Integers",
+            "Get familiar with C# method syntax by writing a function to calculate the sum of two integers.",
+            @"### Problem Statement
+Write a method `Sum(int a, int b)` that takes two integers `a` and `b`. Return their sum.
+
+#### Example 1:
+- **Input**: `a = 5, b = 10`
+- **Output**: `15`
+
+#### Example 2:
+- **Input**: `a = -3, b = 8`
+- **Output**: `5`"
+        ),
+        ["dao-nguoc-chuoi"] = (
+            "2. Reverse String",
+            "Basic string manipulation in C# using character arrays or LINQ.",
+            @"### Problem Statement
+Write a method `ReverseString(string s)` that takes a string `s` and returns its reversed string.
+
+#### Example 1:
+- **Input**: `s = ""hello""`
+- **Output**: `""olleh""`
+
+#### Example 2:
+- **Input**: `s = ""csharp""`
+- **Output**: `""prahsc""`"
+        ),
+        ["loc-so-chan-linq"] = (
+            "3. Filter & Sort Even Numbers with LINQ",
+            "Use LINQ Where and OrderBy operators to process an array of integers.",
+            @"### Problem Statement
+Write a method `FilterEvens(int[] numbers)` that takes an integer array `numbers`. Use LINQ to filter out even numbers and sort them in ascending order.
+
+#### Example 1:
+- **Input**: `numbers = [1, 2, 3, 4, 5, 6]`
+- **Output**: `2, 4, 6`
+
+#### Example 2:
+- **Input**: `numbers = [10, 3, 8, 1, 4]`
+- **Output**: `4, 8, 10`"
+        ),
+        ["kiem-tra-so-nguyen-to"] = (
+            "4. Prime Number Check",
+            "Optimized O(sqrt(n)) primality test algorithm.",
+            @"### Problem Statement
+Write a method `IsPrime(int n)` to check whether integer $n$ is a prime number. Return `true` if prime, otherwise `false`.
+*Note: A prime number is an integer greater than 1 that is divisible only by 1 and itself.*
+
+#### Example 1:
+- **Input**: `n = 7`
+- **Output**: `True`
+
+#### Example 2:
+- **Input**: `n = 4`
+- **Output**: `False`"
+        ),
+        ["tim-so-fibonacci"] = (
+            "5. Find Nth Fibonacci Number",
+            "Compute the nth Fibonacci number with optimal O(n) time complexity.",
+            @"### Problem Statement
+The Fibonacci sequence is defined as: $F(0) = 0$, $F(1) = 1$, and $F(n) = F(n-1) + F(n-2)$ for $n \ge 2$.
+Write a method `Fibonacci(int n)` returning the $n$-th Fibonacci number.
+
+#### Example 1:
+- **Input**: `n = 6`
+- **Output**: `8` (Sequence: 0, 1, 1, 2, 3, 5, 8)
+
+#### Example 2:
+- **Input**: `n = 10`
+- **Output**: `55`"
+        )
+    };
+
+    public static string GetChallengeTitle(this CodingChallenge? challenge, bool isEn)
+    {
+        if (challenge == null) return string.Empty;
+        if (isEn && !string.IsNullOrEmpty(challenge.Slug) && ChallengeTranslations.TryGetValue(challenge.Slug, out var trans))
+        {
+            return trans.TitleEn;
+        }
+        return challenge.Title ?? string.Empty;
+    }
+
+    public static string GetChallengeShortDesc(this CodingChallenge? challenge, bool isEn)
+    {
+        if (challenge == null) return string.Empty;
+        if (isEn && !string.IsNullOrEmpty(challenge.Slug) && ChallengeTranslations.TryGetValue(challenge.Slug, out var trans))
+        {
+            return trans.ShortDescEn;
+        }
+        return challenge.ShortDescription ?? string.Empty;
+    }
+
+    public static string GetChallengeInstructions(this CodingChallenge? challenge, bool isEn)
+    {
+        if (challenge == null) return string.Empty;
+        if (isEn && !string.IsNullOrEmpty(challenge.Slug) && ChallengeTranslations.TryGetValue(challenge.Slug, out var trans))
+        {
+            return trans.InstructionsEn;
+        }
+        return challenge.InstructionsMarkdown ?? string.Empty;
+    }
+
+    public static string GetActivityTitle(this ActivityFeedItemViewModel? item, bool isEn)
+    {
+        if (item == null) return string.Empty;
+        if (!isEn) return item.Title;
+
+        var t = item.Title.Trim().ToLowerInvariant();
+        if (t.Contains("hoàn thành bài học")) return "completed lesson";
+        if (t.Contains("giải thành công thử thách thuật toán") || t.Contains("thử thách thuật toán")) return "solved algorithm challenge";
+        if (t.Contains("mở khóa thành tích mới")) return "unlocked new achievement";
+        if (t.Contains("mở khóa huy hiệu")) return "unlocked badge";
+        if (t.Contains("chuỗi ngọn lửa") || t.Contains("chuỗi streak")) return "achieved a learning streak";
+        if (t.Contains("hoàn thành xuất sắc đồ án") || t.Contains("hoàn thành đồ án")) return "completed capstone project";
+        if (t.Contains("thi đạt kỳ thi")) return "passed graduation exam";
+        if (t.Contains("nhận chứng chỉ số") || t.Contains("chứng chỉ số")) return "earned digital certificate";
+        if (t.Contains("thảo luận")) return "joined discussion";
+
+        return item.Type switch
+        {
+            ActivityType.LessonCompleted => "completed lesson",
+            ActivityType.ChallengeSolved => "solved algorithm challenge",
+            ActivityType.ExamPassed => "passed graduation exam",
+            ActivityType.CertificateEarned => "earned digital certificate",
+            ActivityType.StreakAchieved => "achieved a learning streak",
+            ActivityType.BadgeEarned => "unlocked badge",
+            ActivityType.DiscussionComment => "joined discussion",
+            ActivityType.ProjectApproved => "completed capstone project",
+            _ => "shared an update"
+        };
+    }
+
+    public static string GetActivityTypeLabel(this ActivityFeedItemViewModel? item, bool isEn)
+    {
+        if (item == null) return string.Empty;
+        if (!isEn) return item.TypeLabel;
+
+        return item.Type switch
+        {
+            ActivityType.LessonCompleted => "Lesson",
+            ActivityType.ChallengeSolved => "Algorithm",
+            ActivityType.ExamPassed => "Exam",
+            ActivityType.CertificateEarned => "Certificate",
+            ActivityType.StreakAchieved => "Streak",
+            ActivityType.BadgeEarned => "Badge",
+            ActivityType.DiscussionComment => "Discussion",
+            ActivityType.ProjectApproved => "Capstone",
+            _ => "Activity"
+        };
+    }
+
+    public static string GetActivityTimeAgo(this ActivityFeedItemViewModel? item, bool isEn)
+    {
+        if (item == null) return string.Empty;
+        return NotificationService.FormatTimeAgo(item.CreatedAt, isEn);
+    }
+
+    public static string GetActivityDescription(this ActivityFeedItemViewModel? item, bool isEn)
+    {
+        if (item == null) return string.Empty;
+        if (!isEn) return item.Description;
+
+        var desc = item.Description ?? string.Empty;
+
+        // 1. Challenge descriptions (e.g. "2. Đảo ngược chuỗi ký tự (40 XP)", "1. Tính tổng hai số nguyên (30 XP)", "Hai Con Số (Two Sum)...")
+        if (item.Type == ActivityType.ChallengeSolved || desc.Contains("Đảo ngược chuỗi") || desc.Contains("Tính tổng hai số") || desc.Contains("Fibonacci") || desc.Contains("số nguyên tố") || desc.Contains("LINQ"))
+        {
+            string xpSuffix = "";
+            var matchXp = System.Text.RegularExpressions.Regex.Match(desc, @"\s*\(\d+\s*XP\)$");
+            if (matchXp.Success)
+            {
+                xpSuffix = matchXp.Value;
+            }
+
+            if (desc.Contains("Tính tổng hai số")) return "1. Sum of Two Integers" + xpSuffix;
+            if (desc.Contains("Đảo ngược chuỗi")) return "2. Reverse String" + xpSuffix;
+            if (desc.Contains("Lọc và sắp xếp số chẵn")) return "3. Filter & Sort Even Numbers with LINQ" + xpSuffix;
+            if (desc.Contains("số nguyên tố")) return "4. Prime Number Check" + xpSuffix;
+            if (desc.Contains("Fibonacci")) return "5. Find Nth Fibonacci Number" + xpSuffix;
+            if (desc.Contains("Hai Con Số") || desc.Contains("Two Sum")) return "Two Sum - C# Algorithmic Mastery" + xpSuffix;
+        }
+
+        // 2. Lesson descriptions (e.g. "Bài 7: Lập trình Bất đồng bộ (Async / Await) trong .NET", "Bài 6: LINQ...", "Bài 1: ...")
+        if (item.Type == ActivityType.LessonCompleted || desc.StartsWith("Bài "))
+        {
+            if (desc.StartsWith("Bài 1:") || desc.Contains("Tổng quan hệ sinh thái"))
+                return "Lesson 1: .NET Ecosystem Overview & Environment Setup";
+            if (desc.StartsWith("Bài 2:") || desc.Contains("Cú pháp C# nền tảng"))
+                return "Lesson 2: Core C# Syntax – Variables, Data Types & Control Flow";
+            if (desc.StartsWith("Bài 3:") || desc.Contains("Cấu trúc dữ liệu"))
+                return "Lesson 3: Data Structures & Strings – List, Dictionary, Array & StringBuilder";
+            if (desc.StartsWith("Bài 4:") || desc.Contains("4 trụ cột"))
+                return "Lesson 4: The 4 Pillars of Object-Oriented Programming (OOP) in C#";
+            if (desc.StartsWith("Bài 5:") || desc.Contains("Interface và Generics"))
+                return "Lesson 5: Interfaces & Generics in Modern C#";
+            if (desc.StartsWith("Bài 6:") || desc.Contains("LINQ"))
+                return "Lesson 6: LINQ (Language Integrated Query) & Lambda Expressions";
+            if (desc.StartsWith("Bài 7:") || desc.Contains("Bất đồng bộ") || desc.Contains("Async"))
+                return "Lesson 7: Asynchronous Programming (Async / Await) in .NET";
+            if (desc.StartsWith("Bài 8:") || desc.Contains("Entity Framework Core"))
+                return "Lesson 8: Entity Framework Core – Code-First, DbContext & Migrations";
+            if (desc.StartsWith("Bài 9:") || desc.Contains("kiến trúc ASP.NET Core MVC") || desc.Contains("Program.cs"))
+                return "Lesson 9: ASP.NET Core MVC Architecture – Program.cs, Middleware & Controller";
+            if (desc.StartsWith("Bài 10:") || desc.Contains("RESTful Web API"))
+                return "Lesson 10: Building Standard RESTful Web APIs with ASP.NET Core";
+            if (desc.StartsWith("Bài 11:") || desc.Contains("Dependency Injection") || desc.Contains("SOLID"))
+                return "Lesson 11: Dependency Injection & SOLID Principles in ASP.NET Core";
+        }
+
+        // 3. Badges (e.g. "Thợ Săn Thuật Toán C# 🏆", "Huyền Thoại Bất Bại (30 ngày kiên trì học tập)")
+        if (item.Type == ActivityType.BadgeEarned || !string.IsNullOrEmpty(item.BadgeCode) || desc.Contains("Thợ Săn") || desc.Contains("Huyền Thoại"))
+        {
+            if (item.BadgeCode != null && BadgeTranslations.TryGetValue(item.BadgeCode, out var bTrans))
+            {
+                var trophy = desc.Contains("🏆") ? " 🏆" : "";
+                return bTrans.TitleEn + trophy;
+            }
+            if (desc.Contains("Thợ Săn Thuật Toán C#")) return "C# Algorithm Hunter 🏆";
+            if (desc.Contains("Huyền Thoại Bất Bại")) return "Unstoppable Legend (30-day streak) 🏆";
+            if (desc.Contains("Tân Binh .NET")) return ".NET Rookie";
+            if (desc.Contains("Học Giả Chăm Chỉ")) return "Diligent Scholar";
+            if (desc.Contains("Bậc Thầy Thuật Toán")) return "Algorithm Master";
+            if (desc.Contains("Kỹ Sư Đạt Chuẩn")) return "Certified Engineer";
+            if (desc.Contains("Ngọn Đuốc Tri Thức")) return "Community Torchbearer";
+            if (desc.Contains("Ngọn Lửa Bền Bỉ")) return "Persistent Flame";
+            if (desc.Contains("Chiến Binh Kỷ Luật")) return "Disciplined Warrior";
+            if (desc.Contains("Kiến Trúc Sư .NET")) return ".NET Architect";
+        }
+
+        // 4. Streak (e.g. "5 ngày học tập liên tục không ngắt quãng 🔥", "5 ngày kiên trì liên tục 🔥", "Chuỗi 5 ngày...")
+        if (item.Type == ActivityType.StreakAchieved || desc.Contains("ngày kiên trì") || desc.Contains("ngày học tập liên tục") || desc.Contains("ngày học liên tục"))
+        {
+            var matchDays = System.Text.RegularExpressions.Regex.Match(desc, @"(\d+)\s*ngày");
+            if (matchDays.Success)
+            {
+                int days = int.Parse(matchDays.Groups[1].Value);
+                return $"{days}-day continuous learning streak 🔥";
+            }
+        }
+
+        // 5. Capstone Project
+        if (item.Type == ActivityType.ProjectApproved || desc.Contains("điểm") || desc.Contains("Đồ án") || desc.Contains("RESTful") || desc.Contains("SignalR") || desc.Contains("Clean Architecture"))
+        {
+            var scoreMatch = System.Text.RegularExpressions.Regex.Match(desc, @"\((\d+(?:\.\d+)?)/100\s*điểm\)");
+            string scoreSuffix = scoreMatch.Success ? $" ({scoreMatch.Groups[1].Value}/100 points) 🎯" : "";
+
+            if (desc.Contains("Thư viện Sách")) return "RESTful Web API Book Library Management" + scoreSuffix;
+            if (desc.Contains("Đặt hàng Mini") || desc.Contains("CQRS")) return "Mini Ordering System (Clean Architecture + CQRS)" + scoreSuffix;
+            if (desc.Contains("Đấu giá Trực tuyến") || desc.Contains("SignalR")) return "Realtime Online Auction Platform with SignalR" + scoreSuffix;
+        }
+
+        // 6. Exam & Certificate
+        if (item.Type == ActivityType.ExamPassed)
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(desc, @"Đạt\s*(\d+)%");
+            if (m.Success) return $"Scored {m.Groups[1].Value}% on course graduation exam";
+            return "Passed the course graduation exam";
+        }
+        if (item.Type == ActivityType.CertificateEarned)
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(desc, @"#([A-Za-z0-9\-]+)");
+            if (m.Success) return $"Certificate of Completion .NET Developer #{m.Groups[1].Value}";
+            return "Certificate of Completion .NET Developer";
+        }
+
+        return desc;
+    }
+
+    public static string GetActivityTargetUrl(this ActivityFeedItemViewModel? item, bool isEn)
+    {
+        if (item == null || string.IsNullOrEmpty(item.TargetUrl)) return string.Empty;
+        if (!isEn) return item.TargetUrl;
+
+        if (item.TargetUrl.StartsWith("/bai-hoc/"))
+        {
+            var slug = item.TargetUrl.Substring("/bai-hoc/".Length).Trim('/');
+            if (ViToEnTutorialSlugs.TryGetValue(slug, out var enSlug))
+            {
+                return $"/tutorials/{enSlug}";
+            }
+        }
+        return item.TargetUrl;
+    }
+
+    public static string GetNotificationTypeName(NotificationType type, bool isEn)
+    {
+        if (!isEn)
+        {
+            return type switch
+            {
+                NotificationType.BadgeEarned => "Huy hiệu mới",
+                NotificationType.StreakReminder => "Chuỗi học tập",
+                NotificationType.DiscussionReply => "Thảo luận",
+                NotificationType.BestAnswer => "Giải pháp chính xác",
+                NotificationType.ExamPassed => "Kỳ thi tốt nghiệp",
+                NotificationType.CertificateIssued => "Chứng chỉ số",
+                NotificationType.BonusXpAwarded => "Thưởng điểm XP",
+                NotificationType.LessonCompleted => "Bài học",
+                NotificationType.ChallengeSolved => "Thử thách C#",
+                NotificationType.ProjectSubmitted => "Nộp đồ án",
+                NotificationType.ProjectReviewed => "Đánh giá đồ án",
+                _ => "Hệ thống"
+            };
+        }
+
+        return type switch
+        {
+            NotificationType.BadgeEarned => "New Badge",
+            NotificationType.StreakReminder => "Learning Streak",
+            NotificationType.DiscussionReply => "Discussion Reply",
+            NotificationType.BestAnswer => "Accepted Solution",
+            NotificationType.ExamPassed => "Graduation Exam",
+            NotificationType.CertificateIssued => "Digital Certificate",
+            NotificationType.BonusXpAwarded => "Bonus XP",
+            NotificationType.LessonCompleted => "Lesson",
+            NotificationType.ChallengeSolved => "C# Challenge",
+            NotificationType.ProjectSubmitted => "Capstone Submission",
+            NotificationType.ProjectReviewed => "Capstone Review",
+            _ => "System"
+        };
+    }
 }

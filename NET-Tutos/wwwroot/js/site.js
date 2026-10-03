@@ -516,16 +516,17 @@ function showNotificationToast(item) {
     toastEl.setAttribute('aria-live', 'assertive');
     toastEl.setAttribute('aria-atomic', 'true');
 
+    const isEn = document.documentElement.lang === 'en' || document.cookie.includes('lang=en');
     toastEl.innerHTML = `
         <div class="toast-header bg-body-tertiary border-0 py-2.5 px-3">
             <i class="bi ${item.iconClass || 'bi-bell-fill'} ${item.colorClass || 'text-primary'} me-2 fs-6"></i>
             <strong class="me-auto small fw-bold">${escapeHtml(item.title)}</strong>
-            <small class="text-muted">Vừa xong</small>
+            <small class="text-muted">${isEn ? 'Just now' : 'Vừa xong'}</small>
             <button type="button" class="btn-close ms-2" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
         <div class="toast-body bg-body py-2.5 px-3">
             <p class="small mb-1 text-body-secondary">${escapeHtml(item.message)}</p>
-            ${item.targetUrl ? `<a href="${item.targetUrl}" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 small fw-semibold text-decoration-none mt-1 d-inline-block">Xem chi tiết <i class="bi bi-arrow-right"></i></a>` : ''}
+            ${item.targetUrl ? `<a href="${item.targetUrl}" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 small fw-semibold text-decoration-none mt-1 d-inline-block">${isEn ? 'View details' : 'Xem chi tiết'} <i class="bi bi-arrow-right"></i></a>` : ''}
         </div>
     `;
 
@@ -594,6 +595,7 @@ function handleReceiveActivity(activity) {
     card.className = 'card border rounded-4 shadow-sm p-3 p-md-3.5 activity-feed-card transition-hover just-added';
     card.setAttribute('data-activity-id', activity.id);
 
+    const isEn = document.documentElement.lang === 'en' || document.cookie.includes('lang=en');
     card.innerHTML = `
         <div class="d-flex align-items-start gap-3">
             <div class="position-relative flex-shrink-0">
@@ -601,10 +603,6 @@ function handleReceiveActivity(activity) {
                      style="width: 48px; height: 48px;">
                     ${initials}
                 </div>
-                <span class="position-absolute bottom-0 end-0 translate-middle-y badge rounded-circle bg-${activity.typeBadgeColor || 'primary'} text-white p-1 d-flex align-items-center justify-content-center"
-                      style="width: 20px; height: 20px; font-size: 0.65rem;" title="${escapeHtml(activity.typeLabel || '')}">
-                    <i class="bi ${activity.iconClass || 'bi-activity'}"></i>
-                </span>
             </div>
             <div class="flex-grow-1 min-w-0">
                 <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-1">
@@ -616,7 +614,7 @@ function handleReceiveActivity(activity) {
                         </span>
                     </div>
                     <span class="text-muted small text-nowrap">
-                        <i class="bi bi-clock me-1"></i>Vừa xong
+                        <i class="bi bi-clock me-1"></i>${isEn ? 'Just now' : 'Vừa xong'}
                     </span>
                 </div>
                 <div class="mt-1">

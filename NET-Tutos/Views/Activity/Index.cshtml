@@ -32,37 +32,34 @@
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 small fw-semibold @(string.IsNullOrEmpty(activeFilter) ? "active" : "text-body-secondary")"
                    asp-action="Index" asp-route-filter="">
-                    <i class="bi bi-grid-fill me-1"></i> @(isEn ? "All" : "Tất cả")
+                    @(isEn ? "All" : "Tất cả")
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 small fw-semibold @(activeFilter == "lesson" ? "active" : "text-body-secondary")"
                    asp-action="Index" asp-route-filter="lesson">
-                    <i class="bi bi-journal-check me-1"></i> @(isEn ? "Lessons" : "Bài học")
+                    @(isEn ? "Lessons" : "Bài học")
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 small fw-semibold @(activeFilter == "challenge" ? "active" : "text-body-secondary")"
                    asp-action="Index" asp-route-filter="challenge">
-                    <i class="bi bi-terminal-fill me-1"></i> @(isEn ? "Algorithms" : "Thuật toán")
+                    @(isEn ? "Algorithms" : "Thuật toán")
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 small fw-semibold @(activeFilter == "exam" ? "active" : "text-body-secondary")"
                    asp-action="Index" asp-route-filter="exam">
-                    <i class="bi bi-patch-check-fill me-1"></i> @(isEn ? "Exams & Certs" : "Thi & Chứng chỉ")
+                    @(isEn ? "Exams & Certs" : "Thi & Chứng chỉ")
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 small fw-semibold @(activeFilter == "badge" ? "active" : "text-body-secondary")"
                    asp-action="Index" asp-route-filter="badge">
-                    <i class="bi bi-fire me-1"></i> @(isEn ? "Badges & Streaks" : "Huy hiệu & Streak")
+                    @(isEn ? "Badges & Streaks" : "Huy hiệu & Streak")
                 </a>
             </li>
         </ul>
-        <span class="text-muted small fw-medium">
-            @(isEn ? $"Total: <strong>{Model.TotalCount}</strong> activities" : $"Tổng số: <strong>{Model.TotalCount}</strong> hoạt động")
-        </span>
     </div>
 
     <!-- Feed Content -->
@@ -85,10 +82,6 @@
                                          style="width: 48px; height: 48px;">
                                         @initials
                                     </div>
-                                    <span class="position-absolute bottom-0 end-0 translate-middle-y badge rounded-circle bg-@item.TypeBadgeColor text-white p-1 d-flex align-items-center justify-content-center"
-                                          style="width: 20px; height: 20px; font-size: 0.65rem;" title="@item.TypeLabel">
-                                        <i class="bi @item.IconClass"></i>
-                                    </span>
                                 </div>
 
                                 <!-- Body -->
@@ -96,13 +89,13 @@
                                     <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-1">
                                         <div class="d-flex align-items-center gap-1.5 flex-wrap">
                                             <span class="fw-bold text-body-emphasis">@item.UserDisplayName</span>
-                                            <span class="text-body-secondary small">@item.Title</span>
+                                            <span class="text-body-secondary small">@item.GetActivityTitle(isEn)</span>
                                             <span class="badge bg-@item.TypeBadgeColor bg-opacity-10 text-@item.TypeBadgeColor rounded-pill px-2 py-0.5 small fw-semibold">
-                                                @item.TypeLabel
+                                                @item.GetActivityTypeLabel(isEn)
                                             </span>
                                         </div>
                                         <span class="text-muted small text-nowrap">
-                                            <i class="bi bi-clock me-1"></i>@item.TimeAgo
+                                            <i class="bi bi-clock me-1"></i>@item.GetActivityTimeAgo(isEn)
                                         </span>
                                     </div>
 
@@ -110,13 +103,13 @@
                                     <div class="mt-1">
                                         @if (!string.IsNullOrEmpty(item.TargetUrl))
                                         {
-                                            <a href="@item.TargetUrl" class="text-decoration-none fw-semibold text-primary hover-underline">
-                                                @item.Description <i class="bi bi-arrow-up-right small"></i>
+                                            <a href="@item.GetActivityTargetUrl(isEn)" class="text-decoration-none fw-semibold text-primary hover-underline">
+                                                @item.GetActivityDescription(isEn) <i class="bi bi-arrow-up-right small"></i>
                                             </a>
                                         }
                                         else
                                         {
-                                            <span class="text-body-secondary fw-medium">@item.Description</span>
+                                            <span class="text-body-secondary fw-medium">@item.GetActivityDescription(isEn)</span>
                                         }
                                     </div>
                                 </div>

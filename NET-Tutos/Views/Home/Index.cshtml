@@ -362,20 +362,20 @@
                                     <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
                                         <div class="text-truncate">
                                             <strong class="text-body-emphasis">@act.UserDisplayName</strong>
-                                            <span class="text-muted small">@act.Title</span>
+                                            <span class="text-muted small">@act.GetActivityTitle(isEn)</span>
                                         </div>
-                                        <span class="text-muted small text-nowrap"><i class="bi bi-clock me-1"></i>@act.TimeAgo</span>
+                                        <span class="text-muted small text-nowrap"><i class="bi bi-clock me-1"></i>@act.GetActivityTimeAgo(isEn)</span>
                                     </div>
                                     <div class="text-truncate mt-0.5">
                                         @if (!string.IsNullOrEmpty(act.TargetUrl))
                                         {
-                                            <a href="@act.TargetUrl" class="text-decoration-none small fw-semibold text-primary">
-                                                @act.Description
+                                            <a href="@act.GetActivityTargetUrl(isEn)" class="text-decoration-none small fw-semibold text-primary">
+                                                @act.GetActivityDescription(isEn)
                                             </a>
                                         }
                                         else
                                         {
-                                            <span class="text-muted small">@act.Description</span>
+                                            <span class="text-muted small">@act.GetActivityDescription(isEn)</span>
                                         }
                                     </div>
                                 </div>
