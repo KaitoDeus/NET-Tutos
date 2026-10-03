@@ -83,6 +83,8 @@ public static class DbInitializer
         // Check if data already exists
         if (await context.Categories.AnyAsync())
         {
+            // Seed Mock Users if not already populated (e.g. on existing database)
+            await MockUserSeeder.SeedMockUsersAsync(context, roleManager, targetCount: 1000);
             return; // DB has been seeded
         }
 
@@ -1269,6 +1271,9 @@ public class UsersController : ControllerBase
         context.CodeSnippets.AddRange(snippets);
         await context.SaveChangesAsync();
         #endregion
+
+        // Seed 1000 Mock Users on fresh DB initialization
+        await MockUserSeeder.SeedMockUsersAsync(context, roleManager, targetCount: 1000);
     }
 
     private static async Task SeedCodingChallengesAsync(AppDbContext context)
