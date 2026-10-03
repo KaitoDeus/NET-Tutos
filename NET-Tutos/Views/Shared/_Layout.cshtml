@@ -109,9 +109,9 @@
                                 <i class="bi bi-grid-fill me-1 text-primary"></i> Khóa học & Lộ trình
                             </a>
                             <div class="dropdown-menu dropdown-menu-start shadow-lg border-0 rounded-4 p-3 mt-lg-2 nav-mega-dropdown" aria-labelledby="navCoursesDropdown">
-                                <div class="row g-3">
+                                <div class="mega-menu-grid">
                                     <!-- Cột 1: Danh mục chuyên đề -->
-                                    <div class="col-12 col-lg-7 border-end-lg pe-lg-3">
+                                    <div class="mega-menu-col mega-menu-divider">
                                         <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                                             <span class="text-uppercase fw-bold text-muted small" style="font-size: 0.72rem; letter-spacing: 0.05em;">
                                                 <i class="bi bi-collection-play me-1 text-primary"></i> Danh mục chuyên đề
@@ -120,7 +120,7 @@
                                                 Xem tất cả <i class="bi bi-arrow-right"></i>
                                             </a>
                                         </div>
-                                        <div class="category-menu-grid">
+                                        <div class="d-flex flex-column gap-1">
                                             @if (navCategories.Any())
                                             {
                                                 @foreach (var cat in navCategories)
@@ -132,19 +132,19 @@
                                                         DifficultyLevel.Advanced => "Nâng cao",
                                                         _ => "Cơ bản"
                                                     };
-                                                    <a class="dropdown-item category-item-card p-2 rounded-3 d-flex align-items-center gap-2.5 mb-1.5 @(currentController == "Tutorials" && Context.Request.Query["category"] == cat.Slug ? "active" : "")"
+                                                    <a class="dropdown-item category-item-card p-2 rounded-3 @(currentController == "Tutorials" && Context.Request.Query["category"] == cat.Slug ? "active" : "")"
                                                        asp-controller="Tutorials" asp-action="Index" asp-route-category="@cat.Slug">
-                                                        <div class="category-icon-box bg-@cat.BadgeColor-subtle text-@cat.BadgeColor rounded-2 d-flex align-items-center justify-content-center">
-                                                            <i class="bi @cat.IconClass fs-5"></i>
+                                                        <div class="category-icon-box bg-@cat.BadgeColor-subtle text-@cat.BadgeColor">
+                                                            <i class="bi @cat.IconClass"></i>
                                                         </div>
-                                                        <div class="flex-grow-1 min-w-0">
+                                                        <div class="category-content-box">
                                                             <div class="d-flex align-items-center justify-content-between gap-1 mb-0.5">
-                                                                <span class="fw-semibold text-truncate small">@cat.Name</span>
-                                                                <span class="badge bg-@cat.BadgeColor-subtle text-@cat.BadgeColor rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">
+                                                                <span class="category-text-title">@cat.Name</span>
+                                                                <span class="badge bg-@cat.BadgeColor-subtle text-@cat.BadgeColor rounded-pill flex-shrink-0" style="font-size: 0.65rem;">
                                                                     @levelBadge
                                                                 </span>
                                                             </div>
-                                                            <div class="text-muted text-truncate" style="font-size: 0.75rem;">@cat.Description</div>
+                                                            <span class="category-text-desc">@cat.Description</span>
                                                         </div>
                                                     </a>
                                                 }
@@ -153,58 +153,58 @@
                                     </div>
 
                                     <!-- Cột 2: Lối tắt học tập & Tra cứu -->
-                                    <div class="col-12 col-lg-5 ps-lg-2">
+                                    <div class="mega-menu-col">
                                         <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                                             <span class="text-uppercase fw-bold text-muted small" style="font-size: 0.72rem; letter-spacing: 0.05em;">
                                                 <i class="bi bi-compass me-1 text-warning"></i> Lối tắt học tập
                                             </span>
                                         </div>
                                         <div class="d-flex flex-column gap-1">
-                                            <a class="dropdown-item category-shortcut-card p-2 rounded-3 d-flex align-items-center gap-2.5 @(currentController == "Roadmap" ? "active" : "")"
+                                            <a class="dropdown-item category-shortcut-card p-2 rounded-3 @(currentController == "Roadmap" ? "active" : "")"
                                                asp-controller="Roadmap" asp-action="Index">
-                                                <div class="category-icon-box bg-warning-subtle text-warning rounded-2 d-flex align-items-center justify-content-center">
-                                                    <i class="bi bi-signpost-split fs-5"></i>
+                                                <div class="category-icon-box bg-warning-subtle text-warning">
+                                                    <i class="bi bi-signpost-split"></i>
                                                 </div>
-                                                <div class="flex-grow-1 min-w-0">
-                                                    <div class="fw-semibold small">Lộ trình học chuẩn</div>
-                                                    <div class="text-muted text-truncate" style="font-size: 0.75rem;">Bản đồ từ Zero đến Senior .NET</div>
+                                                <div class="category-content-box">
+                                                    <span class="category-text-title">Lộ trình học chuẩn</span>
+                                                    <span class="category-text-desc">Bản đồ từ Zero đến Senior .NET</span>
                                                 </div>
                                             </a>
 
-                                            <a class="dropdown-item category-shortcut-card p-2 rounded-3 d-flex align-items-center gap-2.5 @(currentController == "CheatSheet" ? "active" : "")"
+                                            <a class="dropdown-item category-shortcut-card p-2 rounded-3 @(currentController == "CheatSheet" ? "active" : "")"
                                                asp-controller="CheatSheet" asp-action="Index">
-                                                <div class="category-icon-box bg-info-subtle text-info rounded-2 d-flex align-items-center justify-content-center">
-                                                    <i class="bi bi-code-square fs-5"></i>
+                                                <div class="category-icon-box bg-info-subtle text-info">
+                                                    <i class="bi bi-code-square"></i>
                                                 </div>
-                                                <div class="flex-grow-1 min-w-0">
-                                                    <div class="fw-semibold small">Tra cứu Code C#</div>
-                                                    <div class="text-muted text-truncate" style="font-size: 0.75rem;">Sổ tay cú pháp & ví dụ mẫu</div>
+                                                <div class="category-content-box">
+                                                    <span class="category-text-title">Tra cứu Code C#</span>
+                                                    <span class="category-text-desc">Sổ tay cú pháp & ví dụ mẫu</span>
                                                 </div>
                                             </a>
 
-                                            <a class="dropdown-item category-shortcut-card p-2 rounded-3 d-flex align-items-center gap-2.5 @(currentController == "Tutorials" && string.IsNullOrEmpty(Context.Request.Query["category"]) ? "active" : "")"
+                                            <a class="dropdown-item category-shortcut-card p-2 rounded-3 @(currentController == "Tutorials" && string.IsNullOrEmpty(Context.Request.Query["category"]) ? "active" : "")"
                                                asp-controller="Tutorials" asp-action="Index">
-                                                <div class="category-icon-box bg-primary-subtle text-primary rounded-2 d-flex align-items-center justify-content-center">
-                                                    <i class="bi bi-book fs-5"></i>
+                                                <div class="category-icon-box bg-primary-subtle text-primary">
+                                                    <i class="bi bi-book"></i>
                                                 </div>
-                                                <div class="flex-grow-1 min-w-0">
-                                                    <div class="fw-semibold small">Thư viện bài học</div>
-                                                    <div class="text-muted text-truncate" style="font-size: 0.75rem;">Toàn bộ kho tàng bài viết C#/.NET</div>
+                                                <div class="category-content-box">
+                                                    <span class="category-text-title">Thư viện bài học</span>
+                                                    <span class="category-text-desc">Toàn bộ kho tàng bài viết C#/.NET</span>
                                                 </div>
                                             </a>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <!-- Bottom quick link banner -->
-                                    <div class="col-12 pt-2 mt-1 border-top">
-                                        <div class="d-flex align-items-center justify-content-between px-1">
-                                            <span class="small text-muted">
-                                                <i class="bi bi-stars text-warning me-1"></i>Hơn 50+ bài học & thử thách miễn phí
-                                            </span>
-                                            <a asp-controller="Roadmap" asp-action="Index" class="small fw-semibold text-primary text-decoration-none">
-                                                Bắt đầu lộ trình ngay <i class="bi bi-chevron-right"></i>
-                                            </a>
-                                        </div>
+                                <!-- Bottom quick link banner -->
+                                <div class="pt-2 mt-2 border-top">
+                                    <div class="d-flex align-items-center justify-content-between px-1">
+                                        <span class="small text-muted">
+                                            <i class="bi bi-stars text-warning me-1"></i>Hơn 50+ bài học & thử thách miễn phí
+                                        </span>
+                                        <a asp-controller="Roadmap" asp-action="Index" class="small fw-semibold text-primary text-decoration-none">
+                                            Bắt đầu lộ trình ngay <i class="bi bi-chevron-right"></i>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -216,52 +216,52 @@
                                href="#" id="navPracticeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-cpu me-1 text-danger"></i> Thực hành & Thi đấu
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-start shadow-lg border-0 rounded-4 p-2 mt-lg-2 nav-standard-dropdown" aria-labelledby="navPracticeDropdown" style="min-width: 290px;">
+                            <ul class="dropdown-menu dropdown-menu-start shadow-lg border-0 rounded-4 p-2 mt-lg-2 nav-standard-dropdown" aria-labelledby="navPracticeDropdown" style="min-width: 300px;">
                                 <li>
-                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 d-flex align-items-center gap-2.5 mb-1 @(currentController == "Playground" ? "active" : "")"
+                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 mb-1 @(currentController == "Playground" ? "active" : "")"
                                        asp-controller="Playground" asp-action="Index">
-                                        <div class="category-icon-box bg-danger-subtle text-danger rounded-2 d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-terminal-fill fs-5"></i>
+                                        <div class="category-icon-box bg-danger-subtle text-danger">
+                                            <i class="bi bi-terminal-fill"></i>
                                         </div>
-                                        <div class="flex-grow-1 min-w-0">
-                                            <div class="fw-semibold small">Luyện Code C# Sandbox</div>
-                                            <div class="text-muted text-truncate" style="font-size: 0.75rem;">Biên dịch trực tiếp & giải thử thách</div>
+                                        <div class="category-content-box">
+                                            <span class="category-text-title">Luyện Code C# Sandbox</span>
+                                            <span class="category-text-desc">Biên dịch trực tiếp & giải thử thách</span>
                                         </div>
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 d-flex align-items-center gap-2.5 mb-1 @(currentController == "Quiz" ? "active" : "")"
+                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 mb-1 @(currentController == "Quiz" ? "active" : "")"
                                        asp-controller="Quiz" asp-action="Index">
-                                        <div class="category-icon-box bg-success-subtle text-success rounded-2 d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-patch-question fs-5"></i>
+                                        <div class="category-icon-box bg-success-subtle text-success">
+                                            <i class="bi bi-patch-question"></i>
                                         </div>
-                                        <div class="flex-grow-1 min-w-0">
-                                            <div class="fw-semibold small">Trắc nghiệm kiến thức</div>
-                                            <div class="text-muted text-truncate" style="font-size: 0.75rem;">Ôn tập nhanh củng cố lý thuyết</div>
+                                        <div class="category-content-box">
+                                            <span class="category-text-title">Trắc nghiệm kiến thức</span>
+                                            <span class="category-text-desc">Ôn tập nhanh củng cố lý thuyết</span>
                                         </div>
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 d-flex align-items-center gap-2.5 mb-1 @(currentController == "Exam" ? "active" : "")"
+                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 mb-1 @(currentController == "Exam" ? "active" : "")"
                                        asp-controller="Exam" asp-action="Index">
-                                        <div class="category-icon-box bg-warning-subtle text-warning rounded-2 d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-mortarboard fs-5"></i>
+                                        <div class="category-icon-box bg-warning-subtle text-warning">
+                                            <i class="bi bi-mortarboard"></i>
                                         </div>
-                                        <div class="flex-grow-1 min-w-0">
-                                            <div class="fw-semibold small">Thi & Cấp chứng chỉ</div>
-                                            <div class="text-muted text-truncate" style="font-size: 0.75rem;">Sát hạch tốt nghiệp nhận chứng chỉ số</div>
+                                        <div class="category-content-box">
+                                            <span class="category-text-title">Thi & Cấp chứng chỉ</span>
+                                            <span class="category-text-desc">Sát hạch tốt nghiệp nhận chứng chỉ số</span>
                                         </div>
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 d-flex align-items-center gap-2.5 @(currentController == "Project" ? "active" : "")"
+                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 @(currentController == "Project" ? "active" : "")"
                                        asp-controller="Project" asp-action="Index">
-                                        <div class="category-icon-box bg-primary-subtle text-primary rounded-2 d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-folder-check fs-5"></i>
+                                        <div class="category-icon-box bg-primary-subtle text-primary">
+                                            <i class="bi bi-folder-check"></i>
                                         </div>
-                                        <div class="flex-grow-1 min-w-0">
-                                            <div class="fw-semibold small">Đồ án thực chiến (Capstone)</div>
-                                            <div class="text-muted text-truncate" style="font-size: 0.75rem;">Xây dựng sản phẩm chuẩn doanh nghiệp</div>
+                                        <div class="category-content-box">
+                                            <span class="category-text-title">Đồ án thực chiến (Capstone)</span>
+                                            <span class="category-text-desc">Xây dựng sản phẩm chuẩn doanh nghiệp</span>
                                         </div>
                                     </a>
                                 </li>
@@ -274,28 +274,28 @@
                                href="#" id="navCommunityDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-people-fill me-1 text-warning"></i> Cộng đồng
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-start shadow-lg border-0 rounded-4 p-2 mt-lg-2 nav-standard-dropdown" aria-labelledby="navCommunityDropdown" style="min-width: 270px;">
+                            <ul class="dropdown-menu dropdown-menu-start shadow-lg border-0 rounded-4 p-2 mt-lg-2 nav-standard-dropdown" aria-labelledby="navCommunityDropdown" style="min-width: 280px;">
                                 <li>
-                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 d-flex align-items-center gap-2.5 mb-1 @(currentController == "Leaderboard" ? "active" : "")"
+                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 mb-1 @(currentController == "Leaderboard" ? "active" : "")"
                                        asp-controller="Leaderboard" asp-action="Index">
-                                        <div class="category-icon-box bg-warning-subtle text-warning rounded-2 d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-trophy-fill fs-5"></i>
+                                        <div class="category-icon-box bg-warning-subtle text-warning">
+                                            <i class="bi bi-trophy-fill"></i>
                                         </div>
-                                        <div class="flex-grow-1 min-w-0">
-                                            <div class="fw-semibold small">Bảng vinh danh</div>
-                                            <div class="text-muted text-truncate" style="font-size: 0.75rem;">Top 1.000 học viên xuất sắc</div>
+                                        <div class="category-content-box">
+                                            <span class="category-text-title">Bảng vinh danh</span>
+                                            <span class="category-text-desc">Top 1.000 học viên xuất sắc</span>
                                         </div>
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 d-flex align-items-center gap-2.5 @(currentController == "Activity" ? "active" : "")"
+                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 @(currentController == "Activity" ? "active" : "")"
                                        asp-controller="Activity" asp-action="Index">
-                                        <div class="category-icon-box bg-info-subtle text-info rounded-2 d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-activity fs-5"></i>
+                                        <div class="category-icon-box bg-info-subtle text-info">
+                                            <i class="bi bi-activity"></i>
                                         </div>
-                                        <div class="flex-grow-1 min-w-0">
-                                            <div class="fw-semibold small">Bảng tin hoạt động</div>
-                                            <div class="text-muted text-truncate" style="font-size: 0.75rem;">Nhịp đập học tập của cộng đồng</div>
+                                        <div class="category-content-box">
+                                            <span class="category-text-title">Bảng tin hoạt động</span>
+                                            <span class="category-text-desc">Nhịp đập học tập của cộng đồng</span>
                                         </div>
                                     </a>
                                 </li>
