@@ -1,0 +1,234 @@
+@model NET_Tutos.Models.ViewModels.CurriculumLessonDetailViewModel
+@{
+    bool isEn = Context.IsEnglish();
+    var lesson = Model.Lesson;
+    ViewData["Title"] = $"§ {lesson.LessonNumber}: {lesson.GetTitle(isEn)}";
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">@(isEn ? "Home" : "Trang chủ")</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Curriculum" asp-action="Index">@(isEn ? "C# Curriculum (101 Lessons)" : "Chương trình C# (101 bài)")</a></li>
+            <li class="breadcrumb-item active" aria-current="page">§ @lesson.LessonNumber: @lesson.GetTitle(isEn)</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Main Content Column -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-body mb-4">
+                <!-- Header Meta -->
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                    <span class="badge bg-primary rounded-pill px-3 py-1.5 fw-bold">
+                        § @(isEn ? $"Lesson {lesson.LessonNumber} / 101" : $"Bài {lesson.LessonNumber} / 101")
+                    </span>
+                    <span class="badge bg-@lesson.SectionBadgeColor-subtle text-@lesson.SectionBadgeColor border border-@lesson.SectionBadgeColor-subtle rounded-pill px-3 py-1.5 fw-semibold">
+                        <i class="bi @lesson.SectionIcon me-1"></i>@lesson.GetSectionTitle(isEn)
+                    </span>
+                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1.5">
+                        <i class="bi bi-clock me-1"></i>~@lesson.EstimatedMinutes @(isEn ? "mins" : "phút")
+                    </span>
+                </div>
+
+                <h1 class="display-6 fw-extrabold text-body-emphasis mb-3">
+                    @lesson.GetTitle(isEn)
+                </h1>
+
+                <p class="lead text-muted mb-4 fs-6">
+                    @lesson.GetSummary(isEn)
+                </p>
+
+                <!-- Learning Outcomes Section -->
+                @if (lesson.GetLearningOutcomes(isEn).Any())
+                {
+                    <div class="p-3 mb-4 rounded-3 bg-body-tertiary border">
+                        <h6 class="fw-bold text-body-emphasis mb-3">
+                            <i class="bi bi-bullseye text-danger me-1"></i>@(isEn ? "Key Learning Outcomes:" : "Mục tiêu đạt được sau bài học:")
+                        </h6>
+                        <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                            @foreach (var outcome in lesson.GetLearningOutcomes(isEn))
+                            {
+                                <li class="d-flex align-items-start gap-2">
+                                    <i class="bi bi-check-circle-fill text-success fs-6 mt-0.5"></i>
+                                    <span>@outcome</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <!-- Sample Code Section -->
+                @if (!string.IsNullOrEmpty(lesson.SampleCode))
+                {
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold mb-0">
+                                <i class="bi bi-code-slash text-primary me-1"></i>@(isEn ? "C# Code Illustration" : "Mã nguồn C# minh họa:")
+                            </h6>
+                            <button class="btn btn-sm btn-outline-secondary rounded-3" onclick="copyCodeSnippet()">
+                                <i class="bi bi-clipboard me-1"></i>@(isEn ? "Copy Code" : "Sao chép")
+                            </button>
+                        </div>
+                        <div class="position-relative">
+                            <pre class="bg-dark text-light p-3 rounded-4 mb-0" style="max-height: 400px; overflow-y: auto;"><code id="sampleCodeBlock" class="language-csharp">@lesson.SampleCode</code></pre>
+                        </div>
+                    </div>
+                }
+
+                <!-- Action CTA Buttons -->
+                <div class="d-flex flex-wrap gap-2 pt-3 border-top">
+                    <a asp-controller="Playground" asp-action="Index" 
+                       class="btn btn-danger px-4 py-2 rounded-3 fw-semibold">
+                        <i class="bi bi-terminal me-1"></i>@(isEn ? "Run on C# Sandbox" : "Chạy thử trên C# Sandbox")
+                    </a>
+
+                    @if (!string.IsNullOrEmpty(lesson.MatchingTutorialSlug))
+                    {
+                        <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@lesson.MatchingTutorialSlug" 
+                           class="btn btn-success px-4 py-2 rounded-3 fw-semibold">
+                            <i class="bi bi-book-half me-1"></i>@(isEn ? "Read Full In-Depth Tutorial" : "Đọc bài viết chi tiết đầy đủ")
+                        </a>
+                    }
+
+                    <a asp-controller="Interview" asp-action="Index" 
+                       class="btn btn-outline-primary px-3 py-2 rounded-3 fw-semibold">
+                        <i class="bi bi-mortarboard me-1"></i>@(isEn ? "Interview Prep" : "Luyện phỏng vấn liên quan")
+                    </a>
+                </div>
+            </div>
+
+            <!-- Previous / Next Navigation -->
+            <div class="d-flex justify-content-between align-items-center gap-3">
+                @if (Model.PreviousLesson != null)
+                {
+                    <a asp-action="Details" asp-route-id="@Model.PreviousLesson.LessonNumber" 
+                       class="btn btn-outline-secondary rounded-3 px-3 py-2 text-start flex-grow-1" style="max-width: 48%;">
+                        <small class="text-muted d-block"><i class="bi bi-chevron-left"></i> @(isEn ? "Previous Lesson" : "Bài trước đó")</small>
+                        <span class="fw-bold text-truncate d-block">§ @Model.PreviousLesson.LessonNumber: @Model.PreviousLesson.GetTitle(isEn)</span>
+                    </a>
+                }
+                else
+                {
+                    <div></div>
+                }
+
+                @if (Model.NextLesson != null)
+                {
+                    <a asp-action="Details" asp-route-id="@Model.NextLesson.LessonNumber" 
+                       class="btn btn-outline-primary rounded-3 px-3 py-2 text-end flex-grow-1" style="max-width: 48%;">
+                        <small class="text-muted d-block">@(isEn ? "Next Lesson" : "Bài tiếp theo") <i class="bi bi-chevron-right"></i></small>
+                        <span class="fw-bold text-truncate d-block">§ @Model.NextLesson.LessonNumber: @Model.NextLesson.GetTitle(isEn)</span>
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- Right Sidebar Info Column -->
+        <div class="col-lg-4">
+            <!-- Mark as Done Widget -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body mb-4">
+                <h6 class="fw-bold text-body-emphasis mb-3">
+                    <i class="bi bi-check2-circle text-success me-1"></i>@(isEn ? "Status & Progress" : "Trạng thái học tập")
+                </h6>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="singleLessonCheck" style="cursor: pointer; width: 2.5em; height: 1.3em;">
+                    <label class="form-check-label fw-semibold ms-2" for="singleLessonCheck" id="singleLessonCheckLabel">
+                        @(isEn ? "Mark as completed" : "Đã hoàn thành bài này")
+                    </label>
+                </div>
+                <small class="text-muted d-block mb-3">
+                    @(isEn ? "Your progress is saved locally and synchronized with the full 101 lessons dashboard." : "Tiến độ được lưu an toàn và tự động đồng bộ trên toàn bộ bảng tổng kết 101 bài học.")
+                </small>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-3 w-100">
+                    <i class="bi bi-grid-3x3-gap me-1"></i>@(isEn ? "Back to 101 Curriculum" : "Quay lại Khung 101 bài học")
+                </a>
+            </div>
+
+            <!-- Tags Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body mb-4">
+                <h6 class="fw-bold text-body-emphasis mb-3">
+                    <i class="bi bi-tags text-primary me-1"></i>@(isEn ? "Keywords & Technologies" : "Từ khóa & Công nghệ")
+                </h6>
+                <div class="d-flex flex-wrap gap-1">
+                    @foreach (var tag in lesson.KeyTags)
+                    {
+                        <span class="badge bg-body-tertiary text-body border px-2.5 py-1.5 rounded-2">
+                            #@tag
+                        </span>
+                    }
+                </div>
+            </div>
+
+            <!-- Reference Citation Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body">
+                <h6 class="fw-bold text-body-emphasis mb-2">
+                    <i class="bi bi-info-circle text-info me-1"></i>@(isEn ? "Curriculum Reference" : "Nguồn tham chiếu")
+                </h6>
+                <p class="small text-muted mb-3">
+                    @(isEn 
+                        ? "Part of the 101-lesson C# mastery syllabus inspired by XuanThuLab & Microsoft .NET official documentation." 
+                        : "Nằm trong khung chương trình 101 bài học C# .NET kinh điển tham khảo từ XuanThuLab và tài liệu chính thức của Microsoft.")
+                </p>
+                <a href="https://xuanthulab.net/lap-trinh-c-co-ban/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-danger btn-sm rounded-3 w-100">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>@(isEn ? "Visit XuanThuLab Reference" : "Xem giáo trình gốc XuanThuLab")
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const STORAGE_KEY = 'nettutos_curriculum_completed_lessons';
+    const currentLessonNum = @lesson.LessonNumber;
+
+    function copyCodeSnippet() {
+        const text = document.getElementById('sampleCodeBlock').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('@(isEn ? "Code copied to clipboard!" : "Đã sao chép mã nguồn vào bộ nhớ tạm!")');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const check = document.getElementById('singleLessonCheck');
+        const label = document.getElementById('singleLessonCheckLabel');
+
+        let completed = [];
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            completed = raw ? JSON.parse(raw) : [];
+        } catch (e) {}
+
+        const isDone = completed.includes(currentLessonNum);
+        check.checked = isDone;
+        if (isDone) {
+            label.textContent = '@(isEn ? "Completed!" : "Đã hoàn thành!")';
+            label.classList.add('text-success');
+        }
+
+        check.addEventListener('change', function () {
+            let list = [];
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                list = raw ? JSON.parse(raw) : [];
+            } catch (e) {}
+
+            if (this.checked) {
+                if (!list.includes(currentLessonNum)) list.push(currentLessonNum);
+                label.textContent = '@(isEn ? "Completed!" : "Đã hoàn thành!")';
+                label.classList.add('text-success');
+            } else {
+                list = list.filter(x => x !== currentLessonNum);
+                label.textContent = '@(isEn ? "Mark as completed" : "Đã hoàn thành bài này")';
+                label.classList.remove('text-success');
+            }
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+            } catch (e) {}
+        });
+    });
+</script>
+}

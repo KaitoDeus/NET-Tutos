@@ -1,0 +1,388 @@
+@model NET_Tutos.Models.ViewModels.CurriculumIndexViewModel
+@{
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "Comprehensive C# .NET Curriculum (101 Lessons)" : "Chương Trình Đào Tạo C# .NET Toàn Diện (101 Bài Học)";
+}
+
+<div class="container py-4">
+    <!-- Header Hero Banner -->
+    <div class="rounded-4 p-4 p-md-5 mb-4 shadow-sm border position-relative overflow-hidden" 
+         style="background: linear-gradient(135deg, rgba(81, 43, 212, 0.08) 0%, rgba(13, 110, 253, 0.06) 100%);">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-primary px-3 py-1.5 rounded-pill fw-semibold">
+                        <i class="bi bi-patch-check-fill me-1"></i>@(isEn ? "Standard Curriculum 2026" : "Khung Đào Tạo Chuẩn 2026")
+                    </span>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1.5 rounded-pill fw-semibold">
+                        @(isEn ? "Inspired by XuanThuLab & Microsoft Learn" : "Tham khảo chuẩn XuanThuLab & Microsoft")
+                    </span>
+                </div>
+                <h1 class="display-6 fw-extrabold text-body-emphasis mb-2">
+                    @(isEn ? "Comprehensive C# & .NET Core Curriculum" : "Chương Trình Đào Tạo C# & .NET Core Toàn Diện")
+                </h1>
+                <p class="lead text-muted mb-4 fs-6" style="max-width: 720px;">
+                    @(isEn 
+                        ? "Master modern C# and .NET 10 from zero to enterprise-grade web development across 7 comprehensive modules and 101 structured lessons: C# Core, Advanced OOP, Networking, EF Core, ASP.NET Core, Razor Pages, and MVC Architecture." 
+                        : "Lộ trình đào tạo chuẩn hóa từ con số 0 đến làm chủ công nghệ lập trình .NET 10 hiện đại qua 7 phân hệ lớn và 101 bài học chuẩn mực: Nhập môn C#, C# Nâng cao, Lập trình Mạng, ADO.NET & EF Core, Nền tảng Web, Razor Pages và MVC Thực tế.")
+                </p>
+
+                <!-- Statistics Pills -->
+                <div class="d-flex flex-wrap gap-3">
+                    <div class="d-flex align-items-center bg-body px-3 py-2 rounded-3 border shadow-xs">
+                        <i class="bi bi-collection-play-fill text-primary fs-4 me-2"></i>
+                        <div>
+                            <div class="fw-bold fs-6">101 @(isEn ? "Lessons" : "Bài học")</div>
+                            <small class="text-muted">@(isEn ? "Fully Structured" : "Phân cấp bài bản")</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center bg-body px-3 py-2 rounded-3 border shadow-xs">
+                        <i class="bi bi-layers-fill text-success fs-4 me-2"></i>
+                        <div>
+                            <div class="fw-bold fs-6">7 @(isEn ? "Core Modules" : "Phân hệ lớn")</div>
+                            <small class="text-muted">@(isEn ? "Zero to Fullstack" : "Từ cơ bản đến Web")</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center bg-body px-3 py-2 rounded-3 border shadow-xs">
+                        <i class="bi bi-clock-history text-warning fs-4 me-2"></i>
+                        <div>
+                            <div class="fw-bold fs-6">~@Model.TotalEstimatedHours @(isEn ? "Hours" : "Giờ học")</div>
+                            <small class="text-muted">@(isEn ? "Practical Content" : "Thời lượng thực hành")</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center bg-body px-3 py-2 rounded-3 border shadow-xs">
+                        <i class="bi bi-terminal-fill text-danger fs-4 me-2"></i>
+                        <div>
+                            <div class="fw-bold fs-6">100% C# .NET</div>
+                            <small class="text-muted">@(isEn ? "Code Sandbox Ready" : "Luyện code trực tiếp")</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Progress Card -->
+            <div class="col-lg-4 mt-4 mt-lg-0">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0 text-body-emphasis">
+                            <i class="bi bi-trophy text-warning me-1"></i>@(isEn ? "Your Curriculum Progress" : "Tiến độ hoàn thành")
+                        </h6>
+                        <span id="progressPercentageText" class="badge bg-success-subtle text-success fw-bold">0%</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div id="curriculumProgressBar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted mb-3">
+                        <span><span id="completedCountText" class="fw-bold text-success">0</span> / 101 @(isEn ? "completed" : "đã học")</span>
+                        <span id="remainingCountText">101 @(isEn ? "remaining" : "cần học")</span>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a asp-controller="Playground" asp-action="Index" class="btn btn-outline-danger btn-sm rounded-3 fw-semibold">
+                            <i class="bi bi-terminal me-1"></i>@(isEn ? "Open C# Sandbox" : "Mở Trình Thực Hành Code")
+                        </a>
+                        <a asp-controller="Interview" asp-action="Index" class="btn btn-outline-primary btn-sm rounded-3 fw-semibold">
+                            <i class="bi bi-mortarboard me-1"></i>@(isEn ? "Practice Flashcards" : "Luyện Thẻ Phỏng Vấn")
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter & Search Controls -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-body">
+        <form method="get" class="row g-2 align-items-center">
+            <!-- Search Box -->
+            <div class="col-md-5 col-lg-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-body border-end-0 text-muted">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="search" value="@Model.SearchQuery" 
+                           class="form-control border-start-0" 
+                           placeholder="@(isEn ? "Search across 101 lessons by keyword, title, tag, or lesson number..." : "Tìm kiếm trong 101 bài học theo từ khóa, tên bài, tag hoặc số bài...")" />
+                    @if (!string.IsNullOrEmpty(Model.SearchQuery))
+                    {
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <!-- Section Selector -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <select name="section" class="form-select" onchange="this.form.submit()">
+                    <option value="">@(isEn ? "All 7 Modules" : "Tất cả 7 Phần học")</option>
+                    @foreach (var sec in Model.Sections)
+                    {
+                        <option value="@sec.SectionNumber" selected="@(Model.SelectedSectionNumber == sec.SectionNumber)">
+                            @(isEn ? sec.TitleEn : sec.TitleVi) (@sec.LessonCount)
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <!-- Difficulty Selector -->
+            <div class="col-6 col-md-3 col-lg-3">
+                <select name="level" class="form-select" onchange="this.form.submit()">
+                    <option value="">@(isEn ? "All Difficulty Levels" : "Tất cả độ khó")</option>
+                    <option value="Beginner" selected="@(Model.SelectedDifficulty == NET_Tutos.Models.Entities.DifficultyLevel.Beginner)">@(isEn ? "Beginner" : "Cơ bản")</option>
+                    <option value="Intermediate" selected="@(Model.SelectedDifficulty == NET_Tutos.Models.Entities.DifficultyLevel.Intermediate)">@(isEn ? "Intermediate" : "Trung cấp")</option>
+                    <option value="Advanced" selected="@(Model.SelectedDifficulty == NET_Tutos.Models.Entities.DifficultyLevel.Advanced)">@(isEn ? "Advanced" : "Nâng cao")</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <!-- Section Pills Quick Switcher -->
+    <div class="d-flex flex-nowrap overflow-auto gap-2 pb-2 mb-4 scrollbar-thin">
+        <a asp-action="Index" 
+           class="btn btn-sm text-nowrap rounded-pill @(!Model.SelectedSectionNumber.HasValue ? "btn-primary" : "btn-outline-secondary")">
+            @(isEn ? "All Lessons (101)" : "Tất cả bài học (101)")
+        </a>
+        @foreach (var sec in Model.Sections)
+        {
+            bool isActive = Model.SelectedSectionNumber == sec.SectionNumber;
+            <a asp-action="Index" asp-route-section="@sec.SectionNumber" 
+               class="btn btn-sm text-nowrap rounded-pill @(isActive ? $"btn-{sec.BadgeColor}" : "btn-outline-secondary")">
+                <i class="bi @sec.Icon me-1"></i>@(isEn ? sec.TitleEn : sec.TitleVi) (@sec.LessonCount)
+            </a>
+        }
+    </div>
+
+    <!-- Active Filter Indicator -->
+    @if (Model.SelectedSectionNumber.HasValue || Model.SelectedDifficulty.HasValue || !string.IsNullOrEmpty(Model.SearchQuery))
+    {
+        <div class="alert alert-light border d-flex justify-content-between align-items-center py-2 px-3 mb-4 rounded-3">
+            <span class="small">
+                <i class="bi bi-funnel-fill text-primary me-1"></i>
+                @(isEn ? $"Found {Model.FilteredLessons.Count} matches for current filters." : $"Tìm thấy {Model.FilteredLessons.Count} bài học phù hợp với bộ lọc.")
+            </span>
+            <a asp-action="Index" class="btn btn-link btn-sm text-decoration-none py-0">
+                <i class="bi bi-x-circle me-1"></i>@(isEn ? "Clear filters" : "Xóa bộ lọc")
+            </a>
+        </div>
+    }
+
+    <!-- 101 Lessons List Accordion / Grouped View -->
+    @{
+        var groupedLessons = Model.FilteredLessons.GroupBy(l => l.SectionNumber).OrderBy(g => g.Key);
+    }
+
+    @foreach (var group in groupedLessons)
+    {
+        var sectionMeta = Model.Sections.FirstOrDefault(s => s.SectionNumber == group.Key);
+        string sectionTitle = sectionMeta != null ? (isEn ? sectionMeta.TitleEn : sectionMeta.TitleVi) : $"Phần {group.Key}";
+        string sectionDesc = sectionMeta != null ? (isEn ? sectionMeta.DescriptionEn : sectionMeta.DescriptionVi) : "";
+        string badgeColor = sectionMeta?.BadgeColor ?? "primary";
+        string icon = sectionMeta?.Icon ?? "bi-folder2";
+
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden bg-body">
+            <!-- Section Header Banner -->
+            <div class="card-header bg-@badgeColor-subtle border-0 py-3 px-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-@badgeColor text-white d-inline-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="bi @icon fs-5"></i>
+                    </span>
+                    <div>
+                        <h4 class="h5 fw-bold mb-0 text-@badgeColor-emphasis">@sectionTitle</h4>
+                        <small class="text-muted">@sectionDesc</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-@badgeColor text-white rounded-pill px-3 py-1.5 fw-semibold">
+                        @group.Count() @(isEn ? "lessons" : "bài học")
+                    </span>
+                </div>
+            </div>
+
+            <!-- Lessons in this Section -->
+            <div class="list-group list-group-flush">
+                @foreach (var lesson in group.OrderBy(l => l.LessonNumber))
+                {
+                    string diffColor = lesson.Difficulty switch
+                    {
+                        NET_Tutos.Models.Entities.DifficultyLevel.Beginner => "success",
+                        NET_Tutos.Models.Entities.DifficultyLevel.Intermediate => "warning",
+                        NET_Tutos.Models.Entities.DifficultyLevel.Advanced => "danger",
+                        _ => "secondary"
+                    };
+
+                    <div class="list-group-item p-3 p-md-4 border-bottom lesson-row" id="lesson-row-@lesson.LessonNumber" data-lesson-number="@lesson.LessonNumber">
+                        <div class="row align-items-center g-3">
+                            <!-- Left: Checkbox + Lesson Number Pill -->
+                            <div class="col-auto d-flex align-items-center gap-2">
+                                <div class="form-check m-0">
+                                    <input class="form-check-input lesson-checkbox" type="checkbox" 
+                                           id="check_@lesson.LessonNumber" 
+                                           data-lesson="@lesson.LessonNumber" 
+                                           title="@(isEn ? "Mark as learned" : "Đánh dấu đã học")" 
+                                           style="width: 1.25rem; height: 1.25rem; cursor: pointer;">
+                                </div>
+                                <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill px-2.5 py-1.5 fw-bold" style="min-width: 50px;">
+                                    § @lesson.LessonNumber
+                                </span>
+                            </div>
+
+                            <!-- Middle: Title, Summary, Tags -->
+                            <div class="col">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                    <a asp-action="Details" asp-route-id="@lesson.LessonNumber" 
+                                       class="fw-bold text-decoration-none text-body-emphasis fs-6 hover-primary">
+                                        @lesson.GetTitle(isEn)
+                                    </a>
+                                    <span class="badge bg-@diffColor-subtle text-@diffColor border border-@diffColor-subtle rounded-pill small">
+                                        @(isEn ? lesson.Difficulty.ToString() : (lesson.Difficulty == NET_Tutos.Models.Entities.DifficultyLevel.Beginner ? "Cơ bản" : lesson.Difficulty == NET_Tutos.Models.Entities.DifficultyLevel.Intermediate ? "Trung cấp" : "Nâng cao"))
+                                    </span>
+                                    <span class="text-muted small">
+                                        <i class="bi bi-clock me-1"></i>~@lesson.EstimatedMinutes @(isEn ? "mins" : "phút")
+                                    </span>
+                                </div>
+                                <p class="text-muted mb-2 small line-clamp-2">
+                                    @lesson.GetSummary(isEn)
+                                </p>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach (var tag in lesson.KeyTags)
+                                    {
+                                        <span class="badge bg-body-secondary text-secondary-emphasis rounded-2 small" style="font-size: 0.72rem;">
+                                            #@tag
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Right: Action Buttons -->
+                            <div class="col-12 col-md-auto d-flex flex-wrap align-items-center gap-2">
+                                <a asp-action="Details" asp-route-id="@lesson.LessonNumber" 
+                                   class="btn btn-sm btn-outline-primary rounded-3 fw-semibold">
+                                    <i class="bi bi-eye me-1"></i>@(isEn ? "Overview" : "Chi tiết")
+                                </a>
+                                <a asp-controller="Playground" asp-action="Index" 
+                                   class="btn btn-sm btn-outline-danger rounded-3 fw-semibold" 
+                                   title="@(isEn ? "Code on Sandbox" : "Thực hành trên Playground")">
+                                    <i class="bi bi-play-circle me-1"></i>@(isEn ? "Sandbox" : "Thực hành")
+                                </a>
+                                @if (!string.IsNullOrEmpty(lesson.MatchingTutorialSlug))
+                                {
+                                    <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@lesson.MatchingTutorialSlug" 
+                                       class="btn btn-sm btn-success rounded-3 fw-semibold" 
+                                       title="@(isEn ? "Read full tutorial" : "Đọc bài viết đầy đủ")">
+                                        <i class="bi bi-book-half me-1"></i>@(isEn ? "Read Article" : "Đọc bài")
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @if (!Model.FilteredLessons.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-search text-muted display-4 mb-3 d-block"></i>
+            <h4 class="fw-bold">@(isEn ? "No lessons found matching your criteria" : "Không tìm thấy bài học nào phù hợp")</h4>
+            <p class="text-muted">@(isEn ? "Try adjusting your search terms or clearing filters." : "Hãy thử thay đổi từ khóa tìm kiếm hoặc bấm Xóa bộ lọc.")</p>
+            <a asp-action="Index" class="btn btn-primary rounded-pill px-4 mt-2">
+                @(isEn ? "Reset All Filters" : "Xem tất cả 101 bài học")
+            </a>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    // LocalStorage Key for Lesson Progress
+    const STORAGE_KEY = 'nettutos_curriculum_completed_lessons';
+
+    function getCompletedLessons() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveCompletedLessons(list) {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+        } catch (e) {}
+    }
+
+    function updateProgressUi() {
+        const completed = getCompletedLessons();
+        const count = completed.length;
+        const total = 101;
+        const percent = Math.min(100, Math.round((count / total) * 100));
+
+        // Update progress bar
+        const progressBar = document.getElementById('curriculumProgressBar');
+        const percentageText = document.getElementById('progressPercentageText');
+        const completedText = document.getElementById('completedCountText');
+        const remainingText = document.getElementById('remainingCountText');
+
+        if (progressBar) progressBar.style.width = percent + '%';
+        if (percentageText) percentageText.textContent = percent + '%';
+        if (completedText) completedText.textContent = count;
+        if (remainingText) remainingText.textContent = (total - count) + ' @(isEn ? "remaining" : "cần học")';
+
+        // Update checkboxes
+        document.querySelectorAll('.lesson-checkbox').forEach(cb => {
+            const num = parseInt(cb.getAttribute('data-lesson'));
+            const isDone = completed.includes(num);
+            cb.checked = isDone;
+
+            const row = document.getElementById('lesson-row-' + num);
+            if (row) {
+                if (isDone) {
+                    row.classList.add('bg-success-subtle', 'bg-opacity-10');
+                } else {
+                    row.classList.remove('bg-success-subtle', 'bg-opacity-10');
+                }
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        updateProgressUi();
+
+        // Listen for checkbox toggle
+        document.querySelectorAll('.lesson-checkbox').forEach(cb => {
+            cb.addEventListener('change', function () {
+                const num = parseInt(this.getAttribute('data-lesson'));
+                let completed = getCompletedLessons();
+
+                if (this.checked) {
+                    if (!completed.includes(num)) completed.push(num);
+                } else {
+                    completed = completed.filter(x => x !== num);
+                }
+
+                saveCompletedLessons(completed);
+                updateProgressUi();
+            });
+        });
+    });
+</script>
+<style>
+    .hover-primary:hover {
+        color: var(--bs-primary) !important;
+    }
+    .scrollbar-thin::-webkit-scrollbar {
+        height: 6px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.2);
+        border-radius: 4px;
+    }
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+}

@@ -47,6 +47,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IActivityFeedService, ActivityFeedService>();
 builder.Services.AddScoped<ICapstoneProjectService, CapstoneProjectService>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
+builder.Services.AddScoped<ICurriculumService, CurriculumService>();
 
 // Determine Database Provider
 var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
@@ -197,6 +198,26 @@ app.MapControllerRoute(
     name: "interview-en",
     pattern: "interview-prep",
     defaults: new { controller = "Interview", action = "Index" });
+
+app.MapControllerRoute(
+    name: "curriculum-vi",
+    pattern: "chuong-trinh-csharp-toan-dien",
+    defaults: new { controller = "Curriculum", action = "Index" });
+
+app.MapControllerRoute(
+    name: "curriculum-en",
+    pattern: "csharp-full-curriculum",
+    defaults: new { controller = "Curriculum", action = "Index" });
+
+app.MapControllerRoute(
+    name: "curriculum-detail-vi",
+    pattern: "chuong-trinh-csharp/{id:int}",
+    defaults: new { controller = "Curriculum", action = "Details" });
+
+app.MapControllerRoute(
+    name: "curriculum-detail-en",
+    pattern: "csharp-curriculum/{id:int}",
+    defaults: new { controller = "Curriculum", action = "Details" });
 
 // Friendly certificate verify route: /verify-certificate/{code}
 app.MapControllerRoute(

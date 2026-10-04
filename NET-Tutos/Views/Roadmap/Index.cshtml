@@ -8,9 +8,17 @@
     <div class="text-center mb-5">
         <span class="badge bg-primary-subtle border border-primary-subtle px-3 py-2 rounded-pill fw-bold mb-2">Roadmap 2026</span>
         <h1 class="display-5 fw-extrabold text-body-emphasis">@(isEn ? "The .NET Developer Career Roadmap" : "Lộ Trình Trở Thành .NET Developer")</h1>
-        <p class="lead text-muted mx-auto" style="max-width: 750px;">
+        <p class="lead text-muted mx-auto mb-3" style="max-width: 750px;">
             @(isEn ? "A step-by-step guide from zero knowledge of C# to building professional ASP.NET Core MVC & RESTful Web APIs, job-ready for enterprise engineering roles." : "Hướng dẫn từng bước từ khi chưa biết gì về C# đến khi tự tay xây dựng được ứng dụng Web ASP.NET Core MVC & RESTful API chuyên nghiệp, sẵn sàng cho công việc thực tế.")
         </p>
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+            <span class="btn btn-primary px-3 py-2 rounded-pill fw-semibold shadow-xs">
+                <i class="bi bi-signpost-split me-1"></i>@(isEn ? "Career Roadmap (4 Phases)" : "Lộ Trình Nghề Nghiệp (4 Giai Đoạn)")
+            </span>
+            <a asp-controller="Curriculum" asp-action="Index" class="btn btn-outline-danger px-3 py-2 rounded-pill fw-semibold shadow-xs">
+                <i class="bi bi-collection-play-fill me-1"></i>@(isEn ? "Detailed Syllabus (101 Lessons)" : "Khung Đào Tạo Chi Tiết (101 Bài Học)")
+            </a>
+        </div>
     </div>
 
     <div class="row justify-content-center">
@@ -93,9 +101,12 @@
                 <p class="text-muted mb-4 mx-auto" style="max-width: 600px;">
                     @(isEn ? "After completing all 4 phases, you master the core foundation and practical architecture of a .NET Backend Developer. Test your knowledge in our comprehensive quizzes!" : "Sau khi đi hết 4 giai đoạn, bạn đã nắm vững toàn bộ kiến thức cốt lõi và kiến trúc thực tế của một Backend Developer chuyên về .NET. Hãy thử sức ngay với các bài trắc nghiệm tổng hợp!")
                 </p>
-                <div class="d-flex justify-content-center gap-3">
+                <div class="d-flex flex-wrap justify-content-center gap-2">
                     <a asp-controller="Quiz" asp-action="Take" class="btn btn-success px-4 py-2 fw-semibold">
                         <i class="bi bi-patch-question me-1"></i> @(isEn ? "Take Comprehensive Quiz" : "Thi thử trắc nghiệm tổng hợp")
+                    </a>
+                    <a asp-controller="Curriculum" asp-action="Index" class="btn btn-outline-danger px-4 py-2 fw-semibold">
+                        <i class="bi bi-collection-play me-1"></i> @(isEn ? "Detailed 101 Syllabus" : "Khung 101 bài học chuẩn")
                     </a>
                     <a asp-controller="Tutorials" asp-action="Index" class="btn btn-outline-primary px-4 py-2 fw-semibold">
                         <i class="bi bi-book me-1"></i> @(isEn ? "Browse All Tutorials" : "Xem danh mục bài học")
