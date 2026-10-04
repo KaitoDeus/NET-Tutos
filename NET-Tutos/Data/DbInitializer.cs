@@ -29,6 +29,9 @@ public static class DbInitializer
         // Ensure newly added LMS Capstone Project tables exist
         await EnsureCapstoneProjectTablesExistAsync(context);
 
+        // Ensure newly added LMS Interview Flashcard tables exist
+        await InterviewFlashcardSeeder.EnsureInterviewFlashcardTablesExistAsync(context);
+
         // Seed Roles
         string[] roles = { "Admin", "Student" };
         foreach (var role in roles)
@@ -78,6 +81,12 @@ public static class DbInitializer
         if (!await context.CapstoneProjects.AnyAsync())
         {
             await SeedCapstoneProjectsAsync(context);
+        }
+
+        // Seed Interview Flashcards if none exist
+        if (!await context.InterviewFlashcards.AnyAsync())
+        {
+            await InterviewFlashcardSeeder.SeedInterviewFlashcardsAsync(context);
         }
 
         // Check if data already exists

@@ -1,0 +1,246 @@
+@model NET_Tutos.Models.ViewModels.MockInterviewViewModel
+@{
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? ".NET Mock Interview Simulator" : "Phỏng Vấn Thử .NET Kỹ Thuật";
+}
+
+<div class="container py-4 py-md-5" style="max-width: 950px;">
+    <!-- Top Header & Timer Bar -->
+    <div class="card border-0 rounded-4 shadow-sm bg-body p-4 mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-danger bg-opacity-15 text-danger rounded-pill px-3 py-1 fw-bold">
+                        <i class="bi bi-broadcast me-1"></i> @(isEn ? "LIVE MOCK INTERVIEW" : "PHỎNG VẤN THỬ TRỰC TIẾP")
+                    </span>
+                    <span class="badge bg-secondary bg-opacity-15 text-body-secondary rounded-pill px-2.5 py-1 small">
+                        5 @(isEn ? "Questions" : "Câu hỏi")
+                    </span>
+                </div>
+                <h3 class="fw-bold mb-0 text-body-emphasis">
+                    @(isEn ? ".NET Technical Mock Interview" : "Sát Hạch Phỏng Vấn Kỹ Thuật .NET")
+                </h3>
+            </div>
+
+            <!-- Countdown Timer -->
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-end">
+                    <div class="small text-muted">@(isEn ? "Time Remaining" : "Thời gian còn lại")</div>
+                    <div id="mockCountdownTimer" class="fs-3 fw-bold font-monospace text-danger">10:00</div>
+                </div>
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3 py-2 small" onclick="return confirm('@(isEn ? "Are you sure you want to quit this mock interview?" : "Bạn có chắc chắn muốn thoát phiên phỏng vấn thử?")');">
+                    @(isEn ? "Quit" : "Thoát")
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Interview Form -->
+    <div id="mockInterviewFormContainer">
+        @for (int i = 0; i < Model.Questions.Count; i++)
+        {
+            var q = Model.Questions[i];
+            <div class="card border rounded-4 shadow-sm p-4 mb-4 bg-body mock-question-block" data-question-id="@q.Id">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-primary text-white rounded-pill px-3 py-1 fw-bold">
+                            @(isEn ? $"Question {i + 1}" : $"Câu hỏi {i + 1}") / @Model.Questions.Count
+                        </span>
+                        <span class="badge bg-@q.TopicBadgeClass bg-opacity-10 text-@q.TopicBadgeClass rounded-pill px-2.5 py-1 small fw-semibold">
+                            @q.TopicName
+                        </span>
+                    </div>
+                    <span class="badge bg-@q.DifficultyBadgeClass bg-opacity-15 text-@q.DifficultyBadgeClass rounded-pill px-2.5 py-1 small">
+                        @q.DifficultyName
+                    </span>
+                </div>
+
+                <h5 class="fw-bold text-body-emphasis mb-3" style="line-height: 1.5;">
+                    @q.Question
+                </h5>
+
+                <!-- User Draft Notes Area -->
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-muted">
+                        <i class="bi bi-pencil-square me-1"></i> @(isEn ? "Your Draft Answer (Key Points you would say):" : "Nháp câu trả lời của bạn (Các ý chính bạn sẽ trình bày):")
+                    </label>
+                    <textarea class="form-control rounded-3 font-monospace small" rows="3" placeholder="@(isEn ? "Type your thought process or bullet points here..." : "Gõ nhanh dàn ý hoặc từ khóa bạn định trả lời...")"></textarea>
+                </div>
+
+                <!-- Reveal Benchmark Answer Toggle -->
+                <div class="mb-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold" onclick="toggleAnswer(@q.Id)">
+                        <i class="bi bi-eye-fill me-1"></i> @(isEn ? "Reveal Benchmark Answer & Self-Evaluate" : "Hiện Đáp Án Mẫu & Tự Chấm Điểm")
+                    </button>
+                </div>
+
+                <!-- Hidden Benchmark Answer Area -->
+                <div id="benchmarkAnswer-@q.Id" class="p-3.5 bg-body-tertiary rounded-4 border mb-3 d-none">
+                    <div class="small fw-bold text-success text-uppercase mb-2">
+                        <i class="bi bi-check2-circle me-1"></i> @(isEn ? "Interviewer's Expected Benchmark Answer:" : "Tiêu Chuẩn Đánh Giá Của Phỏng Vấn Viên:")
+                    </div>
+                    <div class="tutorial-markdown-content small mb-3">
+                        @Html.Raw(q.AnswerHtml)
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(q.InterviewTip))
+                    {
+                        <div class="alert alert-warning border-warning rounded-3 p-2.5 mb-3 small">
+                            <i class="bi bi-stars text-warning me-1"></i> <strong>@(isEn ? "Tip:" : "Mẹo:")</strong> @q.InterviewTip
+                        </div>
+                    }
+
+                    <!-- Self Rating Radio Group -->
+                    <div class="border-top pt-2.5">
+                        <label class="form-label small fw-bold text-body-emphasis mb-2">
+                            @(isEn ? "Self-Evaluate Your Answer:" : "Tự đánh giá câu trả lời của bạn:")
+                        </label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input score-radio" type="radio" name="score_@q.Id" id="score_@q.Id-0" value="0" />
+                                <label class="form-check-label small" for="score_@q.Id-0">0% (@(isEn ? "Completely blank" : "Chưa nhớ gì"))</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input score-radio" type="radio" name="score_@q.Id" id="score_@q.Id-50" value="50" />
+                                <label class="form-check-label small" for="score_@q.Id-50">50% (@(isEn ? "Partial idea" : "Được 1 phần ý"))</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input score-radio" type="radio" name="score_@q.Id" id="score_@q.Id-80" value="80" checked />
+                                <label class="form-check-label small" for="score_@q.Id-80">80% (@(isEn ? "Good answer" : "Khá tốt / Đủ ý"))</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input score-radio" type="radio" name="score_@q.Id" id="score_@q.Id-100" value="100" />
+                                <label class="form-check-label small fw-bold text-success" for="score_@q.Id-100">100% (@(isEn ? "Excellent / Deep" : "Xuất sắc / Chuyên sâu"))</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Submit Button -->
+        <div class="text-center py-3">
+            <button type="button" class="btn btn-primary rounded-pill px-5 py-3 fw-bold fs-6 shadow-sm" onclick="submitMockInterview()">
+                <i class="bi bi-send-check-fill me-2"></i> @(isEn ? "Finish & Get Readiness Score" : "Hoàn Thành & Đánh Giá Năng Lực")
+            </button>
+        </div>
+    </div>
+
+    <!-- Results View (Hidden until submit) -->
+    <div id="mockResultsView" class="card border-0 rounded-4 shadow-sm p-4 p-md-5 text-center bg-body d-none">
+        <div id="resultIconBox" class="rounded-circle bg-success bg-opacity-15 text-success mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+            <i class="bi bi-award-fill display-5"></i>
+        </div>
+        <h2 id="resultReadinessTitle" class="display-6 fw-bold text-body-emphasis mb-2"></h2>
+        <div class="fs-1 fw-bold text-primary mb-2">
+            <span id="resultAvgScore">0</span>%
+        </div>
+        <p id="resultFeedbackText" class="text-body-secondary lead fs-6 mb-4" style="max-width: 650px; margin: 0 auto;"></p>
+
+        <div class="d-inline-flex align-items-center gap-2 mb-4 mx-auto">
+            <span class="badge bg-warning bg-opacity-20 text-dark border border-warning border-opacity-50 rounded-pill px-3 py-2 fw-bold">
+                <i class="bi bi-lightning-charge-fill text-danger me-1"></i> +<span id="resultXpAwarded">0</span> XP
+            </span>
+            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-2 fw-bold">
+                <i class="bi bi-stopwatch me-1"></i> <span id="resultTimeSpent">0s</span>
+            </span>
+        </div>
+
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <a asp-action="Mock" class="btn btn-primary rounded-pill px-4 py-2.5 fw-bold">
+                <i class="bi bi-arrow-repeat me-1"></i> @(isEn ? "Take Another Mock" : "Thử Bộ Đề Khác")
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 py-2.5 fw-bold">
+                <i class="bi bi-house-door-fill me-1"></i> @(isEn ? "Back to Flashcards" : "Về Bảng Tin")
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let totalSecondsRemaining = 600; // 10 minutes
+        let timeSpent = 0;
+        let timerInterval = null;
+
+        function startTimer() {
+            const timerEl = document.getElementById('mockCountdownTimer');
+            timerInterval = setInterval(() => {
+                if (totalSecondsRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    alert('@(isEn ? "Time is up! Your interview will be submitted." : "Hết giờ làm bài! Hệ thống sẽ tự động tổng kết kết quả.")');
+                    submitMockInterview();
+                    return;
+                }
+                totalSecondsRemaining--;
+                timeSpent++;
+                const mins = Math.floor(totalSecondsRemaining / 60);
+                const secs = totalSecondsRemaining % 60;
+                timerEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function toggleAnswer(qId) {
+            const box = document.getElementById(`benchmarkAnswer-${qId}`);
+            if (box) {
+                box.classList.toggle('d-none');
+            }
+        }
+
+        async function submitMockInterview() {
+            if (timerInterval) clearInterval(timerInterval);
+
+            const blocks = document.querySelectorAll('.mock-question-block');
+            const answers = [];
+
+            blocks.forEach(b => {
+                const qId = parseInt(b.getAttribute('data-question-id'), 10);
+                const selectedRadio = b.querySelector(`input[name="score_${qId}"]:checked`);
+                const score = selectedRadio ? parseInt(selectedRadio.value, 10) : 50;
+                answers.push({ FlashcardId: qId, Score: score });
+            });
+
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                const res = await fetch('/Interview/SubmitMock', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({
+                        Answers: answers,
+                        TimeSpentSeconds: timeSpent
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    showResults(data);
+                } else {
+                    alert('@(isEn ? "Error submitting mock interview." : "Lỗi khi nộp bài phỏng vấn thử.")');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('@(isEn ? "Network error. Please try again." : "Lỗi kết nối mạng.")');
+            }
+        }
+
+        function showResults(data) {
+            document.getElementById('mockInterviewFormContainer').classList.add('d-none');
+            document.getElementById('resultReadinessTitle').innerText = data.readinessLevel;
+            document.getElementById('resultAvgScore').innerText = data.averageScore;
+            document.getElementById('resultFeedbackText').innerText = data.feedbackSummary;
+            document.getElementById('resultXpAwarded').innerText = data.xpAwarded;
+            
+            const mins = Math.floor(data.timeSpentSeconds / 60);
+            const secs = data.timeSpentSeconds % 60;
+            document.getElementById('resultTimeSpent').innerText = `${mins}m ${secs}s`;
+
+            document.getElementById('mockResultsView').classList.remove('d-none');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        startTimer();
+    </script>
+}

@@ -1,0 +1,364 @@
+@model NET_Tutos.Models.ViewModels.StudySessionViewModel
+@{
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "Flashcard Study Session" : "Phiên Ôn Luyện Thẻ Phỏng Vấn";
+    var totalCards = Model.TotalInSession;
+}
+
+<style>
+    .flashcard-scene {
+        perspective: 1200px;
+        min-height: 480px;
+    }
+    .flashcard-card {
+        width: 100%;
+        min-height: 480px;
+        position: relative;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-style: preserve-3d;
+        cursor: pointer;
+    }
+    .flashcard-card.is-flipped {
+        transform: rotateY(180deg);
+    }
+    .flashcard-face {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        border-radius: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .flashcard-face-front {
+        background-color: var(--bs-body-bg);
+        border: 2px solid var(--bs-border-color);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+    .flashcard-face-back {
+        background-color: var(--bs-body-bg);
+        border: 2px solid var(--bs-primary-border-subtle);
+        transform: rotateY(180deg);
+        box-shadow: 0 12px 35px rgba(13, 110, 253, 0.08);
+        overflow-y: auto;
+    }
+    .kbd-shortcut {
+        background: var(--bs-tertiary-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 0.75rem;
+        font-family: monospace;
+    }
+</style>
+
+<div class="container py-4 py-md-5" style="max-width: 900px;">
+    <!-- Top Navigation & Progress Bar -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold">
+            <i class="bi bi-arrow-left me-1"></i> @(isEn ? "Exit Session" : "Rời phiên học")
+        </a>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1.5 fw-bold">
+                <i class="bi bi-lightning-charge-fill text-warning me-1"></i> @Model.TopicName
+            </span>
+            <span id="sessionProgressBadge" class="badge bg-body-secondary text-body-secondary rounded-pill px-3 py-1.5 fw-bold">
+                1 / @totalCards
+            </span>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress rounded-pill mb-4" style="height: 8px;">
+        <div id="sessionProgressBar" class="progress-bar bg-primary progress-bar-striped progress-bar-animated" 
+             role="progressbar" style="width: @(totalCards > 0 ? (100.0 / totalCards) : 100)%" aria-valuenow="1" aria-valuemin="1" aria-valuemax="@totalCards"></div>
+    </div>
+
+    <!-- Study Area Container -->
+    <div id="studyAreaContainer">
+        <div class="flashcard-scene mb-4">
+            <div id="flashcardElement" class="flashcard-card">
+                <!-- FRONT FACE -->
+                <div class="flashcard-face flashcard-face-front p-4 p-md-5">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <span id="frontTopicBadge" class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1.5 fw-semibold">
+                                <i class="bi bi-tag-fill me-1"></i> Topic
+                            </span>
+                            <span id="frontDiffBadge" class="badge bg-info bg-opacity-15 text-info rounded-pill px-3 py-1.5 fw-semibold">
+                                Junior
+                            </span>
+                        </div>
+                        <div class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-2">
+                            @(isEn ? "INTERVIEW QUESTION" : "CÂU HỎI PHỎNG VẤN")
+                        </div>
+                        <h3 id="frontQuestionText" class="fw-bold mb-4 text-body-emphasis" style="line-height: 1.5;">
+                            Question loading...
+                        </h3>
+                        <div id="frontHintContainer" class="p-3 bg-body-tertiary rounded-4 border border-dashed mb-3 d-none">
+                            <div class="small fw-bold text-warning mb-1">
+                                <i class="bi bi-lightbulb-fill me-1"></i> @(isEn ? "Quick Hint" : "Gợi ý tư duy"):
+                            </div>
+                            <div id="frontHintText" class="small text-body-secondary"></div>
+                        </div>
+                    </div>
+
+                    <div class="border-top pt-3 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+                        <button type="button" id="btnToggleHint" class="btn btn-sm btn-outline-warning rounded-pill px-3" onclick="event.stopPropagation(); toggleHint();">
+                            <i class="bi bi-lightbulb me-1"></i> @(isEn ? "Toggle Hint" : "Xem gợi ý")
+                        </button>
+                        <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-xs">
+                            <i class="bi bi-arrow-repeat me-1.5"></i> @(isEn ? "Flip Card (Press Space)" : "Lật Thẻ Xem Đáp Án (Nhấn Space)")
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BACK FACE -->
+                <div class="flashcard-face flashcard-face-back p-4 p-md-5">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                            <span class="badge bg-success bg-opacity-15 text-success rounded-pill px-3 py-1 fw-bold">
+                                <i class="bi bi-check2-circle me-1"></i> @(isEn ? "STANDARD ANSWER" : "ĐÁP ÁN CHUẨN PHỎNG VẤN")
+                            </span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" onclick="event.stopPropagation(); flipCard();">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> @(isEn ? "Flip back" : "Lật lại câu hỏi")
+                            </button>
+                        </div>
+
+                        <!-- Question Reminder -->
+                        <h5 id="backQuestionText" class="fw-bold text-body-emphasis mb-3"></h5>
+
+                        <!-- Markdown Answer HTML -->
+                        <div id="backAnswerHtml" class="tutorial-markdown-content mb-3 text-body">
+                            Answer loading...
+                        </div>
+
+                        <!-- Interview Tip Callout -->
+                        <div id="backTipContainer" class="alert alert-warning border-warning rounded-4 p-3 mb-4 d-none">
+                            <div class="fw-bold small text-warning-emphasis mb-1">
+                                <i class="bi bi-stars me-1"></i> @(isEn ? "Interviewer Insider Tip & Traps:" : "Mẹo Phỏng Vấn & Cạm Bẫy Cần Tránh:")
+                            </div>
+                            <div id="backTipText" class="small text-body-secondary"></div>
+                        </div>
+                    </div>
+
+                    <!-- Leitner Spaced Repetition Rating Buttons -->
+                    <div class="border-top pt-3" onclick="event.stopPropagation();">
+                        <div class="text-center small text-muted mb-2">
+                            @(isEn ? "How well did you know this answer?" : "Mức độ ghi nhớ câu hỏi này của bạn?")
+                        </div>
+                        <div class="d-flex gap-2 justify-content-center flex-wrap">
+                            <button type="button" class="btn btn-outline-danger rounded-pill px-3 py-2 fw-semibold flex-grow-1" onclick="submitRating(1)">
+                                <i class="bi bi-x-circle me-1"></i> @(isEn ? "Again (1d)" : "Chưa thuộc (1 ngày)") <span class="kbd-shortcut ms-1 d-none d-sm-inline">1</span>
+                            </button>
+                            <button type="button" class="btn btn-outline-warning text-dark rounded-pill px-3 py-2 fw-semibold flex-grow-1" onclick="submitRating(2)">
+                                <i class="bi bi-exclamation-circle me-1"></i> @(isEn ? "Hard (3d)" : "Hơi khó (3 ngày)") <span class="kbd-shortcut ms-1 d-none d-sm-inline">2</span>
+                            </button>
+                            <button type="button" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold flex-grow-1" onclick="submitRating(3)">
+                                <i class="bi bi-check-circle me-1"></i> @(isEn ? "Good (7d)" : "Đã nhớ (7 ngày)") <span class="kbd-shortcut ms-1 d-none d-sm-inline">3</span>
+                            </button>
+                            <button type="button" class="btn btn-success rounded-pill px-3 py-2 fw-bold flex-grow-1" onclick="submitRating(4)">
+                                <i class="bi bi-patch-check-fill me-1"></i> @(isEn ? "Mastered (+10 XP)" : "Nắm vững (+10 XP)") <span class="kbd-shortcut ms-1 d-none d-sm-inline">4</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Keyboard Shortcut Helper Bar -->
+        <div class="text-center text-muted small">
+            <span class="me-3"><span class="kbd-shortcut">Space</span> @(isEn ? "Flip Card" : "Lật thẻ")</span>
+            <span class="me-3"><span class="kbd-shortcut">1</span> @(isEn ? "Again" : "Học lại")</span>
+            <span class="me-3"><span class="kbd-shortcut">2</span> @(isEn ? "Hard" : "Khó")</span>
+            <span class="me-3"><span class="kbd-shortcut">3</span> @(isEn ? "Good" : "Tốt")</span>
+            <span><span class="kbd-shortcut">4</span> @(isEn ? "Mastered" : "Thuộc")</span>
+        </div>
+    </div>
+
+    <!-- Celebration Screen (Hidden by default) -->
+    <div id="celebrationScreen" class="card border-0 rounded-4 shadow-sm p-5 text-center bg-body d-none">
+        <div class="rounded-circle bg-success bg-opacity-15 text-success mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+            <i class="bi bi-trophy-fill display-5"></i>
+        </div>
+        <h2 class="display-6 fw-bold text-body-emphasis mb-2">
+            @(isEn ? "Session Completed!" : "Hoàn Thành Phiên Ôn Tập!")
+        </h2>
+        <p class="text-body-secondary lead fs-6 mb-4" style="max-width: 500px; margin: 0 auto;">
+            @(isEn 
+                ? "You have successfully reviewed all scheduled flashcards. Spaced repetition keeps these concepts fresh in your long-term memory."
+                : "Bạn đã hoàn thành xuất sắc toàn bộ thẻ câu hỏi trong lượt này. Hệ thống Spaced Repetition đã lên lịch ôn lại để kiến thức lưu vào trí nhớ dài hạn.")
+        </p>
+        <div class="mb-4">
+            <span class="badge bg-warning bg-opacity-20 text-dark border border-warning border-opacity-50 rounded-pill px-3 py-2 fs-6 fw-bold">
+                <i class="bi bi-lightning-charge-fill text-danger me-1"></i> +<span id="earnedSessionXp">50</span> XP @(isEn ? "Earned" : "Đã nhận")
+            </span>
+        </div>
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <a asp-action="Index" class="btn btn-primary rounded-pill px-4 py-2.5 fw-bold">
+                <i class="bi bi-house-door-fill me-1"></i> @(isEn ? "Back to Flashcards Hub" : "Về Bảng Tin Phỏng Vấn")
+            </a>
+            <a asp-action="Mock" class="btn btn-outline-primary rounded-pill px-4 py-2.5 fw-bold">
+                <i class="bi bi-stopwatch-fill me-1"></i> @(isEn ? "Take a Mock Interview" : "Thử sức Phỏng Vấn Thử")
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Raw Flashcard Data from Server
+        const queueCards = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.QueueCards));
+        let currentIndex = 0;
+        let totalXpInSession = 0;
+        const isEnglish = @(isEn ? "true" : "false");
+
+        const cardEl = document.getElementById('flashcardElement');
+        const progressBadge = document.getElementById('sessionProgressBadge');
+        const progressBar = document.getElementById('sessionProgressBar');
+        const frontTopic = document.getElementById('frontTopicBadge');
+        const frontDiff = document.getElementById('frontDiffBadge');
+        const frontQuestion = document.getElementById('frontQuestionText');
+        const frontHintBox = document.getElementById('frontHintContainer');
+        const frontHintText = document.getElementById('frontHintText');
+        const backQuestion = document.getElementById('backQuestionText');
+        const backAnswer = document.getElementById('backAnswerHtml');
+        const backTipBox = document.getElementById('backTipContainer');
+        const backTipText = document.getElementById('backTipText');
+
+        function loadCard(index) {
+            if (index >= queueCards.length) {
+                showCelebration();
+                return;
+            }
+
+            const c = queueCards[index];
+            cardEl.classList.remove('is-flipped');
+
+            // Update Progress
+            progressBadge.innerText = `${index + 1} / ${queueCards.length}`;
+            const pct = Math.round(((index + 1) / queueCards.length) * 100);
+            progressBar.style.width = `${pct}%`;
+
+            // Front
+            frontTopic.innerHTML = `<i class="bi ${c.TopicIconClass || 'bi-tag-fill'} me-1"></i> ${escapeHtml(c.TopicName)}`;
+            frontTopic.className = `badge bg-${c.TopicBadgeClass || 'primary'} bg-opacity-10 text-${c.TopicBadgeClass || 'primary'} rounded-pill px-3 py-1.5 fw-semibold`;
+
+            frontDiff.innerText = c.DifficultyName;
+            frontDiff.className = `badge bg-${c.DifficultyBadgeClass || 'info'} bg-opacity-15 text-${c.DifficultyBadgeClass || 'info'} rounded-pill px-3 py-1.5 fw-semibold`;
+
+            frontQuestion.innerText = c.Question;
+
+            if (c.QuickHint && c.QuickHint.trim().length > 0) {
+                frontHintText.innerText = c.QuickHint;
+                frontHintBox.classList.add('d-none'); // initially hidden
+            } else {
+                frontHintBox.classList.add('d-none');
+            }
+
+            // Back
+            backQuestion.innerText = c.Question;
+            backAnswer.innerHTML = c.AnswerHtml;
+
+            if (c.InterviewTip && c.InterviewTip.trim().length > 0) {
+                backTipText.innerText = c.InterviewTip;
+                backTipBox.classList.remove('d-none');
+            } else {
+                backTipBox.classList.add('d-none');
+            }
+        }
+
+        function flipCard() {
+            cardEl.classList.toggle('is-flipped');
+        }
+
+        function toggleHint() {
+            frontHintBox.classList.toggle('d-none');
+        }
+
+        cardEl.addEventListener('click', function(e) {
+            // Only flip when clicking background or front face button
+            flipCard();
+        });
+
+        // Submit Rating to Server via AJAX
+        async function submitRating(ratingNumber) {
+            if (currentIndex >= queueCards.length) return;
+            const currentCard = queueCards[currentIndex];
+
+            try {
+                const token = getCsrfToken();
+                const res = await fetch('/Interview/Review', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({
+                        FlashcardId: currentCard.Id,
+                        Rating: ratingNumber
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.xpEarned) {
+                        totalXpInSession += data.xpEarned;
+                    }
+                }
+            } catch (err) {
+                console.warn('Error saving review progress:', err);
+            }
+
+            // Proceed to next card
+            currentIndex++;
+            loadCard(currentIndex);
+        }
+
+        function showCelebration() {
+            document.getElementById('studyAreaContainer').classList.add('d-none');
+            document.getElementById('earnedSessionXp').innerText = totalXpInSession;
+            document.getElementById('celebrationScreen').classList.remove('d-none');
+        }
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ignore if in input or textarea
+            if (['input', 'textarea'].includes(document.activeElement.tagName.toLowerCase())) return;
+
+            if (e.code === 'Space') {
+                e.preventDefault();
+                flipCard();
+            } else if (e.key === '1') {
+                submitRating(1);
+            } else if (e.key === '2') {
+                submitRating(2);
+            } else if (e.key === '3') {
+                submitRating(3);
+            } else if (e.key === '4') {
+                submitRating(4);
+            }
+        });
+
+        function getCsrfToken() {
+            const el = document.querySelector('input[name="__RequestVerificationToken"]');
+            return el ? el.value : '';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // Initialize first card
+        if (queueCards && queueCards.length > 0) {
+            loadCard(0);
+        } else {
+            showCelebration();
+        }
+    </script>
+}

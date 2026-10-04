@@ -1,0 +1,99 @@
+@model NET_Tutos.Models.ViewModels.FlashcardItemViewModel
+@{
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = Model.Question;
+}
+
+<div class="container py-4 py-md-5" style="max-width: 900px;">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none">@(isEn ? "Home" : "Trang chủ")</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index" class="text-decoration-none">@(isEn ? "Interview Prep" : "Luyện Phỏng Vấn")</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index" asp-route-topic="@Model.Topic" class="text-decoration-none">@Model.TopicName</a></li>
+            <li class="breadcrumb-item active" aria-current="page">#@Model.Id</li>
+        </ol>
+    </nav>
+
+    <!-- Main Card -->
+    <div class="card border rounded-4 shadow-sm p-4 p-md-5 bg-body mb-4">
+        <!-- Badges & Status -->
+        <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-3 pb-2 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-@Model.TopicBadgeClass bg-opacity-10 text-@Model.TopicBadgeClass rounded-pill px-3 py-1.5 fw-semibold">
+                    <i class="bi @Model.TopicIconClass me-1"></i>@Model.TopicName
+                </span>
+                <span class="badge bg-@Model.DifficultyBadgeClass bg-opacity-15 text-@Model.DifficultyBadgeClass rounded-pill px-2.5 py-1 small">
+                    @Model.DifficultyName
+                </span>
+            </div>
+            <div>
+                @if (Model.IsMastered)
+                {
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 small fw-bold">
+                        <i class="bi bi-patch-check-fill me-1"></i>@(isEn ? "Mastered (Box 4-5)" : "Đã nắm vững")
+                    </span>
+                }
+                else if (Model.ReviewCount > 0)
+                {
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1.5 small fw-bold">
+                        <i class="bi bi-arrow-repeat me-1"></i>Box @Model.BoxLevel (@Model.ReviewCount @(isEn ? "reviews" : "lần ôn"))
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1.5 small">
+                        @(isEn ? "Not Reviewed Yet" : "Chưa ôn tập")
+                    </span>
+                }
+            </div>
+        </div>
+
+        <!-- Question Header -->
+        <h2 class="display-7 fw-bold text-body-emphasis mb-3" style="line-height: 1.45;">
+            @Model.Question
+        </h2>
+
+        <!-- Quick Hint if available -->
+        @if (!string.IsNullOrEmpty(Model.QuickHint))
+        {
+            <div class="p-3 bg-body-tertiary rounded-4 border border-dashed mb-4">
+                <div class="small fw-bold text-warning mb-1">
+                    <i class="bi bi-lightbulb-fill me-1"></i> @(isEn ? "Quick Thought Process & Keywords:" : "Gợi Ý Tư Duy & Từ Khóa:")
+                </div>
+                <div class="text-body-secondary small">@Model.QuickHint</div>
+            </div>
+        }
+
+        <!-- Answer Section -->
+        <div class="mb-4">
+            <div class="small fw-bold text-success text-uppercase letter-spacing-1 mb-2">
+                <i class="bi bi-check2-circle me-1"></i> @(isEn ? "Comprehensive Benchmark Answer:" : "Câu Trả Lời Chuẩn Phỏng Vấn:")
+            </div>
+            <div class="tutorial-markdown-content p-3.5 bg-body rounded-4 border">
+                @Html.Raw(Model.AnswerHtml)
+            </div>
+        </div>
+
+        <!-- Interviewer Tip Callout -->
+        @if (!string.IsNullOrEmpty(Model.InterviewTip))
+        {
+            <div class="alert alert-warning border-warning rounded-4 p-3 p-md-4 mb-4">
+                <div class="fw-bold text-warning-emphasis mb-1">
+                    <i class="bi bi-stars me-1.5 fs-5"></i> @(isEn ? "Interviewer Insider Secret & Traps to Avoid:" : "Mẹo Phỏng Vấn Thực Chiến & Cạm Bẫy Cần Tránh:")
+                </div>
+                <div class="text-body-secondary small" style="line-height: 1.6;">@Model.InterviewTip</div>
+            </div>
+        }
+
+        <!-- Action CTA Footer -->
+        <div class="border-top pt-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3 py-2 small fw-semibold">
+                <i class="bi bi-arrow-left me-1"></i> @(isEn ? "Back to Question Bank" : "Về Ngân Hàng Câu Hỏi")
+            </a>
+            <a asp-action="Study" asp-route-topic="@Model.Topic" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-xs">
+                <i class="bi bi-play-circle-fill me-1.5"></i> @(isEn ? "Practice in Flashcard Mode" : "Luyện Bằng Thẻ Flashcard 3D")
+            </a>
+        </div>
+    </div>
+</div>

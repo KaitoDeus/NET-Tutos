@@ -46,6 +46,7 @@ builder.Services.AddScoped<IStreakService, StreakService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IActivityFeedService, ActivityFeedService>();
 builder.Services.AddScoped<ICapstoneProjectService, CapstoneProjectService>();
+builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 
 // Determine Database Provider
 var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
@@ -186,6 +187,16 @@ app.MapControllerRoute(
     name: "project-slug-vi",
     pattern: "do-an/{slug}",
     defaults: new { controller = "Project", action = "Details" });
+
+app.MapControllerRoute(
+    name: "interview-vi",
+    pattern: "phong-van-csharp",
+    defaults: new { controller = "Interview", action = "Index" });
+
+app.MapControllerRoute(
+    name: "interview-en",
+    pattern: "interview-prep",
+    defaults: new { controller = "Interview", action = "Index" });
 
 // Friendly certificate verify route: /verify-certificate/{code}
 app.MapControllerRoute(

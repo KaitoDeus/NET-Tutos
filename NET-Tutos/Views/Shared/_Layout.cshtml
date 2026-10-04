@@ -22,7 +22,7 @@
 
     bool isHomeActive = currentController == "Home" && currentAction == "Index";
     bool isCoursesActive = currentController == "Tutorials" || currentController == "Roadmap" || currentController == "CheatSheet";
-    bool isPracticeActive = currentController == "Playground" || currentController == "Quiz" || currentController == "Exam" || currentController == "Project";
+    bool isPracticeActive = currentController == "Playground" || currentController == "Quiz" || currentController == "Exam" || currentController == "Project" || currentController == "Interview";
     bool isCommunityActive = currentController == "Leaderboard" || currentController == "Activity";
 }
 <!DOCTYPE html>
@@ -285,7 +285,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 @(currentController == "Project" ? "active" : "")"
+                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 mb-1 @(currentController == "Project" ? "active" : "")"
                                        asp-controller="Project" asp-action="Index">
                                         <div class="category-icon-box bg-primary-subtle text-primary">
                                             <i class="bi bi-folder-check"></i>
@@ -293,6 +293,18 @@
                                         <div class="category-content-box">
                                             <span class="category-text-title" data-lang-key="nav_project">@(isEn ? "Capstone Projects" : "Đồ án thực chiến (Capstone)")</span>
                                             <span class="category-text-desc" data-lang-key="nav_project_desc">@(isEn ? "Build production-grade applications" : "Xây dựng sản phẩm chuẩn doanh nghiệp")</span>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 @(currentController == "Interview" ? "active" : "")"
+                                       asp-controller="Interview" asp-action="Index">
+                                        <div class="category-icon-box bg-danger-subtle text-danger">
+                                            <i class="bi bi-mortarboard-fill"></i>
+                                        </div>
+                                        <div class="category-content-box">
+                                            <span class="category-text-title" data-lang-key="nav_interview">@(isEn ? "Interview Prep & Flashcards" : "Luyện Phỏng Vấn & Flashcards")</span>
+                                            <span class="category-text-desc" data-lang-key="nav_interview_desc">@(isEn ? "Spaced repetition & technical mock exams" : "Thẻ ghi nhớ ngắt quãng & phỏng vấn thử")</span>
                                         </div>
                                     </a>
                                 </li>

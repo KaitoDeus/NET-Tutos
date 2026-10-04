@@ -29,6 +29,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ActivityFeedItem> ActivityFeedItems => Set<ActivityFeedItem>();
     public DbSet<CapstoneProject> CapstoneProjects => Set<CapstoneProject>();
     public DbSet<ProjectSubmission> ProjectSubmissions => Set<ProjectSubmission>();
+    public DbSet<InterviewFlashcard> InterviewFlashcards => Set<InterviewFlashcard>();
+    public DbSet<UserFlashcardProgress> UserFlashcardProgresses => Set<UserFlashcardProgress>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -317,6 +319,36 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                   .WithMany()
                   .HasForeignKey(s => s.ReviewedByUserId)
                   .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // InterviewFlashcard configurations
+        modelBuilder.Entity<InterviewFlashcard>(entity =>
+        {
+            entity.HasKey(f => f.Id);
+            entity.HasIndex(f => f.Slug).IsUnique();
+            entity.HasIndex(f => f.Topic);
+            entity.HasIndex(f => f.Difficulty);
+            entity.Property(f => f.Slug).IsRequired().HasMaxLength(200);
+            entity.Property(f => f.QuestionVi).IsRequired().HasMaxLength(500);
+            entity.Property(f => f.QuestionEn).IsRequired().HasMaxLength(500);
+        });
+
+        // UserFlashcardProgress configurations
+        modelBuilder.Entity<UserFlashcardProgress>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.HasIndex(p => new { p.UserId, p.FlashcardId }).IsUnique();
+            entity.HasIndex(p => p.NextReviewDate);
+
+            entity.HasOne(p => p.Flashcard)
+                  .WithMany(f => f.UserProgresses)
+                  .HasForeignKey(p => p.FlashcardId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(p => p.User)
+                  .WithMany()
+                  .HasForeignKey(p => p.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
