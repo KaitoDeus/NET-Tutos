@@ -49,6 +49,7 @@ public class HomeController : Controller
             TotalCategories = totalCategories,
             TotalQuizzes = totalQuizzes,
             DatabaseProviderUsed = _dbInfo.Name,
+            DatabaseProviderUsedEn = _dbInfo.NameEn,
             RecentActivities = await _activityFeedService.GetRecentActivitiesAsync(take: 4)
         };
 

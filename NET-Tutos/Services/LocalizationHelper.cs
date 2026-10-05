@@ -1017,4 +1017,68 @@ Write a method `Fibonacci(int n)` returning the $n$-th Fibonacci number.
             _ => "System"
         };
     }
+
+    public static string TranslateNotificationTitle(string? title, bool isEn)
+    {
+        if (string.IsNullOrWhiteSpace(title) || !isEn) return title ?? string.Empty;
+
+        if (title.Contains("Điểm danh nhận thưởng thành công")) return "Check-in Reward Claimed! 🔥";
+        if (title.Contains("Huy hiệu mới đã mở khóa")) return "New Badge Unlocked! 🏆";
+        if (title.Contains("kỳ thi tốt nghiệp") || title.Contains("thi tốt nghiệp")) return "Graduation Exam Passed! 🎓";
+        if (title.Contains("Chứng chỉ số") || title.Contains("chứng chỉ")) return "Digital Certificate Ready! 📜";
+        if (title.Contains("trả lời thảo luận") || title.Contains("trả lời")) return "New Reply to Discussion";
+        if (title.Contains("giải pháp chính xác")) return "Accepted Solution! 🌟";
+        if (title.Contains("nộp đồ án")) return "Capstone Submitted Successfully! 🚀";
+        if (title.Contains("kết quả đánh giá") || title.Contains("đánh giá")) return "Capstone Review Result Ready! 📝";
+        if (title.Contains("thử thách C#") || title.Contains("thử thách")) return "C# Challenge Solved! ⚡";
+        if (title.Contains("hoàn thành bài học")) return "Lesson Completed! 🎉";
+        if (title.Contains("thưởng điểm") || title.Contains("thưởng XP")) return "Bonus XP Awarded! ⭐";
+
+        return title;
+    }
+
+    public static string TranslateNotificationMessage(string? message, bool isEn)
+    {
+        if (string.IsNullOrWhiteSpace(message) || !isEn) return message ?? string.Empty;
+
+        // Match: "Bạn đã duy trì chuỗi 1 ngày liên tiếp (+10 XP)!"
+        var streakMatch = System.Text.RegularExpressions.Regex.Match(message, @"chuỗi\s+(\d+)\s+ngày\s+liên\s+tiếp\s+\(\+(\d+)\s+XP\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (streakMatch.Success)
+        {
+            var days = streakMatch.Groups[1].Value;
+            var xp = streakMatch.Groups[2].Value;
+            var dayLabel = days == "1" ? "day" : "days";
+            return $"You maintained a streak of {days} consecutive {dayLabel} (+{xp} XP)!";
+        }
+
+        if (message.Contains("Mở khóa huy hiệu:"))
+        {
+            var replaced = message
+                .Replace("Mở khóa huy hiệu:", "Badge unlocked:")
+                .Replace("XP thưởng", "bonus XP")
+                .Replace("Ngọn Lửa Bền Bỉ", "Persistent Flame")
+                .Replace("Chiến Binh Kỷ Luật", "Disciplined Warrior")
+                .Replace("Huyền Thoại Bất Bại", "Unstoppable Legend")
+                .Replace("Thuật Toán Săn Bàn", "Algorithm Hunter")
+                .Replace("Vua Thuật Toán", "Algorithm Master")
+                .Replace("Kỹ Sư .NET", "Certified Engineer")
+                .Replace("Học Giả Chăm Chỉ", "Diligent Scholar")
+                .Replace("Tân Binh .NET", "NET Rookie")
+                .Replace("Người Hùng Cộng Đồng", "Community Torchbearer")
+                .Replace("Kiến Trúc Sư .NET", ".NET Architect");
+            return replaced;
+        }
+
+        if (message.Contains("hoàn thành bài học"))
+        {
+            return System.Text.RegularExpressions.Regex.Replace(message, @"Chúc mừng bạn đã hoàn thành bài học\s*(.*)", "Congratulations on completing lesson $1");
+        }
+
+        if (message.Contains("thử thách"))
+        {
+            return System.Text.RegularExpressions.Regex.Replace(message, @"Chúc mừng bạn đã giải thành công thử thách\s*(.*)", "Congratulations on solving algorithm challenge $1");
+        }
+
+        return message;
+    }
 }

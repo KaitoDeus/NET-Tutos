@@ -449,6 +449,7 @@ async function loadNotifications() {
 }
 
 function updateNotificationBadges(count) {
+    const isEn = isCurrentCultureEnglish();
     const navBadge = document.getElementById('navNotificationBadge');
     const mobileBadge = document.getElementById('mobileNotificationBadge');
     const unreadPill = document.getElementById('notificationUnreadPill');
@@ -464,7 +465,7 @@ function updateNotificationBadges(count) {
             mobileBadge.classList.remove('d-none');
         }
         if (unreadPill) {
-            unreadPill.textContent = `${count} mới`;
+            unreadPill.textContent = `${count} ${isEn ? 'new' : 'mới'}`;
             unreadPill.classList.remove('d-none');
         }
         if (bellIcon) {
@@ -479,6 +480,7 @@ function updateNotificationBadges(count) {
 }
 
 function renderNotificationItems(items) {
+    const isEn = isCurrentCultureEnglish();
     const container = document.getElementById('notificationListItems');
     if (!container) return;
 
@@ -486,8 +488,8 @@ function renderNotificationItems(items) {
         container.innerHTML = `
             <div class="text-center py-5 text-muted px-3">
                 <i class="bi bi-bell-slash fs-1 d-block mb-2 text-secondary opacity-50"></i>
-                <div class="small fw-semibold">Bạn không có thông báo mới nào</div>
-                <div class="text-muted" style="font-size: 0.78rem;">Các hoạt động học tập sẽ hiển thị tại đây</div>
+                <div class="small fw-semibold">${isEn ? 'You have no new notifications' : 'Bạn không có thông báo mới nào'}</div>
+                <div class="text-muted" style="font-size: 0.78rem;">${isEn ? 'Learning activities will appear here' : 'Các hoạt động học tập sẽ hiển thị tại đây'}</div>
             </div>
         `;
         return;
@@ -500,6 +502,7 @@ function renderNotificationItems(items) {
 }
 
 function createNotificationElement(item) {
+    const isEn = isCurrentCultureEnglish();
     const div = document.createElement('div');
     div.className = `notification-item ${item.isRead ? '' : 'unread'}`;
     div.setAttribute('data-id', item.id);
@@ -512,7 +515,7 @@ function createNotificationElement(item) {
             <div class="flex-grow-1 min-w-0">
                 <div class="d-flex align-items-center justify-content-between gap-1 mb-0.5">
                     <span class="fw-bold small text-truncate text-body-emphasis">${escapeHtml(item.title)}</span>
-                    ${!item.isRead ? '<span class="notification-unread-dot ms-1" title="Chưa đọc"></span>' : ''}
+                    ${!item.isRead ? `<span class="notification-unread-dot ms-1" title="${isEn ? 'Unread' : 'Chưa đọc'}"></span>` : ''}
                 </div>
                 <p class="text-body-secondary small mb-1 lh-sm" style="font-size: 0.8rem;">
                     ${escapeHtml(item.message)}

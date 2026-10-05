@@ -11,6 +11,7 @@ public class HomeViewModel
     public int TotalCategories { get; set; }
     public int TotalQuizzes { get; set; }
     public string DatabaseProviderUsed { get; set; } = "SQL Server";
+    public string DatabaseProviderUsedEn { get; set; } = "SQL Server";
     public Tutorial? LastAccessedTutorial { get; set; }
     public int? UserExperiencePoints { get; set; }
     public int? CompletedLessonsCount { get; set; }

@@ -168,7 +168,7 @@
                                 <div class="pt-3 border-top d-flex align-items-center justify-content-between flex-wrap gap-2 text-muted small">
                                     <span class="d-inline-flex align-items-center gap-2">
                                         <i class="bi bi-database-check text-success"></i>
-                                        <span>@(isEn ? "Database:" : "CSDL:") <strong class="text-body-emphasis">@Model.DatabaseProviderUsed</strong></span>
+                                        <span>@(isEn ? "Database:" : "CSDL:") <strong class="text-body-emphasis">@(isEn ? Model.DatabaseProviderUsedEn : Model.DatabaseProviderUsed)</strong></span>
                                     </span>
                                     <div class="d-flex gap-2">
                                         <a asp-controller="Roadmap" asp-action="Index" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">

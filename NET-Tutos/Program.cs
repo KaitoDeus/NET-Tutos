@@ -58,6 +58,7 @@ var sqliteConnection = builder.Configuration.GetConnectionString("SqliteConnecti
     ?? "Data Source=dotnet_tutorials.db";
 
 string activeProvider = "SQL Server (LocalDB)";
+string activeProviderEn = "SQL Server (LocalDB)";
 
 if (configuredProvider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
 {
@@ -80,12 +81,14 @@ if (configuredProvider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
     if (isSqlServerAvailable)
     {
         activeProvider = "SQL Server (LocalDB)";
+        activeProviderEn = "SQL Server (LocalDB)";
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(sqlServerConnection));
     }
     else
     {
         activeProvider = "SQLite (Chạy tức thì - Sẵn sàng chuyển SQL Server khi cài đặt)";
+        activeProviderEn = "SQLite (Instant Run - Ready to switch to SQL Server)";
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(sqliteConnection));
     }
@@ -93,6 +96,7 @@ if (configuredProvider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
 else
 {
     activeProvider = "SQLite";
+    activeProviderEn = "SQLite";
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseSqlite(sqliteConnection));
 }
@@ -118,7 +122,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromDays(30);
 });
 
-builder.Services.AddSingleton(new DatabaseProviderInfo { Name = activeProvider });
+builder.Services.AddSingleton(new DatabaseProviderInfo { Name = activeProvider, NameEn = activeProviderEn });
 
 var app = builder.Build();
 

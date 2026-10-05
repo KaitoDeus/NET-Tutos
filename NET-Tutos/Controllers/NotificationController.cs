@@ -30,6 +30,8 @@ public class NotificationController : Controller
         {
             foreach (var item in result.Items)
             {
+                item.Title = LocalizationHelper.TranslateNotificationTitle(item.Title, true);
+                item.Message = LocalizationHelper.TranslateNotificationMessage(item.Message, true);
                 item.TimeAgo = NotificationService.FormatTimeAgo(item.CreatedAt, true);
                 item.TypeName = LocalizationHelper.GetNotificationTypeName(item.Type, true);
             }
