@@ -193,28 +193,46 @@ async function loadStreakStatus() {
     }
 }
 
+function isCurrentCultureEnglish() {
+    return document.documentElement.lang === 'en' ||
+           localStorage.getItem('nettutos-culture') === 'en' ||
+           document.cookie.includes('uic=en') ||
+           document.cookie.includes('c=en');
+}
+
 function updateStreakUI(data) {
+    const isEn = isCurrentCultureEnglish();
+
     const navStreakCount = document.getElementById('navStreakCountText');
     const btnNavStreak = document.getElementById('btnNavStreak');
     const modalStreakCount = document.getElementById('modalStreakCount');
+    const modalStreakDaysLabel = document.getElementById('modalStreakDaysLabel');
     const modalStreakStatus = document.getElementById('modalStreakStatusText');
     const btnDoCheckIn = document.getElementById('btnDoCheckIn');
     const btnCheckInText = document.getElementById('btnCheckInText');
     const checkInIcon = document.getElementById('checkInIcon');
+    const checkInSubtext = document.getElementById('checkInSubtext');
     const totalStreakXpText = document.getElementById('totalStreakXpText');
+    const modalPast7DaysTitle = document.getElementById('modalPast7DaysTitle');
     const past7DaysContainer = document.getElementById('past7DaysContainer');
 
     // Update navbar badge
     if (navStreakCount) {
-        navStreakCount.textContent = `${data.currentStreak} ngày`;
+        const dayLabel = isEn ? (data.currentStreak === 1 ? 'day' : 'days') : 'ngày';
+        navStreakCount.textContent = `${data.currentStreak} ${dayLabel}`;
     }
     if (btnNavStreak) {
+        const dayWord = isEn ? (data.currentStreak === 1 ? 'day' : 'days') : 'ngày';
         if (data.hasCheckedInToday) {
-            btnNavStreak.className = 'btn btn-sm btn-warning text-dark rounded-pill px-2.5 py-1.5 d-flex align-items-center gap-1.5 text-nowrap fw-bold shadow-sm';
-            btnNavStreak.title = `Chuỗi ${data.currentStreak} ngày (Hôm nay đã điểm danh)`;
+            btnNavStreak.className = 'btn btn-sm btn-warning text-dark rounded-pill px-3 py-1.5 d-flex align-items-center gap-2 text-nowrap fw-bold shadow-sm';
+            btnNavStreak.title = isEn 
+                ? `${data.currentStreak} ${dayWord} streak (Checked in today)` 
+                : `Chuỗi ${data.currentStreak} ngày (Hôm nay đã điểm danh)`;
         } else {
-            btnNavStreak.className = 'btn btn-sm btn-outline-warning rounded-pill px-2.5 py-1.5 d-flex align-items-center gap-1.5 text-nowrap fw-bold shadow-none';
-            btnNavStreak.title = `Chuỗi ${data.currentStreak} ngày (Bấm để điểm danh hôm nay)`;
+            btnNavStreak.className = 'btn btn-sm btn-outline-warning rounded-pill px-3 py-1.5 d-flex align-items-center gap-2 text-nowrap fw-bold shadow-none';
+            btnNavStreak.title = isEn 
+                ? `${data.currentStreak} ${dayWord} streak (Click to check in today)` 
+                : `Chuỗi ${data.currentStreak} ngày (Bấm để điểm danh hôm nay)`;
         }
     }
 
@@ -222,13 +240,24 @@ function updateStreakUI(data) {
     if (modalStreakCount) {
         modalStreakCount.textContent = data.currentStreak;
     }
+    if (modalStreakDaysLabel) {
+        modalStreakDaysLabel.textContent = isEn ? 'Consecutive Days' : 'Ngày Liên Tục';
+    }
     if (modalStreakStatus) {
+        const streakDaysEn = `${data.currentStreak} ${data.currentStreak === 1 ? 'day' : 'days'}`;
+        const recordDaysEn = `${data.longestStreak} ${data.longestStreak === 1 ? 'day' : 'days'}`;
         if (data.hasCheckedInToday) {
-            modalStreakStatus.innerHTML = `🔥 Bạn đã điểm danh hôm nay! Chuỗi <strong>${data.currentStreak} ngày</strong> tiếp tục bùng cháy. Kỷ lục của bạn: <strong>${data.longestStreak} ngày</strong>.`;
+            modalStreakStatus.innerHTML = isEn
+                ? `🔥 You have checked in today! Streak of <strong>${streakDaysEn}</strong> continues to burn strong. Your record: <strong>${recordDaysEn}</strong>.`
+                : `🔥 Bạn đã điểm danh hôm nay! Chuỗi <strong>${data.currentStreak} ngày</strong> tiếp tục bùng cháy. Kỷ lục của bạn: <strong>${data.longestStreak} ngày</strong>.`;
         } else if (data.currentStreak > 0) {
-            modalStreakStatus.innerHTML = `⚠️ Hãy điểm danh hôm nay để duy trì chuỗi <strong>${data.currentStreak} ngày</strong> và nhận ngay <strong>+${data.nextRewardXp} XP</strong>!`;
+            modalStreakStatus.innerHTML = isEn
+                ? `⚠️ Check in today to maintain your <strong>${streakDaysEn}</strong> streak and receive <strong>+${data.nextRewardXp} XP</strong>!`
+                : `⚠️ Hãy điểm danh hôm nay để duy trì chuỗi <strong>${data.currentStreak} ngày</strong> và nhận ngay <strong>+${data.nextRewardXp} XP</strong>!`;
         } else {
-            modalStreakStatus.innerHTML = `Bắt đầu xây dựng chuỗi học tập ngay hôm nay và nhận ngay <strong>+${data.nextRewardXp} XP</strong>!`;
+            modalStreakStatus.innerHTML = isEn
+                ? `Start building your daily study streak today and receive <strong>+${data.nextRewardXp} XP</strong>!`
+                : `Bắt đầu xây dựng chuỗi học tập ngay hôm nay và nhận ngay <strong>+${data.nextRewardXp} XP</strong>!`;
         }
     }
 
@@ -236,29 +265,42 @@ function updateStreakUI(data) {
         if (data.hasCheckedInToday) {
             btnDoCheckIn.disabled = true;
             btnDoCheckIn.className = 'btn btn-success btn-lg rounded-pill fw-bold px-4 py-2.5 shadow-sm w-100 d-inline-flex align-items-center justify-content-center gap-2 text-white';
-            btnCheckInText.textContent = `✓ Đã điểm danh hôm nay!`;
-            if (checkInIcon) checkInIcon.className = 'bi bi-check-circle-fill fs-5 text-white';
+            btnCheckInText.textContent = isEn ? '✓ Checked in today!' : '✓ Đã điểm danh hôm nay!';
+            if (checkInIcon) checkInIcon.className = 'bi bi-check-circle-fill fs-5 text-white me-1';
         } else {
             btnDoCheckIn.disabled = false;
             btnDoCheckIn.className = 'btn btn-warning btn-lg rounded-pill fw-bold px-4 py-2.5 shadow w-100 d-inline-flex align-items-center justify-content-center gap-2 text-dark';
-            btnCheckInText.textContent = `Điểm danh hôm nay (+${data.nextRewardXp} XP)`;
-            if (checkInIcon) checkInIcon.className = 'bi bi-lightning-charge-fill text-danger fs-5';
+            btnCheckInText.textContent = isEn ? `Check in today (+${data.nextRewardXp} XP)` : `Điểm danh hôm nay (+${data.nextRewardXp} XP)`;
+            if (checkInIcon) checkInIcon.className = 'bi bi-lightning-charge-fill text-danger fs-5 me-1';
         }
     }
 
+    if (checkInSubtext) {
+        checkInSubtext.innerHTML = `<i class="bi bi-clock-history me-2"></i>` + (isEn ? 'Log in and check in daily to accumulate XP' : 'Mỗi ngày đăng nhập và điểm danh để tích lũy XP');
+    }
+
+    if (modalPast7DaysTitle) {
+        modalPast7DaysTitle.textContent = isEn ? 'Past 7 days progress' : 'Tiến độ 7 ngày gần nhất';
+    }
+
     if (totalStreakXpText) {
-        totalStreakXpText.textContent = `+${data.totalXpEarnedFromStreaks} XP đã tích lũy`;
+        totalStreakXpText.textContent = isEn ? `+${data.totalXpEarnedFromStreaks} XP accumulated` : `+${data.totalXpEarnedFromStreaks} XP đã tích lũy`;
     }
 
     // Render Past 7 Days Progress
     if (past7DaysContainer && data.past7Days && data.past7Days.length > 0) {
         past7DaysContainer.innerHTML = '';
+        const viToEnDays = { 'T2': 'Mon', 'T3': 'Tue', 'T4': 'Wed', 'T5': 'Thu', 'T6': 'Fri', 'T7': 'Sat', 'CN': 'Sun' };
+
         data.past7Days.forEach(day => {
             const dayCol = document.createElement('div');
             dayCol.className = 'text-center flex-fill';
 
+            const rawDayName = day.dayName || '';
+            const dayDisplayName = isEn ? (day.dayNameEn || viToEnDays[rawDayName] || rawDayName) : rawDayName;
+
             let circleClass = 'day-tracker-circle unchecked mx-auto mb-1';
-            let circleContent = day.dayName;
+            let circleContent = dayDisplayName;
 
             if (day.isCheckedIn) {
                 if (day.isToday) {
@@ -277,7 +319,7 @@ function updateStreakUI(data) {
                 <div class="${circleClass}">
                     ${circleContent}
                 </div>
-                <div class="small fw-semibold text-muted" style="font-size: 0.72rem;">${day.dayName}</div>
+                <div class="small fw-semibold text-muted" style="font-size: 0.72rem;">${escapeHtml(dayDisplayName)}</div>
             `;
             past7DaysContainer.appendChild(dayCol);
         });
@@ -285,6 +327,7 @@ function updateStreakUI(data) {
 }
 
 async function handleDailyCheckIn() {
+    const isEn = isCurrentCultureEnglish();
     const btnDoCheckIn = document.getElementById('btnDoCheckIn');
     const btnCheckInText = document.getElementById('btnCheckInText');
     const checkInSpinner = document.getElementById('checkInSpinner');
@@ -295,7 +338,7 @@ async function handleDailyCheckIn() {
     btnDoCheckIn.disabled = true;
     if (checkInSpinner) checkInSpinner.classList.remove('d-none');
     if (checkInIcon) checkInIcon.classList.add('d-none');
-    if (btnCheckInText) btnCheckInText.textContent = 'Đang ghi nhận...';
+    if (btnCheckInText) btnCheckInText.textContent = isEn ? 'Recording...' : 'Đang ghi nhận...';
 
     const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
     const token = tokenInput ? tokenInput.value : '';
@@ -315,16 +358,26 @@ async function handleDailyCheckIn() {
             await loadStreakStatus();
 
             // Display celebration message
-            if (result.newlyUnlockedBadges && result.newlyUnlockedBadges.length > 0) {
-                alert(`🎉 CHÚC MỪNG!\n${result.message}\n\n🏆 THÀNH TỰU MỚI:\n${result.newlyUnlockedBadges.join('\n')}`);
+            const badges = isEn && result.newlyUnlockedBadgesEn && result.newlyUnlockedBadgesEn.length > 0
+                ? result.newlyUnlockedBadgesEn
+                : (result.newlyUnlockedBadges || []);
+
+            if (badges.length > 0) {
+                const title = isEn ? '🎉 CONGRATULATIONS!' : '🎉 CHÚC MỪNG!';
+                const ach = isEn ? '🏆 NEW ACHIEVEMENT:' : '🏆 THÀNH TỰU MỚI:';
+                const msg = isEn ? (result.messageEn || result.message) : result.message;
+                alert(`${title}\n${msg}\n\n${ach}\n${badges.join('\n')}`);
             }
         } else {
-            alert(result.message || 'Không thể điểm danh lúc này, vui lòng thử lại sau.');
+            const failMsg = isEn 
+                ? (result.messageEn || 'Unable to check in right now. Please try again later.') 
+                : (result.message || 'Không thể điểm danh lúc này, vui lòng thử lại sau.');
+            alert(failMsg);
             if (btnDoCheckIn) btnDoCheckIn.disabled = false;
         }
     } catch (err) {
         console.error('Error during check-in:', err);
-        alert('Đã có lỗi xảy ra trong quá trình điểm danh. Vui lòng kiểm tra lại kết nối mạng.');
+        alert(isEn ? 'An error occurred during check-in. Please verify your connection.' : 'Đã có lỗi xảy ra trong quá trình điểm danh. Vui lòng kiểm tra lại kết nối mạng.');
         if (btnDoCheckIn) btnDoCheckIn.disabled = false;
     } finally {
         if (checkInSpinner) checkInSpinner.classList.add('d-none');
@@ -606,7 +659,7 @@ function handleReceiveActivity(activity) {
             </div>
             <div class="flex-grow-1 min-w-0">
                 <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-1">
-                    <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
                         <span class="fw-bold text-body-emphasis">${escapeHtml(activity.userDisplayName)}</span>
                         <span class="text-body-secondary small">${escapeHtml(activity.title)}</span>
                         <span class="badge bg-${activity.typeBadgeColor || 'primary'} bg-opacity-10 text-${activity.typeBadgeColor || 'primary'} rounded-pill px-2 py-0.5 small fw-semibold">

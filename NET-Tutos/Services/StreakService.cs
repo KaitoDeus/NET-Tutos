@@ -85,6 +85,7 @@ public class StreakService : IStreakService
             {
                 Date = date,
                 DayName = GetVietnameseDayName(date.DayOfWeek),
+                DayNameEn = GetEnglishDayName(date.DayOfWeek),
                 IsCheckedIn = record != null,
                 IsToday = date == today,
                 XpEarned = record?.XpEarned ?? 0
@@ -142,6 +143,7 @@ public class StreakService : IStreakService
                 LongestStreak = user.LongestStreak,
                 XpEarned = todayRecord?.XpEarned ?? 0,
                 Message = $"Hôm nay bạn đã điểm danh rồi! Chuỗi học tập hiện tại: {user.CurrentStreak} ngày liên tiếp.",
+                MessageEn = $"You've already checked in today! Current study streak: {user.CurrentStreak} consecutive days.",
                 Past7Days = past7
             };
         }
@@ -176,6 +178,7 @@ public class StreakService : IStreakService
 
         // Check and award badges
         var newlyUnlocked = new List<string>();
+        var newlyUnlockedEn = new List<string>();
 
         if (newStreak >= 3 && !await _context.UserBadges.AnyAsync(ub => ub.UserId == userId && ub.BadgeCode == "STREAK_3"))
         {
@@ -191,6 +194,7 @@ public class StreakService : IStreakService
             });
             user.ExperiencePoints += 30;
             newlyUnlocked.Add("Mở khóa huy hiệu: Ngọn Lửa Bền Bỉ (+30 XP thưởng)");
+            newlyUnlockedEn.Add("Badge unlocked: Persistent Flame (+30 bonus XP)");
         }
 
         if (newStreak >= 7 && !await _context.UserBadges.AnyAsync(ub => ub.UserId == userId && ub.BadgeCode == "STREAK_7"))
@@ -207,6 +211,7 @@ public class StreakService : IStreakService
             });
             user.ExperiencePoints += 70;
             newlyUnlocked.Add("Mở khóa huy hiệu: Chiến Binh Kỷ Luật (+70 XP thưởng)");
+            newlyUnlockedEn.Add("Badge unlocked: Disciplined Warrior (+70 bonus XP)");
         }
 
         if (newStreak >= 30 && !await _context.UserBadges.AnyAsync(ub => ub.UserId == userId && ub.BadgeCode == "STREAK_30"))
@@ -223,6 +228,7 @@ public class StreakService : IStreakService
             });
             user.ExperiencePoints += 200;
             newlyUnlocked.Add("Mở khóa huy hiệu: Huyền Thoại Bất Bại (+200 XP thưởng)");
+            newlyUnlockedEn.Add("Badge unlocked: Unstoppable Legend (+200 bonus XP)");
         }
 
         await _context.SaveChangesAsync();
@@ -273,6 +279,10 @@ public class StreakService : IStreakService
             ? $"Tuyệt vời! Bạn đã duy trì chuỗi {newStreak} ngày liên tiếp và nhận được +{xpReward} XP!"
             : $"Chào mừng trở lại! Bắt đầu chuỗi học tập mới với +{xpReward} XP!";
 
+        string messageEn = newStreak > 1
+            ? $"Awesome! You maintained a {newStreak}-day streak and earned +{xpReward} XP!"
+            : $"Welcome back! Started a new learning streak with +{xpReward} XP!";
+
         return new StreakCheckInResult
         {
             Success = true,
@@ -281,7 +291,9 @@ public class StreakService : IStreakService
             LongestStreak = user.LongestStreak,
             XpEarned = xpReward,
             Message = message,
+            MessageEn = messageEn,
             NewlyUnlockedBadges = newlyUnlocked,
+            NewlyUnlockedBadgesEn = newlyUnlockedEn,
             Past7Days = past7Days
         };
     }
@@ -320,6 +332,7 @@ public class StreakService : IStreakService
             {
                 Date = date,
                 DayName = GetVietnameseDayName(date.DayOfWeek),
+                DayNameEn = GetEnglishDayName(date.DayOfWeek),
                 IsCheckedIn = record != null,
                 IsToday = date == today,
                 XpEarned = record?.XpEarned ?? 0
@@ -338,6 +351,7 @@ public class StreakService : IStreakService
             {
                 Date = date,
                 DayName = GetVietnameseDayName(date.DayOfWeek),
+                DayNameEn = GetEnglishDayName(date.DayOfWeek),
                 IsCheckedIn = false,
                 IsToday = date == today,
                 XpEarned = 0
@@ -350,9 +364,9 @@ public class StreakService : IStreakService
     {
         return new List<StreakMilestoneItem>
         {
-            new() { Days = 3, Title = "Ngọn Lửa Bền Bỉ", BonusXp = 30, BadgeCode = "STREAK_3", IsReached = longestStreak >= 3 },
-            new() { Days = 7, Title = "Chiến Binh Kỷ Luật", BonusXp = 70, BadgeCode = "STREAK_7", IsReached = longestStreak >= 7 },
-            new() { Days = 30, Title = "Huyền Thoại Bất Bại", BonusXp = 200, BadgeCode = "STREAK_30", IsReached = longestStreak >= 30 }
+            new() { Days = 3, Title = "Ngọn Lửa Bền Bỉ", TitleEn = "Persistent Flame", BonusXp = 30, BadgeCode = "STREAK_3", IsReached = longestStreak >= 3 },
+            new() { Days = 7, Title = "Chiến Binh Kỷ Luật", TitleEn = "Disciplined Warrior", BonusXp = 70, BadgeCode = "STREAK_7", IsReached = longestStreak >= 7 },
+            new() { Days = 30, Title = "Huyền Thoại Bất Bại", TitleEn = "Unstoppable Legend", BonusXp = 200, BadgeCode = "STREAK_30", IsReached = longestStreak >= 30 }
         };
     }
 
@@ -382,6 +396,18 @@ public class StreakService : IStreakService
         DayOfWeek.Friday => "T6",
         DayOfWeek.Saturday => "T7",
         DayOfWeek.Sunday => "CN",
+        _ => ""
+    };
+
+    private static string GetEnglishDayName(DayOfWeek day) => day switch
+    {
+        DayOfWeek.Monday => "Mon",
+        DayOfWeek.Tuesday => "Tue",
+        DayOfWeek.Wednesday => "Wed",
+        DayOfWeek.Thursday => "Thu",
+        DayOfWeek.Friday => "Fri",
+        DayOfWeek.Saturday => "Sat",
+        DayOfWeek.Sunday => "Sun",
         _ => ""
     };
 }

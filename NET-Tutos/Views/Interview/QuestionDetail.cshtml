@@ -80,7 +80,7 @@
         {
             <div class="alert alert-warning border-warning rounded-4 p-3 p-md-4 mb-4">
                 <div class="fw-bold text-warning-emphasis mb-1">
-                    <i class="bi bi-stars me-1.5 fs-5"></i> @(isEn ? "Interviewer Insider Secret & Traps to Avoid:" : "Mẹo Phỏng Vấn Thực Chiến & Cạm Bẫy Cần Tránh:")
+                    <i class="bi bi-stars me-2 fs-5"></i> @(isEn ? "Interviewer Insider Secret & Traps to Avoid:" : "Mẹo Phỏng Vấn Thực Chiến & Cạm Bẫy Cần Tránh:")
                 </div>
                 <div class="text-body-secondary small" style="line-height: 1.6;">@Model.InterviewTip</div>
             </div>
@@ -92,7 +92,7 @@
                 <i class="bi bi-arrow-left me-1"></i> @(isEn ? "Back to Question Bank" : "Về Ngân Hàng Câu Hỏi")
             </a>
             <a asp-action="Study" asp-route-topic="@Model.Topic" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-xs">
-                <i class="bi bi-play-circle-fill me-1.5"></i> @(isEn ? "Practice in Flashcard Mode" : "Luyện Bằng Thẻ Flashcard 3D")
+                <i class="bi bi-play-circle-fill me-2"></i> @(isEn ? "Practice in Flashcard Mode" : "Luyện Bằng Thẻ Flashcard 3D")
             </a>
         </div>
     </div>

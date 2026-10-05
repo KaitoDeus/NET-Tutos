@@ -166,7 +166,7 @@
                                 </div>
 
                                 <div class="pt-3 border-top d-flex align-items-center justify-content-between flex-wrap gap-2 text-muted small">
-                                    <span class="d-inline-flex align-items-center gap-1.5">
+                                    <span class="d-inline-flex align-items-center gap-2">
                                         <i class="bi bi-database-check text-success"></i>
                                         <span>@(isEn ? "Database:" : "CSDL:") <strong class="text-body-emphasis">@Model.DatabaseProviderUsed</strong></span>
                                     </span>
@@ -408,33 +408,33 @@
                 </p>
                 <div class="d-flex flex-wrap gap-3">
                     <a asp-controller="Project" asp-action="Index" class="btn btn-primary rounded-pill px-4 py-2.5 fw-semibold shadow-sm">
-                        <i class="bi bi-folder-check me-1.5"></i> @(isEn ? "Explore Capstone Topics" : "Khám phá các đề tài đồ án")
+                        <i class="bi bi-folder-check me-2"></i> @(isEn ? "Explore Capstone Topics" : "Khám phá các đề tài đồ án")
                     </a>
                     <a asp-controller="Leaderboard" asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 py-2.5 fw-semibold">
-                        <i class="bi bi-trophy me-1.5"></i> @(isEn ? "Learner Hall of Fame" : "Bảng vinh danh học viên")
+                        <i class="bi bi-trophy me-2"></i> @(isEn ? "Learner Hall of Fame" : "Bảng vinh danh học viên")
                     </a>
                 </div>
             </div>
             <div class="col-lg-5 text-center">
                 <div class="p-4 rounded-4 bg-body-tertiary border d-inline-block text-start shadow-sm w-100" style="max-width: 420px;">
                     <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                        <span class="fw-bold small text-body-secondary"><i class="bi bi-patch-check-fill text-success me-1"></i> @(isEn ? "REVIEW STANDARDS" : "TIÊU CHUẨN REVIEW")</span>
+                        <span class="fw-bold small text-body-secondary"><i class="bi bi-patch-check-fill text-success me-2"></i> @(isEn ? "REVIEW STANDARDS" : "TIÊU CHUẨN REVIEW")</span>
                         <span class="badge bg-success bg-opacity-10 text-success rounded-pill">100 @(isEn ? "pts" : "điểm")</span>
                     </div>
                     <div class="small mb-2 d-flex align-items-center justify-content-between">
-                        <span><i class="bi bi-check2 text-primary me-1.5"></i> Clean Architecture & SOLID</span>
+                        <span><i class="bi bi-check2 text-primary me-2"></i> Clean Architecture & SOLID</span>
                         <strong class="text-primary">40%</strong>
                     </div>
                     <div class="small mb-2 d-flex align-items-center justify-content-between">
-                        <span><i class="bi bi-check2 text-success me-1.5"></i> @(isEn ? "Business Logic & Entity Framework Core" : "Nghiệp vụ & Entity Framework Core")</span>
+                        <span><i class="bi bi-check2 text-success me-2"></i> @(isEn ? "Business Logic & Entity Framework Core" : "Nghiệp vụ & Entity Framework Core")</span>
                         <strong class="text-success">30%</strong>
                     </div>
                     <div class="small mb-2 d-flex align-items-center justify-content-between">
-                        <span><i class="bi bi-check2 text-warning me-1.5"></i> @(isEn ? "Exception Handling & Security" : "Exception Handling & Bảo mật")</span>
+                        <span><i class="bi bi-check2 text-warning me-2"></i> @(isEn ? "Exception Handling & Security" : "Exception Handling & Bảo mật")</span>
                         <strong class="text-warning">15%</strong>
                     </div>
                     <div class="small d-flex align-items-center justify-content-between">
-                        <span><i class="bi bi-check2 text-info me-1.5"></i> Unit Testing & Swagger Docs</span>
+                        <span><i class="bi bi-check2 text-info me-2"></i> Unit Testing & Swagger Docs</span>
                         <strong class="text-info">15%</strong>
                     </div>
                 </div>

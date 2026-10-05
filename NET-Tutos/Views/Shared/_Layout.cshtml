@@ -408,9 +408,9 @@
                             </div>
 
                             <!-- Streak Quick Badge Button -->
-                            <button id="btnNavStreak" class="btn btn-sm btn-outline-warning rounded-pill px-2.5 py-1.5 d-flex align-items-center gap-1.5 text-nowrap fw-bold shadow-none"
+                            <button id="btnNavStreak" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1.5 d-flex align-items-center gap-2 text-nowrap fw-bold shadow-none"
                                     type="button" data-bs-toggle="modal" data-bs-target="#streakModal" title="@(isEn ? "Daily Learning Streak" : "Chuỗi học tập hàng ngày (Streak)")">
-                                <i class="bi bi-fire text-danger fs-6 streak-fire-icon"></i>
+                                <i class="bi bi-fire text-danger fs-6 streak-fire-icon me-1"></i>
                                 <span id="navStreakCountText">0 @(isEn ? "days" : "ngày")</span>
                             </button>
 
@@ -426,11 +426,11 @@
                                 <div class="dropdown-menu dropdown-menu-end shadow-lg border rounded-4 p-0 mt-2 notification-menu" style="width: 360px; max-width: 92vw;">
                                     <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-body-tertiary rounded-top-4">
                                         <div class="d-flex align-items-center gap-2">
-                                            <h6 class="fw-bold mb-0"><i class="bi bi-bell-fill text-primary me-1.5"></i>@(isEn ? "Notifications" : "Thông báo")</h6>
+                                            <h6 class="fw-bold mb-0"><i class="bi bi-bell-fill text-primary me-2"></i>@(isEn ? "Notifications" : "Thông báo")</h6>
                                             <span id="notificationUnreadPill" class="badge bg-danger rounded-pill d-none">0 @(isEn ? "new" : "mới")</span>
                                         </div>
                                         <button id="btnMarkAllRead" class="btn btn-sm btn-link text-decoration-none p-0 small fw-semibold text-muted" type="button">
-                                            <i class="bi bi-check2-all me-1"></i>@(isEn ? "Mark all read" : "Đọc tất cả")
+                                            <i class="bi bi-check2-all me-2"></i>@(isEn ? "Mark all read" : "Đọc tất cả")
                                         </button>
                                     </div>
                                     <div id="notificationListItems" class="notification-scroll-container overflow-y-auto" style="max-height: 380px;">
@@ -450,7 +450,7 @@
                             <div class="dropdown w-100 w-lg-auto">
                                 <button class="btn btn-sm btn-outline-primary dropdown-toggle d-flex align-items-center justify-content-between justify-content-lg-start gap-2 rounded-pill px-3 py-1.5 text-nowrap w-100 w-lg-auto" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <span class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-person-circle fs-6"></i>
+                                        <i class="bi bi-person-circle fs-6 me-1"></i>
                                         <span class="fw-semibold text-truncate" style="max-width: 140px;">@(User.Identity.Name?.Split('@')[0] ?? (isEn ? "Learner" : "Học viên"))</span>
                                     </span>
                                 </button>

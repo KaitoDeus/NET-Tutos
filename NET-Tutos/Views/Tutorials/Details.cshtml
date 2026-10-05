@@ -199,7 +199,7 @@
                             {
                                 <a asp-action="Details" asp-route-slug="@tut.GetSlug(isEn)"
                                    class="list-group-item list-group-item-action py-2.5 px-2 rounded-2 mb-1 @(tut.Id == Model.Tutorial.Id ? "active fw-semibold" : "")">
-                                    <i class="bi @(tut.Id == Model.Tutorial.Id ? "bi-check2-circle" : "bi-circle") me-1.5 opacity-75"></i>
+                                    <i class="bi @(tut.Id == Model.Tutorial.Id ? "bi-check2-circle" : "bi-circle") me-2 opacity-75"></i>
                                     @tut.GetTitle(isEn)
                                 </a>
                             }

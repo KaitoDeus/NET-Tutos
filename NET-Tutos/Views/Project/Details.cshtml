@@ -105,12 +105,12 @@
                     <ul class="nav nav-pills card-header-pills gap-2" id="projectTab" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active rounded-pill px-3 py-2 fw-semibold" id="req-tab" data-bs-toggle="pill" data-bs-target="#req-content" type="button" role="tab" aria-controls="req-content" aria-selected="true">
-                                <i class="bi bi-card-checklist me-1.5"></i> @(isEn ? "Requirements & Rubrics" : "Yêu Cầu & Tiêu Chuẩn Đánh Giá")
+                                <i class="bi bi-card-checklist me-2"></i> @(isEn ? "Requirements & Rubrics" : "Yêu Cầu & Tiêu Chuẩn Đánh Giá")
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link rounded-pill px-3 py-2 fw-semibold" id="guide-tab" data-bs-toggle="pill" data-bs-target="#guide-content" type="button" role="tab" aria-controls="guide-content" aria-selected="false">
-                                <i class="bi bi-journal-text me-1.5"></i> @(isEn ? "Architecture Guide" : "Hướng Dẫn & Gợi Ý Kiến Trúc")
+                                <i class="bi bi-journal-text me-2"></i> @(isEn ? "Architecture Guide" : "Hướng Dẫn & Gợi Ý Kiến Trúc")
                             </button>
                         </li>
                     </ul>
@@ -211,7 +211,7 @@
                             <div class="mb-3">
                                 <span class="text-body-secondary small d-block mb-1">@(isEn ? "Submitted Repository:" : "Kho lưu trữ đã nộp:")</span>
                                 <a href="@Model.UserSubmission.GitHubRepoUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary w-100 rounded-pill text-truncate text-start px-3 py-2">
-                                    <i class="bi bi-github me-1.5"></i> @Model.UserSubmission.GitHubRepoUrl
+                                    <i class="bi bi-github me-2"></i> @Model.UserSubmission.GitHubRepoUrl
                                 </a>
                             </div>
 
@@ -368,7 +368,7 @@
                     <div class="card border-0 shadow-sm rounded-4 bg-body overflow-hidden">
                         <div class="p-3.5 bg-primary bg-opacity-10 border-bottom text-center">
                             <h5 class="fw-bold mb-1 text-primary">
-                                <i class="bi bi-upload me-1.5"></i> @(isEn ? "Submit Capstone Project" : "Nộp Bài Đồ Án")
+                                <i class="bi bi-upload me-2"></i> @(isEn ? "Submit Capstone Project" : "Nộp Bài Đồ Án")
                             </h5>
                             <span class="small text-body-secondary">
                                 @(isEn ? $"Complete to earn +{Model.Project.RewardXp} XP" : $"Hoàn thành để nhận +{Model.Project.RewardXp} XP")
@@ -411,7 +411,7 @@
                                 </div>
 
                                 <button type="submit" class="btn btn-primary rounded-pill w-100 fw-semibold py-2.5 shadow-sm">
-                                    <i class="bi bi-send-fill me-1.5"></i> @(isEn ? "Submit Project & Request Review" : "Nộp Đồ Án & Nhận Review")
+                                    <i class="bi bi-send-fill me-2"></i> @(isEn ? "Submit Project & Request Review" : "Nộp Đồ Án & Nhận Review")
                                 </button>
                             </form>
                         </div>

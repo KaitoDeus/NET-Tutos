@@ -10,8 +10,8 @@
             <!-- Modal Header -->
             <div class="modal-header border-0 pb-0">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1.5 fw-bold">
-                        <i class="bi bi-fire text-danger me-1"></i> @(isEn ? "KEEP LEARNING STREAK" : "GIỮ LỬA HỌC TẬP")
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center">
+                        <i class="bi bi-fire text-danger me-2"></i> @(isEn ? "KEEP LEARNING STREAK" : "GIỮ LỬA HỌC TẬP")
                     </span>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -25,7 +25,7 @@
                         <i class="bi bi-fire streak-huge-flame"></i>
                     </div>
                     <div class="display-3 fw-extrabold text-body-emphasis mb-0" id="modalStreakCount">0</div>
-                    <div class="text-uppercase fw-bold text-muted small letter-spacing-1">@(isEn ? "Consecutive Days" : "Ngày Liên Tục")</div>
+                    <div class="text-uppercase fw-bold text-muted small letter-spacing-1" id="modalStreakDaysLabel">@(isEn ? "Consecutive Days" : "Ngày Liên Tục")</div>
                 </div>
 
                 <p class="text-body-secondary small mt-2 mb-4 mx-auto" style="max-width: 360px;" id="modalStreakStatusText">
@@ -35,19 +35,19 @@
                 <!-- Check-in Action Button -->
                 <div class="mb-4">
                     <button id="btnDoCheckIn" class="btn btn-warning btn-lg rounded-pill fw-bold px-4 py-2.5 shadow w-100 d-inline-flex align-items-center justify-content-center gap-2" type="button">
-                        <span class="spinner-border spinner-border-sm d-none" id="checkInSpinner"></span>
-                        <i class="bi bi-lightning-charge-fill text-danger fs-5" id="checkInIcon"></i>
+                        <span class="spinner-border spinner-border-sm d-none me-2" id="checkInSpinner"></span>
+                        <i class="bi bi-lightning-charge-fill text-danger fs-5 me-2" id="checkInIcon"></i>
                         <span id="btnCheckInText">@(isEn ? "Check in today (+20 XP)" : "Điểm danh hôm nay (+20 XP)")</span>
                     </button>
-                    <div class="small text-muted mt-2" id="checkInSubtext">
-                        <i class="bi bi-clock-history me-1"></i>@(isEn ? "Log in and check in daily to accumulate XP" : "Mỗi ngày đăng nhập và điểm danh để tích lũy XP")
+                    <div class="small text-muted mt-2 d-flex align-items-center justify-content-center" id="checkInSubtext">
+                        <i class="bi bi-clock-history me-2"></i>@(isEn ? "Log in and check in daily to accumulate XP" : "Mỗi ngày đăng nhập và điểm danh để tích lũy XP")
                     </div>
                 </div>
 
                 <!-- Past 7 Days Visual Progress -->
                 <div class="card border rounded-4 bg-body-tertiary p-3 mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="small fw-bold text-body-secondary">@(isEn ? "Past 7 days progress" : "Tiến độ 7 ngày gần nhất")</span>
+                        <span class="small fw-bold text-body-secondary" id="modalPast7DaysTitle">@(isEn ? "Past 7 days progress" : "Tiến độ 7 ngày gần nhất")</span>
                         <span class="small text-primary fw-semibold" id="totalStreakXpText">@(isEn ? "+0 XP earned" : "+0 XP đã nhận")</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center gap-1" id="past7DaysContainer">
@@ -57,8 +57,8 @@
 
                 <!-- Streak Milestones (Cột mốc thưởng) -->
                 <div class="text-start">
-                    <h6 class="fw-bold small text-uppercase text-muted mb-2.5">
-                        <i class="bi bi-trophy text-warning me-1"></i> @(isEn ? "Milestones & Record Badges" : "Mốc Thưởng & Huy Hiệu Kỷ Lục")
+                    <h6 class="fw-bold small text-uppercase text-muted mb-2.5 d-flex align-items-center">
+                        <i class="bi bi-trophy text-warning me-2"></i> @(isEn ? "Milestones & Record Badges" : "Mốc Thưởng & Huy Hiệu Kỷ Lục")
                     </h6>
                     <div class="list-group list-group-flush border rounded-3 overflow-hidden small" id="milestonesContainer">
                         <div class="list-group-item d-flex align-items-center justify-content-between py-2.5 bg-body">
@@ -103,8 +103,8 @@
 
             <!-- Modal Footer -->
             <div class="modal-footer border-0 pt-0 bg-body-tertiary d-flex justify-content-between align-items-center">
-                <span class="small text-muted">
-                    <i class="bi bi-info-circle me-1"></i>@(isEn ? "Reading lessons, coding in sandbox, or taking quizzes also counts as check-in!" : "Đọc bài, giải code hoặc thi quiz cũng tính điểm danh!")
+                <span class="small text-muted d-inline-flex align-items-center">
+                    <i class="bi bi-info-circle me-2"></i>@(isEn ? "Reading lessons, coding in sandbox, or taking quizzes also counts as check-in!" : "Đọc bài, giải code hoặc thi quiz cũng tính điểm danh!")
                 </span>
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">@(isEn ? "Close" : "Đóng")</button>
             </div>

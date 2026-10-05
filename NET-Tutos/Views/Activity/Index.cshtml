@@ -28,7 +28,7 @@
 
     <!-- Filter Pills -->
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 pb-2 border-bottom">
-        <ul class="nav nav-pills gap-1.5 flex-nowrap overflow-x-auto pb-1" style="scrollbar-width: thin;">
+        <ul class="nav nav-pills gap-2 flex-nowrap overflow-x-auto pb-1" style="scrollbar-width: thin;">
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 small fw-semibold @(string.IsNullOrEmpty(activeFilter) ? "active" : "text-body-secondary")"
                    asp-action="Index" asp-route-filter="">
@@ -87,7 +87,7 @@
                                 <!-- Body -->
                                 <div class="flex-grow-1 min-w-0">
                                     <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-1">
-                                        <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
                                             <span class="fw-bold text-body-emphasis">@item.UserDisplayName</span>
                                             <span class="text-body-secondary small">@item.GetActivityTitle(isEn)</span>
                                             <span class="badge bg-@item.TypeBadgeColor bg-opacity-10 text-@item.TypeBadgeColor rounded-pill px-2 py-0.5 small fw-semibold">

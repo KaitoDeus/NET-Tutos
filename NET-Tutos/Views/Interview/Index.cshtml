@@ -32,10 +32,10 @@
             </p>
             <div class="d-flex flex-wrap gap-2.5">
                 <a asp-action="Study" class="btn btn-primary rounded-pill px-4 py-2.5 fw-bold shadow-sm">
-                    <i class="bi bi-play-circle-fill me-1.5"></i> @(isEn ? $"Study Now ({Model.DueTodayCount} due)" : $"Bắt đầu Ôn tập ({Model.DueTodayCount} thẻ đến hạn)")
+                    <i class="bi bi-play-circle-fill me-2"></i> @(isEn ? $"Study Now ({Model.DueTodayCount} due)" : $"Bắt đầu Ôn tập ({Model.DueTodayCount} thẻ đến hạn)")
                 </a>
                 <a asp-action="Mock" class="btn btn-outline-primary rounded-pill px-4 py-2.5 fw-bold bg-body">
-                    <i class="bi bi-stopwatch-fill me-1.5"></i> @(isEn ? "Mock Interview (10 mins)" : "Phỏng Vấn Thử (10 phút)")
+                    <i class="bi bi-stopwatch-fill me-2"></i> @(isEn ? "Mock Interview (10 mins)" : "Phỏng Vấn Thử (10 phút)")
                 </a>
             </div>
         </div>

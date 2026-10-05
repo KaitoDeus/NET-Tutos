@@ -468,13 +468,14 @@ public static class LocalizationHelper
             if (queryCulture.ToString().StartsWith("vi", StringComparison.OrdinalIgnoreCase)) return false;
         }
 
-        if (context.Request.Cookies.TryGetValue(Microsoft.AspNetCore.Localization.CookieRequestCultureProvider.DefaultCookieName, out var cookieVal))
+        if (context.Request.Cookies.TryGetValue(Microsoft.AspNetCore.Localization.CookieRequestCultureProvider.DefaultCookieName, out var rawCookieVal))
         {
-            if (!string.IsNullOrEmpty(cookieVal) && cookieVal.Contains("uic=en", StringComparison.OrdinalIgnoreCase))
+            var cookieVal = System.Net.WebUtility.UrlDecode(rawCookieVal ?? string.Empty);
+            if (!string.IsNullOrEmpty(cookieVal) && (cookieVal.Contains("uic=en", StringComparison.OrdinalIgnoreCase) || cookieVal.Contains("c=en", StringComparison.OrdinalIgnoreCase)))
             {
                 return true;
             }
-            if (!string.IsNullOrEmpty(cookieVal) && cookieVal.Contains("uic=vi", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrEmpty(cookieVal) && (cookieVal.Contains("uic=vi", StringComparison.OrdinalIgnoreCase) || cookieVal.Contains("c=vi", StringComparison.OrdinalIgnoreCase)))
             {
                 return false;
             }
