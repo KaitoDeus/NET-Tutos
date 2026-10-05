@@ -4,242 +4,181 @@
     ViewData["Title"] = isEn ? "Create Account | NET-Tutos" : "Đăng ký tài khoản | NET-Tutos";
 }
 
-<div class="container py-4 py-lg-5">
+<div class="container py-4 py-md-5">
     <div class="row justify-content-center">
-        <div class="col-12 col-xl-11">
-            <div class="card auth-split-wrapper rounded-4 border overflow-hidden">
-                <div class="row g-0">
-                    <!-- Left Hero Showcase Column (Desktop only) -->
-                    <div class="col-lg-5 auth-hero-banner p-4 p-xl-5 text-white d-none d-lg-flex flex-column justify-content-between position-relative">
-                        <!-- Brand Header -->
-                        <div>
-                            <div class="d-flex align-items-center gap-2 mb-4">
-                                <img src="~/images/csharp-logo.png" alt="C# Logo" width="36" height="40" style="object-fit: contain;" />
-                                <div>
-                                    <h4 class="fw-bold mb-0 text-white tracking-wide">.NET Tutos</h4>
-                                    <span class="badge bg-white text-primary fw-bold" style="font-size: 0.7rem;">.NET 10 • C# 14</span>
-                                </div>
-                            </div>
-
-                            <h3 class="fw-extrabold text-white mb-2 lh-sm">
-                                @(isEn ? "Start Your C# Journey Today" : "Bắt đầu Hành trình Chinh phục C#")
-                            </h3>
-                            <p class="text-white-50 small mb-4">
-                                @(isEn ? "Create your free account to track lessons, earn XP, complete challenges, and build enterprise projects." : "Tạo tài khoản miễn phí để lưu tiến độ bài học, nhận +50 XP khởi đầu, giải thử thách C# và nhận chứng chỉ số.")
-                            </p>
-
-                            <!-- Registration Benefits -->
-                            <div class="d-flex flex-column gap-2.5 my-3">
-                                <div class="auth-feature-pill p-3 rounded-3 d-flex align-items-center gap-3">
-                                    <div class="rounded-circle bg-white bg-opacity-20 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                        <i class="bi bi-gift-fill text-warning fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-bold text-white small">@(isEn ? "Welcome Bonus: +50 XP" : "Quà Tặng Khởi Đầu: +50 XP")</div>
-                                        <div class="text-white-50" style="font-size: 0.75rem;">@(isEn ? "Instant XP reward upon registration" : "Cộng ngay 50 điểm XP để mở khóa danh hiệu đầu tiên")</div>
-                                    </div>
-                                </div>
-
-                                <div class="auth-feature-pill p-3 rounded-3 d-flex align-items-center gap-3">
-                                    <div class="rounded-circle bg-white bg-opacity-20 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                        <i class="bi bi-award-fill text-info fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-bold text-white small">@(isEn ? "Verifiable Certificates" : "Chứng Chỉ Số Định Danh")</div>
-                                        <div class="text-white-50" style="font-size: 0.75rem;">@(isEn ? "Graduate exams & verify via QR code" : "Vượt qua kỳ sát hạch & chia sẻ mã chứng chỉ lên CV")</div>
-                                    </div>
-                                </div>
-
-                                <div class="auth-feature-pill p-3 rounded-3 d-flex align-items-center gap-3">
-                                    <div class="rounded-circle bg-white bg-opacity-20 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                        <i class="bi bi-kanban-fill text-success fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-bold text-white small">@(isEn ? "Real-world Capstones" : "Đồ Án Thực Chiến Capstone")</div>
-                                        <div class="text-white-50" style="font-size: 0.75rem;">@(isEn ? "Build production-ready Clean Architecture apps" : "Nộp đồ án thực tế & nhận đánh giá chi tiết")</div>
-                                    </div>
-                                </div>
-                            </div>
+        <div class="col-12 col-md-9 col-lg-6 col-xl-5">
+            <div class="card border shadow-lg rounded-4 overflow-hidden bg-body">
+                <div class="p-4 p-md-5">
+                    <!-- Brand & Top Bar -->
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="~/images/csharp-logo.png" alt="C# Logo" width="28" height="32" style="object-fit: contain;" />
+                            <span class="fw-bold fs-5 tracking-wide text-body">.NET Tutos</span>
+                            <span class="badge bg-primary-subtle text-primary fw-semibold" style="font-size: 0.7rem;">.NET 10</span>
                         </div>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-sm btn-link text-decoration-none text-muted p-0 small">
+                            <i class="bi bi-house-door me-1"></i>@(isEn ? "Home" : "Trang chủ")
+                        </a>
+                    </div>
 
-                        <!-- Footer trust info -->
-                        <div class="pt-4 border-top border-white border-opacity-15 d-flex align-items-center justify-content-between">
-                            <span class="text-white-50 small">
-                                <i class="bi bi-people-fill me-1 text-white"></i>@(isEn ? "Join 1,000+ developers" : "Gia nhập hơn 1,000+ học viên")
-                            </span>
-                            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-25 rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
-                                <i class="bi bi-check-circle-fill text-success me-1"></i>@(isEn ? "100% Free Forever" : "Miễn phí trọn đời")
-                            </span>
+                    <!-- Top Segmented Switcher -->
+                    <div class="d-flex justify-content-center mb-4">
+                        <div class="auth-tab-switch">
+                            <a asp-action="Login" class="nav-link">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>@(isEn ? "Sign In" : "Đăng nhập")
+                            </a>
+                            <a asp-action="Register" class="nav-link active">
+                                <i class="bi bi-person-plus me-1"></i>@(isEn ? "Register" : "Đăng ký")
+                            </a>
                         </div>
                     </div>
 
-                    <!-- Right Form Column -->
-                    <div class="col-lg-7 p-4 p-md-5 d-flex flex-column justify-content-center">
-                        <div class="mx-auto w-100" style="max-width: 480px;">
-                            <!-- Top Segmented Switcher -->
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <div class="auth-tab-switch">
-                                    <a asp-action="Login" class="nav-link">
-                                        <i class="bi bi-box-arrow-in-right me-1"></i>@(isEn ? "Sign In" : "Đăng nhập")
-                                    </a>
-                                    <a asp-action="Register" class="nav-link active">
-                                        <i class="bi bi-person-plus me-1"></i>@(isEn ? "Register" : "Đăng ký")
-                                    </a>
-                                </div>
+                    <!-- Register Header -->
+                    <div class="text-center mb-4">
+                        <h3 class="fw-bold mb-1">@(isEn ? "Create Learner Account" : "Đăng Ký Tài Khoản Mới")</h3>
+                        <p class="text-muted small mb-0">
+                            @(isEn ? "Fill in your details to create your free account and get +50 XP bonus." : "Điền thông tin bên dưới để bắt đầu học tập và nhận ngay +50 XP khởi đầu.")
+                        </p>
+                    </div>
 
-                                <a asp-controller="Home" asp-action="Index" class="btn btn-sm btn-link text-decoration-none text-muted p-0 small">
-                                    <i class="bi bi-house-door me-1"></i>@(isEn ? "Home" : "Trang chủ")
-                                </a>
+                    <!-- Register Form -->
+                    <form method="post" asp-action="Register" id="registerForm">
+                        @Html.AntiForgeryToken()
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3 rounded-3 d-flex align-items-center gap-2">
+                            <i class="bi bi-exclamation-triangle-fill fs-6 flex-shrink-0"></i>
+                            <div></div>
+                        </div>
+
+                        <!-- Full Name Input -->
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label fw-semibold small">@(isEn ? "Full Name" : "Họ và tên")</label>
+                            <div class="input-group input-group-auth">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input asp-for="FullName" class="form-control" placeholder="@(isEn ? "Nguyen Van An" : "Nguyễn Văn An")" autofocus autocomplete="name" />
                             </div>
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
 
-                            <!-- Register Header -->
-                            <div class="mb-4">
-                                <h3 class="fw-bold mb-1">@(isEn ? "Create Learner Account" : "Đăng Ký Tài Khoản Mới")</h3>
-                                <p class="text-muted small mb-0">
-                                    @(isEn ? "Fill in your details to create your free account and get +50 XP bonus." : "Điền thông tin bên dưới để bắt đầu học tập và nhận ngay +50 XP khởi đầu.")
-                                </p>
+                        <!-- Email Input -->
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label fw-semibold small">@(isEn ? "Email Address" : "Địa chỉ Email")</label>
+                            <div class="input-group input-group-auth">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input asp-for="Email" class="form-control" placeholder="name@example.com" autocomplete="username" />
                             </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
 
-                            <!-- Register Form -->
-                            <form method="post" asp-action="Register" id="registerForm">
-                                @Html.AntiForgeryToken()
-
-                                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3 rounded-3 d-flex align-items-center gap-2">
-                                    <i class="bi bi-exclamation-triangle-fill fs-6 flex-shrink-0"></i>
-                                    <div></div>
-                                </div>
-
-                                <!-- Full Name Input -->
-                                <div class="mb-3">
-                                    <label asp-for="FullName" class="form-label fw-semibold small">@(isEn ? "Full Name" : "Họ và tên")</label>
-                                    <div class="input-group input-group-auth">
-                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                        <input asp-for="FullName" class="form-control" placeholder="@(isEn ? "Nguyen Van An" : "Nguyễn Văn An")" autofocus autocomplete="name" />
-                                    </div>
-                                    <span asp-validation-for="FullName" class="text-danger small"></span>
-                                </div>
-
-                                <!-- Email Input -->
-                                <div class="mb-3">
-                                    <label asp-for="Email" class="form-label fw-semibold small">@(isEn ? "Email Address" : "Địa chỉ Email")</label>
-                                    <div class="input-group input-group-auth">
-                                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                        <input asp-for="Email" class="form-control" placeholder="name@example.com" autocomplete="username" />
-                                    </div>
-                                    <span asp-validation-for="Email" class="text-danger small"></span>
-                                </div>
-
-                                <!-- Password Input with Strength Meter -->
-                                <div class="mb-3">
-                                    <label asp-for="Password" class="form-label fw-semibold small">@(isEn ? "Password" : "Mật khẩu")</label>
-                                    <div class="input-group input-group-auth">
-                                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                        <input asp-for="Password" class="form-control" id="regPassword" type="password" placeholder="@(isEn ? "At least 6 characters" : "Tối thiểu 6 ký tự")" autocomplete="new-password" />
-                                        <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleRegPasswordBtn" title="@(isEn ? "Show/Hide password" : "Hiện/Ẩn mật khẩu")">
-                                            <i class="bi bi-eye" id="toggleRegPasswordIcon"></i>
-                                        </button>
-                                    </div>
-                                    <span asp-validation-for="Password" class="text-danger small"></span>
-
-                                    <!-- Real-time Password Strength Meter -->
-                                    <div class="mt-2" id="passwordStrengthContainer" style="display: none;">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <span class="text-muted" style="font-size: 0.75rem;">@(isEn ? "Password Strength:" : "Độ mạnh mật khẩu:")</span>
-                                            <span class="fw-bold" id="passwordStrengthLabel" style="font-size: 0.75rem;"></span>
-                                        </div>
-                                        <div class="password-meter-bar mb-2">
-                                            <div class="password-meter-segment" id="seg1"></div>
-                                            <div class="password-meter-segment" id="seg2"></div>
-                                            <div class="password-meter-segment" id="seg3"></div>
-                                            <div class="password-meter-segment" id="seg4"></div>
-                                        </div>
-
-                                        <!-- Requirements checklist -->
-                                        <div class="d-flex flex-column gap-1">
-                                            <div class="password-req-check" id="reqLength">
-                                                <i class="bi bi-circle"></i>
-                                                <span>@(isEn ? "At least 6 characters" : "Tối thiểu 6 ký tự")</span>
-                                            </div>
-                                            <div class="password-req-check" id="reqCase">
-                                                <i class="bi bi-circle"></i>
-                                                <span>@(isEn ? "Contains uppercase & lowercase letters" : "Chứa cả chữ hoa và chữ thường")</span>
-                                            </div>
-                                            <div class="password-req-check" id="reqSpecial">
-                                                <i class="bi bi-circle"></i>
-                                                <span>@(isEn ? "Contains numbers or special characters" : "Chứa chữ số hoặc ký hiệu đặc biệt")</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Confirm Password Input with Match Indicator -->
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <label asp-for="ConfirmPassword" class="form-label fw-semibold small mb-0">@(isEn ? "Confirm Password" : "Xác nhận mật khẩu")</label>
-                                        <span id="confirmMatchBadge" class="small d-none" style="font-size: 0.75rem;"></span>
-                                    </div>
-                                    <div class="input-group input-group-auth">
-                                        <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
-                                        <input asp-for="ConfirmPassword" class="form-control" id="regConfirmPassword" type="password" placeholder="@(isEn ? "Re-enter your password" : "Nhập lại mật khẩu")" autocomplete="new-password" />
-                                        <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleConfirmPasswordBtn" title="@(isEn ? "Show/Hide password" : "Hiện/Ẩn mật khẩu")">
-                                            <i class="bi bi-eye" id="toggleConfirmPasswordIcon"></i>
-                                        </button>
-                                    </div>
-                                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
-                                </div>
-
-                                <!-- Terms & Conditions Checkbox -->
-                                <div class="form-check mb-4">
-                                    <input asp-for="AgreeToTerms" class="form-check-input" id="agreeTermsCheck" required />
-                                    <label asp-for="AgreeToTerms" class="form-check-label small user-select-none" for="agreeTermsCheck">
-                                        @(isEn ? "I agree to the" : "Tôi đồng ý với")
-                                        <a href="#" class="text-primary text-decoration-none fw-medium" data-bs-toggle="modal" data-bs-target="#termsModal">
-                                            @(isEn ? "Terms of Service" : "Điều khoản dịch vụ")
-                                        </a>
-                                        @(isEn ? "and Learning Community Guidelines" : "và Quy tắc học tập cộng đồng")
-                                    </label>
-                                </div>
-
-                                <!-- Submit Button -->
-                                <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-pill fw-semibold shadow-sm mb-3 d-flex align-items-center justify-content-center gap-2" id="submitRegBtn">
-                                    <i class="bi bi-person-plus fs-6"></i>
-                                    <span>@(isEn ? "Create Account & Get +50 XP" : "Đăng Ký Tài Khoản & Nhận +50 XP")</span>
+                        <!-- Password Input with Strength Meter -->
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label fw-semibold small">@(isEn ? "Password" : "Mật khẩu")</label>
+                            <div class="input-group input-group-auth">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input asp-for="Password" class="form-control" id="regPassword" type="password" placeholder="@(isEn ? "At least 6 characters" : "Tối thiểu 6 ký tự")" autocomplete="new-password" />
+                                <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleRegPasswordBtn" title="@(isEn ? "Show/Hide password" : "Hiện/Ẩn mật khẩu")">
+                                    <i class="bi bi-eye" id="toggleRegPasswordIcon"></i>
                                 </button>
-                            </form>
-
-                            <!-- Social Auth Divider -->
-                            <div class="d-flex align-items-center my-3 text-muted">
-                                <hr class="flex-grow-1 my-0 opacity-25" />
-                                <span class="px-3 small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">
-                                    @(isEn ? "Or register with" : "Hoặc đăng ký nhanh với")
-                                </span>
-                                <hr class="flex-grow-1 my-0 opacity-25" />
                             </div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
 
-                            <!-- Social Buttons -->
-                            <div class="row g-2 mb-4">
-                                <div class="col-6">
-                                    <button type="button" class="btn btn-outline-secondary w-100 py-2 rounded-3 small fw-semibold social-auth-btn d-flex align-items-center justify-content-center gap-2" onclick="showSocialNotice('GitHub')">
-                                        <i class="bi bi-github fs-6"></i>
-                                        <span>GitHub</span>
-                                    </button>
+                            <!-- Real-time Password Strength Meter -->
+                            <div class="mt-2" id="passwordStrengthContainer" style="display: none;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-muted" style="font-size: 0.75rem;">@(isEn ? "Password Strength:" : "Độ mạnh mật khẩu:")</span>
+                                    <span class="fw-bold" id="passwordStrengthLabel" style="font-size: 0.75rem;"></span>
                                 </div>
-                                <div class="col-6">
-                                    <button type="button" class="btn btn-outline-secondary w-100 py-2 rounded-3 small fw-semibold social-auth-btn d-flex align-items-center justify-content-center gap-2" onclick="showSocialNotice('Google')">
-                                        <i class="bi bi-google text-danger fs-6"></i>
-                                        <span>Google</span>
-                                    </button>
+                                <div class="password-meter-bar mb-2">
+                                    <div class="password-meter-segment" id="seg1"></div>
+                                    <div class="password-meter-segment" id="seg2"></div>
+                                    <div class="password-meter-segment" id="seg3"></div>
+                                    <div class="password-meter-segment" id="seg4"></div>
                                 </div>
-                            </div>
 
-                            <!-- Bottom Login Link -->
-                            <div class="text-center pt-2">
-                                <span class="text-muted small">@(isEn ? "Already have an account?" : "Đã có tài khoản học viên?")</span>
-                                <a asp-action="Login" class="fw-bold text-primary text-decoration-none small ms-1">
-                                    @(isEn ? "Sign in now" : "Đăng nhập ngay") <i class="bi bi-arrow-right"></i>
-                                </a>
+                                <!-- Requirements checklist -->
+                                <div class="d-flex flex-column gap-1">
+                                    <div class="password-req-check" id="reqLength">
+                                        <i class="bi bi-circle"></i>
+                                        <span>@(isEn ? "At least 6 characters" : "Tối thiểu 6 ký tự")</span>
+                                    </div>
+                                    <div class="password-req-check" id="reqCase">
+                                        <i class="bi bi-circle"></i>
+                                        <span>@(isEn ? "Contains uppercase & lowercase letters" : "Chứa cả chữ hoa và chữ thường")</span>
+                                    </div>
+                                    <div class="password-req-check" id="reqSpecial">
+                                        <i class="bi bi-circle"></i>
+                                        <span>@(isEn ? "Contains numbers or special characters" : "Chứa chữ số hoặc ký hiệu đặc biệt")</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- Confirm Password Input with Match Indicator -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label asp-for="ConfirmPassword" class="form-label fw-semibold small mb-0">@(isEn ? "Confirm Password" : "Xác nhận mật khẩu")</label>
+                                <span id="confirmMatchBadge" class="small d-none" style="font-size: 0.75rem;"></span>
+                            </div>
+                            <div class="input-group input-group-auth">
+                                <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+                                <input asp-for="ConfirmPassword" class="form-control" id="regConfirmPassword" type="password" placeholder="@(isEn ? "Re-enter your password" : "Nhập lại mật khẩu")" autocomplete="new-password" />
+                                <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleConfirmPasswordBtn" title="@(isEn ? "Show/Hide password" : "Hiện/Ẩn mật khẩu")">
+                                    <i class="bi bi-eye" id="toggleConfirmPasswordIcon"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Terms & Conditions Checkbox -->
+                        <div class="form-check mb-4">
+                            <input asp-for="AgreeToTerms" class="form-check-input" id="agreeTermsCheck" required />
+                            <label asp-for="AgreeToTerms" class="form-check-label small user-select-none" for="agreeTermsCheck">
+                                @(isEn ? "I agree to the" : "Tôi đồng ý với")
+                                <a href="#" class="text-primary text-decoration-none fw-medium" data-bs-toggle="modal" data-bs-target="#termsModal">
+                                    @(isEn ? "Terms of Service" : "Điều khoản dịch vụ")
+                                </a>
+                                @(isEn ? "and Community Guidelines" : "và Quy tắc học tập")
+                            </label>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-pill fw-semibold shadow-sm mb-3 d-flex align-items-center justify-content-center gap-2" id="submitRegBtn">
+                            <i class="bi bi-person-plus fs-6"></i>
+                            <span>@(isEn ? "Create Account & Get +50 XP" : "Đăng Ký Tài Khoản & Nhận +50 XP")</span>
+                        </button>
+                    </form>
+
+                    <!-- Social Auth Divider -->
+                    <div class="d-flex align-items-center my-3 text-muted">
+                        <hr class="flex-grow-1 my-0 opacity-25" />
+                        <span class="px-3 small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                            @(isEn ? "Or register with" : "Hoặc đăng ký nhanh với")
+                        </span>
+                        <hr class="flex-grow-1 my-0 opacity-25" />
+                    </div>
+
+                    <!-- Social Buttons -->
+                    <div class="row g-2 mb-4">
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-secondary w-100 py-2 rounded-3 small fw-semibold social-auth-btn d-flex align-items-center justify-content-center gap-2" onclick="showSocialNotice('GitHub')">
+                                <i class="bi bi-github fs-6"></i>
+                                <span>GitHub</span>
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-secondary w-100 py-2 rounded-3 small fw-semibold social-auth-btn d-flex align-items-center justify-content-center gap-2" onclick="showSocialNotice('Google')">
+                                <i class="bi bi-google text-danger fs-6"></i>
+                                <span>Google</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Login Link -->
+                    <div class="text-center pt-2">
+                        <span class="text-muted small">@(isEn ? "Already have an account?" : "Đã có tài khoản học viên?")</span>
+                        <a asp-action="Login" class="fw-bold text-primary text-decoration-none small ms-1">
+                            @(isEn ? "Sign in now" : "Đăng nhập ngay") <i class="bi bi-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
             </div>
