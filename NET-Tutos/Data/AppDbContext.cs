@@ -31,6 +31,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ProjectSubmission> ProjectSubmissions => Set<ProjectSubmission>();
     public DbSet<InterviewFlashcard> InterviewFlashcards => Set<InterviewFlashcard>();
     public DbSet<UserFlashcardProgress> UserFlashcardProgresses => Set<UserFlashcardProgress>();
+    public DbSet<StudyPlan> StudyPlans => Set<StudyPlan>();
+    public DbSet<StudyPlanItem> StudyPlanItems => Set<StudyPlanItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -349,6 +351,29 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                   .WithMany()
                   .HasForeignKey(p => p.UserId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // StudyPlan configurations
+        modelBuilder.Entity<StudyPlan>(entity =>
+        {
+            entity.HasKey(sp => sp.Id);
+            entity.HasIndex(sp => sp.UserId);
+            entity.HasIndex(sp => sp.IsActive);
+            entity.Property(sp => sp.Title).IsRequired().HasMaxLength(200);
+
+            entity.HasMany(sp => sp.PlanItems)
+                  .WithOne(pi => pi.StudyPlan)
+                  .HasForeignKey(pi => pi.StudyPlanId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // StudyPlanItem configurations
+        modelBuilder.Entity<StudyPlanItem>(entity =>
+        {
+            entity.HasKey(pi => pi.Id);
+            entity.HasIndex(pi => new { pi.StudyPlanId, pi.LessonNumber });
+            entity.HasIndex(pi => pi.ScheduledDate);
+            entity.HasIndex(pi => pi.IsCompleted);
         });
     }
 }

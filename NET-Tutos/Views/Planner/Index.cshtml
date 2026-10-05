@@ -1,0 +1,603 @@
+@model NET_Tutos.Models.ViewModels.StudyPlannerDashboardViewModel
+@{
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "Personal Study Planner & Goal Tracker" : "Kế Hoạch Học Tập & Theo Dõi Mục Tiêu";
+}
+
+<div class="container py-4">
+    <!-- Header Hero Banner -->
+    <div class="rounded-4 p-4 p-md-5 mb-4 shadow-sm border position-relative overflow-hidden"
+         style="background: linear-gradient(135deg, rgba(25, 135, 84, 0.08) 0%, rgba(13, 110, 253, 0.06) 100%);">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-success px-3 py-1.5 rounded-pill fw-semibold">
+                        <i class="bi bi-calendar2-check-fill me-1"></i>@(isEn ? "Goal Tracker 2026" : "Kế Hoạch Thông Minh 2026")
+                    </span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1.5 rounded-pill fw-semibold">
+                        <i class="bi bi-fire text-danger me-1"></i>@(isEn ? "Streak Maintenance Powered" : "Tích hợp Chuỗi Streak & XP")
+                    </span>
+                </div>
+                <h1 class="display-6 fw-extrabold text-body-emphasis mb-2">
+                    @(isEn ? "Personalized Study Planner & Goal Tracker" : "Kế Hoạch Học Tập Cá Nhân Hóa & Theo Dõi Mục Tiêu")
+                </h1>
+                <p class="lead text-muted mb-3 fs-6" style="max-width: 720px;">
+                    @(isEn 
+                        ? "Design your own customized roadmap through the 101-lesson curriculum. Automatically schedule milestones based on your available time, stay accountable, and graduate as an enterprise-ready .NET Developer." 
+                        : "Tự động phân bổ 101 bài học C# .NET Core theo thời gian biểu cá nhân của bạn. Duy trì động lực học tập mỗi ngày, bảo vệ chuỗi Streak và vững bước trên lộ trình trở thành kỹ sư .NET chuyên nghiệp.")
+                </p>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge bg-body text-body border shadow-xs px-3 py-2 rounded-3">
+                        <i class="bi bi-clock-fill text-warning me-1"></i>@(isEn ? "Flexible Daily Budget" : "Linh hoạt thời lượng")
+                    </span>
+                    <span class="badge bg-body text-body border shadow-xs px-3 py-2 rounded-3">
+                        <i class="bi bi-lightning-charge-fill text-danger me-1"></i>@(isEn ? "Streak Protection" : "Bảo vệ chuỗi Streak")
+                    </span>
+                    <span class="badge bg-body text-body border shadow-xs px-3 py-2 rounded-3">
+                        <i class="bi bi-award-fill text-success me-1"></i>@(isEn ? "+25 XP per Milestone" : "+25 XP mỗi bài hoàn thành")
+                    </span>
+                </div>
+            </div>
+
+            <!-- Streak & Stats Spotlight -->
+            <div class="col-lg-4 mt-4 mt-lg-0 text-center text-lg-end">
+                <div class="d-inline-block bg-body p-4 rounded-4 shadow-sm border text-center" style="min-width: 260px;">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger mb-2" style="width: 56px; height: 56px;">
+                        <i class="bi bi-fire fs-2"></i>
+                    </div>
+                    <div class="display-6 fw-black text-danger mb-0">@Model.CurrentStreak</div>
+                    <div class="fw-bold text-body-emphasis small text-uppercase tracking-wider mb-1">
+                        @(isEn ? "Day Learning Streak" : "Ngày Streak Liên Tục")
+                    </div>
+                    <small class="text-muted d-block">
+                        @(isEn ? $"Personal Record: {Model.LongestStreak} days" : $"Kỷ lục cá nhân: {Model.LongestStreak} ngày")
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.HasActivePlan)
+    {
+        <!-- ========================================== -->
+        <!-- ONBOARDING: CREATE NEW STUDY PLAN WIZARD -->
+        <!-- ========================================== -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-body">
+            <div class="text-center mb-4">
+                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1.5 fw-bold mb-2">
+                    @(isEn ? "Setup in 1 Minute" : "Thiết lập chỉ trong 1 phút")
+                </span>
+                <h2 class="fw-extrabold text-body-emphasis">
+                    @(isEn ? "Create Your Custom .NET Study Plan" : "Khởi Tạo Kế Hoạch Học Tập .NET Cá Nhân Hóa")
+                </h2>
+                <p class="text-muted mx-auto" style="max-width: 650px;">
+                    @(isEn 
+                        ? "Select your target timeline, study focus, and weekly availability. Our scheduling engine will evenly distribute all 101 lessons into structured daily missions." 
+                        : "Chọn tốc độ lộ trình, phân hệ trọng tâm và thời gian bạn có thể dành mỗi tuần. Hệ thống sẽ tự động lập thời khóa biểu và giao nhiệm vụ vừa vặn từng ngày.")
+                </p>
+            </div>
+
+            <form asp-action="Create" method="post" id="createPlanForm">
+                @Html.AntiForgeryToken()
+
+                <div class="row g-4 mb-4">
+                    <!-- Step 1: Track Velocity -->
+                    <div class="col-12">
+                        <label class="form-label fw-bold fs-6">
+                            <span class="badge bg-primary rounded-circle me-1">1</span>
+                            @(isEn ? "Choose Your Pace & Velocity Track:" : "Chọn Tốc Độ Lộ Trình:")
+                        </label>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="card h-100 p-3 border-2 rounded-4 cursor-pointer track-card" style="cursor: pointer;">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="TrackType" value="FastTrack" id="trackFast">
+                                        <label class="form-check-label fw-bold text-danger d-block fs-6" for="trackFast">
+                                            <i class="bi bi-rocket-takeoff me-1"></i>@(isEn ? "Fast Track (30 Days)" : "Cấp Tốc (30 Ngày)")
+                                        </label>
+                                    </div>
+                                    <p class="small text-muted mb-0 mt-2">
+                                        @(isEn ? "~3 - 4 lessons per day. Ideal for full-time learners or bootcamps preparing for imminent interviews." : "~3 - 4 bài mỗi ngày. Dành cho bạn có toàn thời gian, muốn bứt tốc phỏng vấn trong 1 tháng.")
+                                    </p>
+                                </label>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="card h-100 p-3 border-2 border-primary bg-primary-subtle bg-opacity-10 rounded-4 cursor-pointer track-card" style="cursor: pointer;">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="TrackType" value="Standard" id="trackStandard" checked>
+                                        <label class="form-check-label fw-bold text-primary d-block fs-6" for="trackStandard">
+                                            <i class="bi bi-award me-1"></i>@(isEn ? "Standard (90 Days / 3 Months)" : "Chuẩn Mực (90 Ngày / 3 Tháng)")
+                                        </label>
+                                    </div>
+                                    <p class="small text-muted mb-0 mt-2">
+                                        @(isEn ? "~1 - 2 lessons per study day. The golden standard for deep mastery with practice exercises." : "~1 - 2 bài/ngày học. Lộ trình chuẩn vàng, đủ thời gian làm thực hành và ngẫm sâu kiến thức.")
+                                    </p>
+                                </label>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="card h-100 p-3 border-2 rounded-4 cursor-pointer track-card" style="cursor: pointer;">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="TrackType" value="SteadyPartTime" id="trackSteady">
+                                        <label class="form-check-label fw-bold text-success d-block fs-6" for="trackSteady">
+                                            <i class="bi bi-cup-hot me-1"></i>@(isEn ? "Steady Part-Time (180 Days)" : "Vừa Học Vừa Làm (6 Tháng)")
+                                        </label>
+                                    </div>
+                                    <p class="small text-muted mb-0 mt-2">
+                                        @(isEn ? "~3 - 4 lessons per week. Relaxed pace for university students or working career transitioners." : "~3 - 4 bài/tuần. Nhẹ nhàng, không áp lực cho người đi làm chuyển ngành hoặc sinh viên bận rộn.")
+                                    </p>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Learning Focus -->
+                    <div class="col-12">
+                        <label class="form-label fw-bold fs-6">
+                            <span class="badge bg-primary rounded-circle me-1">2</span>
+                            @(isEn ? "Choose Your Curriculum Scope & Focus:" : "Chọn Trọng Tâm Chương Trình:")
+                        </label>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="card h-100 p-3 border rounded-4 cursor-pointer focus-card" style="cursor: pointer;">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="FocusType" value="All101Lessons" id="focusAll" checked>
+                                        <label class="form-check-label fw-bold d-block" for="focusAll">
+                                            <i class="bi bi-collection-play-fill text-primary me-1"></i>@(isEn ? "All 101 Lessons (Mastery)" : "Toàn Bộ 101 Bài (Làm Chủ)")
+                                        </label>
+                                    </div>
+                                    <p class="small text-muted mb-0 mt-2">
+                                        @(isEn ? "Covers all 7 modules: C# Core, Advanced OOP, Networking, Database EF Core, ASP.NET Core, Razor, and MVC." : "Trọn bộ 7 phân hệ từ Nhập môn C#, OOP, Networking, CSDL EF Core, Nền tảng Web, Razor đến MVC hoàn chỉnh.")
+                                    </p>
+                                </label>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="card h-100 p-3 border rounded-4 cursor-pointer focus-card" style="cursor: pointer;">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="FocusType" value="BackendApiSpecialist" id="focusApi">
+                                        <label class="form-check-label fw-bold d-block" for="focusApi">
+                                            <i class="bi bi-hdd-network-fill text-danger me-1"></i>@(isEn ? "Backend & Web API Specialist" : "Chuyên Sâu Backend & API")
+                                        </label>
+                                    </div>
+                                    <p class="small text-muted mb-0 mt-2">
+                                        @(isEn ? "Focuses on Advanced C#, Networking, EF Core, ASP.NET Core Web Architecture & MVC (skips Razor Pages UI)." : "Tập trung OOP nâng cao, Networking, CSDL EF Core, Kiến trúc ASP.NET Core & MVC (bỏ qua giao diện Razor).")
+                                    </p>
+                                </label>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="card h-100 p-3 border rounded-4 cursor-pointer focus-card" style="cursor: pointer;">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="FocusType" value="FundamentalsOnly" id="focusFund">
+                                        <label class="form-check-label fw-bold d-block" for="focusFund">
+                                            <i class="bi bi-code-square text-success me-1"></i>@(isEn ? "C# Core & OOP Foundation" : "Nền Tảng C# Core & OOP")
+                                        </label>
+                                    </div>
+                                    <p class="small text-muted mb-0 mt-2">
+                                        @(isEn ? "Part 1 & 2 (Lessons 1 to 43). Perfect for programming beginners and computer science fundamentals." : "Phần 1 & 2 (Bài 1 đến 43). Thích hợp cho người mới bắt đầu lập trình hoặc sinh viên năm nhất.")
+                                    </p>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Daily Minutes & Days of Week -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold fs-6">
+                            <span class="badge bg-primary rounded-circle me-1">3</span>
+                            @(isEn ? "Target Minutes per Day:" : "Thời Gian Học Dự Kiến Mỗi Ngày:")
+                        </label>
+                        <select name="TargetMinutesPerDay" class="form-select form-select-lg rounded-3">
+                            <option value="15">15 @(isEn ? "minutes (Quick Bite)" : "phút / ngày (Nhẹ nhàng ôn luyện)")</option>
+                            <option value="30" selected>30 @(isEn ? "minutes (Standard Daily)" : "phút / ngày (Chuẩn khuyến nghị)")</option>
+                            <option value="45">45 @(isEn ? "minutes (Focused Learner)" : "phút / ngày (Tập trung chuyên sâu)")</option>
+                            <option value="60">60 @(isEn ? "minutes (Power Hour)" : "phút / ngày (1 giờ tăng tốc)")</option>
+                            <option value="90">90 @(isEn ? "minutes (Hardcore Immersion)" : "phút / ngày (Đắm chìm cao độ)")</option>
+                        </select>
+                    </div>
+
+                    <!-- Plan Title -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold fs-6">
+                            <span class="badge bg-primary rounded-circle me-1">4</span>
+                            @(isEn ? "Plan Name / Goal Title:" : "Tên Mục Tiêu Của Bạn:")
+                        </label>
+                        <input type="text" name="Title" class="form-control form-select-lg rounded-3" 
+                               value="@(isEn ? "My .NET 10 Developer Journey" : "Hành Trình Chinh Phục .NET 10 Developer")" required />
+                    </div>
+
+                    <!-- Days of Week Selection -->
+                    <div class="col-12">
+                        <label class="form-label fw-bold fs-6 d-block mb-2">
+                            @(isEn ? "Available Study Days in Week:" : "Các Ngày Học Trong Tuần:")
+                        </label>
+                        <div class="d-flex flex-wrap gap-2">
+                            @for (int day = 1; day <= 7; day++)
+                            {
+                                string dayNameVi = day == 7 ? "Chủ Nhật" : $"Thứ {day + 1}";
+                                string dayNameEn = day switch { 1 => "Mon", 2 => "Tue", 3 => "Wed", 4 => "Thu", 5 => "Fri", 6 => "Sat", 7 => "Sun", _ => "" };
+                                bool isDefault = day <= 5; // Monday to Friday default
+                                <div class="form-check form-check-inline m-0">
+                                    <input class="btn-check" type="checkbox" name="SelectedDays" value="@day" id="day_@day" @(isDefault ? "checked" : "")>
+                                    <label class="btn btn-outline-secondary px-3 py-2 rounded-3 fw-semibold" for="day_@day">
+                                        @(isEn ? dayNameEn : dayNameVi)
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center pt-3 border-top">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <button type="submit" class="btn btn-success btn-lg px-5 py-3 rounded-pill fw-bold shadow-sm">
+                            <i class="bi bi-magic me-2"></i>@(isEn ? "Generate My Study Schedule Now" : "Tạo Lịch Học Cá Nhân Hóa Ngay")
+                        </button>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" 
+                           class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold shadow-sm">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>@(isEn ? "Sign In to Save Your Plan & Track Streaks" : "Đăng Nhập Để Lưu Kế Hoạch & Theo Dõi Streak")
+                        </a>
+                    }
+                </div>
+            </form>
+        </div>
+    }
+    else
+    {
+        <!-- ========================================== -->
+        <!-- ACTIVE PLAN: DASHBOARD & WEEKLY SCHEDULE -->
+        <!-- ========================================== -->
+
+        <!-- Plan Summary & Action Bar -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge bg-primary rounded-pill px-3 py-1 fw-bold">
+                            @(Model.TrackType switch {
+                                NET_Tutos.Models.Entities.StudyPlanTrack.FastTrack => isEn ? "Fast Track" : "Cấp Tốc (30 Ngày)",
+                                NET_Tutos.Models.Entities.StudyPlanTrack.Standard => isEn ? "Standard" : "Chuẩn Mực (90 Ngày)",
+                                NET_Tutos.Models.Entities.StudyPlanTrack.SteadyPartTime => isEn ? "Steady Part-Time" : "Vừa Học Vừa Làm",
+                                _ => isEn ? "Custom Plan" : "Kế Hoạch Tùy Chỉnh"
+                            })
+                        </span>
+                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1">
+                            <i class="bi bi-clock me-1"></i>@Model.TargetMinutesPerDay @(isEn ? "mins/day" : "phút/ngày")
+                        </span>
+                    </div>
+                    <h3 class="fw-extrabold text-body-emphasis mb-0">@Model.Title</h3>
+                    <small class="text-muted">
+                        @(isEn ? "Target Graduation Date:" : "Dự kiến hoàn thành:") 
+                        <strong class="text-body">@Model.TargetEndDate.ToString("dd/MM/yyyy")</strong> 
+                        (@Model.DaysRemaining @(isEn ? "days remaining" : "ngày nữa"))
+                    </small>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    @if (Model.CanReschedule)
+                    {
+                        <form asp-action="Reschedule" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-warning rounded-pill px-3 py-2 fw-semibold" 
+                                    title="@(isEn ? "Redistribute overdue lessons from today" : "Dàn đều lại các bài chậm tiến độ từ hôm nay")">
+                                <i class="bi bi-arrow-repeat me-1"></i>@(isEn ? "Catch-up Reschedule" : "Dàn Lại Lịch Trễ")
+                            </button>
+                        </form>
+                    }
+
+                    <form asp-action="Reset" method="post" class="d-inline" onsubmit="return confirm('@(isEn ? "Are you sure you want to reset and start a new plan?" : "Bạn có chắc muốn làm mới và tạo kế hoạch khác không?")');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2">
+                            <i class="bi bi-gear me-1"></i>@(isEn ? "New Plan" : "Lập kế hoạch mới")
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Big Progress Bar -->
+            <div class="mt-4 pt-3 border-top">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold small text-uppercase text-muted">
+                        <i class="bi bi-bar-chart-line-fill text-success me-1"></i>@(isEn ? "Curriculum Completion Progress" : "Tiến Độ Hoàn Thành Mục Tiêu")
+                    </span>
+                    <span class="fw-bold fs-5 text-success" id="dashboardProgressText">@Model.ProgressPercentage%</span>
+                </div>
+                <div class="progress" style="height: 14px; border-radius: 8px;">
+                    <div id="dashboardProgressBar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: @Model.ProgressPercentage%"></div>
+                </div>
+                <div class="d-flex justify-content-between small text-muted mt-2">
+                    <span><span id="dashboardCompletedCount" class="fw-bold text-success">@Model.CompletedLessons</span> / @Model.TotalLessons @(isEn ? "milestones achieved" : "bài học đã hoàn thành")</span>
+                    <span>@(Model.TotalLessons - Model.CompletedLessons) @(isEn ? "lessons left" : "bài còn lại")</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Streak Warning Alert (If Streak in danger) -->
+        @if (Model.IsStreakInDanger)
+        {
+            <div class="alert alert-danger border-0 rounded-4 shadow-sm p-3 mb-4 d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; flex-shrink: 0;">
+                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h6 class="fw-bold mb-0 text-danger">@(isEn ? "Streak Alert: Keep Your Streak Alive!" : "Cảnh Báo: Chuỗi Streak Của Bạn Đang Có Nguy Cơ Bị Đứt!")</h6>
+                    <small class="text-danger-emphasis">
+                        @(isEn 
+                            ? "You have scheduled lessons today but haven't checked off any yet. Complete at least one milestone today to protect your streak and earn +25 bonus XP!" 
+                            : "Hôm nay bạn có bài học cần hoàn thành nhưng chưa học bài nào. Hãy hoàn thành ít nhất 1 bài để bảo toàn chuỗi Streak và nhận +25 XP!")
+                    </small>
+                </div>
+            </div>
+        }
+
+        <!-- Overdue Warning Alert (If overdue items exist) -->
+        @if (Model.OverdueLessons.Any())
+        {
+            <div class="alert alert-warning border-0 rounded-4 shadow-sm p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-clock-history text-warning-emphasis fs-4"></i>
+                    <div>
+                        <strong class="text-warning-emphasis">@(isEn ? $"You have {Model.OverdueLessons.Count} overdue lessons." : $"Bạn đang chậm {Model.OverdueLessons.Count} bài so với kế hoạch ban đầu.")</strong>
+                        <small class="d-block text-muted">@(isEn ? "No worries! Click 'Catch-up Reschedule' above to smoothly redistribute them from today." : "Đừng lo lắng! Bấm nút 'Dàn Lại Lịch Trễ' phía trên để hệ thống tự động dời sang các ngày tới.")</small>
+                    </div>
+                </div>
+                <form asp-action="Reschedule" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-warning btn-sm rounded-pill fw-semibold">
+                        <i class="bi bi-magic me-1"></i>@(isEn ? "Reschedule Now" : "Dàn lại ngay")
+                    </button>
+                </form>
+            </div>
+        }
+
+        <!-- Today's Daily Missions -->
+        @if (Model.TodayLessons.Any())
+        {
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-body border-start border-4 border-success">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-success rounded-pill px-3 py-1.5 fw-bold">
+                            <i class="bi bi-star-fill text-warning me-1"></i>@(isEn ? "Today's Mission" : "Nhiệm Vụ Hôm Nay")
+                        </span>
+                        <span class="text-muted small">@DateTime.Now.ToString("dddd, dd/MM/yyyy")</span>
+                    </div>
+                    <span class="badge bg-light text-secondary border small">
+                        @Model.TodayLessons.Count @(isEn ? "milestones" : "bài học")
+                    </span>
+                </div>
+
+                <div class="list-group list-group-flush">
+                    @foreach (var item in Model.TodayLessons)
+                    {
+                        <div class="list-group-item px-0 py-3 d-flex align-items-center justify-content-between flex-wrap gap-2 plan-item-row" id="item-row-@item.Id">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="form-check m-0">
+                                    <input class="form-check-input item-checkbox" type="checkbox" 
+                                           id="item_check_@item.Id" 
+                                           data-item-id="@item.Id" 
+                                           @(item.IsCompleted ? "checked" : "")
+                                           style="width: 1.35rem; height: 1.35rem; cursor: pointer;">
+                                </div>
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5 small fw-bold">
+                                            § @item.LessonNumber
+                                        </span>
+                                        <span class="badge bg-@item.SectionBadgeColor-subtle text-@item.SectionBadgeColor rounded-pill small">
+                                            @item.GetSectionTitle(isEn)
+                                        </span>
+                                        <span class="text-muted small">
+                                            <i class="bi bi-clock me-1"></i>~@item.EstimatedMinutes @(isEn ? "mins" : "phút")
+                                        </span>
+                                    </div>
+                                    <h6 class="mb-0 fw-bold @(item.IsCompleted ? "text-decoration-line-through text-muted" : "text-body-emphasis")" id="item-title-@item.Id">
+                                        @item.GetLessonTitle(isEn)
+                                    </h6>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-2">
+                                <a asp-controller="Curriculum" asp-action="Details" asp-route-id="@item.LessonNumber" 
+                                   class="btn btn-outline-primary btn-sm rounded-pill fw-semibold">
+                                    <i class="bi bi-book me-1"></i>@(isEn ? "Study Lesson" : "Học ngay")
+                                </a>
+                                <a asp-controller="Playground" asp-action="Index" 
+                                   class="btn btn-outline-danger btn-sm rounded-pill fw-semibold">
+                                    <i class="bi bi-terminal me-1"></i>@(isEn ? "Sandbox" : "Thực hành")
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Weekly Schedule Tabs / Timeline -->
+        <h4 class="fw-extrabold text-body-emphasis mb-3">
+            <i class="bi bi-calendar3 me-2 text-primary"></i>@(isEn ? "Weekly Milestones & Schedule Timeline" : "Lịch Trình Chi Tiết Theo Từng Tuần")
+        </h4>
+
+        <div class="row g-4 mb-4">
+            @foreach (var week in Model.Weeks)
+            {
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-body @(week.IsCurrentWeek ? "border-primary border-2" : "")">
+                        <!-- Week Header -->
+                        <div class="card-header bg-body-tertiary border-0 py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge @(week.IsCurrentWeek ? "bg-primary" : "bg-secondary") rounded-pill px-3 py-1.5 fw-bold">
+                                    @(isEn ? $"Week {week.WeekNumber}" : $"Tuần {week.WeekNumber}")
+                                </span>
+                                <span class="fw-bold text-body-emphasis">
+                                    @week.StartDate.ToString("dd/MM") - @week.EndDate.ToString("dd/MM/yyyy")
+                                </span>
+                                @if (week.IsCurrentWeek)
+                                {
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small">
+                                        <i class="bi bi-geo-alt-fill me-1"></i>@(isEn ? "Current Week" : "Tuần hiện tại")
+                                    </span>
+                                }
+                            </div>
+
+                            <div class="d-flex align-items-center gap-2">
+                                <small class="text-muted fw-semibold">
+                                    <span class="week-completed-count" id="week-completed-@week.WeekNumber">@week.CompletedCount</span> / @week.TotalCount @(isEn ? "completed" : "đã xong")
+                                </small>
+                                <div class="progress" style="width: 80px; height: 8px;">
+                                    <div class="progress-bar bg-success" id="week-progress-@week.WeekNumber" style="width: @week.ProgressPercentage%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Week Items -->
+                        <div class="list-group list-group-flush">
+                            @foreach (var item in week.Items)
+                            {
+                                string rowBg = item.IsCompleted ? "bg-success-subtle bg-opacity-10" : (item.IsOverdue ? "bg-warning-subtle bg-opacity-10" : "");
+
+                                <div class="list-group-item p-3 border-bottom @rowBg plan-item-row" id="item-row-@item.Id">
+                                    <div class="row align-items-center g-2">
+                                        <div class="col-auto">
+                                            <div class="form-check m-0">
+                                                <input class="form-check-input item-checkbox" type="checkbox" 
+                                                       id="item_check_@item.Id" 
+                                                       data-item-id="@item.Id" 
+                                                       data-week="@week.WeekNumber"
+                                                       @(item.IsCompleted ? "checked" : "")
+                                                       style="width: 1.25rem; height: 1.25rem; cursor: pointer;">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-auto">
+                                            <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1 small fw-semibold" style="min-width: 65px;">
+                                                @item.ScheduledDate.ToString("ddd dd/MM")
+                                            </span>
+                                        </div>
+
+                                        <div class="col">
+                                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                                <span class="badge bg-secondary-subtle text-secondary rounded-pill small">
+                                                    § @item.LessonNumber
+                                                </span>
+                                                <a asp-controller="Curriculum" asp-action="Details" asp-route-id="@item.LessonNumber" 
+                                                   class="fw-bold text-decoration-none text-body-emphasis fs-6 @(item.IsCompleted ? "text-decoration-line-through text-muted" : "")" 
+                                                   id="item-title-@item.Id">
+                                                    @item.GetLessonTitle(isEn)
+                                                </a>
+                                                <span class="badge bg-@item.SectionBadgeColor-subtle text-@item.SectionBadgeColor small">
+                                                    @item.GetSectionTitle(isEn)
+                                                </span>
+                                                @if (item.IsOverdue)
+                                                {
+                                                    <span class="badge bg-warning text-dark small">
+                                                        <i class="bi bi-clock-history me-1"></i>@(isEn ? "Overdue" : "Chậm tiến độ")
+                                                    </span>
+                                                }
+                                                @if (item.IsToday)
+                                                {
+                                                    <span class="badge bg-success small">
+                                                        <i class="bi bi-calendar-event me-1"></i>@(isEn ? "Today" : "Hôm nay")
+                                                    </span>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-md-auto d-flex align-items-center gap-2">
+                                            <a asp-controller="Curriculum" asp-action="Details" asp-route-id="@item.LessonNumber" 
+                                               class="btn btn-sm btn-outline-primary rounded-3">
+                                                <i class="bi bi-eye me-1"></i>@(isEn ? "Details" : "Chi tiết")
+                                            </a>
+                                            <a asp-controller="Playground" asp-action="Index" 
+                                               class="btn btn-sm btn-outline-danger rounded-3">
+                                                <i class="bi bi-play-circle me-1"></i>@(isEn ? "Code" : "Luyện tập")
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Handle checkbox toggles via AJAX
+        document.querySelectorAll('.item-checkbox').forEach(cb => {
+            cb.addEventListener('change', async function () {
+                const itemId = this.getAttribute('data-item-id');
+                const weekNum = this.getAttribute('data-week');
+                const isChecked = this.checked;
+
+                try {
+                    const response = await fetch('/Planner/ToggleItem?itemId=' + itemId, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            // Update row styles
+                            const titleEl = document.getElementById('item-title-' + itemId);
+                            const rowEl = document.getElementById('item-row-' + itemId);
+
+                            if (titleEl) {
+                                if (data.isCompleted) {
+                                    titleEl.classList.add('text-decoration-line-through', 'text-muted');
+                                } else {
+                                    titleEl.classList.remove('text-decoration-line-through', 'text-muted');
+                                }
+                            }
+
+                            if (rowEl) {
+                                if (data.isCompleted) {
+                                    rowEl.classList.add('bg-success-subtle', 'bg-opacity-10');
+                                    rowEl.classList.remove('bg-warning-subtle');
+                                } else {
+                                    rowEl.classList.remove('bg-success-subtle', 'bg-opacity-10');
+                                }
+                            }
+
+                            // Update top progress bar
+                            const progBar = document.getElementById('dashboardProgressBar');
+                            const progText = document.getElementById('dashboardProgressText');
+                            const compCount = document.getElementById('dashboardCompletedCount');
+
+                            if (progBar) progBar.style.width = data.progressPercentage + '%';
+                            if (progText) progText.textContent = data.progressPercentage + '%';
+                            if (compCount) compCount.textContent = data.completedCount;
+
+                            // Show toast or notification
+                            if (data.message && data.isCompleted) {
+                                if (window.toastNotification) {
+                                    window.toastNotification(data.message, 'success');
+                                }
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error('Lỗi cập nhật bài học:', err);
+                }
+            });
+        });
+    });
+</script>
+<style>
+    .cursor-pointer { cursor: pointer; }
+    .track-card:has(input:checked), .focus-card:has(input:checked) {
+        border-color: var(--bs-primary) !important;
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+</style>
+}

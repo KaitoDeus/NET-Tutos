@@ -21,7 +21,7 @@
     var currentAction = ViewContext.RouteData.Values["Action"]?.ToString() ?? "";
 
     bool isHomeActive = currentController == "Home" && currentAction == "Index";
-    bool isCoursesActive = currentController == "Tutorials" || currentController == "Roadmap" || currentController == "CheatSheet" || currentController == "Curriculum";
+    bool isCoursesActive = currentController == "Tutorials" || currentController == "Roadmap" || currentController == "CheatSheet" || currentController == "Curriculum" || currentController == "Planner";
     bool isPracticeActive = currentController == "Playground" || currentController == "Quiz" || currentController == "Exam" || currentController == "Project" || currentController == "Interview";
     bool isCommunityActive = currentController == "Leaderboard" || currentController == "Activity";
 }
@@ -199,6 +199,17 @@
                                                 <div class="category-content-box">
                                                     <span class="category-text-title" data-lang-key="nav_curriculum">@(isEn ? "Full Curriculum (101 Lessons)" : "Chương trình C# (101 bài)")</span>
                                                     <span class="category-text-desc" data-lang-key="nav_curriculum_desc">@(isEn ? "7 modules based on XuanThuLab & Microsoft" : "7 phân hệ chuẩn XuanThuLab & Microsoft")</span>
+                                                </div>
+                                            </a>
+
+                                            <a class="dropdown-item category-shortcut-card p-2 rounded-3 @(currentController == "Planner" ? "active" : "")"
+                                               asp-controller="Planner" asp-action="Index">
+                                                <div class="category-icon-box bg-success-subtle text-success">
+                                                    <i class="bi bi-calendar2-check-fill"></i>
+                                                </div>
+                                                <div class="category-content-box">
+                                                    <span class="category-text-title" data-lang-key="nav_planner">@(isEn ? "Personal Study Planner" : "Kế hoạch & Mục tiêu học")</span>
+                                                    <span class="category-text-desc" data-lang-key="nav_planner_desc">@(isEn ? "Goal tracking & streak protection" : "Theo dõi mục tiêu & duy trì Streak")</span>
                                                 </div>
                                             </a>
 

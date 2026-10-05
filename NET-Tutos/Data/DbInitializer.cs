@@ -32,6 +32,9 @@ public static class DbInitializer
         // Ensure newly added LMS Interview Flashcard tables exist
         await InterviewFlashcardSeeder.EnsureInterviewFlashcardTablesExistAsync(context);
 
+        // Ensure newly added LMS Study Planner tables exist
+        await EnsureStudyPlannerTablesExistAsync(context);
+
         // Seed Roles
         string[] roles = { "Admin", "Student" };
         foreach (var role in roles)
@@ -2359,6 +2362,93 @@ Xây dựng một sàn đấu giá trực tuyến hoạt động thời gian th�
 
         context.CapstoneProjects.AddRange(projects);
         await context.SaveChangesAsync();
+    }
+
+    private static async Task EnsureStudyPlannerTablesExistAsync(AppDbContext context)
+    {
+        var isSqlite = context.Database.IsSqlite();
+        if (isSqlite)
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS [StudyPlans] (
+                    [Id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    [UserId] TEXT NOT NULL,
+                    [Title] TEXT NOT NULL,
+                    [TrackType] INTEGER NOT NULL DEFAULT 2,
+                    [FocusType] INTEGER NOT NULL DEFAULT 1,
+                    [TargetMinutesPerDay] INTEGER NOT NULL DEFAULT 30,
+                    [SelectedDaysOfWeek] TEXT NOT NULL DEFAULT '1,2,3,4,5',
+                    [StartDate] TEXT NOT NULL,
+                    [TargetEndDate] TEXT NOT NULL,
+                    [IsActive] INTEGER NOT NULL DEFAULT 1,
+                    [CreatedAt] TEXT NOT NULL,
+                    [CompletedAt] TEXT NULL,
+                    FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+                );
+
+                CREATE INDEX IF NOT EXISTS [IX_StudyPlans_UserId] ON [StudyPlans] ([UserId]);
+                CREATE INDEX IF NOT EXISTS [IX_StudyPlans_IsActive] ON [StudyPlans] ([IsActive]);
+
+                CREATE TABLE IF NOT EXISTS [StudyPlanItems] (
+                    [Id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    [StudyPlanId] INTEGER NOT NULL,
+                    [LessonNumber] INTEGER NOT NULL,
+                    [ScheduledDate] TEXT NOT NULL,
+                    [IsCompleted] INTEGER NOT NULL DEFAULT 0,
+                    [CompletedAt] TEXT NULL,
+                    [Notes] TEXT NULL,
+                    FOREIGN KEY ([StudyPlanId]) REFERENCES [StudyPlans] ([Id]) ON DELETE CASCADE
+                );
+
+                CREATE INDEX IF NOT EXISTS [IX_StudyPlanItems_StudyPlanId_LessonNumber] ON [StudyPlanItems] ([StudyPlanId], [LessonNumber]);
+                CREATE INDEX IF NOT EXISTS [IX_StudyPlanItems_ScheduledDate] ON [StudyPlanItems] ([ScheduledDate]);
+                CREATE INDEX IF NOT EXISTS [IX_StudyPlanItems_IsCompleted] ON [StudyPlanItems] ([IsCompleted]);
+            ");
+        }
+        else
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'StudyPlans')
+                BEGIN
+                    CREATE TABLE [StudyPlans] (
+                        [Id] int NOT NULL IDENTITY,
+                        [UserId] nvarchar(450) NOT NULL,
+                        [Title] nvarchar(200) NOT NULL,
+                        [TrackType] int NOT NULL DEFAULT 2,
+                        [FocusType] int NOT NULL DEFAULT 1,
+                        [TargetMinutesPerDay] int NOT NULL DEFAULT 30,
+                        [SelectedDaysOfWeek] nvarchar(100) NOT NULL DEFAULT '1,2,3,4,5',
+                        [StartDate] datetime2 NOT NULL,
+                        [TargetEndDate] datetime2 NOT NULL,
+                        [IsActive] bit NOT NULL DEFAULT 1,
+                        [CreatedAt] datetime2 NOT NULL,
+                        [CompletedAt] datetime2 NULL,
+                        CONSTRAINT [PK_StudyPlans] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_StudyPlans_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+                    );
+                    CREATE INDEX [IX_StudyPlans_UserId] ON [StudyPlans] ([UserId]);
+                    CREATE INDEX [IX_StudyPlans_IsActive] ON [StudyPlans] ([IsActive]);
+                END;
+
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'StudyPlanItems')
+                BEGIN
+                    CREATE TABLE [StudyPlanItems] (
+                        [Id] int NOT NULL IDENTITY,
+                        [StudyPlanId] int NOT NULL,
+                        [LessonNumber] int NOT NULL,
+                        [ScheduledDate] datetime2 NOT NULL,
+                        [IsCompleted] bit NOT NULL DEFAULT 0,
+                        [CompletedAt] datetime2 NULL,
+                        [Notes] nvarchar(500) NULL,
+                        CONSTRAINT [PK_StudyPlanItems] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_StudyPlanItems_StudyPlans_StudyPlanId] FOREIGN KEY ([StudyPlanId]) REFERENCES [StudyPlans] ([Id]) ON DELETE CASCADE
+                    );
+                    CREATE INDEX [IX_StudyPlanItems_StudyPlanId_LessonNumber] ON [StudyPlanItems] ([StudyPlanId], [LessonNumber]);
+                    CREATE INDEX [IX_StudyPlanItems_ScheduledDate] ON [StudyPlanItems] ([ScheduledDate]);
+                    CREATE INDEX [IX_StudyPlanItems_IsCompleted] ON [StudyPlanItems] ([IsCompleted]);
+                END;
+            ");
+        }
     }
 }
 

@@ -48,6 +48,7 @@ builder.Services.AddScoped<IActivityFeedService, ActivityFeedService>();
 builder.Services.AddScoped<ICapstoneProjectService, CapstoneProjectService>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddScoped<ICurriculumService, CurriculumService>();
+builder.Services.AddScoped<IStudyPlannerService, StudyPlannerService>();
 
 // Determine Database Provider
 var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
@@ -218,6 +219,16 @@ app.MapControllerRoute(
     name: "curriculum-detail-en",
     pattern: "csharp-curriculum/{id:int}",
     defaults: new { controller = "Curriculum", action = "Details" });
+
+app.MapControllerRoute(
+    name: "planner-vi",
+    pattern: "ke-hoach-hoc-tap",
+    defaults: new { controller = "Planner", action = "Index" });
+
+app.MapControllerRoute(
+    name: "planner-en",
+    pattern: "study-planner",
+    defaults: new { controller = "Planner", action = "Index" });
 
 // Friendly certificate verify route: /verify-certificate/{code}
 app.MapControllerRoute(
