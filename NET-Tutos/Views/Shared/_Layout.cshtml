@@ -448,41 +448,41 @@
                             </div>
 
                             <div class="dropdown w-100 w-lg-auto">
-                                <button class="btn btn-sm btn-outline-primary dropdown-toggle d-flex align-items-center justify-content-between justify-content-lg-start gap-2 rounded-pill px-3 py-1.5 text-nowrap w-100 w-lg-auto" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <button class="btn btn-sm btn-outline-primary dropdown-toggle d-flex align-items-center justify-content-between justify-content-lg-start gap-2 rounded-pill px-3 py-1.5 text-nowrap w-100 w-lg-auto shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <span class="d-flex align-items-center gap-2">
                                         <i class="bi bi-person-circle fs-6 me-1"></i>
                                         <span class="fw-semibold text-truncate" style="max-width: 140px;">@(User.Identity.Name?.Split('@')[0] ?? (isEn ? "Learner" : "Học viên"))</span>
                                     </span>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 mt-2 w-100 w-lg-auto">
+                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border rounded-3 p-2 mt-2 w-100 w-lg-auto" style="min-width: 240px;">
                                     <li>
-                                        <a class="dropdown-item py-2 d-flex align-items-center gap-2" asp-controller="Account" asp-action="Profile">
-                                            <i class="bi bi-mortarboard text-primary"></i> @(isEn ? "Learning Dashboard" : "Góc học tập (Dashboard)")
+                                        <a class="dropdown-item py-2 px-3 rounded-2 d-flex align-items-center gap-2.5 @(currentController == "Account" && currentAction == "Profile" ? "active" : "")" asp-controller="Account" asp-action="Profile">
+                                            <i class="bi bi-mortarboard text-primary fs-6"></i> <span>@(isEn ? "Learning Dashboard" : "Góc học tập (Dashboard)")</span>
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item py-2 d-flex align-items-center gap-2" asp-controller="Project" asp-action="MyProjects">
-                                            <i class="bi bi-folder-check text-success"></i> @(isEn ? "My Projects" : "Đồ án của tôi")
+                                        <a class="dropdown-item py-2 px-3 rounded-2 d-flex align-items-center gap-2.5 @(currentController == "Project" && currentAction == "MyProjects" ? "active" : "")" asp-controller="Project" asp-action="MyProjects">
+                                            <i class="bi bi-folder-check text-success fs-6"></i> <span>@(isEn ? "My Projects" : "Đồ án của tôi")</span>
                                         </a>
                                     </li>
                                     @if (User.IsInRole("Admin"))
                                     {
                                         <li>
-                                            <a class="dropdown-item py-2 d-flex align-items-center gap-2 text-primary fw-semibold" asp-controller="Admin" asp-action="Index">
-                                                <i class="bi bi-speedometer2"></i> @(isEn ? "LMS Admin" : "Quản trị LMS")
+                                            <a class="dropdown-item py-2 px-3 rounded-2 d-flex align-items-center gap-2.5 text-primary fw-semibold @(currentController == "Admin" ? "active" : "")" asp-controller="Admin" asp-action="Index">
+                                                <i class="bi bi-speedometer2 fs-6"></i> <span>@(isEn ? "LMS Admin" : "Quản trị LMS")</span>
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item py-2 d-flex align-items-center gap-2 text-warning fw-semibold" asp-controller="AdminProjects" asp-action="Submissions">
-                                                <i class="bi bi-inbox-fill"></i> @(isEn ? "Review Submissions" : "Duyệt đồ án học viên")
+                                            <a class="dropdown-item py-2 px-3 rounded-2 d-flex align-items-center gap-2.5 text-warning fw-semibold @(currentController == "AdminProjects" ? "active" : "")" asp-controller="AdminProjects" asp-action="Submissions">
+                                                <i class="bi bi-inbox-fill fs-6"></i> <span>@(isEn ? "Review Submissions" : "Duyệt đồ án học viên")</span>
                                             </a>
                                         </li>
                                     }
-                                    <li><hr class="dropdown-divider my-1"></li>
+                                    <li><hr class="dropdown-divider my-1.5 opacity-50"></li>
                                     <li>
                                         <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
-                                            <button type="submit" class="dropdown-item py-2 d-flex align-items-center gap-2 text-danger">
-                                                <i class="bi bi-box-arrow-right"></i> @(isEn ? "Logout" : "Đăng xuất")
+                                            <button type="submit" class="dropdown-item py-2 px-3 rounded-2 d-flex align-items-center gap-2.5 text-danger">
+                                                <i class="bi bi-box-arrow-right fs-6"></i> <span>@(isEn ? "Logout" : "Đăng xuất")</span>
                                             </button>
                                         </form>
                                     </li>
