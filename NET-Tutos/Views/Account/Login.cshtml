@@ -1,54 +1,215 @@
 @model NET_Tutos.Models.ViewModels.LoginViewModel
 @{
     bool isEn = Context.IsEnglish();
-    ViewData["Title"] = isEn ? "Login" : "Đăng nhập";
+    ViewData["Title"] = isEn ? "Sign In | NET-Tutos" : "Đăng nhập | NET-Tutos";
 }
 
-<div class="container py-5">
+<div class="container py-4 py-lg-5">
     <div class="row justify-content-center">
-        <div class="col-md-7 col-lg-5">
-            <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-body">
-                <div class="card-header bg-gradient-dotnet text-white p-4 text-center">
-                    <h3 class="fw-bold mb-1">@(isEn ? "Welcome Back" : "Chào Mừng Quay Trở Lại")</h3>
-                    <p class="small opacity-90 mb-0">@(isEn ? "Sign in to track your learning progress and continue your lessons" : "Đăng nhập để theo dõi tiến độ và tiếp tục bài học của bạn")</p>
-                </div>
-
-                <div class="card-body p-4 p-md-5">
-                    <form method="post" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">
-                        @Html.AntiForgeryToken()
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3"></div>
-
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label fw-semibold small">@(isEn ? "Email Address" : "Địa chỉ Email")</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-body-tertiary"><i class="bi bi-envelope"></i></span>
-                                <input asp-for="Email" class="form-control" placeholder="name@example.com" autofocus />
+        <div class="col-12 col-xl-11">
+            <div class="card auth-split-wrapper rounded-4 border overflow-hidden">
+                <div class="row g-0">
+                    <!-- Left Hero Showcase Column (Desktop only) -->
+                    <div class="col-lg-5 auth-hero-banner p-4 p-xl-5 text-white d-none d-lg-flex flex-column justify-content-between position-relative">
+                        <!-- Brand Header -->
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-4">
+                                <img src="~/images/csharp-logo.png" alt="C# Logo" width="36" height="40" style="object-fit: contain;" />
+                                <div>
+                                    <h4 class="fw-bold mb-0 text-white tracking-wide">.NET Tutos</h4>
+                                    <span class="badge bg-white text-primary fw-bold" style="font-size: 0.7rem;">.NET 10 • C# 14</span>
+                                </div>
                             </div>
-                            <span asp-validation-for="Email" class="text-danger small"></span>
-                        </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Password" class="form-label fw-semibold small">@(isEn ? "Password" : "Mật khẩu")</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-body-tertiary"><i class="bi bi-lock"></i></span>
-                                <input asp-for="Password" class="form-control" placeholder="@(isEn ? "Enter password" : "Nhập mật khẩu")" />
+                            <h3 class="fw-extrabold text-white mb-2 lh-sm">
+                                @(isEn ? "Master Modern .NET from Zero to Senior" : "Làm chủ C# & .NET từ Zero đến Senior")
+                            </h3>
+                            <p class="text-white-50 small mb-4">
+                                @(isEn ? "Join Vietnam's most modern .NET learning platform with live code sandbox, standard roadmap and real projects." : "Nền tảng học lập trình .NET hiện đại với Sandbox biên dịch trực tiếp, giáo trình chuẩn hóa và đồ án thực chiến.")
+                            </p>
+
+                            <!-- Feature highlights -->
+                            <div class="d-flex flex-column gap-2.5 my-3">
+                                <div class="auth-feature-pill p-3 rounded-3 d-flex align-items-center gap-3">
+                                    <div class="rounded-circle bg-white bg-opacity-20 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-journal-code text-white fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-white small">@(isEn ? "101+ Structured Lessons" : "101+ Bài học Chuẩn hóa")</div>
+                                        <div class="text-white-50" style="font-size: 0.75rem;">@(isEn ? "From C# Basics to Advanced Architecture" : "7 phân hệ bài bản theo XuanThuLab & MS Learn")</div>
+                                    </div>
+                                </div>
+
+                                <div class="auth-feature-pill p-3 rounded-3 d-flex align-items-center gap-3">
+                                    <div class="rounded-circle bg-white bg-opacity-20 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-terminal-fill text-warning fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-white small">@(isEn ? "Interactive C# Sandbox" : "Sandbox C# Trực tuyến")</div>
+                                        <div class="text-white-50" style="font-size: 0.75rem;">@(isEn ? "Live compiler & algorithm challenges" : "Biên dịch trực tiếp & giải thử thách thuật toán")</div>
+                                    </div>
+                                </div>
+
+                                <div class="auth-feature-pill p-3 rounded-3 d-flex align-items-center gap-3">
+                                    <div class="rounded-circle bg-white bg-opacity-20 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-fire text-danger fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-white small">@(isEn ? "Daily Learning Streak" : "Ngọn Lửa Học Tập Streak")</div>
+                                        <div class="text-white-50" style="font-size: 0.75rem;">@(isEn ? "Earn XP, unlock badges & leaderboard" : "Tích lũy XP, mở khóa huy hiệu & leo rank Top 1")</div>
+                                    </div>
+                                </div>
                             </div>
-                            <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
 
-                        <div class="form-check mb-4">
-                            <input asp-for="RememberMe" class="form-check-input" />
-                            <label asp-for="RememberMe" class="form-check-label small">@(isEn ? "Remember login session" : "Ghi nhớ đăng nhập")</label>
+                        <!-- Footer trust info -->
+                        <div class="pt-4 border-top border-white border-opacity-15 d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="d-flex" style="margin-left: 8px;">
+                                    <span class="badge rounded-circle bg-primary border border-2 border-white text-white p-1" style="width: 24px; height: 24px; font-size: 0.65rem;">C#</span>
+                                    <span class="badge rounded-circle bg-success border border-2 border-white text-white p-1" style="width: 24px; height: 24px; font-size: 0.65rem; margin-left: -8px;">EF</span>
+                                    <span class="badge rounded-circle bg-info border border-2 border-white text-white p-1" style="width: 24px; height: 24px; font-size: 0.65rem; margin-left: -8px;">API</span>
+                                </div>
+                                <span class="text-white-50" style="font-size: 0.78rem;">@(isEn ? "1,000+ Active Learners" : "1,000+ Học viên tích cực")</span>
+                            </div>
+                            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-25 rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+                                <i class="bi bi-shield-check text-success me-1"></i>@(isEn ? "Free & Open" : "Miễn phí 100%")
+                            </span>
                         </div>
+                    </div>
 
-                        <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-pill fw-semibold shadow-sm mb-3">
-                            <i class="bi bi-box-arrow-in-right me-1"></i> @(isEn ? "Sign In" : "Đăng Nhập")
-                        </button>
-                    </form>
+                    <!-- Right Form Column -->
+                    <div class="col-lg-7 p-4 p-md-5 d-flex flex-column justify-content-center">
+                        <div class="mx-auto w-100" style="max-width: 480px;">
+                            <!-- Top Segmented Switcher -->
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="auth-tab-switch">
+                                    <a asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl" class="nav-link active">
+                                        <i class="bi bi-box-arrow-in-right me-1"></i>@(isEn ? "Sign In" : "Đăng nhập")
+                                    </a>
+                                    <a asp-action="Register" class="nav-link">
+                                        <i class="bi bi-person-plus me-1"></i>@(isEn ? "Register" : "Đăng ký")
+                                    </a>
+                                </div>
 
-                    <div class="text-center pt-3 border-top">
-                        <span class="text-muted small">@(isEn ? "Don't have a learner account yet?" : "Chưa có tài khoản học viên?")</span>
-                        <a asp-action="Register" class="fw-semibold text-primary text-decoration-none small ms-1">@(isEn ? "Register now" : "Đăng ký ngay")</a>
+                                <a asp-controller="Home" asp-action="Index" class="btn btn-sm btn-link text-decoration-none text-muted p-0 small">
+                                    <i class="bi bi-house-door me-1"></i>@(isEn ? "Home" : "Trang chủ")
+                                </a>
+                            </div>
+
+                            <!-- Welcome Header -->
+                            <div class="mb-4">
+                                <h3 class="fw-bold mb-1">@(isEn ? "Welcome Back" : "Chào Mừng Quay Lại!")</h3>
+                                <p class="text-muted small mb-0">
+                                    @(isEn ? "Enter your credentials to continue your .NET learning progress." : "Nhập thông tin tài khoản để tiếp tục bài học và chuỗi Streak của bạn.")
+                                </p>
+                            </div>
+
+                            <!-- 1-Click Quick Demo Accounts Bar -->
+                            <div class="p-3 mb-4 rounded-3 border bg-body-tertiary">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="small fw-bold text-primary">
+                                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i>@(isEn ? "1-Click Demo Login:" : "Đăng nhập thử nghiệm 1 chạm:")
+                                    </span>
+                                    <span class="text-muted" style="font-size: 0.72rem;">@(isEn ? "Click to auto-fill" : "Bấm để điền mẫu")</span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 demo-account-chip d-flex align-items-center gap-1.5" onclick="fillDemoCredentials('student@nettutos.com', 'StudentPassword@123')">
+                                        <i class="bi bi-mortarboard-fill text-primary"></i>
+                                        <span class="fw-semibold">@(isEn ? "Demo Student" : "Học viên Demo")</span>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 demo-account-chip d-flex align-items-center gap-1.5 text-body" onclick="fillDemoCredentials('admin@nettutos.com', 'AdminPassword@123')">
+                                        <i class="bi bi-shield-lock-fill text-warning"></i>
+                                        <span class="fw-semibold">@(isEn ? "System Admin" : "Quản trị viên")</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Login Form -->
+                            <form method="post" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl" id="loginForm">
+                                @Html.AntiForgeryToken()
+
+                                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3 rounded-3 d-flex align-items-center gap-2">
+                                    <i class="bi bi-exclamation-triangle-fill fs-6 flex-shrink-0"></i>
+                                    <div></div>
+                                </div>
+
+                                <!-- Email Input -->
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label fw-semibold small">@(isEn ? "Email Address" : "Địa chỉ Email")</label>
+                                    <div class="input-group input-group-auth">
+                                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                        <input asp-for="Email" class="form-control" id="inputEmail" placeholder="name@example.com" autofocus autocomplete="username" />
+                                    </div>
+                                    <span asp-validation-for="Email" class="text-danger small"></span>
+                                </div>
+
+                                <!-- Password Input with Show/Hide Toggle -->
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <label asp-for="Password" class="form-label fw-semibold small mb-0">@(isEn ? "Password" : "Mật khẩu")</label>
+                                        <a asp-action="ForgotPassword" class="text-decoration-none small text-primary fw-medium">
+                                            @(isEn ? "Forgot password?" : "Quên mật khẩu?")
+                                        </a>
+                                    </div>
+                                    <div class="input-group input-group-auth">
+                                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                        <input asp-for="Password" class="form-control" id="inputPassword" type="password" placeholder="@(isEn ? "Enter your password" : "Nhập mật khẩu")" autocomplete="current-password" />
+                                        <button class="btn btn-outline-secondary border-start-0" type="button" id="togglePasswordBtn" title="@(isEn ? "Show/Hide password" : "Hiện/Ẩn mật khẩu")">
+                                            <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                                        </button>
+                                    </div>
+                                    <span asp-validation-for="Password" class="text-danger small"></span>
+                                </div>
+
+                                <!-- Remember Me -->
+                                <div class="form-check mb-4">
+                                    <input asp-for="RememberMe" class="form-check-input" id="rememberMeCheck" />
+                                    <label asp-for="RememberMe" class="form-check-label small user-select-none" for="rememberMeCheck">
+                                        @(isEn ? "Remember my login on this device" : "Ghi nhớ đăng nhập trên thiết bị này")
+                                    </label>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-pill fw-semibold shadow-sm mb-3 d-flex align-items-center justify-content-center gap-2" id="submitLoginBtn">
+                                    <i class="bi bi-box-arrow-in-right fs-6"></i>
+                                    <span>@(isEn ? "Sign In to NET-Tutos" : "Đăng Nhập Vào Hệ Thống")</span>
+                                </button>
+                            </form>
+
+                            <!-- Social Auth Divider -->
+                            <div class="d-flex align-items-center my-3 text-muted">
+                                <hr class="flex-grow-1 my-0 opacity-25" />
+                                <span class="px-3 small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                                    @(isEn ? "Or continue with" : "Hoặc tiếp tục với")
+                                </span>
+                                <hr class="flex-grow-1 my-0 opacity-25" />
+                            </div>
+
+                            <!-- Social Buttons (UI Readiness) -->
+                            <div class="row g-2 mb-4">
+                                <div class="col-6">
+                                    <button type="button" class="btn btn-outline-secondary w-100 py-2 rounded-3 small fw-semibold social-auth-btn d-flex align-items-center justify-content-center gap-2" onclick="showSocialNotice('GitHub')">
+                                        <i class="bi bi-github fs-6"></i>
+                                        <span>GitHub</span>
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button type="button" class="btn btn-outline-secondary w-100 py-2 rounded-3 small fw-semibold social-auth-btn d-flex align-items-center justify-content-center gap-2" onclick="showSocialNotice('Google')">
+                                        <i class="bi bi-google text-danger fs-6"></i>
+                                        <span>Google</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Bottom Register Link -->
+                            <div class="text-center pt-2">
+                                <span class="text-muted small">@(isEn ? "Don't have a learner account yet?" : "Chưa có tài khoản học viên?")</span>
+                                <a asp-action="Register" class="fw-bold text-primary text-decoration-none small ms-1">
+                                    @(isEn ? "Create account for free" : "Đăng ký miễn phí ngay") <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -58,5 +219,45 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-}
+    <script>
+        // Password Visibility Toggle
+        document.getElementById('togglePasswordBtn').addEventListener('click', function () {
+            const passwordInput = document.getElementById('inputPassword');
+            const icon = document.getElementById('togglePasswordIcon');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        });
 
+        // 1-Click Demo Fill
+        function fillDemoCredentials(email, password) {
+            const emailInput = document.getElementById('inputEmail');
+            const passInput = document.getElementById('inputPassword');
+            emailInput.value = email;
+            passInput.value = password;
+
+            // Highlight animation
+            emailInput.classList.add('is-valid');
+            passInput.classList.add('is-valid');
+            setTimeout(() => {
+                emailInput.classList.remove('is-valid');
+                passInput.classList.remove('is-valid');
+            }, 1200);
+
+            passInput.focus();
+        }
+
+        function showSocialNotice(provider) {
+            const msg = @(Html.Raw(System.Text.Json.JsonSerializer.Serialize(isEn 
+                ? "OAuth integration with {0} will be linked in the next deployment. You can sign in using Demo accounts or Email right now!"
+                : "Tính năng đăng nhập qua {0} đang chuẩn bị kết nối SSO. Bạn có thể sử dụng tính năng Đăng nhập 1 chạm hoặc Email ngay bây giờ!")));
+            alert(msg.replace('{0}', provider));
+        }
+    </script>
+}

@@ -68,6 +68,32 @@ public static class DbInitializer
             }
         }
 
+        // Seed Default Demo Student User for 1-Click Login Testing
+        var studentEmail = "student@nettutos.com";
+        var existingStudent = await userManager.FindByEmailAsync(studentEmail);
+        if (existingStudent == null)
+        {
+            var studentUser = new ApplicationUser
+            {
+                UserName = studentEmail,
+                Email = studentEmail,
+                FullName = "Nguyễn Văn An (Demo Student)",
+                EmailConfirmed = true,
+                ExperiencePoints = 350,
+                CurrentStreak = 5,
+                LongestStreak = 7,
+                LastCheckInDate = DateTime.UtcNow.Date,
+                Bio = "Học viên trải nghiệm hệ thống NET-Tutos",
+                CreatedAt = DateTime.UtcNow.AddDays(-10)
+            };
+
+            var createStudentResult = await userManager.CreateAsync(studentUser, "StudentPassword@123");
+            if (createStudentResult.Succeeded)
+            {
+                await userManager.AddToRoleAsync(studentUser, "Student");
+            }
+        }
+
         // Seed Coding Challenges if none exist
         if (!await context.CodingChallenges.AnyAsync())
         {
