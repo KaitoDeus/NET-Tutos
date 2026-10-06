@@ -184,14 +184,18 @@ public class NotificationService : INotificationService
             Id = n.Id,
             Title = n.Title,
             Message = n.Message,
+            TitleEn = LocalizationHelper.TranslateNotificationTitle(n.Title, true),
+            MessageEn = LocalizationHelper.TranslateNotificationMessage(n.Message, true),
             TargetUrl = n.TargetUrl,
             Type = n.Type,
             TypeName = GetTypeName(n.Type),
+            TypeNameEn = LocalizationHelper.GetNotificationTypeName(n.Type, true),
             IconClass = n.IconClass ?? "bi-bell",
             ColorClass = n.ColorClass ?? "text-primary",
             IsRead = n.IsRead,
             CreatedAt = n.CreatedAt,
-            TimeAgo = FormatTimeAgo(n.CreatedAt)
+            TimeAgo = FormatTimeAgo(n.CreatedAt, false),
+            TimeAgoEn = FormatTimeAgo(n.CreatedAt, true)
         };
     }
 

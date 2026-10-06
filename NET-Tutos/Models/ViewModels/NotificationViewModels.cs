@@ -7,14 +7,18 @@ public class UserNotificationViewModel
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
+    public string TitleEn { get; set; } = string.Empty;
+    public string MessageEn { get; set; } = string.Empty;
     public string? TargetUrl { get; set; }
     public NotificationType Type { get; set; }
     public string TypeName { get; set; } = string.Empty;
+    public string TypeNameEn { get; set; } = string.Empty;
     public string IconClass { get; set; } = "bi-bell";
     public string ColorClass { get; set; } = "text-primary";
     public bool IsRead { get; set; }
     public DateTime CreatedAt { get; set; }
     public string TimeAgo { get; set; } = string.Empty;
+    public string TimeAgoEn { get; set; } = string.Empty;
 }
 
 public class NotificationListViewModel
@@ -31,15 +35,19 @@ public class ActivityFeedItemViewModel
     public string? UserAvatar { get; set; }
     public ActivityType Type { get; set; }
     public string TypeLabel { get; set; } = string.Empty;
+    public string TypeLabelEn { get; set; } = string.Empty;
     public string TypeBadgeColor { get; set; } = "primary";
     public string IconClass { get; set; } = "bi-activity";
     public string Title { get; set; } = string.Empty;
+    public string TitleEn { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string DescriptionEn { get; set; } = string.Empty;
     public string? TargetUrl { get; set; }
     public int XpEarned { get; set; }
     public string? BadgeCode { get; set; }
     public DateTime CreatedAt { get; set; }
     public string TimeAgo { get; set; } = string.Empty;
+    public string TimeAgoEn { get; set; } = string.Empty;
 }
 
 public class ActivityFeedPageViewModel

@@ -501,8 +501,81 @@ function renderNotificationItems(items) {
     });
 }
 
+function getLocalizedNotification(item) {
+    const isEn = isCurrentCultureEnglish();
+    if (!isEn) {
+        return {
+            title: item.title,
+            message: item.message,
+            typeName: item.typeName || '',
+            timeAgo: item.timeAgo || 'Vừa xong'
+        };
+    }
+
+    let title = item.titleEn || item.title || '';
+    let message = item.messageEn || item.message || '';
+
+    // Robust client-side translation fallback if server passed un-translated string
+    if (title.includes('Điểm danh nhận thưởng thành công')) title = 'Check-in Reward Claimed! 🔥';
+    else if (title.includes('Huy hiệu mới đã mở khóa')) title = 'New Badge Unlocked! 🏆';
+    else if (title.includes('Hoàn thành bài học') || title.includes('hoàn thành bài học')) title = 'Lesson Completed! 🎉';
+    else if (title.includes('kỳ thi tốt nghiệp') || title.includes('thi tốt nghiệp')) title = 'Graduation Exam Passed! 🎓';
+    else if (title.includes('Chứng chỉ')) title = 'Digital Certificate Ready! 📜';
+    else if (title.includes('thử thách C#') || title.includes('thử thách')) title = 'C# Challenge Solved! ⚡';
+    else if (title.includes('trả lời')) title = 'New Reply to Discussion';
+    else if (title.includes('giải pháp')) title = 'Accepted Solution! 🌟';
+    else if (title.includes('đồ án')) title = 'Capstone Project Update 🚀';
+
+    // Streak message
+    const streakMatch = message.match(/(?:chuỗi|streak)\s*(\d+)\s*(?:ngày|days?)?\s*(?:liên tiếp|consecutive)?\s*(?:\(\+?(\d+)\s*XP\))?/i);
+    if (streakMatch && streakMatch[1]) {
+        const days = streakMatch[1];
+        const xp = streakMatch[2] || '';
+        const dayLabel = days === '1' ? 'day' : 'days';
+        message = xp ? `You maintained a streak of ${days} consecutive ${dayLabel} (+${xp} XP)!` : `You maintained a streak of ${days} consecutive ${dayLabel}!`;
+    } else if (message.includes('Mở khóa huy hiệu:') || message.includes('Huy hiệu')) {
+        message = message
+            .replace(/Mở khóa huy hiệu:\s*/g, 'Badge unlocked: ')
+            .replace(/Mở khóa huy hiệu\s*/g, 'Badge unlocked: ')
+            .replace(/XP thưởng/g, 'bonus XP')
+            .replace(/thưởng XP/g, 'bonus XP')
+            .replace(/Ngọn Lửa Bền Bỉ/g, 'Persistent Flame')
+            .replace(/Chiến Binh Kỷ Luật/g, 'Disciplined Warrior')
+            .replace(/Huyền Thoại Bất Bại/g, 'Unstoppable Legend')
+            .replace(/Thuật Toán Săn Bàn/g, 'Algorithm Hunter')
+            .replace(/Vua Thuật Toán/g, 'Algorithm Master')
+            .replace(/Kỹ Sư .NET/g, 'Certified Engineer')
+            .replace(/Học Giả Chăm Chỉ/g, 'Diligent Scholar')
+            .replace(/Tân Binh .NET/g, 'NET Rookie')
+            .replace(/Người Hùng Cộng Đồng/g, 'Community Torchbearer')
+            .replace(/Kiến Trúc Sư .NET/g, '.NET Architect');
+    } else if (message.includes('hoàn thành bài học')) {
+        const lessonMatch = message.match(/(?:Chúc mừng bạn đã hoàn thành bài học|Bạn đã hoàn thành bài học)\s*'([^']+)'(?:\s*\(\+?(\d+)\s*XP\))?/i);
+        if (lessonMatch) {
+            let lessonTitle = lessonMatch[1]
+                .replace('Bài 1:', 'Lesson 1:')
+                .replace('Bài 2:', 'Lesson 2:')
+                .replace('Bài 3:', 'Lesson 3:')
+                .replace('Bài 4:', 'Lesson 4:')
+                .replace('Bài 5:', 'Lesson 5:')
+                .replace('Tổng quan hệ sinh thái .NET & Cài đặt môi trường', '.NET Ecosystem Overview & Environment Setup')
+                .replace('Cú pháp C# căn bản - Biến, Kiểu dữ liệu & Điều khiển luồng', 'Core C# Syntax - Variables, Data Types & Control Flow');
+            const xp = lessonMatch[2] ? `(+${lessonMatch[2]} XP)` : '(+20 XP)';
+            message = `You completed lesson '${lessonTitle}' ${xp}.`;
+        }
+    }
+
+    return {
+        title: title,
+        message: message,
+        typeName: item.typeNameEn || item.typeName || '',
+        timeAgo: item.timeAgoEn || item.timeAgo || 'Just now'
+    };
+}
+
 function createNotificationElement(item) {
     const isEn = isCurrentCultureEnglish();
+    const loc = getLocalizedNotification(item);
     const div = document.createElement('div');
     div.className = `notification-item ${item.isRead ? '' : 'unread'}`;
     div.setAttribute('data-id', item.id);
@@ -514,15 +587,15 @@ function createNotificationElement(item) {
             </div>
             <div class="flex-grow-1 min-w-0">
                 <div class="d-flex align-items-center justify-content-between gap-1 mb-0.5">
-                    <span class="fw-bold small text-truncate text-body-emphasis">${escapeHtml(item.title)}</span>
+                    <span class="fw-bold small text-truncate text-body-emphasis">${escapeHtml(loc.title)}</span>
                     ${!item.isRead ? `<span class="notification-unread-dot ms-1" title="${isEn ? 'Unread' : 'Chưa đọc'}"></span>` : ''}
                 </div>
                 <p class="text-body-secondary small mb-1 lh-sm" style="font-size: 0.8rem;">
-                    ${escapeHtml(item.message)}
+                    ${escapeHtml(loc.message)}
                 </p>
                 <div class="d-flex align-items-center gap-2" style="font-size: 0.72rem;">
-                    <span class="text-muted"><i class="bi bi-clock me-1"></i>${escapeHtml(item.timeAgo)}</span>
-                    <span class="badge bg-secondary bg-opacity-10 text-secondary border py-0 px-1.5">${escapeHtml(item.typeName || '')}</span>
+                    <span class="text-muted"><i class="bi bi-clock me-1"></i>${escapeHtml(loc.timeAgo)}</span>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary border py-0 px-1.5">${escapeHtml(loc.typeName)}</span>
                 </div>
             </div>
         </div>
@@ -564,6 +637,9 @@ function showNotificationToast(item) {
     const toastContainer = document.getElementById('notificationToastContainer');
     if (!toastContainer) return;
 
+    const loc = getLocalizedNotification(item);
+    const isEn = isCurrentCultureEnglish();
+
     const toastId = 'toast_' + Date.now();
     const toastEl = document.createElement('div');
     toastEl.id = toastId;
@@ -572,16 +648,15 @@ function showNotificationToast(item) {
     toastEl.setAttribute('aria-live', 'assertive');
     toastEl.setAttribute('aria-atomic', 'true');
 
-    const isEn = document.documentElement.lang === 'en' || document.cookie.includes('lang=en');
     toastEl.innerHTML = `
         <div class="toast-header bg-body-tertiary border-0 py-2.5 px-3">
             <i class="bi ${item.iconClass || 'bi-bell-fill'} ${item.colorClass || 'text-primary'} me-2 fs-6"></i>
-            <strong class="me-auto small fw-bold">${escapeHtml(item.title)}</strong>
-            <small class="text-muted">${isEn ? 'Just now' : 'Vừa xong'}</small>
+            <strong class="me-auto small fw-bold">${escapeHtml(loc.title)}</strong>
+            <small class="text-muted">${escapeHtml(loc.timeAgo || (isEn ? 'Just now' : 'Vừa xong'))}</small>
             <button type="button" class="btn-close ms-2" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
         <div class="toast-body bg-body py-2.5 px-3">
-            <p class="small mb-1 text-body-secondary">${escapeHtml(item.message)}</p>
+            <p class="small mb-1 text-body-secondary">${escapeHtml(loc.message)}</p>
             ${item.targetUrl ? `<a href="${item.targetUrl}" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 small fw-semibold text-decoration-none mt-1 d-inline-block">${isEn ? 'View details' : 'Xem chi tiết'} <i class="bi bi-arrow-right"></i></a>` : ''}
         </div>
     `;
@@ -651,7 +726,12 @@ function handleReceiveActivity(activity) {
     card.className = 'card border rounded-4 shadow-sm p-3 p-md-3.5 activity-feed-card transition-hover just-added';
     card.setAttribute('data-activity-id', activity.id);
 
-    const isEn = document.documentElement.lang === 'en' || document.cookie.includes('lang=en');
+    const isEn = isCurrentCultureEnglish();
+    const title = isEn ? (activity.titleEn || activity.title) : activity.title;
+    const typeLabel = isEn ? (activity.typeLabelEn || activity.typeLabel) : activity.typeLabel;
+    const desc = isEn ? (activity.descriptionEn || activity.description) : activity.description;
+    const timeAgo = isEn ? (activity.timeAgoEn || 'Just now') : (activity.timeAgo || 'Vừa xong');
+
     card.innerHTML = `
         <div class="d-flex align-items-start gap-3">
             <div class="position-relative flex-shrink-0">
@@ -664,19 +744,19 @@ function handleReceiveActivity(activity) {
                 <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-1">
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         <span class="fw-bold text-body-emphasis">${escapeHtml(activity.userDisplayName)}</span>
-                        <span class="text-body-secondary small">${escapeHtml(activity.title)}</span>
+                        <span class="text-body-secondary small">${escapeHtml(title)}</span>
                         <span class="badge bg-${activity.typeBadgeColor || 'primary'} bg-opacity-10 text-${activity.typeBadgeColor || 'primary'} rounded-pill px-2 py-0.5 small fw-semibold">
-                            ${escapeHtml(activity.typeLabel || '')}
+                            ${escapeHtml(typeLabel || '')}
                         </span>
                     </div>
                     <span class="text-muted small text-nowrap">
-                        <i class="bi bi-clock me-1"></i>${isEn ? 'Just now' : 'Vừa xong'}
+                        <i class="bi bi-clock me-1"></i>${escapeHtml(timeAgo)}
                     </span>
                 </div>
                 <div class="mt-1">
                     ${activity.targetUrl
-                        ? `<a href="${activity.targetUrl}" class="text-decoration-none fw-semibold text-primary hover-underline">${escapeHtml(activity.description)} <i class="bi bi-arrow-up-right small"></i></a>`
-                        : `<span class="text-body-secondary fw-medium">${escapeHtml(activity.description)}</span>`
+                        ? `<a href="${activity.targetUrl}" class="text-decoration-none fw-semibold text-primary hover-underline">${escapeHtml(desc)} <i class="bi bi-arrow-up-right small"></i></a>`
+                        : `<span class="text-body-secondary fw-medium">${escapeHtml(desc)}</span>`
                     }
                 </div>
             </div>

@@ -159,7 +159,7 @@ public class ActivityFeedService : IActivityFeedService
     {
         var (label, color, icon) = GetTypeMetadata(item.Type);
 
-        return new ActivityFeedItemViewModel
+        var vm = new ActivityFeedItemViewModel
         {
             Id = item.Id,
             UserId = item.UserId,
@@ -175,8 +175,15 @@ public class ActivityFeedService : IActivityFeedService
             XpEarned = item.XpEarned,
             BadgeCode = item.BadgeCode,
             CreatedAt = item.CreatedAt,
-            TimeAgo = NotificationService.FormatTimeAgo(item.CreatedAt)
+            TimeAgo = NotificationService.FormatTimeAgo(item.CreatedAt, false)
         };
+
+        vm.TypeLabelEn = vm.GetActivityTypeLabel(true);
+        vm.TitleEn = vm.GetActivityTitle(true);
+        vm.DescriptionEn = vm.GetActivityDescription(true);
+        vm.TimeAgoEn = NotificationService.FormatTimeAgo(item.CreatedAt, true);
+
+        return vm;
     }
 
     private static (string Label, string Color, string Icon) GetTypeMetadata(ActivityType type) => type switch

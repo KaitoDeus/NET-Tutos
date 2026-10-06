@@ -1041,21 +1041,25 @@ Write a method `Fibonacci(int n)` returning the $n$-th Fibonacci number.
     {
         if (string.IsNullOrWhiteSpace(message) || !isEn) return message ?? string.Empty;
 
-        // Match: "Bạn đã duy trì chuỗi 1 ngày liên tiếp (+10 XP)!"
-        var streakMatch = System.Text.RegularExpressions.Regex.Match(message, @"chuỗi\s+(\d+)\s+ngày\s+liên\s+tiếp\s+\(\+(\d+)\s+XP\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-        if (streakMatch.Success)
+        // Match: "Bạn đã duy trì chuỗi 6 ngày liên tiếp (+25 XP)!"
+        var streakMatch = System.Text.RegularExpressions.Regex.Match(message, @"(?:chuỗi|streak)\s*(\d+)\s*(?:ngày|days?)?\s*(?:liên tiếp|consecutive)?\s*(?:\(\+?(\d+)\s*XP\))?", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (streakMatch.Success && streakMatch.Groups[1].Success)
         {
             var days = streakMatch.Groups[1].Value;
-            var xp = streakMatch.Groups[2].Value;
+            var xp = streakMatch.Groups[2].Success ? streakMatch.Groups[2].Value : "";
             var dayLabel = days == "1" ? "day" : "days";
-            return $"You maintained a streak of {days} consecutive {dayLabel} (+{xp} XP)!";
+            return string.IsNullOrEmpty(xp)
+                ? $"You maintained a streak of {days} consecutive {dayLabel}!"
+                : $"You maintained a streak of {days} consecutive {dayLabel} (+{xp} XP)!";
         }
 
-        if (message.Contains("Mở khóa huy hiệu:"))
+        if (message.Contains("Mở khóa huy hiệu:") || message.Contains("Huy hiệu"))
         {
             var replaced = message
                 .Replace("Mở khóa huy hiệu:", "Badge unlocked:")
+                .Replace("Mở khóa huy hiệu", "Badge unlocked")
                 .Replace("XP thưởng", "bonus XP")
+                .Replace("thưởng XP", "bonus XP")
                 .Replace("Ngọn Lửa Bền Bỉ", "Persistent Flame")
                 .Replace("Chiến Binh Kỷ Luật", "Disciplined Warrior")
                 .Replace("Huyền Thoại Bất Bại", "Unstoppable Legend")
@@ -1071,12 +1075,28 @@ Write a method `Fibonacci(int n)` returning the $n$-th Fibonacci number.
 
         if (message.Contains("hoàn thành bài học"))
         {
-            return System.Text.RegularExpressions.Regex.Replace(message, @"Chúc mừng bạn đã hoàn thành bài học\s*(.*)", "Congratulations on completing lesson $1");
+            var lessonMatch = System.Text.RegularExpressions.Regex.Match(message, @"(?:Chúc mừng bạn đã hoàn thành bài học|Bạn đã hoàn thành bài học)\s*'([^']+)'(?:\s*\(\+?(\d+)\s*XP\))?", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (lessonMatch.Success)
+            {
+                var lessonTitle = lessonMatch.Groups[1].Value;
+                var xp = lessonMatch.Groups[2].Success ? lessonMatch.Groups[2].Value : "20";
+                var translatedTitle = lessonTitle
+                    .Replace("Bài 1:", "Lesson 1:")
+                    .Replace("Bài 2:", "Lesson 2:")
+                    .Replace("Bài 3:", "Lesson 3:")
+                    .Replace("Bài 4:", "Lesson 4:")
+                    .Replace("Bài 5:", "Lesson 5:")
+                    .Replace("Tổng quan hệ sinh thái .NET & Cài đặt môi trường", ".NET Ecosystem Overview & Environment Setup")
+                    .Replace("Cú pháp C# căn bản - Biến, Kiểu dữ liệu & Điều khiển luồng", "Core C# Syntax - Variables, Data Types & Control Flow");
+                return $"You completed lesson '{translatedTitle}' (+{xp} XP).";
+            }
+
+            return System.Text.RegularExpressions.Regex.Replace(message, @"(?:Chúc mừng bạn đã hoàn thành bài học|Bạn đã hoàn thành bài học)\s*(.*)", "You have completed lesson $1", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
         }
 
         if (message.Contains("thử thách"))
         {
-            return System.Text.RegularExpressions.Regex.Replace(message, @"Chúc mừng bạn đã giải thành công thử thách\s*(.*)", "Congratulations on solving algorithm challenge $1");
+            return System.Text.RegularExpressions.Regex.Replace(message, @"(?:Chúc mừng bạn đã giải thành công thử thách|Bạn đã giải thành công thử thách)\s*(.*)", "Congratulations on solving algorithm challenge $1", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
         }
 
         return message;
