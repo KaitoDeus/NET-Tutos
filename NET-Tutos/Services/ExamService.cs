@@ -36,11 +36,16 @@ public class ExamService : IExamService
             var qCount = await _context.QuizQuestions
                 .CountAsync(q => q.Tutorial != null && q.Tutorial.CategoryId == cat.Id);
 
+            var titleEn = $"Exam: {cat.GetTitle(true)}";
+            var descEn = $"Comprehensive competency exam for {cat.GetTitle(true)}. Includes randomized timed multiple-choice questions.";
+
             var topic = new ExamTopicItem
             {
                 CategoryId = cat.Id,
                 Title = $"Kỳ thi: {cat.Name}",
                 Description = $"Đánh giá toàn diện kiến thức của chuyên đề {cat.Name}. Bao gồm các câu hỏi trắc nghiệm xáo trộn và tính giờ.",
+                TitleEn = titleEn,
+                DescriptionEn = descEn,
                 BadgeColor = cat.BadgeColor,
                 IconClass = cat.IconClass,
                 QuestionCount = Math.Min(10, Math.Max(5, qCount)),
@@ -73,6 +78,8 @@ public class ExamService : IExamService
             CategoryId = null,
             Title = "Kỳ thi Đánh giá Năng lực .NET Toàn diện",
             Description = "Bài thi tổng hợp kiến thức từ C# cơ bản, OOP, Entity Framework Core đến ASP.NET Core MVC. Đạt điểm để nhận chứng chỉ danh dự cấp toàn khóa.",
+            TitleEn = "Comprehensive .NET Full-Stack Assessment Exam",
+            DescriptionEn = "Comprehensive final exam covering C# fundamentals, OOP, Entity Framework Core, and ASP.NET Core MVC. Pass to earn your verified full-course diploma.",
             BadgeColor = "primary",
             IconClass = "bi-award-fill",
             QuestionCount = Math.Min(15, totalQuestions),
@@ -121,6 +128,7 @@ public class ExamService : IExamService
     public async Task<ExamSessionViewModel?> StartExamSessionAsync(string userId, int? categoryId)
     {
         string examTitle = "Kỳ thi Đánh giá Năng lực .NET Toàn diện";
+        string examTitleEn = "Comprehensive .NET Full-Stack Assessment Exam";
         int durationMinutes = 20;
         int targetQuestions = 15;
 
@@ -133,6 +141,7 @@ public class ExamService : IExamService
             if (cat == null) return null;
 
             examTitle = $"Kỳ thi: {cat.Name}";
+            examTitleEn = $"Exam: {cat.GetTitle(true)}";
             durationMinutes = 15;
             targetQuestions = 10;
             query = query.Where(q => q.Tutorial != null && q.Tutorial.CategoryId == categoryId.Value);
@@ -161,6 +170,7 @@ public class ExamService : IExamService
         {
             CategoryId = categoryId,
             ExamTitle = examTitle,
+            ExamTitleEn = examTitleEn,
             DurationMinutes = durationMinutes,
             Questions = selectedQuestions
         };
@@ -244,6 +254,7 @@ public class ExamService : IExamService
         {
             AttemptId = attempt.Id,
             ExamTitle = attempt.ExamTitle,
+            ExamTitleEn = LocalizationHelper.TranslateExamTitle(attempt.ExamTitle, true),
             TotalQuestions = totalQuestions,
             CorrectAnswers = correctCount,
             ScorePercentage = scorePercentage,
@@ -269,6 +280,7 @@ public class ExamService : IExamService
         {
             AttemptId = attempt.Id,
             ExamTitle = attempt.ExamTitle,
+            ExamTitleEn = LocalizationHelper.TranslateExamTitle(attempt.ExamTitle, true),
             TotalQuestions = attempt.TotalQuestions,
             CorrectAnswers = attempt.CorrectAnswers,
             ScorePercentage = attempt.ScorePercentage,

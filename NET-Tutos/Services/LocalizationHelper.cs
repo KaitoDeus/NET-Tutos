@@ -1101,4 +1101,85 @@ Write a method `Fibonacci(int n)` returning the $n$-th Fibonacci number.
 
         return message;
     }
+
+    public static string TranslateExamTitle(string? title, bool isEn)
+    {
+        if (string.IsNullOrWhiteSpace(title)) return string.Empty;
+        if (!isEn) return title;
+
+        var t = title.Trim();
+        if (t.Equals("Kỳ thi Đánh giá Năng lực .NET Toàn diện", StringComparison.OrdinalIgnoreCase))
+            return "Comprehensive .NET Competency Assessment Exam";
+        if (t.Equals("Chương trình Lập trình viên .NET Toàn diện", StringComparison.OrdinalIgnoreCase))
+            return "Comprehensive .NET Developer Program";
+        if (t.Equals("Bài thi đánh giá", StringComparison.OrdinalIgnoreCase))
+            return "Competency Assessment Exam";
+
+        if (t.StartsWith("Kỳ thi: ", StringComparison.OrdinalIgnoreCase))
+        {
+            var catName = t.Substring(8).Trim();
+            if (catName.Contains("C# & .NET Cơ bản", StringComparison.OrdinalIgnoreCase) || catName.StartsWith("1."))
+                return "Exam: 1. C# & .NET Fundamentals";
+            if (catName.Contains("OOP & C# Nâng cao", StringComparison.OrdinalIgnoreCase) || catName.StartsWith("2."))
+                return "Exam: 2. OOP & Advanced C#";
+            if (catName.Contains("Entity Framework Core", StringComparison.OrdinalIgnoreCase) || catName.StartsWith("3."))
+                return "Exam: 3. Entity Framework Core & Database";
+            if (catName.Contains("ASP.NET Core", StringComparison.OrdinalIgnoreCase) || catName.StartsWith("4."))
+                return "Exam: 4. ASP.NET Core MVC & Web API";
+
+            return $"Exam: {catName}";
+        }
+
+        if (t.StartsWith("Khóa học: ", StringComparison.OrdinalIgnoreCase))
+        {
+            var catName = t.Substring(10).Trim();
+            if (catName.Contains("C# & .NET Cơ bản", StringComparison.OrdinalIgnoreCase) || catName.StartsWith("1."))
+                return "Course: 1. C# & .NET Fundamentals";
+            if (catName.Contains("OOP & C# Nâng cao", StringComparison.OrdinalIgnoreCase) || catName.StartsWith("2."))
+                return "Course: 2. OOP & Advanced C#";
+            if (catName.Contains("Entity Framework Core", StringComparison.OrdinalIgnoreCase) || catName.StartsWith("3."))
+                return "Course: 3. Entity Framework Core & Database";
+            if (catName.Contains("ASP.NET Core", StringComparison.OrdinalIgnoreCase) || catName.StartsWith("4."))
+                return "Course: 4. ASP.NET Core MVC & Web API";
+
+            return $"Course: {catName}";
+        }
+
+        return title;
+    }
+
+    public static string TranslateExamDescription(string? desc, string? catSlug, bool isEn)
+    {
+        if (string.IsNullOrWhiteSpace(desc)) return string.Empty;
+        if (!isEn) return desc;
+
+        if (desc.Contains("C# cơ bản, OOP, Entity Framework Core", StringComparison.OrdinalIgnoreCase) ||
+            desc.Contains("Đánh giá Năng lực .NET Toàn diện", StringComparison.OrdinalIgnoreCase) ||
+            desc.Contains("nhận chứng chỉ danh dự cấp toàn khóa", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Comprehensive final exam covering C# fundamentals, OOP, Entity Framework Core, and ASP.NET Core MVC. Pass to earn your verified full-course diploma.";
+        }
+
+        if (desc.Contains("1. C# & .NET Cơ bản", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Comprehensive competency evaluation for 1. C# & .NET Fundamentals. Includes randomized timed multiple-choice questions.";
+        }
+
+        if (desc.Contains("2. OOP & C# Nâng cao", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Comprehensive competency evaluation for 2. OOP & Advanced C#. Includes randomized timed multiple-choice questions.";
+        }
+
+        if (desc.Contains("3. Entity Framework Core & Database", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Comprehensive competency evaluation for 3. Entity Framework Core & Database. Includes randomized timed multiple-choice questions.";
+        }
+
+        if (desc.Contains("4. ASP.NET Core MVC & Web API", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Comprehensive competency evaluation for 4. ASP.NET Core MVC & Web API. Includes randomized timed multiple-choice questions.";
+        }
+
+        return "Comprehensive competency evaluation with randomized timed multiple-choice questions.";
+    }
 }

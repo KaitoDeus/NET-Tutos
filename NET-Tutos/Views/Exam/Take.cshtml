@@ -1,7 +1,7 @@
 @model NET_Tutos.Models.ViewModels.ExamSessionViewModel
 @{
     bool isEn = Context.IsEnglish();
-    ViewData["Title"] = (isEn ? "Certification Exam: " : "Làm bài thi: ") + Model.ExamTitle;
+    ViewData["Title"] = (isEn ? "Certification Exam: " : "Làm bài thi: ") + Model.GetTitle(isEn);
 }
 
 <div class="container py-4">
@@ -10,7 +10,7 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div>
                 <span class="badge bg-primary px-3 py-1.5 rounded-pill mb-1">@(isEn ? "Competence Assessment Exam" : "Kỳ thi Đánh giá Năng lực")</span>
-                <h4 class="fw-bold mb-0">@Model.ExamTitle</h4>
+                <h4 class="fw-bold mb-0">@Model.GetTitle(isEn)</h4>
             </div>
 
             <!-- Countdown Timer & Controls -->
@@ -195,7 +195,7 @@
 
                 if (timeRemaining <= 0) {
                     clearInterval(timerInterval);
-                    alert('Hết giờ làm bài! Hệ thống sẽ tự động nộp bài của bạn.');
+                    alert('@(isEn ? "Time is up! The system will automatically submit your exam." : "Hết giờ làm bài! Hệ thống sẽ tự động nộp bài của bạn.")');
                     doSubmitExam();
                 }
             }, 1000);
@@ -261,13 +261,13 @@
                     if (res.success && res.redirectUrl) {
                         window.location.href = res.redirectUrl;
                     } else {
-                        alert(res.message || 'Có lỗi khi nộp bài thi.');
+                        alert(res.message || '@(isEn ? "An error occurred while submitting your exam." : "Có lỗi khi nộp bài thi.")');
                         btnConfirmSubmit.disabled = false;
                         if (submitSpinner) submitSpinner.classList.add('d-none');
                     }
                 } catch (e) {
                     console.error(e);
-                    alert('Lỗi kết nối máy chủ khi nộp bài.');
+                    alert('@(isEn ? "Server connection error while submitting your exam." : "Lỗi kết nối máy chủ khi nộp bài.")');
                     btnConfirmSubmit.disabled = false;
                     if (submitSpinner) submitSpinner.classList.add('d-none');
                 }

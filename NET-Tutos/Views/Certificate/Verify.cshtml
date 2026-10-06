@@ -38,7 +38,7 @@
                             </div>
                             <div class="col-sm-6">
                                 <label class="text-muted small">@(isEn ? "Course / Specialization:" : "Chương trình / Khóa học:")</label>
-                                <h6 class="fw-bold mb-0">@Model.Certificate.CourseTitle</h6>
+                                <h6 class="fw-bold mb-0">@(NET_Tutos.Services.LocalizationHelper.TranslateExamTitle(Model.Certificate.CourseTitle, isEn))</h6>
                             </div>
                             <div class="col-sm-6">
                                 <label class="text-muted small">@(isEn ? "Final Exam Score:" : "Điểm số bài thi tốt nghiệp:")</label>

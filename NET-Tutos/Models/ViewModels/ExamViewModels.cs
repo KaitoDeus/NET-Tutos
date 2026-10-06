@@ -7,6 +7,8 @@ public class ExamTopicItem
     public int? CategoryId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string TitleEn { get; set; } = string.Empty;
+    public string DescriptionEn { get; set; } = string.Empty;
     public string BadgeColor { get; set; } = "primary";
     public string IconClass { get; set; } = "bi-mortarboard";
     public int QuestionCount { get; set; } = 15;
@@ -15,6 +17,9 @@ public class ExamTopicItem
     public bool HasPassed { get; set; }
     public double? BestScore { get; set; }
     public Certificate? Certificate { get; set; }
+
+    public string GetTitle(bool isEn) => isEn && !string.IsNullOrWhiteSpace(TitleEn) ? TitleEn : Title;
+    public string GetDescription(bool isEn) => isEn && !string.IsNullOrWhiteSpace(DescriptionEn) ? DescriptionEn : Description;
 }
 
 public class ExamListViewModel
@@ -39,8 +44,11 @@ public class ExamSessionViewModel
 {
     public int? CategoryId { get; set; }
     public string ExamTitle { get; set; } = string.Empty;
+    public string ExamTitleEn { get; set; } = string.Empty;
     public int DurationMinutes { get; set; } = 15;
     public List<ExamQuestionItem> Questions { get; set; } = new();
+
+    public string GetTitle(bool isEn) => isEn && !string.IsNullOrWhiteSpace(ExamTitleEn) ? ExamTitleEn : ExamTitle;
 }
 
 public class ExamSubmissionViewModel
@@ -69,6 +77,7 @@ public class ExamResultViewModel
 {
     public int AttemptId { get; set; }
     public string ExamTitle { get; set; } = string.Empty;
+    public string ExamTitleEn { get; set; } = string.Empty;
     public int TotalQuestions { get; set; }
     public int CorrectAnswers { get; set; }
     public double ScorePercentage { get; set; }
@@ -76,6 +85,8 @@ public class ExamResultViewModel
     public int DurationSeconds { get; set; }
     public Certificate? Certificate { get; set; }
     public List<ExamQuestionResultItem> QuestionResults { get; set; } = new();
+
+    public string GetTitle(bool isEn) => isEn && !string.IsNullOrWhiteSpace(ExamTitleEn) ? ExamTitleEn : ExamTitle;
 }
 
 public class CertificateVerifyViewModel

@@ -1,7 +1,7 @@
 @model NET_Tutos.Models.ViewModels.ExamResultViewModel
 @{
     bool isEn = Context.IsEnglish();
-    ViewData["Title"] = (isEn ? "Exam Result: " : "Kết quả thi: ") + Model.ExamTitle;
+    ViewData["Title"] = (isEn ? "Exam Result: " : "Kết quả thi: ") + Model.GetTitle(isEn);
 }
 
 <div class="container py-5">
@@ -19,7 +19,7 @@
                     @(Model.IsPassed ? (isEn ? "CONGRATULATIONS - YOU PASSED THE EXAM" : "CHÚC MỪNG - ĐÃ VƯỢT QUA KỲ THI") : (isEn ? "FAILED (80% OR HIGHER REQUIRED)" : "CHƯA ĐẠT CHUẨN ĐỖ (CẦN TỪ 80%)"))
                 </span>
 
-                <h2 class="fw-extrabold mb-1">@Model.ExamTitle</h2>
+                <h2 class="fw-extrabold mb-1">@Model.GetTitle(isEn)</h2>
                 <div class="display-3 fw-extrabold my-3 @(Model.IsPassed ? "text-success" : "text-danger")">
                     @Model.ScorePercentage.ToString("F1")%
                 </div>

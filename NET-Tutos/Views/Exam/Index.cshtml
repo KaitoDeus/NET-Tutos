@@ -63,8 +63,8 @@
                         <div class="rounded-3 bg-@exam.BadgeColor bg-opacity-10 text-@exam.BadgeColor d-inline-flex p-3 mb-3">
                             <i class="bi @exam.IconClass fs-3"></i>
                         </div>
-                        <h5 class="fw-bold mb-2">@exam.Title</h5>
-                        <p class="text-muted small mb-4">@exam.Description</p>
+                        <h5 class="fw-bold mb-2">@exam.GetTitle(isEn)</h5>
+                        <p class="text-muted small mb-4">@exam.GetDescription(isEn)</p>
                     </div>
 
                     <div>
@@ -116,7 +116,7 @@
                             {
                                 <div class="list-group-item bg-transparent px-0 py-3 border-bottom d-flex align-items-center justify-content-between">
                                     <div>
-                                        <h6 class="fw-bold mb-1">@cert.CourseTitle</h6>
+                                        <h6 class="fw-bold mb-1">@(NET_Tutos.Services.LocalizationHelper.TranslateExamTitle(cert.CourseTitle, isEn))</h6>
                                         <span class="text-muted small">
                                             @(isEn ? "Code:" : "Mã:") <code>@cert.CertificateCode</code> • @(isEn ? "Score:" : "Điểm:") <strong>@cert.FinalScore.ToString("F1")%</strong> • @(isEn ? "Issued:" : "Ngày cấp:") @cert.IssuedAt.ToString("dd/MM/yyyy")
                                         </span>
@@ -157,7 +157,7 @@
                                     @foreach (var attempt in Model.RecentAttempts)
                                     {
                                         <tr>
-                                            <td class="fw-semibold">@attempt.ExamTitle</td>
+                                            <td class="fw-semibold">@(NET_Tutos.Services.LocalizationHelper.TranslateExamTitle(attempt.ExamTitle, isEn))</td>
                                             <td>
                                                 <span class="badge @(attempt.IsPassed ? "bg-success" : "bg-danger") rounded-pill">
                                                     @(attempt.IsPassed ? (isEn ? "Passed" : "Đạt") : (isEn ? "Failed" : "Chưa đạt")): @attempt.ScorePercentage.ToString("F1")% (@attempt.CorrectAnswers/@attempt.TotalQuestions)
