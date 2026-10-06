@@ -163,6 +163,18 @@
 
                         <!-- Action Toolbar -->
                         <div class="d-flex align-items-center gap-2">
+                            <button type="button" id="btnOpenAiDrawer" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold shadow-none d-flex align-items-center gap-1.5" data-bs-toggle="offcanvas" data-bs-target="#offcanvasAiTutor" title="@(isEn ? "Open AI Code Mentor" : "Trợ lý AI C#")">
+                                <i class="bi bi-robot fs-6 text-primary"></i> <span class="d-none d-sm-inline">@(isEn ? "AI Mentor" : "Trợ lý AI")</span>
+                            </button>
+                            @if (Model.ActiveChallenge != null)
+                            {
+                                <button type="button" id="btnAiHint" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1.5 fw-semibold shadow-none d-flex align-items-center gap-1.5 text-body" onclick="requestAiHint()" title="@(isEn ? "Get algorithmic hint" : "Nhận gợi ý thuật toán")">
+                                    <i class="bi bi-lightbulb-fill text-warning"></i> <span class="d-none d-sm-inline">@(isEn ? "Hint" : "Gợi ý")</span>
+                                </button>
+                            }
+                            <button type="button" id="btnAiReview" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1.5 fw-semibold shadow-none d-flex align-items-center gap-1.5" onclick="requestAiReview()" title="@(isEn ? "Clean code & optimize" : "Tối ưu code C#")">
+                                <i class="bi bi-stars text-info"></i> <span class="d-none d-sm-inline">@(isEn ? "Review" : "Tối ưu")</span>
+                            </button>
                             <button type="button" id="btnResetCode" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="@(isEn ? "Reset code to default" : "Đặt lại code ban đầu")">
                                 <i class="bi bi-arrow-counterclockwise me-1"></i> @(isEn ? "Reset" : "Đặt lại")
                             </button>
@@ -206,6 +218,17 @@
                 </div>
 
                 <div class="card-body p-3 pt-0 d-flex flex-column">
+                    <!-- AI Error Assistance Banner -->
+                    <div id="aiErrorHelperBar" class="alert alert-danger py-2 px-3 mb-2 rounded-3 d-none align-items-center justify-content-between shadow-xs">
+                        <div class="d-flex align-items-center gap-2 small">
+                            <i class="bi bi-robot fs-5 text-danger flex-shrink-0"></i>
+                            <span class="fw-medium">@(isEn ? "Compiler Error detected! Let AI explain the cause & fix." : "Phát hiện lỗi biên dịch! Nhờ AI giải thích nguyên nhân và cách sửa.")</span>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 py-1 small fw-bold d-flex align-items-center gap-1.5 shadow-xs" onclick="explainCurrentError()">
+                            <i class="bi bi-magic"></i> <span>@(isEn ? "Explain with AI" : "Giải thích lỗi với AI")</span>
+                        </button>
+                    </div>
+
                     <!-- Terminal Console Box -->
                     <div id="terminalOutput" class="console-terminal flex-grow-1">
 <span class="text-muted">@(isEn ? "// Click \"Run Code\" (or press Ctrl + Enter) to execute C# script...\n// Console.WriteLine() outputs will appear here." : "// Bấm \"Chạy mã\" (hoặc nhấn Ctrl + Enter) để thực thi C# script...\n// Kết quả Console.WriteLine() sẽ xuất hiện tại đây.")</span></div>
@@ -237,6 +260,55 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Tutor Offcanvas Drawer inside Playground -->
+<div class="offcanvas offcanvas-end rounded-start-4 shadow-lg border-0" tabindex="-1" id="offcanvasAiTutor" style="width: 480px; max-width: 95vw;">
+    <div class="offcanvas-header border-bottom bg-body-tertiary p-3">
+        <div class="d-flex align-items-center gap-2.5">
+            <div class="rounded-circle bg-primary text-white p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                <i class="bi bi-robot fs-5"></i>
+            </div>
+            <div>
+                <h6 class="offcanvas-title fw-bold mb-0">@(isEn ? "AI .NET Code Mentor" : "Trợ Lý AI Gia Sư .NET")</h6>
+                <span class="text-muted" style="font-size: 0.72rem;">@(isEn ? "Compiler Diagnostics • Hints • Code Review" : "Chẩn đoán lỗi • Gợi ý thuật toán • Tối ưu code")</span>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-3 d-flex flex-column bg-body" id="offcanvasAiBody">
+        <!-- Quick Action Tabs inside Drawer -->
+        <div class="d-flex gap-2 mb-3">
+            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill flex-fill py-1 small fw-semibold" onclick="requestAiReview()"><i class="bi bi-stars me-1"></i>@(isEn ? "Review Code" : "Tối ưu code")</button>
+            @if (Model.ActiveChallenge != null)
+            {
+                <button type="button" class="btn btn-sm btn-outline-warning rounded-pill flex-fill py-1 small fw-semibold text-body" onclick="requestAiHint()"><i class="bi bi-lightbulb me-1"></i>@(isEn ? "Get Hint" : "Gợi ý bài")</button>
+            }
+        </div>
+
+        <!-- Dynamic AI Content Output -->
+        <div id="aiTutorResponseBox" class="flex-grow-1 overflow-y-auto mb-3 pe-1">
+            <div class="p-3 rounded-3 bg-body-tertiary border text-body small" id="aiDefaultBox">
+                <div class="fw-bold text-primary mb-1 d-flex align-items-center gap-1.5">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>@(isEn ? "AI Assistant Ready" : "Trợ lý AI sẵn sàng hỗ trợ")</span>
+                </div>
+                <p class="text-muted mb-0">
+                    @(isEn
+                        ? "Run your code to test. If you encounter errors, I will analyze them and suggest fixes. You can also request hints or code optimization anytime!"
+                        : "Hãy chạy thử code của bạn. Nếu gặp lỗi, tôi sẽ phân tích và hướng dẫn sửa chi tiết. Bạn cũng có thể yêu cầu gợi ý thuật toán hoặc tối ưu code bất cứ lúc nào!")
+                </p>
+            </div>
+        </div>
+
+        <!-- Mini Question Bar in Offcanvas -->
+        <div class="pt-2 border-top">
+            <div class="input-group shadow-xs rounded-pill overflow-hidden bg-body border">
+                <input type="text" id="drawerAiInput" class="form-control form-control-sm border-0 px-3" placeholder="@(isEn ? "Ask a question about this code..." : "Hỏi về đoạn code C# này...")" onkeydown="if(event.key==='Enter') sendDrawerAiChat()">
+                <button type="button" class="btn btn-sm btn-primary px-3" onclick="sendDrawerAiChat()"><i class="bi bi-send-fill"></i></button>
             </div>
         </div>
     </div>
@@ -364,8 +436,10 @@
 
                     if (data.isSuccess) {
                         terminalOutput.innerHTML = `<span class="text-success">[Thực thi thành công trong ${data.executionTimeMs}ms]</span>\n\n${escapeHtml(data.output)}`;
+                        hideAiErrorBanner();
                     } else {
                         terminalOutput.innerHTML = `<span class="text-danger">[Gặp lỗi]</span>\n\n<span class="text-danger">${escapeHtml(data.error || 'Lỗi không xác định')}</span>`;
+                        showAiErrorBanner(data.error);
                     }
                 } catch (err) {
                     terminalOutput.innerHTML = `<span class="text-danger">Lỗi kết nối máy chủ: ${escapeHtml(err.message)}</span>`;
@@ -407,7 +481,9 @@
                             evalSummaryBadge.className = 'badge bg-danger text-white rounded-pill';
                             evalSummaryBadge.innerText = 'Lỗi';
                             evalSummaryText.innerText = data.compileError;
+                            showAiErrorBanner(data.compileError);
                         } else {
+                            hideAiErrorBanner();
                             if (data.allPassed) {
                                 terminalOutput.innerHTML = `<span class="text-success">🎉 TUYỆT VỜI! BẠN ĐÃ VƯỢT QUA TOÀN BỘ ${data.totalTestsCount}/${data.totalTestsCount} TEST CASES!</span>\n` +
                                     (data.xpEarned > 0 ? `<span class="text-warning">⚡ +${data.xpEarned} XP đã được cộng vào tài khoản của bạn!</span>` : `<span class="text-muted">(Thử thách này bạn đã vượt qua trước đó)</span>`);
@@ -468,5 +544,223 @@
                 return text.toString().replace(/[&<>"']/g, m => map[m]);
             }
         });
+
+        // AI Tutor Global Helpers
+        let lastReportedError = '';
+        let currentHintLevel = 1;
+
+        function showAiErrorBanner(err) {
+            lastReportedError = err || '';
+            const bar = document.getElementById('aiErrorHelperBar');
+            if (bar) {
+                bar.classList.remove('d-none');
+                bar.classList.add('d-flex');
+            }
+        }
+
+        function hideAiErrorBanner() {
+            const bar = document.getElementById('aiErrorHelperBar');
+            if (bar) {
+                bar.classList.add('d-none');
+                bar.classList.remove('d-flex');
+            }
+        }
+
+        function openAiOffcanvas() {
+            const offcanvasEl = document.getElementById('offcanvasAiTutor');
+            if (offcanvasEl) {
+                const bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+                bsOffcanvas.show();
+            }
+        }
+
+        async function explainCurrentError() {
+            openAiOffcanvas();
+            const box = document.getElementById('aiTutorResponseBox');
+            box.innerHTML = `<div class="p-3 text-center text-muted small"><div class="spinner-border spinner-border-sm text-primary mb-2"></div><div>Đang phân tích lỗi và đề xuất cách sửa...</div></div>`;
+
+            const currentCode = editorInstance ? editorInstance.getValue() : '';
+
+            try {
+                const res = await fetch('/AiTutor/ExplainError', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        errorMessage: lastReportedError,
+                        sourceCode: currentCode
+                    })
+                });
+
+                const data = await res.json();
+                if (data && data.success) {
+                    box.innerHTML = `
+                        <div class="card border-danger-subtle bg-danger-subtle p-3 rounded-3 mb-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-danger rounded-pill fw-bold">${data.errorCode || 'Lỗi Compiler'}</span>
+                                ${data.lineNumber ? `<span class="badge bg-body text-danger border rounded-pill">Dòng ${data.lineNumber}</span>` : ''}
+                            </div>
+                            <h6 class="fw-bold text-danger mb-1">${escapeHtml(data.errorTitle)}</h6>
+                            <p class="small text-body mb-0 lh-base">${escapeHtml(data.explanation)}</p>
+                        </div>
+
+                        <div class="card border p-3 rounded-3 mb-3 bg-body">
+                            <h6 class="fw-bold text-success mb-2"><i class="bi bi-check2-circle me-1"></i>Hướng dẫn khắc phục:</h6>
+                            <div class="small lh-base mb-3">${escapeHtml(data.howToFix).replace(/\n/g, '<br/>')}</div>
+                            ${data.suggestedFixCode ? `
+                                <div class="bg-dark text-light p-2.5 rounded-3 font-monospace small mb-2 position-relative" style="font-size: 0.8rem;">
+                                    <code>${escapeHtml(data.suggestedFixCode)}</code>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        ${data.proTip ? `
+                            <div class="p-2.5 rounded-3 bg-warning-subtle text-warning-emphasis small border border-warning-subtle">
+                                <i class="bi bi-lightbulb-fill text-warning me-1"></i><strong>Pro Tip:</strong> ${escapeHtml(data.proTip)}
+                            </div>
+                        ` : ''}
+                    `;
+                } else {
+                    box.innerHTML = `<div class="alert alert-warning small">Không thể phân tích lỗi này. Bạn có thể hỏi trực tiếp bên dưới.</div>`;
+                }
+            } catch (e) {
+                box.innerHTML = `<div class="alert alert-danger small">Lỗi khi kết nối đến dịch vụ AI.</div>`;
+            }
+        }
+
+        async function requestAiHint() {
+            openAiOffcanvas();
+            const box = document.getElementById('aiTutorResponseBox');
+            box.innerHTML = `<div class="p-3 text-center text-muted small"><div class="spinner-border spinner-border-sm text-warning mb-2"></div><div>Đang tạo gợi ý thuật toán cấp độ ${currentHintLevel}...</div></div>`;
+
+            const currentCode = editorInstance ? editorInstance.getValue() : '';
+
+            try {
+                const res = await fetch('/AiTutor/GetHint', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        challengeId: activeChallengeId,
+                        currentCode: currentCode,
+                        hintLevel: currentHintLevel
+                    })
+                });
+
+                const data = await res.json();
+                if (data && data.success) {
+                    box.innerHTML = `
+                        <div class="card border-warning-subtle bg-warning-subtle p-3 rounded-3 mb-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-warning text-dark rounded-pill fw-bold">Cấp độ ${data.hintLevel}/3</span>
+                                <span class="small text-muted">💡 Gợi ý AI</span>
+                            </div>
+                            <h6 class="fw-bold text-body-emphasis mb-2">${escapeHtml(data.title)}</h6>
+                            <p class="small text-body mb-3 lh-base">${escapeHtml(data.content)}</p>
+                            ${data.codeClue ? `
+                                <div class="bg-dark text-light p-2.5 rounded-3 font-monospace small mb-2" style="font-size: 0.8rem; white-space: pre-wrap;">
+                                    <code>${escapeHtml(data.codeClue)}</code>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        ${data.hasNextLevel ? `
+                            <button type="button" class="btn btn-sm btn-outline-warning rounded-pill w-100 py-1.5 fw-bold" onclick="currentHintLevel++; requestAiHint();">
+                                <i class="bi bi-arrow-right-circle me-1"></i>Xem gợi ý chi tiết hơn (Cấp độ ${currentHintLevel + 1})
+                            </button>
+                        ` : `
+                            <div class="text-center small text-muted"><i class="bi bi-check-circle-fill text-success me-1"></i>Đã xem hết gợi ý. Giờ hãy bắt tay vào code nhé!</div>
+                        `}
+                    `;
+                }
+            } catch (e) {
+                box.innerHTML = `<div class="alert alert-danger small">Lỗi khi lấy gợi ý AI.</div>`;
+            }
+        }
+
+        async function requestAiReview() {
+            openAiOffcanvas();
+            const box = document.getElementById('aiTutorResponseBox');
+            box.innerHTML = `<div class="p-3 text-center text-muted small"><div class="spinner-border spinner-border-sm text-info mb-2"></div><div>Đang đánh giá chất lượng và tối ưu hóa code...</div></div>`;
+
+            const currentCode = editorInstance ? editorInstance.getValue() : '';
+
+            try {
+                const res = await fetch('/AiTutor/ReviewCode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sourceCode: currentCode })
+                });
+
+                const data = await res.json();
+                if (data && data.success) {
+                    let pointsHtml = '';
+                    if (data.points && data.points.length > 0) {
+                        pointsHtml = data.points.map(p => `
+                            <div class="p-2.5 rounded-3 border mb-2 bg-body">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="fw-bold small text-primary">${escapeHtml(p.title)}</span>
+                                    <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">${escapeHtml(p.category)}</span>
+                                </div>
+                                <div class="small text-muted lh-base">${escapeHtml(p.description)}</div>
+                            </div>
+                        `).join('');
+                    } else {
+                        pointsHtml = `<div class="p-2.5 rounded-3 bg-success-subtle text-success small border border-success-subtle mb-2"><i class="bi bi-check2-circle me-1"></i>Code sạch và tuân thủ chuẩn Modern C#!</div>`;
+                    }
+
+                    box.innerHTML = `
+                        <div class="card border-info-subtle bg-info-subtle p-3 rounded-3 mb-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h6 class="fw-bold text-info-emphasis mb-0"><i class="bi bi-stars me-1 text-info"></i>Điểm Chất Lượng Code</h6>
+                                <span class="badge bg-primary rounded-pill px-3 py-1 fs-6">${data.score}/100</span>
+                            </div>
+                            <p class="small text-body mb-0 lh-base">${escapeHtml(data.summary)}</p>
+                        </div>
+
+                        <h6 class="fw-bold text-body-emphasis mb-2 small"><i class="bi bi-list-check me-1 text-primary"></i>Điểm cần lưu ý & Cải tiến:</h6>
+                        ${pointsHtml}
+                    `;
+                }
+            } catch (e) {
+                box.innerHTML = `<div class="alert alert-danger small">Lỗi khi gọi tính năng Review Code.</div>`;
+            }
+        }
+
+        async function sendDrawerAiChat() {
+            const input = document.getElementById('drawerAiInput');
+            const q = input.value.trim();
+            if (!q) return;
+
+            const box = document.getElementById('aiTutorResponseBox');
+            box.innerHTML += `<div class="p-2.5 rounded-3 bg-primary text-white text-end small mb-2 mt-2">${escapeHtml(q)}</div>`;
+            input.value = '';
+
+            const loadingId = 'loading_' + Date.now();
+            box.innerHTML += `<div id="${loadingId}" class="p-2 text-muted small"><div class="spinner-border spinner-border-sm text-primary me-1"></div>Đang suy nghĩ...</div>`;
+            box.scrollTop = box.scrollHeight;
+
+            try {
+                const res = await fetch('/AiTutor/Chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: q })
+                });
+
+                const data = await res.json();
+                document.getElementById(loadingId)?.remove();
+
+                if (data && data.responseMarkdown) {
+                    box.innerHTML += `
+                        <div class="p-3 rounded-3 bg-body-tertiary border text-body small mb-3">
+                            <div class="fw-bold text-primary mb-1"><i class="bi bi-robot me-1"></i>AI Mentor:</div>
+                            <div class="lh-base">${escapeHtml(data.responseMarkdown).replace(/\n/g, '<br/>')}</div>
+                        </div>
+                    `;
+                    box.scrollTop = box.scrollHeight;
+                }
+            } catch (e) {
+                document.getElementById(loadingId)?.remove();
+                box.innerHTML += `<div class="alert alert-danger small">Lỗi kết nối.</div>`;
+            }
+        }
     </script>
 }

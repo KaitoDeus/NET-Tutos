@@ -1321,3 +1321,29 @@ i.bi.ms-2 { margin-left: 0.55rem !important; }
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
+
+/* Global Floating AI Tutor Button */
+.floating-ai-btn {
+    background: linear-gradient(135deg, #512bd4 0%, #0d6efd 100%) !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+    animation: floatingAiPulse 3s infinite ease-in-out;
+}
+
+.floating-ai-btn:hover {
+    transform: scale(1.12) rotate(5deg);
+    box-shadow: 0 12px 30px rgba(81, 43, 212, 0.45) !important;
+    animation: none;
+}
+
+@keyframes floatingAiPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(81, 43, 212, 0.5);
+    }
+    70% {
+        box-shadow: 0 0 0 14px rgba(81, 43, 212, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(81, 43, 212, 0);
+    }
+}

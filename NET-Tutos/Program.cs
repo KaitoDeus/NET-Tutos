@@ -49,6 +49,7 @@ builder.Services.AddScoped<ICapstoneProjectService, CapstoneProjectService>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddScoped<ICurriculumService, CurriculumService>();
 builder.Services.AddScoped<IStudyPlannerService, StudyPlannerService>();
+builder.Services.AddScoped<IAiTutorService, AiTutorService>();
 
 // Determine Database Provider
 var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";

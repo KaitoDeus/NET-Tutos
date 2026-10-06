@@ -22,7 +22,7 @@
 
     bool isHomeActive = currentController == "Home" && currentAction == "Index";
     bool isCoursesActive = currentController == "Tutorials" || currentController == "Roadmap" || currentController == "CheatSheet" || currentController == "Curriculum" || currentController == "Planner";
-    bool isPracticeActive = currentController == "Playground" || currentController == "Quiz" || currentController == "Exam" || currentController == "Project" || currentController == "Interview";
+    bool isPracticeActive = currentController == "Playground" || currentController == "Quiz" || currentController == "Exam" || currentController == "Project" || currentController == "Interview" || currentController == "AiTutor";
     bool isCommunityActive = currentController == "Leaderboard" || currentController == "Activity";
 }
 <!DOCTYPE html>
@@ -319,7 +319,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 @(currentController == "Interview" ? "active" : "")"
+                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 mb-1 @(currentController == "Interview" ? "active" : "")"
                                        asp-controller="Interview" asp-action="Index">
                                         <div class="category-icon-box bg-danger-subtle text-danger">
                                             <i class="bi bi-mortarboard-fill"></i>
@@ -327,6 +327,18 @@
                                         <div class="category-content-box">
                                             <span class="category-text-title" data-lang-key="nav_interview">@(isEn ? "Interview Prep & Flashcards" : "Luyện Phỏng Vấn & Flashcards")</span>
                                             <span class="category-text-desc" data-lang-key="nav_interview_desc">@(isEn ? "Spaced repetition & technical mock exams" : "Thẻ ghi nhớ ngắt quãng & phỏng vấn thử")</span>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 @(currentController == "AiTutor" ? "active" : "")"
+                                       asp-controller="AiTutor" asp-action="Index">
+                                        <div class="category-icon-box bg-info-subtle text-info">
+                                            <i class="bi bi-robot"></i>
+                                        </div>
+                                        <div class="category-content-box">
+                                            <span class="category-text-title" data-lang-key="nav_aitutor">@(isEn ? "AI .NET Tutor & Mentor" : "Trợ Lý AI Gia Sư .NET")</span>
+                                            <span class="category-text-desc" data-lang-key="nav_aitutor_desc">@(isEn ? "Realtime error diagnosis & code hints" : "Chẩn đoán lỗi, gợi ý thuật toán & hỏi đáp")</span>
                                         </div>
                                     </a>
                                 </li>
@@ -580,6 +592,20 @@
     <!-- Custom JS -->
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Global Floating AI Tutor Shortcut Button -->
+    @if (currentController != "AiTutor")
+    {
+        <div class="position-fixed bottom-0 end-0 p-3 p-md-4 floating-ai-container" style="z-index: 1070;">
+            <a asp-controller="AiTutor" asp-action="Index" class="btn btn-primary rounded-circle shadow-lg p-0 d-flex align-items-center justify-content-center floating-ai-btn text-decoration-none" title="@(isEn ? "Ask AI .NET Tutor & Mentor" : "Trợ lý AI Gia sư .NET")" aria-label="AI Tutor">
+                <i class="bi bi-robot fs-3 text-white"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light p-1 shadow-sm" style="font-size: 0.65rem;">
+                    AI
+                    <span class="visually-hidden">AI Tutor ready</span>
+                </span>
+            </a>
+        </div>
+    }
 
     <!-- Live Notification Toast Container -->
     <div id="notificationToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;"></div>
