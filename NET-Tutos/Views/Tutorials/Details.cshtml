@@ -49,6 +49,11 @@
                                 </span>
                             }
                         </span>
+                        <!-- Save for Offline Reading Button -->
+                        <button type="button" id="btnSaveOffline" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 shadow-none" title="@(isEn ? "Save offline for reading without Internet" : "Lưu đọc ngoại tuyến khi không có mạng")">
+                            <i class="bi bi-cloud-arrow-down" id="offlineSaveIcon"></i>
+                            <span id="offlineSaveText">@(isEn ? "Save Offline" : "Lưu ngoại tuyến")</span>
+                        </button>
                     </div>
 
                     <h1 class="h2 fw-extrabold text-body-emphasis mb-3">@Model.Tutorial.GetTitle(isEn)</h1>
@@ -154,8 +159,11 @@
                     <div class="flex-grow-1 flex-sm-grow-0">
                         @if (Model.PreviousTutorial != null)
                         {
-                            <a asp-action="Details" asp-route-slug="@Model.PreviousTutorial.GetSlug(isEn)" class="btn btn-outline-secondary text-start w-100 w-sm-auto">
-                                <small class="d-block text-muted">@(isEn ? "← Previous lesson" : "← Bài trước")</small>
+                            <a id="prevLessonLink" asp-action="Details" asp-route-slug="@Model.PreviousTutorial.GetSlug(isEn)" class="btn btn-outline-secondary text-start w-100 w-sm-auto" title="@(isEn ? "Previous lesson (Alt + ←)" : "Bài trước (Alt + ←)")">
+                                <small class="d-flex align-items-center justify-content-between text-muted">
+                                    <span>@(isEn ? "← Previous lesson" : "← Bài trước")</span>
+                                    <kbd class="small ms-2 border-0 bg-secondary bg-opacity-25 px-1 py-0.5">Alt ←</kbd>
+                                </small>
                                 <span class="fw-semibold">@Model.PreviousTutorial.GetTitle(isEn)</span>
                             </a>
                         }
@@ -163,8 +171,11 @@
                     <div class="text-start text-sm-end flex-grow-1 flex-sm-grow-0">
                         @if (Model.NextTutorial != null)
                         {
-                            <a asp-action="Details" asp-route-slug="@Model.NextTutorial.GetSlug(isEn)" class="btn btn-primary text-start text-sm-end w-100 w-sm-auto">
-                                <small class="d-block opacity-75">@(isEn ? "Next lesson →" : "Bài tiếp theo →")</small>
+                            <a id="nextLessonLink" asp-action="Details" asp-route-slug="@Model.NextTutorial.GetSlug(isEn)" class="btn btn-primary text-start text-sm-end w-100 w-sm-auto" title="@(isEn ? "Next lesson (Alt + →)" : "Bài tiếp theo (Alt + →)")">
+                                <small class="d-flex align-items-center justify-content-between opacity-75">
+                                    <kbd class="small me-2 border-0 bg-white bg-opacity-25 text-white px-1 py-0.5">Alt →</kbd>
+                                    <span>@(isEn ? "Next lesson →" : "Bài tiếp theo →")</span>
+                                </small>
                                 <span class="fw-semibold">@Model.NextTutorial.GetTitle(isEn)</span>
                             </a>
                         }

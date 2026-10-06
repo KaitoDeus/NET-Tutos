@@ -175,6 +175,78 @@
                             <button type="button" id="btnAiReview" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1.5 fw-semibold shadow-none d-flex align-items-center gap-1.5" onclick="requestAiReview()" title="@(isEn ? "Clean code & optimize" : "Tối ưu code C#")">
                                 <i class="bi bi-stars text-info"></i> <span class="d-none d-sm-inline">@(isEn ? "Review" : "Tối ưu")</span>
                             </button>
+                            <!-- Editor Settings Dropdown -->
+                            <div class="dropdown">
+                                <button type="button" id="btnEditorSettings" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1.5 shadow-none d-flex align-items-center gap-1.5" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="@(isEn ? "IDE & Editor Settings" : "Tùy biến IDE & Trình soạn thảo")">
+                                    <i class="bi bi-gear-fill"></i> <span class="d-none d-xl-inline">@(isEn ? "Settings" : "Cài đặt")</span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end editor-settings-dropdown p-3 border shadow-lg rounded-4" style="min-width: 320px;">
+                                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                        <h6 class="fw-bold mb-0 text-body"><i class="bi bi-sliders me-1 text-primary"></i> @(isEn ? "IDE Settings" : "Tùy biến Editor")</h6>
+                                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small text-muted" id="btnResetEditorSettings">@(isEn ? "Default" : "Mặc định")</button>
+                                    </div>
+                                    <div class="mb-2.5">
+                                        <label class="form-label text-muted small fw-semibold mb-1" for="cfgEditorFontFamily">@(isEn ? "Font Family" : "Phông chữ")</label>
+                                        <select id="cfgEditorFontFamily" class="form-select form-select-sm rounded-3">
+                                            <option value="'Fira Code', monospace">Fira Code</option>
+                                            <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+                                            <option value="'Cascadia Code', Consolas, monospace">Cascadia Code</option>
+                                            <option value="Consolas, 'Courier New', monospace">Consolas</option>
+                                        </select>
+                                    </div>
+                                    <div class="row g-2 mb-2.5">
+                                        <div class="col-6">
+                                            <label class="form-label text-muted small fw-semibold mb-1" for="cfgEditorFontSize">@(isEn ? "Font Size" : "Cỡ chữ")</label>
+                                            <select id="cfgEditorFontSize" class="form-select form-select-sm rounded-3">
+                                                <option value="12">12px</option>
+                                                <option value="13">13px</option>
+                                                <option value="14" selected>14px</option>
+                                                <option value="16">16px</option>
+                                                <option value="18">18px</option>
+                                                <option value="20">20px</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label text-muted small fw-semibold mb-1" for="cfgEditorTabSize">@(isEn ? "Tab Size" : "Khoảng cách Tab")</label>
+                                            <select id="cfgEditorTabSize" class="form-select form-select-sm rounded-3">
+                                                <option value="2">2 spaces</option>
+                                                <option value="4" selected>4 spaces</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2.5">
+                                        <label class="form-label text-muted small fw-semibold mb-1" for="cfgEditorTheme">@(isEn ? "Theme Mode" : "Chủ đề màu")</label>
+                                        <select id="cfgEditorTheme" class="form-select form-select-sm rounded-3">
+                                            <option value="auto">@(isEn ? "Auto (Follow App)" : "Tự động (Theo ứng dụng)")</option>
+                                            <option value="vs-dark">Visual Studio Dark</option>
+                                            <option value="vs">Visual Studio Light</option>
+                                            <option value="hc-black">High Contrast</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="cfgEditorLigatures" checked>
+                                        <label class="form-check-label small fw-medium" for="cfgEditorLigatures">@(isEn ? "Font Ligatures (=>, !=, ==)" : "Ký tự kết hợp (Ligatures)")</label>
+                                    </div>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="cfgEditorMinimap">
+                                        <label class="form-check-label small fw-medium" for="cfgEditorMinimap">@(isEn ? "Code Minimap" : "Bản đồ mã nguồn (Minimap)")</label>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="cfgEditorWordWrap">
+                                        <label class="form-check-label small fw-medium" for="cfgEditorWordWrap">@(isEn ? "Word Wrap" : "Tự xuống dòng (Word Wrap)")</label>
+                                    </div>
+                                    <div class="p-2 rounded-2 bg-body-tertiary border text-muted" style="font-size: 0.72rem;">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <span>@(isEn ? "Run Code:" : "Chạy mã:")</span>
+                                            <kbd class="px-1 py-0.5">Ctrl + Enter</kbd>
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <span>@(isEn ? "Auto-format code:" : "Định dạng mã:")</span>
+                                            <kbd class="px-1 py-0.5">Ctrl + S</kbd>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <button type="button" id="btnResetCode" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="@(isEn ? "Reset code to default" : "Đặt lại code ban đầu")">
                                 <i class="bi bi-arrow-counterclockwise me-1"></i> @(isEn ? "Reset" : "Đặt lại")
                             </button>
@@ -325,11 +397,75 @@
 
         let editorInstance = null;
 
+        const defaultEditorSettings = {
+            fontFamily: "'Fira Code', monospace",
+            fontSize: 14,
+            tabSize: 4,
+            theme: 'auto',
+            ligatures: true,
+            minimap: false,
+            wordWrap: false
+        };
+
+        function getSavedEditorSettings() {
+            try {
+                const saved = localStorage.getItem('nettutos_editor_settings');
+                return saved ? Object.assign({}, defaultEditorSettings, JSON.parse(saved)) : Object.assign({}, defaultEditorSettings);
+            } catch (e) {
+                return Object.assign({}, defaultEditorSettings);
+            }
+        }
+
+        function saveEditorSettings(settings) {
+            try {
+                localStorage.setItem('nettutos_editor_settings', JSON.stringify(settings));
+            } catch (e) {}
+        }
+
+        function getEffectiveTheme(themeSetting) {
+            if (themeSetting === 'auto') {
+                return document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'vs-dark' : 'vs';
+            }
+            return themeSetting;
+        }
+
+        function syncSettingsUI(settings) {
+            const fontEl = document.getElementById('cfgEditorFontFamily');
+            const sizeEl = document.getElementById('cfgEditorFontSize');
+            const tabEl = document.getElementById('cfgEditorTabSize');
+            const themeEl = document.getElementById('cfgEditorTheme');
+            const ligEl = document.getElementById('cfgEditorLigatures');
+            const minimapEl = document.getElementById('cfgEditorMinimap');
+            const wrapEl = document.getElementById('cfgEditorWordWrap');
+
+            if (fontEl) fontEl.value = settings.fontFamily;
+            if (sizeEl) sizeEl.value = String(settings.fontSize);
+            if (tabEl) tabEl.value = String(settings.tabSize);
+            if (themeEl) themeEl.value = settings.theme;
+            if (ligEl) ligEl.checked = !!settings.ligatures;
+            if (minimapEl) minimapEl.checked = !!settings.minimap;
+            if (wrapEl) wrapEl.checked = !!settings.wordWrap;
+        }
+
+        function applyEditorSettings(settings) {
+            if (!editorInstance) return;
+            monaco.editor.setTheme(getEffectiveTheme(settings.theme));
+            editorInstance.updateOptions({
+                fontFamily: settings.fontFamily,
+                fontSize: parseInt(settings.fontSize, 10),
+                tabSize: parseInt(settings.tabSize, 10),
+                fontLigatures: !!settings.ligatures,
+                minimap: { enabled: !!settings.minimap },
+                wordWrap: settings.wordWrap ? 'on' : 'off'
+            });
+        }
+
         require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
 
         require(['vs/editor/editor.main'], function () {
-            const currentTheme = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'vs-dark' : 'vs';
-            
+            const currentSettings = getSavedEditorSettings();
+            syncSettingsUI(currentSettings);
+
             let defaultCode = "";
             if (activeChallengeId > 0 && initialChallengeCode) {
                 defaultCode = initialChallengeCode;
@@ -340,12 +476,14 @@
             editorInstance = monaco.editor.create(document.getElementById('monacoEditor'), {
                 value: defaultCode,
                 language: 'csharp',
-                theme: currentTheme,
-                fontSize: 14,
-                fontFamily: "'Fira Code', Consolas, monospace",
-                fontLigatures: true,
+                theme: getEffectiveTheme(currentSettings.theme),
+                fontSize: parseInt(currentSettings.fontSize, 10),
+                fontFamily: currentSettings.fontFamily,
+                fontLigatures: !!currentSettings.ligatures,
+                tabSize: parseInt(currentSettings.tabSize, 10),
                 automaticLayout: true,
-                minimap: { enabled: false },
+                minimap: { enabled: !!currentSettings.minimap },
+                wordWrap: currentSettings.wordWrap ? 'on' : 'off',
                 scrollBeyondLastLine: false,
                 lineNumbers: 'on',
                 roundedSelection: true,
@@ -357,14 +495,54 @@
                 document.getElementById('btnRunCode').click();
             });
 
+            // Keyboard shortcut Ctrl + S to auto-format document
+            editorInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, function () {
+                editorInstance.getAction('editor.action.formatDocument')?.run();
+            });
+
             // Watch for theme toggle button on page
             const themeBtn = document.getElementById('themeToggleBtn');
             if (themeBtn) {
                 themeBtn.addEventListener('click', function () {
                     setTimeout(() => {
-                        const newTheme = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'vs-dark' : 'vs';
-                        monaco.editor.setTheme(newTheme);
+                        const settings = getSavedEditorSettings();
+                        if (settings.theme === 'auto') {
+                            const newTheme = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'vs-dark' : 'vs';
+                            monaco.editor.setTheme(newTheme);
+                        }
                     }, 50);
+                });
+            }
+
+            // Bind change listeners to Settings controls
+            const bindSettingChange = (elId, key, isCheckbox, isInt) => {
+                const el = document.getElementById(elId);
+                if (!el) return;
+                el.addEventListener('change', () => {
+                    const settings = getSavedEditorSettings();
+                    let val = isCheckbox ? el.checked : el.value;
+                    if (isInt) val = parseInt(val, 10);
+                    settings[key] = val;
+                    saveEditorSettings(settings);
+                    applyEditorSettings(settings);
+                });
+            };
+
+            bindSettingChange('cfgEditorFontFamily', 'fontFamily', false, false);
+            bindSettingChange('cfgEditorFontSize', 'fontSize', false, true);
+            bindSettingChange('cfgEditorTabSize', 'tabSize', false, true);
+            bindSettingChange('cfgEditorTheme', 'theme', false, false);
+            bindSettingChange('cfgEditorLigatures', 'ligatures', true, false);
+            bindSettingChange('cfgEditorMinimap', 'minimap', true, false);
+            bindSettingChange('cfgEditorWordWrap', 'wordWrap', true, false);
+
+            const btnResetSettings = document.getElementById('btnResetEditorSettings');
+            if (btnResetSettings) {
+                btnResetSettings.addEventListener('click', () => {
+                    const reset = Object.assign({}, defaultEditorSettings);
+                    saveEditorSettings(reset);
+                    syncSettingsUI(reset);
+                    applyEditorSettings(reset);
                 });
             }
         });

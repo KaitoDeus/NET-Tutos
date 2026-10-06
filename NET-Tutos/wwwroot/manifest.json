@@ -1,0 +1,25 @@
+{
+  "name": ".NET Tutos - Nền Tảng Học & Luyện Code .NET 10",
+  "short_name": "NET-Tutos",
+  "description": "Nền tảng học tập & thực hành C#, ASP.NET Core, EF Core, giải thuật toán và thi chứng chỉ .NET hiện đại.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#6366f1",
+  "orientation": "any",
+  "categories": ["education", "developer tools"],
+  "icons": [
+    {
+      "src": "/images/csharp-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/csharp-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

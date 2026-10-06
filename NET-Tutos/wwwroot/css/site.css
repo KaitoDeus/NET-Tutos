@@ -1372,3 +1372,129 @@ i.bi.ms-2 { margin-left: 0.55rem !important; }
         box-shadow: 0 0 0 0 rgba(81, 43, 212, 0);
     }
 }
+
+/* ==========================================================================
+   Command Palette (Ctrl + K) & Quick Jump
+   ========================================================================== */
+.command-palette-backdrop {
+    background-color: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(8px);
+}
+
+.command-palette-dialog {
+    max-width: 620px;
+    margin-top: 10vh;
+}
+
+.command-palette-content {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+
+.command-palette-input {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    font-size: 1.05rem;
+    padding: 1rem 1.25rem;
+    background: transparent !important;
+}
+
+.command-palette-results {
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.command-palette-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--bs-body-color);
+    transition: background-color 0.15s ease, color 0.15s ease;
+    border-radius: 0.5rem;
+    margin: 0.15rem 0.5rem;
+}
+
+.command-palette-item:hover,
+.command-palette-item.active {
+    background-color: var(--bs-primary-bg-subtle, rgba(81, 43, 212, 0.1));
+    color: var(--bs-primary);
+}
+
+.command-palette-item .item-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.command-palette-group-header {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.5rem 1.25rem 0.25rem;
+    color: var(--bs-secondary-color);
+}
+
+/* ==========================================================================
+   Network Status & Offline Indicator
+   ========================================================================== */
+.network-status-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    z-index: 1080;
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 2rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.3s ease;
+}
+
+.network-status-toast.offline {
+    display: flex;
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+.network-status-toast.online {
+    display: flex;
+    background-color: #10b981;
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   Monaco Editor Settings Panel (Playground)
+   ========================================================================== */
+.editor-settings-dropdown {
+    width: 340px;
+    max-width: 90vw;
+    padding: 1rem;
+    border-radius: 1rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.editor-settings-dropdown .form-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.editor-settings-dropdown .form-select-sm {
+    font-size: 0.82rem;
+}

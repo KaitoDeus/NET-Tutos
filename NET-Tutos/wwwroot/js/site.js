@@ -85,6 +85,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Language Switcher System
     initLanguageSwitcher();
+
+    // PWA & Offline Network System
+    initPwaAndServiceWorker();
+
+    // Command Palette (Ctrl + K) & Quick Jump
+    initCommandPalette();
+
+    // Offline Lesson Reading Saver
+    initOfflineLessonSaver();
+
+    // Lesson Keyboard Navigation (Alt + Arrow Left/Right)
+    initLessonShortcuts();
 });
 
 function initNavDropdownHover() {
@@ -786,4 +798,464 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+}
+
+/* ==========================================================================
+   PWA & Service Worker Offline Mode
+   ========================================================================== */
+let deferredPwaPrompt = null;
+
+function initPwaAndServiceWorker() {
+    const toast = document.getElementById('networkStatusToast');
+    const toastTitle = document.getElementById('networkStatusTitle');
+    const toastDesc = document.getElementById('networkStatusDesc');
+    const toastIcon = document.getElementById('networkStatusIcon');
+    const isEn = isCurrentCultureEnglish();
+
+    function showNetworkToast(isOnline) {
+        if (!toast) return;
+        if (isOnline) {
+            toast.className = 'network-status-toast online';
+            if (toastIcon) toastIcon.className = 'bi bi-wifi fs-5';
+            if (toastTitle) toastTitle.textContent = isEn ? 'Back Online' : 'Đã có kết nối Internet';
+            if (toastDesc) toastDesc.textContent = isEn ? 'Connected to server' : 'Đã khôi phục kết nối máy chủ';
+            setTimeout(() => {
+                toast.className = 'network-status-toast';
+            }, 3500);
+        } else {
+            toast.className = 'network-status-toast offline';
+            if (toastIcon) toastIcon.className = 'bi bi-wifi-off fs-5';
+            if (toastTitle) toastTitle.textContent = isEn ? 'Offline Mode' : 'Chế độ Ngoại tuyến';
+            if (toastDesc) toastDesc.textContent = isEn ? 'Viewing cached content' : 'Đang dùng dữ liệu lưu trữ đệm';
+        }
+    }
+
+    window.addEventListener('online', () => showNetworkToast(true));
+    window.addEventListener('offline', () => showNetworkToast(false));
+
+    if (!navigator.onLine) {
+        showNetworkToast(false);
+    }
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => {
+                    reg.onupdatefound = () => {
+                        const installingWorker = reg.installing;
+                        if (installingWorker) {
+                            installingWorker.onstatechange = () => {
+                                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('NET-Tutos: Service Worker updated.');
+                                }
+                            };
+                        }
+                    };
+                })
+                .catch(err => {
+                    console.warn('ServiceWorker registration error:', err);
+                });
+        });
+    }
+
+    // Capture PWA install prompt
+    window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault();
+        deferredPwaPrompt = e;
+    });
+}
+
+/* ==========================================================================
+   Command Palette (Ctrl + K) & Quick Jump
+   ========================================================================== */
+let commandPaletteItems = [];
+let activePaletteIndex = -1;
+let currentPaletteFilter = 'all';
+
+function openCommandPaletteModal(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    const modalEl = document.getElementById('commandPaletteModal');
+    if (!modalEl) return;
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+
+    setTimeout(() => {
+        const input = document.getElementById('commandPaletteInput');
+        if (input) {
+            input.focus();
+            input.select();
+        }
+        renderCommandPaletteResults('');
+    }, 150);
+}
+
+function initCommandPalette() {
+    // Load tutorials search data
+    const dataEl = document.getElementById('commandPaletteData');
+    if (dataEl && dataEl.textContent) {
+        try {
+            commandPaletteItems = JSON.parse(dataEl.textContent);
+        } catch (e) {
+            commandPaletteItems = [];
+        }
+    }
+
+    // Global keyboard shortcut Ctrl + K / Cmd + K
+    window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+            e.preventDefault();
+            openCommandPaletteModal();
+        }
+    });
+
+    const input = document.getElementById('commandPaletteInput');
+    if (input) {
+        input.addEventListener('input', (e) => {
+            renderCommandPaletteResults(e.target.value.trim());
+        });
+
+        input.addEventListener('keydown', (e) => {
+            const resultsContainer = document.getElementById('commandPaletteResults');
+            if (!resultsContainer) return;
+            const items = resultsContainer.querySelectorAll('.command-palette-item');
+            if (!items.length) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activePaletteIndex = (activePaletteIndex + 1) % items.length;
+                updatePaletteHighlight(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activePaletteIndex = (activePaletteIndex - 1 + items.length) % items.length;
+                updatePaletteHighlight(items);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (activePaletteIndex >= 0 && items[activePaletteIndex]) {
+                    items[activePaletteIndex].click();
+                }
+            }
+        });
+    }
+
+    // Filter tags click
+    document.querySelectorAll('.cp-filter-tag').forEach(tag => {
+        tag.addEventListener('click', () => {
+            document.querySelectorAll('.cp-filter-tag').forEach(t => {
+                t.className = 'badge rounded-pill bg-body-secondary text-body border-0 cp-filter-tag';
+            });
+            tag.className = 'badge rounded-pill bg-primary text-white border-0 cp-filter-tag';
+            currentPaletteFilter = tag.getAttribute('data-filter') || 'all';
+            const query = input ? input.value.trim() : '';
+            renderCommandPaletteResults(query);
+        });
+    });
+}
+
+function updatePaletteHighlight(items) {
+    items.forEach((item, idx) => {
+        if (idx === activePaletteIndex) {
+            item.classList.add('active');
+            item.scrollIntoView({ block: 'nearest' });
+        } else {
+            item.classList.remove('active');
+        }
+    });
+}
+
+function renderCommandPaletteResults(query) {
+    const container = document.getElementById('commandPaletteResults');
+    if (!container) return;
+    const isEn = isCurrentCultureEnglish();
+    const q = query.toLowerCase();
+    activePaletteIndex = 0;
+
+    // Static Navigation & Actions items
+    const quickActions = [
+        {
+            type: 'action',
+            icon: 'bi-moon-stars-fill text-warning',
+            title: isEn ? 'Toggle Theme (Dark / Light)' : 'Chuyển giao diện Sáng / Tối',
+            subtitle: isEn ? 'Switch appearance mode' : 'Đổi chế độ màu hệ thống',
+            action: () => {
+                const themeBtn = document.getElementById('themeToggleBtn');
+                if (themeBtn) themeBtn.click();
+                const modalEl = document.getElementById('commandPaletteModal');
+                if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+            }
+        },
+        {
+            type: 'nav',
+            icon: 'bi-cpu-fill text-danger',
+            title: isEn ? 'C# Code Playground' : 'Trình thực hành C# Playground',
+            subtitle: isEn ? 'Compile & run C# in browser' : 'Viết và chạy mã C# trực tuyến (.NET 10)',
+            url: '/Playground'
+        },
+        {
+            type: 'nav',
+            icon: 'bi-robot text-info',
+            title: isEn ? 'AI .NET Tutor & Mentor' : 'Trợ lý AI Gia sư .NET',
+            subtitle: isEn ? 'Ask AI about C#, error diagnostics' : 'Hỏi đáp lập trình, sửa lỗi và hướng dẫn học',
+            url: '/AiTutor'
+        },
+        {
+            type: 'nav',
+            icon: 'bi-collection-play-fill text-danger',
+            title: isEn ? 'Full Curriculum (101 Lessons)' : 'Chương trình C# (101 bài học)',
+            subtitle: isEn ? 'Standard Microsoft .NET syllabus' : 'Lộ trình 7 module chuẩn Microsoft .NET',
+            url: '/Curriculum'
+        },
+        {
+            type: 'nav',
+            icon: 'bi-signpost-split text-warning',
+            title: isEn ? 'Standard Roadmap' : 'Lộ trình học chuẩn .NET',
+            subtitle: isEn ? 'From Zero to Senior .NET Developer' : 'Bản đồ từ Zero đến Senior .NET Developer',
+            url: '/Roadmap'
+        },
+        {
+            type: 'nav',
+            icon: 'bi-code-square text-info',
+            title: isEn ? 'C# Cheatsheet' : 'Tra cứu cú pháp C# Cheatsheet',
+            subtitle: isEn ? 'Quick syntax guide & samples' : 'Sổ tay cú pháp & ví dụ mã mẫu',
+            url: '/CheatSheet'
+        },
+        {
+            type: 'nav',
+            icon: 'bi-trophy-fill text-warning',
+            title: isEn ? 'Hall of Fame (Leaderboard)' : 'Bảng vinh danh (Leaderboard)',
+            subtitle: isEn ? 'Top learners & XP ranking' : 'Bảng xếp hạng học viên xuất sắc',
+            url: '/Leaderboard'
+        },
+        {
+            type: 'nav',
+            icon: 'bi-calendar2-check-fill text-success',
+            title: isEn ? 'Study Planner & Streak' : 'Kế hoạch học tập & Mục tiêu',
+            subtitle: isEn ? 'Track goals and streaks' : 'Theo dõi mục tiêu & duy trì streak',
+            url: '/Planner'
+        }
+    ];
+
+    let html = '';
+
+    // Filter quick actions
+    const filteredActions = quickActions.filter(item => {
+        if (currentPaletteFilter === 'lesson') return false;
+        if (currentPaletteFilter === 'nav' && item.type !== 'nav') return false;
+        if (currentPaletteFilter === 'action' && item.type !== 'action') return false;
+        if (!q) return true;
+        return item.title.toLowerCase().includes(q) || item.subtitle.toLowerCase().includes(q);
+    });
+
+    if (filteredActions.length > 0) {
+        html += `<div class="command-palette-group-header">${isEn ? 'Quick Navigation & Actions' : 'Điều hướng & Tác vụ'}</div>`;
+        filteredActions.forEach(item => {
+            const clickAttr = item.url 
+                ? `onclick="window.location.href='${item.url}'"` 
+                : `onclick="window.__triggerPaletteAction('${item.title}')"`;
+            html += `
+                <div class="command-palette-item" ${clickAttr}>
+                    <div class="item-icon bg-body-tertiary">
+                        <i class="bi ${item.icon}"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-truncate">${escapeHtml(item.title)}</div>
+                        <div class="small text-muted text-truncate">${escapeHtml(item.subtitle)}</div>
+                    </div>
+                    <i class="bi bi-arrow-return-left text-muted small opacity-50"></i>
+                </div>
+            `;
+        });
+    }
+
+    // Filter lessons
+    if (currentPaletteFilter === 'all' || currentPaletteFilter === 'lesson') {
+        const filteredLessons = commandPaletteItems.filter(item => {
+            if (!q) return true;
+            return (item.title && item.title.toLowerCase().includes(q)) ||
+                   (item.category && item.category.toLowerCase().includes(q)) ||
+                   (item.slug && item.slug.toLowerCase().includes(q));
+        }).slice(0, 15);
+
+        if (filteredLessons.length > 0) {
+            html += `<div class="command-palette-group-header">${isEn ? 'Lessons & Tutorials' : 'Bài học & Hướng dẫn'}</div>`;
+            filteredLessons.forEach(item => {
+                html += `
+                    <div class="command-palette-item" onclick="window.location.href='/Tutorials/Details/${encodeURIComponent(item.slug)}'">
+                        <div class="item-icon bg-primary-subtle text-primary">
+                            <i class="bi bi-book"></i>
+                        </div>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fw-semibold text-truncate">${escapeHtml(item.title)}</div>
+                            <div class="small text-muted text-truncate">
+                                <span class="badge bg-secondary-subtle text-secondary me-1 py-0.5">${escapeHtml(item.category)}</span>
+                                <span>~${item.readingMinutes} ${isEn ? 'min' : 'phút'}</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-arrow-return-left text-muted small opacity-50"></i>
+                    </div>
+                `;
+            });
+        }
+    }
+
+    if (!html) {
+        html = `
+            <div class="p-4 text-center text-muted">
+                <i class="bi bi-search fs-3 d-block mb-2 text-secondary opacity-50"></i>
+                <div>${isEn ? 'No results found for' : 'Không tìm thấy kết quả phù hợp cho'} "${escapeHtml(query)}"</div>
+                <small class="text-secondary">${isEn ? 'Try searching with another keyword.' : 'Hãy thử lại bằng từ khóa khác.'}</small>
+            </div>
+        `;
+    }
+
+    container.innerHTML = html;
+
+    window.__triggerPaletteAction = function(title) {
+        const found = quickActions.find(a => a.title === title);
+        if (found && found.action) found.action();
+    };
+
+    const firstItem = container.querySelector('.command-palette-item');
+    if (firstItem) firstItem.classList.add('active');
+}
+
+/* ==========================================================================
+   Offline Lesson Reading Saver
+   ========================================================================== */
+function initOfflineLessonSaver() {
+    const btn = document.getElementById('btnSaveOffline');
+    if (!btn) return;
+    const isEn = isCurrentCultureEnglish();
+    const currentUrl = window.location.href;
+
+    const icon = document.getElementById('offlineSaveIcon');
+    const text = document.getElementById('offlineSaveText');
+
+    let isSaved = false;
+
+    function setBtnSavedState(saved) {
+        isSaved = saved;
+        if (saved) {
+            btn.className = 'btn btn-sm btn-success rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 shadow-none';
+            if (icon) icon.className = 'bi bi-check2-circle';
+            if (text) text.textContent = isEn ? 'Saved Offline' : 'Đã lưu ngoại tuyến';
+            btn.title = isEn ? 'Saved in cache! Click to remove' : 'Đã lưu trong bộ nhớ đệm! Bấm để xóa';
+        } else {
+            btn.className = 'btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 shadow-none';
+            if (icon) icon.className = 'bi bi-cloud-arrow-down';
+            if (text) text.textContent = isEn ? 'Save Offline' : 'Lưu ngoại tuyến';
+            btn.title = isEn ? 'Save offline for reading without Internet' : 'Lưu đọc ngoại tuyến khi không có mạng';
+        }
+    }
+
+    // Check offline status via Service Worker message
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+            type: 'CHECK_OFFLINE_SAVED',
+            url: currentUrl
+        });
+
+        navigator.serviceWorker.addEventListener('message', (event) => {
+            const data = event.data;
+            if (!data) return;
+
+            if (data.type === 'CHECK_OFFLINE_RESULT' && data.url === currentUrl) {
+                setBtnSavedState(data.isSaved);
+            } else if (data.type === 'LESSON_SAVED_SUCCESS' && data.url === currentUrl) {
+                setBtnSavedState(true);
+                showGenericNotificationToast(
+                    isEn ? 'Offline Lesson Ready' : 'Đã Lưu Ngoại Tuyến Thành Công',
+                    isEn ? 'You can now read this lesson without an Internet connection.' : 'Bạn có thể đọc lại bài học này bất kỳ lúc nào mà không cần kết nối mạng.',
+                    'success'
+                );
+            } else if (data.type === 'LESSON_REMOVED_SUCCESS' && data.url === currentUrl) {
+                setBtnSavedState(false);
+                showGenericNotificationToast(
+                    isEn ? 'Removed Offline Lesson' : 'Đã Xóa Bản Ngoại Tuyến',
+                    isEn ? 'Cached copy has been removed.' : 'Bản lưu đệm ngoại tuyến của bài học đã được xóa.',
+                    'secondary'
+                );
+            }
+        });
+    }
+
+    btn.addEventListener('click', () => {
+        if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) {
+            showGenericNotificationToast(
+                isEn ? 'Offline Mode' : 'Chế độ Ngoại tuyến',
+                isEn ? 'Service Worker is starting. Please try again in a few moments.' : 'Trình duyệt đang khởi tạo Service Worker. Vui lòng thử lại sau vài giây.',
+                'info'
+            );
+            return;
+        }
+
+        if (isSaved) {
+            navigator.serviceWorker.controller.postMessage({
+                type: 'REMOVE_LESSON_OFFLINE',
+                url: currentUrl
+            });
+        } else {
+            if (icon) icon.className = 'spinner-border spinner-border-sm';
+            navigator.serviceWorker.controller.postMessage({
+                type: 'SAVE_LESSON_OFFLINE',
+                url: currentUrl
+            });
+        }
+    });
+}
+
+/* ==========================================================================
+   Lesson Keyboard Navigation (Alt + Arrow Left / Right)
+   ========================================================================== */
+function initLessonShortcuts() {
+    window.addEventListener('keydown', (e) => {
+        const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+        if (tag === 'input' || tag === 'textarea' || document.activeElement?.isContentEditable) return;
+
+        if (e.altKey && e.key === 'ArrowLeft') {
+            const prev = document.getElementById('prevLessonLink');
+            if (prev) {
+                e.preventDefault();
+                prev.click();
+            }
+        } else if (e.altKey && e.key === 'ArrowRight') {
+            const next = document.getElementById('nextLessonLink');
+            if (next) {
+                e.preventDefault();
+                next.click();
+            }
+        }
+    });
+}
+
+function showGenericNotificationToast(title, message, badgeType) {
+    const container = document.getElementById('notificationToastContainer');
+    if (!container) return;
+
+    const toastId = 'toast_' + Date.now();
+    const toastEl = document.createElement('div');
+    toastEl.className = 'toast show border-0 shadow-lg rounded-4 overflow-hidden mb-2';
+    toastEl.setAttribute('role', 'alert');
+    toastEl.id = toastId;
+
+    const bgBadge = badgeType === 'success' ? 'bg-success text-white' : (badgeType === 'secondary' ? 'bg-secondary text-white' : 'bg-primary text-white');
+
+    toastEl.innerHTML = `
+        <div class="toast-header border-0 bg-body-tertiary d-flex align-items-center justify-content-between p-2.5 px-3">
+            <span class="badge ${bgBadge} rounded-pill px-2 py-0.5 me-2">NET-Tutos</span>
+            <strong class="me-auto text-body">${escapeHtml(title)}</strong>
+            <button type="button" class="btn-close small shadow-none" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body p-3 small text-body-secondary bg-body">
+            ${escapeHtml(message)}
+        </div>
+    `;
+
+    container.appendChild(toastEl);
+    setTimeout(() => {
+        toastEl.remove();
+    }, 4500);
 }

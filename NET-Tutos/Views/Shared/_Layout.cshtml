@@ -1,5 +1,6 @@
 @inject NET_Tutos.Data.AppDbContext DbContext
 @using Microsoft.AspNetCore.Localization
+@using Microsoft.EntityFrameworkCore
 @using NET_Tutos.Services
 @{
     bool isEn = Context.IsEnglish();
@@ -8,14 +9,25 @@
     var returnUrl = Context.Request.Path + Context.Request.QueryString;
 
     List<NET_Tutos.Models.Entities.Category> navCategories = new();
+    List<NET_Tutos.Models.Entities.Tutorial> searchTutorials = new();
     try
     {
         navCategories = DbContext.Categories.OrderBy(c => c.OrderIndex).ToList();
+        searchTutorials = DbContext.Tutorials.Include(t => t.Category).OrderBy(t => t.OrderIndex).Take(150).ToList();
     }
     catch
     {
         // Safe fallback
     }
+
+    var searchDataJson = System.Text.Json.JsonSerializer.Serialize(searchTutorials.Select(t => new {
+        id = t.Id,
+        title = t.GetTitle(isEn),
+        slug = t.GetSlug(isEn),
+        category = t.Category != null ? t.Category.GetTitle(isEn) : "",
+        readingMinutes = t.EstimatedReadingMinutes,
+        difficulty = LocalizationHelper.GetDifficultyName(t.Difficulty, isEn)
+    }));
 
     var currentController = ViewContext.RouteData.Values["Controller"]?.ToString() ?? "";
     var currentAction = ViewContext.RouteData.Values["Action"]?.ToString() ?? "";
@@ -30,16 +42,20 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#6366f1" />
     <title>@(string.IsNullOrWhiteSpace(ViewData["Title"]?.ToString()) || ViewData["Title"]?.ToString() == "Trang chủ" ? (isEn ? "Home | NET-Tutos" : "Trang chủ | NET-Tutos") : $"{ViewData["Title"]} | NET-Tutos")</title>
+
+    <!-- PWA Web App Manifest -->
+    <link rel="manifest" href="/manifest.json" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="~/images/csharp-logo.png" />
     <link rel="shortcut icon" type="image/png" href="~/images/csharp-logo.png" />
 
-    <!-- Google Fonts -->
+    <!-- Google Fonts (Fira Code, JetBrains Mono, Plus Jakarta Sans) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Bootstrap 5 & Bootstrap Icons -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -95,6 +111,9 @@
                     </div>
                     <button class="btn btn-sm btn-outline-secondary rounded-circle theme-btn p-1.5" type="button" onclick="document.getElementById('themeToggleBtn').click()" title="@(isEn ? "Toggle theme" : "Chuyển chế độ Sáng / Tối")">
                         <i class="bi bi-moon-stars-fill mobile-theme-icon"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary rounded-circle p-1.5" type="button" onclick="openCommandPaletteModal()" title="@(isEn ? "Search & Commands (Ctrl+K)" : "Tìm kiếm & Bảng lệnh (Ctrl+K)")" style="width: 32px; height: 32px;">
+                        <i class="bi bi-search"></i>
                     </button>
                     @if (User.Identity?.IsAuthenticated == true)
                     {
@@ -380,15 +399,20 @@
                         </li>
                     </ul>
 
-                    <!-- Search Box -->
-                    <form class="d-flex my-2 my-lg-0 me-lg-2 w-100 w-lg-auto" asp-controller="Tutorials" asp-action="Index" method="get">
-                        <div class="input-group input-group-sm search-group w-100">
-                            <input class="form-control" type="search" name="search" placeholder="@(isEn ? "Search lessons..." : "Tìm bài học...")" aria-label="Search" value="@Context.Request.Query["search"]" data-lang-placeholder="search_placeholder">
-                            <button class="btn btn-outline-primary" type="submit" title="@(isEn ? "Search" : "Tìm kiếm")">
-                                <i class="bi bi-search"></i>
-                            </button>
-                        </div>
-                    </form>
+                    <!-- Search Box & Command Palette Trigger -->
+                    <div class="d-flex align-items-center my-2 my-lg-0 me-lg-2 w-100 w-lg-auto">
+                        <form class="d-flex w-100" asp-controller="Tutorials" asp-action="Index" method="get">
+                            <div class="input-group input-group-sm search-group w-100">
+                                <input class="form-control" type="search" name="search" placeholder="@(isEn ? "Search lessons..." : "Tìm bài học...")" aria-label="Search" value="@Context.Request.Query["search"]" data-lang-placeholder="search_placeholder">
+                                <button class="btn btn-outline-primary" type="submit" title="@(isEn ? "Search" : "Tìm kiếm")">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </form>
+                        <button type="button" class="btn btn-sm btn-outline-secondary d-none d-xl-inline-flex align-items-center gap-1 rounded-pill px-2.5 py-1 ms-1.5 text-muted text-nowrap shadow-none" onclick="openCommandPaletteModal()" title="@(isEn ? "Quick Search & Command (Ctrl+K)" : "Tìm nhanh & Bảng lệnh (Ctrl+K)")" style="font-size: 0.75rem; height: 31px;">
+                            <i class="bi bi-command"></i> <kbd class="bg-transparent border-0 p-0 text-muted">Ctrl K</kbd>
+                        </button>
+                    </div>
 
                     <!-- User Account / Auth Menu -->
                     <div class="d-flex align-items-center gap-2 me-lg-2 my-2 my-lg-0 mobile-nav-auth">
@@ -617,6 +641,49 @@
 
     <!-- Live Notification Toast Container -->
     <div id="notificationToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;"></div>
+
+    <!-- Command Palette Modal (Ctrl + K / Cmd + K) -->
+    <div class="modal fade" id="commandPaletteModal" tabindex="-1" aria-labelledby="commandPaletteLabel" aria-hidden="true" data-bs-backdrop="true">
+        <div class="modal-dialog modal-dialog-centered command-palette-dialog">
+            <div class="modal-content command-palette-content border-0">
+                <div class="p-3 border-bottom d-flex align-items-center gap-2">
+                    <i class="bi bi-search text-primary fs-5"></i>
+                    <input type="text" id="commandPaletteInput" class="form-control command-palette-input flex-grow-1"
+                           placeholder="@(isEn ? "Search lessons, pages, or quick actions... (Esc to close)" : "Tìm bài học, điều hướng nhanh hoặc tác vụ... (Esc để đóng)")"
+                           autocomplete="off" spellcheck="false" />
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="p-2 border-bottom d-flex align-items-center gap-2 bg-body-tertiary text-muted small px-3">
+                    <span class="fw-semibold">@(isEn ? "Filters:" : "Bộ lọc:")</span>
+                    <button type="button" class="badge rounded-pill bg-primary text-white border-0 cp-filter-tag" data-filter="all">@(isEn ? "All" : "Tất cả")</button>
+                    <button type="button" class="badge rounded-pill bg-body-secondary text-body border-0 cp-filter-tag" data-filter="lesson">@(isEn ? "Lessons" : "Bài học")</button>
+                    <button type="button" class="badge rounded-pill bg-body-secondary text-body border-0 cp-filter-tag" data-filter="nav">@(isEn ? "Navigation" : "Chuyển trang")</button>
+                    <button type="button" class="badge rounded-pill bg-body-secondary text-body border-0 cp-filter-tag" data-filter="action">@(isEn ? "Actions" : "Tác vụ")</button>
+                </div>
+                <div class="command-palette-results py-2" id="commandPaletteResults">
+                    <!-- Populated dynamically via JS -->
+                </div>
+                <div class="p-2.5 px-3 bg-body-tertiary border-top d-flex align-items-center justify-content-between text-muted small" style="font-size: 0.75rem;">
+                    <div class="d-flex align-items-center gap-3">
+                        <span><kbd class="bg-body text-body border shadow-none px-1 py-0.5">↑</kbd> <kbd class="bg-body text-body border shadow-none px-1 py-0.5">↓</kbd> @(isEn ? "Navigate" : "Di chuyển")</span>
+                        <span><kbd class="bg-body text-body border shadow-none px-1 py-0.5">↵</kbd> @(isEn ? "Open" : "Chọn")</span>
+                        <span><kbd class="bg-body text-body border shadow-none px-1 py-0.5">Esc</kbd> @(isEn ? "Close" : "Đóng")</span>
+                    </div>
+                    <span class="d-none d-sm-inline fw-semibold text-primary">NET-Tutos Quick Jump</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script id="commandPaletteData" type="application/json">@Html.Raw(searchDataJson)</script>
+
+    <!-- Real-time Network Indicator Toast (PWA/Offline) -->
+    <div id="networkStatusToast" class="network-status-toast" role="status" aria-live="polite">
+        <i class="bi bi-wifi-off fs-5" id="networkStatusIcon"></i>
+        <div>
+            <div class="fw-bold" id="networkStatusTitle">@(isEn ? "Offline Mode" : "Chế độ Ngoại tuyến")</div>
+            <div class="small opacity-75" id="networkStatusDesc">@(isEn ? "Viewing cached content" : "Đang dùng nội dung lưu trữ đệm")</div>
+        </div>
+    </div>
 
     @if (User.Identity?.IsAuthenticated == true)
     {
