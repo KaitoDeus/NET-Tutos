@@ -1,0 +1,674 @@
+@model NET_Tutos.Models.ViewModels.PublicPortfolioViewModel
+@{
+    bool isEn = Context.IsEnglish();
+    var user = Model.User;
+    var profile = Model.Profile;
+    var initials = !string.IsNullOrWhiteSpace(user.FullName) 
+        ? user.FullName.Substring(0, 1).ToUpper() 
+        : (user.UserName?.Substring(0, 1).ToUpper() ?? "U");
+}
+
+<div class="developer-portfolio-page py-4 py-md-5">
+    <div class="container">
+        @if (!Model.IsPublic && !Model.IsOwner)
+        {
+            <!-- Private Profile Notice -->
+            <div class="row justify-content-center py-5">
+                <div class="col-md-7 col-lg-5 text-center">
+                    <div class="card border-0 shadow-sm rounded-4 p-5 bg-body">
+                        <div class="rounded-circle bg-warning-subtle text-warning mx-auto d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                            <i class="bi bi-lock-fill fs-1"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">@(isEn ? "Private Profile" : "Hồ Sơ Riêng Tư")</h4>
+                        <p class="text-muted mb-4">
+                            @(isEn 
+                                ? "This developer has configured their portfolio to private. Only the owner can view this page." 
+                                : "Lập trình viên này đã thiết lập hồ sơ ở chế độ riêng tư. Chỉ chủ tài khoản mới có thể xem.")
+                        </p>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary rounded-pill px-4">
+                            <i class="bi bi-house-door me-1"></i> @(isEn ? "Back to Home" : "Về Trang Chủ")
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- 1. Header Banner & Profile Overview -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-body portfolio-hero-card">
+                <div class="portfolio-cover-bg p-4 p-md-5 position-relative text-white">
+                    <div class="position-absolute top-0 end-0 p-3 opacity-25 d-none d-md-block pointer-events-none">
+                        <i class="bi bi-code-slash" style="font-size: 10rem; line-height: 1;"></i>
+                    </div>
+
+                    <div class="row align-items-center position-relative z-1 g-4">
+                        <div class="col-auto">
+                            <div class="portfolio-avatar-wrapper position-relative">
+                                @if (!string.IsNullOrEmpty(user.AvatarUrl))
+                                {
+                                    <img src="@user.AvatarUrl" alt="@user.FullName" class="rounded-circle border border-3 border-white shadow-lg portfolio-avatar-img" />
+                                }
+                                else
+                                {
+                                    <div class="rounded-circle border border-3 border-white shadow-lg bg-white text-primary fw-extrabold d-flex align-items-center justify-content-center portfolio-avatar-initials">
+                                        @initials
+                                    </div>
+                                }
+                                <span class="position-absolute bottom-0 end-0 badge rounded-circle bg-success border border-2 border-white p-2" title="@(isEn ? "Verified .NET Developer" : "Lập trình viên .NET đã xác thực")">
+                                    <i class="bi bi-check-lg text-white"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                <h2 class="fw-bold text-white mb-0">@(string.IsNullOrWhiteSpace(user.FullName) ? user.UserName?.Split('@')[0] : user.FullName)</h2>
+                                <span class="badge bg-white text-dark rounded-pill px-3 py-1.5 fw-semibold small">
+                                    @@@(user.UserName?.Split('@')[0])
+                                </span>
+                                <span class="badge bg-warning text-dark rounded-pill px-3 py-1.5 fw-bold small">
+                                    <i class="bi bi-lightning-charge-fill me-1"></i>Level @Model.CurrentLevel • @Model.LevelTitle
+                                </span>
+                            </div>
+
+                            <p class="fs-5 text-white text-opacity-90 mb-2 fw-medium">
+                                @Model.Headline
+                            </p>
+
+                            <p class="text-white text-opacity-75 small mb-3 max-w-700">
+                                @Model.Bio
+                            </p>
+
+                            <!-- Social links & Meta Info -->
+                            <div class="d-flex flex-wrap align-items-center gap-3 text-white text-opacity-90 small">
+                                @if (!string.IsNullOrWhiteSpace(profile.Location))
+                                {
+                                    <span class="d-inline-flex align-items-center gap-1">
+                                        <i class="bi bi-geo-alt-fill text-danger-emphasis"></i> @profile.Location
+                                    </span>
+                                }
+                                <span class="d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-calendar3"></i> @(isEn ? "Joined" : "Gia nhập") @user.CreatedAt.ToString("MM/yyyy")
+                                </span>
+                                <span class="d-inline-flex align-items-center gap-1 text-warning fw-semibold">
+                                    <i class="bi bi-trophy-fill"></i> @(isEn ? $"Rank #{Model.OverallRank} of {Model.TotalLearners}" : $"Hạng #{Model.OverallRank} / {Model.TotalLearners} học viên")
+                                </span>
+
+                                @if (!string.IsNullOrWhiteSpace(profile.GithubUrl))
+                                {
+                                    <a href="@profile.GithubUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 text-nowrap">
+                                        <i class="bi bi-github me-1"></i> GitHub
+                                    </a>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(profile.LinkedinUrl))
+                                {
+                                    <a href="@profile.LinkedinUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 text-nowrap">
+                                        <i class="bi bi-linkedin me-1"></i> LinkedIn
+                                    </a>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(profile.WebsiteUrl))
+                                {
+                                    <a href="@profile.WebsiteUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 text-nowrap">
+                                        <i class="bi bi-globe me-1"></i> Website
+                                    </a>
+                                }
+                                @if (profile.ShowEmail && !string.IsNullOrWhiteSpace(user.Email))
+                                {
+                                    <a href="mailto:@user.Email" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 text-nowrap">
+                                        <i class="bi bi-envelope me-1"></i> Email
+                                    </a>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Action buttons for visitor / owner -->
+                        <div class="col-12 col-xl-auto mt-3 mt-xl-0 d-print-none">
+                            <div class="d-flex flex-wrap flex-xl-column gap-2 justify-content-xl-end">
+                                <button type="button" class="btn btn-light rounded-pill px-3 py-2 fw-semibold text-primary shadow-sm" id="btnCopyPortfolioLink" onclick="copyPortfolioUrl()">
+                                    <i class="bi bi-share me-1.5"></i> @(isEn ? "Share Portfolio" : "Chia sẻ hồ sơ")
+                                </button>
+                                <button type="button" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold text-nowrap shadow-sm" onclick="window.print()">
+                                    <i class="bi bi-printer me-1.5"></i> @(isEn ? "Print / Export PDF" : "In / Xuất PDF Resume")
+                                </button>
+                                @if (Model.IsOwner)
+                                {
+                                    <button type="button" class="btn btn-primary rounded-pill px-3 py-2 fw-semibold text-white shadow-sm border border-light border-opacity-50" data-bs-toggle="modal" data-bs-target="#editPortfolioModal">
+                                        <i class="bi bi-pencil-square me-1.5"></i> @(isEn ? "Edit Portfolio" : "Chỉnh sửa hồ sơ")
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skills Ribbon -->
+                @if (!string.IsNullOrWhiteSpace(profile.SkillsCsv))
+                {
+                    <div class="bg-body-secondary px-4 py-2.5 border-top d-flex align-items-center flex-wrap gap-2">
+                        <span class="small fw-bold text-muted me-1"><i class="bi bi-cpu me-1"></i>@(isEn ? "Key Skills:" : "Kỹ năng chính:")</span>
+                        @foreach (var skill in profile.SkillsCsv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                        {
+                            <span class="badge bg-body text-body border rounded-pill px-2.5 py-1 small fw-medium">
+                                @skill
+                            </span>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- 2. Core Stats Ribbon -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-4 col-xl-2.4">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-body h-100 text-center">
+                        <div class="text-primary mb-1"><i class="bi bi-patch-check-fill fs-3"></i></div>
+                        <h3 class="fw-extrabold mb-0">@Model.TotalCertificatesEarned</h3>
+                        <span class="text-muted small">@(isEn ? "Certificates" : "Chứng chỉ số")</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2.4">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-body h-100 text-center">
+                        <div class="text-success mb-1"><i class="bi bi-folder-check fs-3"></i></div>
+                        <h3 class="fw-extrabold mb-0">@Model.TotalProjectsApproved</h3>
+                        <span class="text-muted small">@(isEn ? "Capstone Projects" : "Đồ án Capstone")</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2.4">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-body h-100 text-center">
+                        <div class="text-danger mb-1"><i class="bi bi-terminal-fill fs-3"></i></div>
+                        <h3 class="fw-extrabold mb-0">@Model.TotalChallengesSolved</h3>
+                        <span class="text-muted small">@(isEn ? "Algorithms Solved" : "Thuật toán đã giải")</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2.4">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-body h-100 text-center">
+                        <div class="text-info mb-1"><i class="bi bi-journal-check fs-3"></i></div>
+                        <h3 class="fw-extrabold mb-0">@Model.TotalLessonsCompleted</h3>
+                        <span class="text-muted small">@(isEn ? "Lessons Finished" : "Bài học hoàn thành")</span>
+                    </div>
+                </div>
+                <div class="col-12 col-md-8 col-xl-2.4">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-body h-100 text-center">
+                        <div class="text-warning mb-1"><i class="bi bi-fire fs-3"></i></div>
+                        <h3 class="fw-extrabold mb-0">@user.CurrentStreak <small class="fs-6 text-muted fw-normal">@(isEn ? "days" : "ngày")</small></h3>
+                        <span class="text-muted small">@(isEn ? $"Streak (Best: {user.LongestStreak}d)" : $"Chuỗi học (Kỷ lục: {user.LongestStreak} ngày)")</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Left Column (Projects, Certificates, Challenges) -->
+                <div class="col-lg-8">
+                    <!-- Section: Capstone Projects -->
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-body mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="fw-bold mb-0 d-flex align-items-center text-primary">
+                                <i class="bi bi-folder-check me-2"></i> @(isEn ? "Featured Capstone Projects" : "Đồ Án Thực Chiến Chuẩn Doanh Nghiệp")
+                            </h5>
+                            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1">
+                                @Model.Projects.Count @(isEn ? "approved" : "đã hoàn thành")
+                            </span>
+                        </div>
+
+                        @if (Model.Projects.Any())
+                        {
+                            <div class="d-flex flex-column gap-3">
+                                @foreach (var proj in Model.Projects)
+                                {
+                                    <div class="border rounded-4 p-3.5 bg-body-tertiary transition-hover">
+                                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                                            <h6 class="fw-bold mb-0 fs-6 text-body-emphasis">@proj.Title</h6>
+                                            <div class="d-flex align-items-center gap-2">
+                                                @if (proj.Score.HasValue)
+                                                {
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill fw-bold">
+                                                        <i class="bi bi-star-fill text-warning me-1"></i>@proj.Score/100
+                                                    </span>
+                                                }
+                                                <span class="badge bg-secondary-subtle text-secondary px-2.5 py-1 rounded-pill small">
+                                                    @proj.CategoryName
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <p class="text-body-secondary small mb-3">
+                                            @proj.Description
+                                        </p>
+
+                                        @if (!string.IsNullOrWhiteSpace(proj.ReviewerFeedback))
+                                        {
+                                            <div class="alert alert-info py-2 px-3 rounded-3 small mb-3">
+                                                <i class="bi bi-chat-quote-fill me-1.5 text-info"></i>
+                                                <strong>@(isEn ? "Reviewer Note:" : "Nhận xét giảng viên:")</strong> @proj.ReviewerFeedback
+                                            </div>
+                                        }
+
+                                        <!-- Tech Tags & Repo Links -->
+                                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                            <div class="d-flex flex-wrap gap-1.5">
+                                                @foreach (var tag in proj.TechTags)
+                                                {
+                                                    <span class="badge bg-body border text-muted px-2 py-1 small rounded-2 font-mono">
+                                                        @tag
+                                                    </span>
+                                                }
+                                            </div>
+
+                                            <div class="d-flex align-items-center gap-2">
+                                                @if (!string.IsNullOrWhiteSpace(proj.GitHubRepoUrl))
+                                                {
+                                                    <a href="@proj.GitHubRepoUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                                                        <i class="bi bi-github me-1"></i> @(isEn ? "Repository" : "Mã nguồn")
+                                                    </a>
+                                                }
+                                                @if (!string.IsNullOrWhiteSpace(proj.LiveDemoUrl))
+                                                {
+                                                    <a href="@proj.LiveDemoUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary rounded-pill px-3">
+                                                        <i class="bi bi-box-arrow-up-right me-1"></i> Live Demo
+                                                    </a>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-folder2-open fs-2 d-block mb-2 text-secondary opacity-50"></i>
+                                <p class="small mb-2">@(isEn ? "No approved capstone projects yet." : "Chưa có đồ án nào được duyệt hoàn thành.")</p>
+                                @if (Model.IsOwner)
+                                {
+                                    <a asp-controller="Project" asp-action="Index" class="btn btn-sm btn-outline-primary rounded-pill">
+                                        <i class="bi bi-plus-circle me-1"></i> @(isEn ? "Explore Capstone Projects" : "Khám phá đề tài đồ án")
+                                    </a>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Section: Verified Digital Certificates -->
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-body mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="fw-bold mb-0 d-flex align-items-center text-warning">
+                                <i class="bi bi-patch-check-fill me-2 text-warning"></i> @(isEn ? "Verified Digital Certificates" : "Chứng Chỉ Số Đã Được Xác Thực")
+                            </h5>
+                            <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-3 py-1">
+                                @Model.Certificates.Count @(isEn ? "issued" : "chứng chỉ")
+                            </span>
+                        </div>
+
+                        @if (Model.Certificates.Any())
+                        {
+                            <div class="row g-3">
+                                @foreach (var cert in Model.Certificates)
+                                {
+                                    <div class="col-md-6">
+                                        <div class="border rounded-4 p-3 bg-body-tertiary h-100 d-flex flex-column justify-content-between position-relative">
+                                            <div>
+                                                <div class="d-flex align-items-center gap-2 mb-2">
+                                                    <div class="rounded-circle p-2 bg-warning-subtle text-warning">
+                                                        <i class="bi bi-award-fill fs-5"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="fw-bold mb-0 text-body-emphasis">@cert.CourseTitle</h6>
+                                                        <small class="text-muted font-mono">@cert.CertificateCode</small>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-2 mb-3">
+                                                    <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0.5 small">
+                                                        @(isEn ? "Final Score" : "Điểm tốt nghiệp"): @cert.FinalScore%
+                                                    </span>
+                                                    <small class="text-muted">
+                                                        @(isEn ? "Issued" : "Cấp ngày") @cert.IssuedAt.ToString("dd/MM/yyyy")
+                                                    </small>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
+                                                <span class="text-success small fw-semibold">
+                                                    <i class="bi bi-shield-check me-1"></i>@(isEn ? "Verified" : "Hợp lệ")
+                                                </span>
+                                                <a href="/Certificate/Verify/@cert.CertificateCode" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                                    @(isEn ? "Verify Certificate" : "Xem chứng chỉ") <i class="bi bi-arrow-right"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-award fs-2 d-block mb-2 text-secondary opacity-50"></i>
+                                <p class="small mb-2">@(isEn ? "No certifications earned yet. Take graduation exams to unlock verifiable certificates." : "Chưa có chứng chỉ tốt nghiệp. Hãy hoàn thành các kỳ thi để nhận chứng chỉ số.")</p>
+                                @if (Model.IsOwner)
+                                {
+                                    <a asp-controller="Exam" asp-action="Index" class="btn btn-sm btn-outline-warning rounded-pill">
+                                        <i class="bi bi-mortarboard me-1"></i> @(isEn ? "View Certification Exams" : "Kỳ thi sát hạch chứng chỉ")
+                                    </a>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Section: Solved Coding Challenges -->
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-body mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="fw-bold mb-0 d-flex align-items-center text-danger">
+                                <i class="bi bi-terminal-fill me-2 text-danger"></i> @(isEn ? "Coding Challenges Solved" : "Thuật Toán C# Đã Vượt Qua")
+                            </h5>
+                            <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1">
+                                @Model.SolvedChallenges.Count @(isEn ? "challenges" : "thử thách")
+                            </span>
+                        </div>
+
+                        @if (Model.SolvedChallenges.Any())
+                        {
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var chal in Model.SolvedChallenges)
+                                {
+                                    <div class="badge bg-body-tertiary border text-body-emphasis p-2 rounded-3 d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                        <span class="fw-semibold">@chal.Title</span>
+                                        <span class="badge bg-secondary-subtle text-secondary small py-0.5">@chal.Difficulty</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted small mb-0 text-center py-3">
+                                @(isEn ? "No algorithm challenges solved yet." : "Chưa có thử thách thuật toán nào được giải.")
+                            </p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Right Column (Skill Matrix & Badges) -->
+                <div class="col-lg-4">
+                    <!-- Technical Competency Matrix -->
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-body mb-4">
+                        <h5 class="fw-bold mb-3 d-flex align-items-center text-primary">
+                            <i class="bi bi-radar me-2"></i> @(isEn ? "Skill Competency Matrix" : "Ma Trận Kỹ Năng .NET")
+                        </h5>
+                        <p class="small text-muted mb-3">
+                            @(isEn 
+                                ? "Realtime evaluation based on completed modules, algorithms, and capstone grades." 
+                                : "Đánh giá tự động dựa trên số bài học, thử thách thuật toán và điểm đồ án thực tế.")
+                        </p>
+
+                        <div class="d-flex flex-column gap-3">
+                            @foreach (var skill in Model.SkillMatrix)
+                            {
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="small fw-bold text-body-emphasis">
+                                            <i class="bi @skill.IconClass text-@skill.ColorClass me-1.5"></i>@skill.SkillName
+                                        </span>
+                                        <span class="badge bg-@skill.ColorClass-subtle text-@skill.ColorClass small py-0.5">
+                                            @skill.ProficiencyPercentage%
+                                        </span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-@skill.ColorClass rounded-pill" role="progressbar" style="width: @skill.ProficiencyPercentage%;" aria-valuenow="@skill.ProficiencyPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <div class="text-end mt-0.5">
+                                        <small class="text-muted" style="font-size: 0.72rem;">@skill.MasteryLevel</small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Achievement Badges Showcase -->
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-body mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="fw-bold mb-0 d-flex align-items-center text-warning">
+                                <i class="bi bi-trophy-fill me-2 text-warning"></i> @(isEn ? "Badges & Honors" : "Huy Hiệu & Danh Hiệu")
+                            </h5>
+                            <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2.5 py-1 small">
+                                @Model.Badges.Count
+                            </span>
+                        </div>
+
+                        @if (Model.Badges.Any())
+                        {
+                            <div class="row g-2">
+                                @foreach (var badge in Model.Badges)
+                                {
+                                    <div class="col-6">
+                                        <div class="border rounded-3 p-2 text-center bg-body-tertiary h-100 transition-hover" title="@badge.Description">
+                                            <div class="rounded-circle bg-@badge.ColorClass-subtle text-@badge.ColorClass mx-auto p-2 mb-1.5 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="bi @badge.IconClass fs-5"></i>
+                                            </div>
+                                            <div class="fw-bold small text-truncate" style="font-size: 0.78rem;">@badge.Title</div>
+                                            <small class="text-muted" style="font-size: 0.68rem;">@badge.EarnedAt.ToString("dd/MM/yyyy")</small>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted small mb-0 text-center py-3">
+                                @(isEn ? "No badges unlocked yet." : "Chưa mở khóa huy hiệu nào.")
+                            </p>
+                        }
+                    </div>
+
+                    <!-- Recruiters Quick Verification Info -->
+                    <div class="card border-0 bg-primary-subtle text-primary rounded-4 p-4 mb-4">
+                        <h6 class="fw-bold mb-2 d-flex align-items-center">
+                            <i class="bi bi-shield-check fs-5 me-2"></i> @(isEn ? "Recruiter Note" : "Xác Thực Năng Lực")
+                        </h6>
+                        <p class="small mb-0 text-body-secondary">
+                            @(isEn 
+                                ? "All achievements, coding submissions, and certificates shown on this profile are cryptographically recorded and verified by NET-Tutos LMS." 
+                                : "Toàn bộ điểm số, lịch sử giải thuật toán và chứng chỉ số trên hồ sơ này được hệ thống NET-Tutos ghi nhận và xác thực tự động.")
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal: Edit Developer Portfolio (Only for Profile Owner) -->
+@if (Model.IsOwner)
+{
+    <div class="modal fade" id="editPortfolioModal" tabindex="-1" aria-labelledby="editPortfolioModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="editPortfolioModalLabel">
+                        <i class="bi bi-pencil-square text-primary me-2"></i>@(isEn ? "Edit Developer Portfolio" : "Chỉnh Sửa Hồ Sơ Năng Lực Lập Trình Viên")
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formUpdatePortfolio">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-body py-4">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold small">@(isEn ? "Professional Headline" : "Tiêu đề nghề nghiệp / Chức danh")</label>
+                                <input type="text" name="Headline" class="form-control rounded-3" value="@profile.Headline" placeholder="Ví dụ: Junior .NET Developer | ASP.NET Core & Modern C# 14" maxlength="200" required />
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold small">@(isEn ? "About Me / Career Bio" : "Giới thiệu bản thân / Tóm tắt năng lực")</label>
+                                <textarea name="CustomBio" class="form-control rounded-3" rows="3" maxlength="1000" placeholder="@(isEn ? "A short summary of your background, passion and career goals..." : "Tóm tắt ngắn gọn kinh nghiệm, đam mê và mục tiêu nghề nghiệp...")">@profile.CustomBio</textarea>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small"><i class="bi bi-github me-1"></i> GitHub URL</label>
+                                <input type="url" name="GithubUrl" class="form-control rounded-3" value="@profile.GithubUrl" placeholder="https://github.com/your-username" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small"><i class="bi bi-linkedin me-1"></i> LinkedIn URL</label>
+                                <input type="url" name="LinkedinUrl" class="form-control rounded-3" value="@profile.LinkedinUrl" placeholder="https://linkedin.com/in/your-profile" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small"><i class="bi bi-globe me-1"></i> Personal Website / Blog</label>
+                                <input type="url" name="WebsiteUrl" class="form-control rounded-3" value="@profile.WebsiteUrl" placeholder="https://yourportfolio.dev" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small"><i class="bi bi-geo-alt me-1"></i> @(isEn ? "Location" : "Địa điểm")</label>
+                                <input type="text" name="Location" class="form-control rounded-3" value="@profile.Location" placeholder="Hà Nội, Việt Nam" maxlength="150" />
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold small">@(isEn ? "Core Skills (comma separated)" : "Kỹ năng chính (ngăn cách bởi dấu phẩy)")</label>
+                                <input type="text" name="SkillsCsv" class="form-control rounded-3" value="@profile.SkillsCsv" placeholder="C# 14, .NET 10, ASP.NET Core, EF Core, SQL Server, Clean Architecture, RESTful API" maxlength="500" />
+                                <small class="text-muted">@(isEn ? "Separate each skill with a comma (,)" : "Phân cách mỗi kỹ năng bằng dấu phẩy (,)")</small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" name="IsPublic" value="true" id="checkIsPublic" @(profile.IsPublic ? "checked" : "") />
+                                    <label class="form-check-label fw-semibold small" for="checkIsPublic">
+                                        @(isEn ? "Public Portfolio (visible to anyone)" : "Công khai Portfolio (bất kỳ ai cũng xem được)")
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" name="ShowEmail" value="true" id="checkShowEmail" @(profile.ShowEmail ? "checked" : "") />
+                                    <label class="form-check-label fw-semibold small" for="checkShowEmail">
+                                        @(isEn ? "Show email on portfolio" : "Hiển thị email liên hệ trên hồ sơ")
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">@(isEn ? "Cancel" : "Hủy")</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold" id="btnSavePortfolio">
+                            <span class="spinner-border spinner-border-sm d-none me-1" id="saveSpinner"></span>
+                            @(isEn ? "Save Changes" : "Lưu Thay Đổi")
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+/* Developer Portfolio Custom Styles */
+.portfolio-hero-card {
+    background: #0f172a;
+}
+.portfolio-cover-bg {
+    background: linear-gradient(135deg, #1e1b4b 0%, #311042 50%, #1e293b 100%);
+    border-radius: 1rem;
+}
+.portfolio-avatar-img, .portfolio-avatar-initials {
+    width: 104px;
+    height: 104px;
+    object-fit: cover;
+    font-size: 2.75rem;
+}
+.max-w-700 {
+    max-width: 720px;
+}
+.font-mono {
+    font-family: var(--font-mono, monospace);
+}
+.transition-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.transition-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+/* Print Optimization for Resume / CV */
+@@media print {
+    header, footer, .d-print-none, .floating-ai-container, #notificationToastContainer {
+        display: none !important;
+    }
+    .developer-portfolio-page {
+        padding: 0 !important;
+    }
+    .portfolio-cover-bg {
+        background: #1e1b4b !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+    body {
+        background: white !important;
+        color: black !important;
+    }
+}
+</style>
+
+@section Scripts {
+    <script>
+        function copyPortfolioUrl() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                const isEn = @(isEn ? "true" : "false");
+                const msg = isEn ? 'Portfolio link copied to clipboard! Ready to share with recruiters.' : 'Đã sao chép liên kết Portfolio vào khay nhớ tạm! Sẵn sàng chia sẻ cho nhà tuyển dụng.';
+                alert(msg);
+            }).catch(err => {
+                console.error('Could not copy link:', err);
+            });
+        }
+
+        const formUpdate = document.getElementById('formUpdatePortfolio');
+        if (formUpdate) {
+            formUpdate.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const btnSave = document.getElementById('btnSavePortfolio');
+                const spinner = document.getElementById('saveSpinner');
+
+                btnSave.disabled = true;
+                if (spinner) spinner.classList.remove('d-none');
+
+                try {
+                    const formData = new FormData(this);
+                    // Ensure boolean unchecked states are accounted for
+                    if (!document.getElementById('checkIsPublic').checked) {
+                        formData.set('IsPublic', 'false');
+                    }
+                    if (!document.getElementById('checkShowEmail').checked) {
+                        formData.set('ShowEmail', 'false');
+                    }
+
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                    const response = await fetch('/Profile/UpdateProfile', {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': token
+                        },
+                        body: formData
+                    });
+
+                    const res = await response.json();
+                    if (res.success) {
+                        window.location.reload();
+                    } else {
+                        alert(res.message || 'Lỗi khi cập nhật hồ sơ!');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Lỗi kết nối máy chủ!');
+                } finally {
+                    btnSave.disabled = false;
+                    if (spinner) spinner.classList.add('d-none');
+                }
+            });
+        }
+    </script>
+}

@@ -33,6 +33,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<UserFlashcardProgress> UserFlashcardProgresses => Set<UserFlashcardProgress>();
     public DbSet<StudyPlan> StudyPlans => Set<StudyPlan>();
     public DbSet<StudyPlanItem> StudyPlanItems => Set<StudyPlanItem>();
+    public DbSet<DeveloperProfile> DeveloperProfiles => Set<DeveloperProfile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -374,6 +375,21 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasIndex(pi => new { pi.StudyPlanId, pi.LessonNumber });
             entity.HasIndex(pi => pi.ScheduledDate);
             entity.HasIndex(pi => pi.IsCompleted);
+        });
+
+        // DeveloperProfile configurations
+        modelBuilder.Entity<DeveloperProfile>(entity =>
+        {
+            entity.HasKey(dp => dp.Id);
+            entity.HasIndex(dp => dp.UserId).IsUnique();
+            entity.Property(dp => dp.Headline).HasMaxLength(200);
+            entity.Property(dp => dp.Location).HasMaxLength(150);
+            entity.Property(dp => dp.SkillsCsv).HasMaxLength(500);
+
+            entity.HasOne(dp => dp.User)
+                  .WithMany()
+                  .HasForeignKey(dp => dp.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

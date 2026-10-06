@@ -473,6 +473,11 @@
                                         </a>
                                     </li>
                                     <li>
+                                        <a class="dropdown-item py-2 px-3 rounded-2 d-flex align-items-center gap-2.5 @(currentController == "Profile" ? "active" : "")" asp-controller="Profile" asp-action="MyPortfolio">
+                                            <i class="bi bi-briefcase-fill text-info fs-6"></i> <span>@(isEn ? "Public Portfolio" : "Hồ sơ Portfolio công khai")</span>
+                                        </a>
+                                    </li>
+                                    <li>
                                         <a class="dropdown-item py-2 px-3 rounded-2 d-flex align-items-center gap-2.5 @(currentController == "Project" && currentAction == "MyProjects" ? "active" : "")" asp-controller="Project" asp-action="MyProjects">
                                             <i class="bi bi-folder-check text-success fs-6"></i> <span>@(isEn ? "My Projects" : "Đồ án của tôi")</span>
                                         </a>

@@ -67,6 +67,30 @@
             </div>
         </div>
 
+    <!-- Public Portfolio & Developer Showcase Banner -->
+    <div class="card border-0 shadow-sm rounded-4 p-3.5 p-md-4 mb-4 bg-gradient-dotnet text-white">
+        <div class="row align-items-center g-3">
+            <div class="col-md">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-white text-primary rounded-pill px-2.5 py-1 fw-bold small">
+                        <i class="bi bi-briefcase-fill me-1"></i>PORTFOLIO
+                    </span>
+                    <h5 class="fw-bold mb-0 text-white">@(isEn ? "Your Public Developer Portfolio is Live!" : "Hồ Sơ Năng Lực & Portfolio Của Bạn Đã Sẵn Sàng!")</h5>
+                </div>
+                <p class="text-white text-opacity-80 small mb-0">
+                    @(isEn 
+                        ? $"Share your verifiable resume link '/u/{User.Identity?.Name?.Split('@')[0]}' with recruiters, featuring your verified certificates, Capstone projects, and skill matrix." 
+                        : $"Chia sẻ liên kết hồ sơ chuyên nghiệp '/u/{User.Identity?.Name?.Split('@')[0]}' tới nhà tuyển dụng kèm chứng chỉ số đã cấp, đồ án thực tế và ma trận kỹ năng.")
+                </p>
+            </div>
+            <div class="col-md-auto d-flex flex-wrap gap-2">
+                <a href="/u/@(User.Identity?.Name?.Split('@')[0])" class="btn btn-light rounded-pill px-3.5 py-2 fw-semibold text-primary shadow-sm">
+                    <i class="bi bi-box-arrow-up-right me-1.5"></i> @(isEn ? "View Public Portfolio" : "Xem Portfolio công khai")
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Quick Stats Cards -->
     <div class="row g-3 g-md-4 mb-4">
         <div class="col-6 col-lg-3">

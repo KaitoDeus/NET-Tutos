@@ -1,0 +1,31 @@
+@{
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "Developer Profile Not Found" : "Không Tìm Thấy Hồ Sơ Lập Trình Viên";
+    var username = ViewBag.RequestedUsername as string ?? "user";
+}
+
+<div class="container py-5 my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-5 text-center">
+            <div class="card border-0 shadow-sm rounded-4 p-5 bg-body">
+                <div class="rounded-circle bg-danger-subtle text-danger mx-auto d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                    <i class="bi bi-person-x-fill fs-1"></i>
+                </div>
+                <h3 class="fw-bold mb-2">@(isEn ? "Profile Not Found" : "Không Tìm Thấy Hồ Sơ")</h3>
+                <p class="text-muted mb-4">
+                    @(isEn 
+                        ? $"We couldn't find any developer profile for username '@{username}'. The account may have been renamed or does not exist." 
+                        : $"Không tìm thấy hồ sơ lập trình viên cho tài khoản '@{username}'. Có thể người dùng đã đổi tên hoặc tài khoản không tồn tại.")
+                </p>
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary rounded-pill px-4">
+                        <i class="bi bi-house-door-fill me-1"></i> @(isEn ? "Back to Home" : "Về Trang Chủ")
+                    </a>
+                    <a asp-controller="Leaderboard" asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="bi bi-trophy me-1"></i> @(isEn ? "View Leaderboard" : "Bảng Xếp Hạng")
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

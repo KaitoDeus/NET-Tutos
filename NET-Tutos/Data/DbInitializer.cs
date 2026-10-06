@@ -35,6 +35,9 @@ public static class DbInitializer
         // Ensure newly added LMS Study Planner tables exist
         await EnsureStudyPlannerTablesExistAsync(context);
 
+        // Ensure newly added Developer Profile table exists
+        await EnsureDeveloperProfileTableExistAsync(context);
+
         // Seed Roles
         string[] roles = { "Admin", "Student" };
         foreach (var role in roles)
@@ -2472,6 +2475,57 @@ Xây dựng một sàn đấu giá trực tuyến hoạt động thời gian th�
                     CREATE INDEX [IX_StudyPlanItems_StudyPlanId_LessonNumber] ON [StudyPlanItems] ([StudyPlanId], [LessonNumber]);
                     CREATE INDEX [IX_StudyPlanItems_ScheduledDate] ON [StudyPlanItems] ([ScheduledDate]);
                     CREATE INDEX [IX_StudyPlanItems_IsCompleted] ON [StudyPlanItems] ([IsCompleted]);
+                END;
+            ");
+        }
+    }
+
+    private static async Task EnsureDeveloperProfileTableExistAsync(AppDbContext context)
+    {
+        var isSqlite = context.Database.IsSqlite();
+        if (isSqlite)
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS [DeveloperProfiles] (
+                    [Id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    [UserId] TEXT NOT NULL,
+                    [Headline] TEXT NULL,
+                    [GithubUrl] TEXT NULL,
+                    [LinkedinUrl] TEXT NULL,
+                    [WebsiteUrl] TEXT NULL,
+                    [Location] TEXT NULL,
+                    [SkillsCsv] TEXT NULL,
+                    [CustomBio] TEXT NULL,
+                    [IsPublic] INTEGER NOT NULL DEFAULT 1,
+                    [ShowEmail] INTEGER NOT NULL DEFAULT 1,
+                    [UpdatedAt] TEXT NOT NULL,
+                    FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS [IX_DeveloperProfiles_UserId] ON [DeveloperProfiles] ([UserId]);
+            ");
+        }
+        else
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'DeveloperProfiles')
+                BEGIN
+                    CREATE TABLE [DeveloperProfiles] (
+                        [Id] int NOT NULL IDENTITY,
+                        [UserId] nvarchar(450) NOT NULL,
+                        [Headline] nvarchar(200) NULL,
+                        [GithubUrl] nvarchar(300) NULL,
+                        [LinkedinUrl] nvarchar(300) NULL,
+                        [WebsiteUrl] nvarchar(300) NULL,
+                        [Location] nvarchar(150) NULL,
+                        [SkillsCsv] nvarchar(500) NULL,
+                        [CustomBio] nvarchar(1000) NULL,
+                        [IsPublic] bit NOT NULL DEFAULT 1,
+                        [ShowEmail] bit NOT NULL DEFAULT 1,
+                        [UpdatedAt] datetime2 NOT NULL,
+                        CONSTRAINT [PK_DeveloperProfiles] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_DeveloperProfiles_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+                    );
+                    CREATE UNIQUE INDEX [IX_DeveloperProfiles_UserId] ON [DeveloperProfiles] ([UserId]);
                 END;
             ");
         }
