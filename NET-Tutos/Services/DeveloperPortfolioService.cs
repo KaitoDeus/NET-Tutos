@@ -189,12 +189,74 @@ public class DeveloperPortfolioService : IDeveloperPortfolioService
         // 6. Skill Matrix calculation
         var skillMatrix = CalculateSkillMatrix(totalLessonsCompleted, distinctChallenges.Count, projects.Count, certificates.Count, isEnglish);
 
+        // Dynamic bilingual fallback for default headline
+        string headline;
+        if (string.IsNullOrWhiteSpace(profile.Headline) ||
+            profile.Headline.Equals(".NET Software Engineer", StringComparison.OrdinalIgnoreCase) ||
+            profile.Headline.Equals("Kỹ sư phần mềm .NET", StringComparison.OrdinalIgnoreCase))
+        {
+            headline = isEnglish ? ".NET Software Engineer" : "Kỹ sư phần mềm .NET";
+        }
+        else
+        {
+            headline = profile.Headline;
+        }
+
+        // Dynamic bilingual fallback for bio
+        string bio;
+        if (!string.IsNullOrWhiteSpace(profile.CustomBio))
+        {
+            if (profile.CustomBio.Equals("Học viên trải nghiệm hệ thống NET-Tutos", StringComparison.OrdinalIgnoreCase) ||
+                profile.CustomBio.Equals("Learner exploring the NET-Tutos platform", StringComparison.OrdinalIgnoreCase) ||
+                profile.CustomBio.Equals("Learner exploring the NET-Tutos learning platform", StringComparison.OrdinalIgnoreCase))
+            {
+                bio = isEnglish 
+                    ? "Learner exploring the NET-Tutos platform and mastering modern C#." 
+                    : "Học viên trải nghiệm hệ thống NET-Tutos và rèn luyện kỹ năng C# hiện đại.";
+            }
+            else
+            {
+                bio = profile.CustomBio;
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(user.Bio))
+        {
+            if (user.Bio.Equals("Học viên trải nghiệm hệ thống NET-Tutos", StringComparison.OrdinalIgnoreCase) ||
+                user.Bio.Equals("Learner exploring the NET-Tutos platform", StringComparison.OrdinalIgnoreCase) ||
+                user.Bio.Equals("Learner exploring the NET-Tutos learning platform", StringComparison.OrdinalIgnoreCase))
+            {
+                bio = isEnglish 
+                    ? "Learner exploring the NET-Tutos platform and mastering modern C#." 
+                    : "Học viên trải nghiệm hệ thống NET-Tutos và rèn luyện kỹ năng C# hiện đại.";
+            }
+            else
+            {
+                bio = user.Bio;
+            }
+        }
+        else
+        {
+            bio = isEnglish 
+                ? "Passionate .NET developer continuously mastering modern C# and cloud technologies." 
+                : "Lập trình viên .NET nhiệt huyết, không ngừng rèn luyện kỹ năng Modern C# và hệ sinh thái phần mềm.";
+        }
+
+        // Keep location localized in-memory for the view
+        if (profile.Location != null)
+        {
+            if (profile.Location.Equals("Việt Nam", StringComparison.OrdinalIgnoreCase) ||
+                profile.Location.Equals("Vietnam", StringComparison.OrdinalIgnoreCase))
+            {
+                profile.Location = isEnglish ? "Vietnam" : "Việt Nam";
+            }
+        }
+
         return new PublicPortfolioViewModel
         {
             User = user,
             Profile = profile,
-            Headline = !string.IsNullOrWhiteSpace(profile.Headline) ? profile.Headline : (isEnglish ? ".NET Software Engineer" : "Kỹ sư phần mềm .NET"),
-            Bio = !string.IsNullOrWhiteSpace(profile.CustomBio) ? profile.CustomBio : (user.Bio ?? (isEnglish ? "Passionate .NET developer continuously mastering modern C# and cloud technologies." : "Lập trình viên .NET nhiệt huyết, không ngừng rèn luyện kỹ năng Modern C# và hệ sinh thái phần mềm.")),
+            Headline = headline,
+            Bio = bio,
             LevelTitle = levelTitle,
             CurrentLevel = currentLevel,
             OverallRank = rank,
@@ -244,12 +306,12 @@ public class DeveloperPortfolioService : IDeveloperPortfolioService
 
         return new List<SkillCompetencyItem>
         {
-            new() { SkillName = "C# 14 & Object-Oriented Design", Category = "Core", ProficiencyPercentage = csharpScore, MasteryLevel = GetMastery(csharpScore), IconClass = "bi-filetype-cs", ColorClass = "primary" },
-            new() { SkillName = "LINQ & Collections Performance", Category = "Algorithms", ProficiencyPercentage = linqScore, MasteryLevel = GetMastery(linqScore), IconClass = "bi-lightning-charge", ColorClass = "warning" },
-            new() { SkillName = "ASP.NET Core Web API & REST", Category = "Backend", ProficiencyPercentage = webApiScore, MasteryLevel = GetMastery(webApiScore), IconClass = "bi-hdd-network", ColorClass = "info" },
-            new() { SkillName = "Entity Framework Core & SQL", Category = "Database", ProficiencyPercentage = efCoreScore, MasteryLevel = GetMastery(efCoreScore), IconClass = "bi-database-fill-gear", ColorClass = "success" },
-            new() { SkillName = "Async / Multithreading & Tasks", Category = "Concurrency", ProficiencyPercentage = asyncScore, MasteryLevel = GetMastery(asyncScore), IconClass = "bi-cpu-fill", ColorClass = "danger" },
-            new() { SkillName = "Clean Architecture & Design Patterns", Category = "Architecture", ProficiencyPercentage = architectureScore, MasteryLevel = GetMastery(architectureScore), IconClass = "bi-diagram-3-fill", ColorClass = "primary" }
+            new() { SkillName = isEn ? "C# 14 & Object-Oriented Design" : "C# 14 & Lập trình hướng đối tượng", Category = isEn ? "Core" : "Nền tảng", ProficiencyPercentage = csharpScore, MasteryLevel = GetMastery(csharpScore), IconClass = "bi-filetype-cs", ColorClass = "primary" },
+            new() { SkillName = isEn ? "LINQ & Collections Performance" : "LINQ & Tối ưu xử lý Collections", Category = isEn ? "Algorithms" : "Thuật toán", ProficiencyPercentage = linqScore, MasteryLevel = GetMastery(linqScore), IconClass = "bi-lightning-charge", ColorClass = "warning" },
+            new() { SkillName = isEn ? "ASP.NET Core Web API & REST" : "ASP.NET Core Web API & RESTful Service", Category = isEn ? "Backend" : "Backend", ProficiencyPercentage = webApiScore, MasteryLevel = GetMastery(webApiScore), IconClass = "bi-hdd-network", ColorClass = "info" },
+            new() { SkillName = isEn ? "Entity Framework Core & SQL" : "Entity Framework Core & Cơ sở dữ liệu SQL", Category = isEn ? "Database" : "Cơ sở dữ liệu", ProficiencyPercentage = efCoreScore, MasteryLevel = GetMastery(efCoreScore), IconClass = "bi-database-fill-gear", ColorClass = "success" },
+            new() { SkillName = isEn ? "Async / Multithreading & Tasks" : "Lập trình bất đồng bộ Async & Đa luồng", Category = isEn ? "Concurrency" : "Đa luồng", ProficiencyPercentage = asyncScore, MasteryLevel = GetMastery(asyncScore), IconClass = "bi-cpu-fill", ColorClass = "danger" },
+            new() { SkillName = isEn ? "Clean Architecture & Design Patterns" : "Kiến trúc Clean Architecture & Design Patterns", Category = isEn ? "Architecture" : "Kiến trúc", ProficiencyPercentage = architectureScore, MasteryLevel = GetMastery(architectureScore), IconClass = "bi-diagram-3-fill", ColorClass = "primary" }
         };
     }
 

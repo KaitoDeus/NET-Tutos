@@ -61,13 +61,24 @@
                         </div>
 
                         <div class="col">
+                            @{
+                                var rawName = !string.IsNullOrWhiteSpace(user.FullName) ? user.FullName : (user.UserName?.Split('@')[0] ?? "Learner");
+                                var displayName = isEn 
+                                    ? rawName.Replace("(Học viên Demo)", "(Demo Student)") 
+                                    : rawName.Replace("(Demo Student)", "(Học viên Demo)");
+                                var displayLoc = string.IsNullOrWhiteSpace(profile.Location) 
+                                    ? "" 
+                                    : ((profile.Location.Equals("Việt Nam", StringComparison.OrdinalIgnoreCase) || profile.Location.Equals("Vietnam", StringComparison.OrdinalIgnoreCase)) 
+                                        ? (isEn ? "Vietnam" : "Việt Nam") 
+                                        : profile.Location);
+                            }
                             <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                                <h2 class="fw-bold text-white mb-0">@(string.IsNullOrWhiteSpace(user.FullName) ? user.UserName?.Split('@')[0] : user.FullName)</h2>
+                                <h2 class="fw-bold text-white mb-0">@displayName</h2>
                                 <span class="badge bg-white text-dark rounded-pill px-3 py-1.5 fw-semibold small">
                                     @@@(user.UserName?.Split('@')[0])
                                 </span>
                                 <span class="badge bg-warning text-dark rounded-pill px-3 py-1.5 fw-bold small">
-                                    <i class="bi bi-lightning-charge-fill me-1"></i>Level @Model.CurrentLevel • @Model.LevelTitle
+                                    <i class="bi bi-lightning-charge-fill me-1"></i>@(isEn ? "Level" : "Cấp độ") @Model.CurrentLevel • @Model.LevelTitle
                                 </span>
                             </div>
 
@@ -81,14 +92,14 @@
 
                             <!-- Social links & Meta Info -->
                             <div class="d-flex flex-wrap align-items-center gap-3 text-white text-opacity-90 small">
-                                @if (!string.IsNullOrWhiteSpace(profile.Location))
+                                @if (!string.IsNullOrWhiteSpace(displayLoc))
                                 {
                                     <span class="d-inline-flex align-items-center gap-1">
-                                        <i class="bi bi-geo-alt-fill text-danger-emphasis"></i> @profile.Location
+                                        <i class="bi bi-geo-alt-fill text-danger-emphasis"></i> @displayLoc
                                     </span>
                                 }
                                 <span class="d-inline-flex align-items-center gap-1">
-                                    <i class="bi bi-calendar3"></i> @(isEn ? "Joined" : "Gia nhập") @user.CreatedAt.ToString("MM/yyyy")
+                                    <i class="bi bi-calendar3"></i> @(isEn ? "Joined" : "Tham gia") @user.CreatedAt.ToString("MM/yyyy")
                                 </span>
                                 <span class="d-inline-flex align-items-center gap-1 text-warning fw-semibold">
                                     <i class="bi bi-trophy-fill"></i> @(isEn ? $"Rank #{Model.OverallRank} of {Model.TotalLearners}" : $"Hạng #{Model.OverallRank} / {Model.TotalLearners} học viên")
@@ -128,7 +139,7 @@
                                     <i class="bi bi-share me-1.5"></i> @(isEn ? "Share Portfolio" : "Chia sẻ hồ sơ")
                                 </button>
                                 <button type="button" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold text-nowrap shadow-sm" onclick="window.print()">
-                                    <i class="bi bi-printer me-1.5"></i> @(isEn ? "Print / Export PDF" : "In / Xuất PDF Resume")
+                                    <i class="bi bi-printer me-1.5"></i> @(isEn ? "Print / Export PDF" : "In / Xuất PDF")
                                 </button>
                                 @if (Model.IsOwner)
                                 {
@@ -372,7 +383,14 @@
                                     <div class="badge bg-body-tertiary border text-body-emphasis p-2 rounded-3 d-inline-flex align-items-center gap-2">
                                         <i class="bi bi-check-circle-fill text-success"></i>
                                         <span class="fw-semibold">@chal.Title</span>
-                                        <span class="badge bg-secondary-subtle text-secondary small py-0.5">@chal.Difficulty</span>
+                                        <span class="badge bg-secondary-subtle text-secondary small py-0.5">
+                                            @(isEn ? chal.Difficulty : (chal.Difficulty switch {
+                                                "Beginner" => "Cơ bản",
+                                                "Intermediate" => "Trung cấp",
+                                                "Advanced" => "Nâng cao",
+                                                _ => chal.Difficulty
+                                            }))
+                                        </span>
                                     </div>
                                 }
                             </div>
@@ -493,7 +511,7 @@
                         <div class="row g-3">
                             <div class="col-md-12">
                                 <label class="form-label fw-semibold small">@(isEn ? "Professional Headline" : "Tiêu đề nghề nghiệp / Chức danh")</label>
-                                <input type="text" name="Headline" class="form-control rounded-3" value="@profile.Headline" placeholder="Ví dụ: Junior .NET Developer | ASP.NET Core & Modern C# 14" maxlength="200" required />
+                                <input type="text" name="Headline" class="form-control rounded-3" value="@profile.Headline" placeholder="@(isEn ? "e.g., Junior .NET Developer | ASP.NET Core & Modern C# 14" : "Ví dụ: Kỹ sư phần mềm .NET | ASP.NET Core & Modern C# 14")" maxlength="200" required />
                             </div>
 
                             <div class="col-md-12">
@@ -512,13 +530,13 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold small"><i class="bi bi-globe me-1"></i> Personal Website / Blog</label>
+                                <label class="form-label fw-semibold small"><i class="bi bi-globe me-1"></i> @(isEn ? "Personal Website / Blog" : "Website cá nhân / Blog")</label>
                                 <input type="url" name="WebsiteUrl" class="form-control rounded-3" value="@profile.WebsiteUrl" placeholder="https://yourportfolio.dev" />
                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold small"><i class="bi bi-geo-alt me-1"></i> @(isEn ? "Location" : "Địa điểm")</label>
-                                <input type="text" name="Location" class="form-control rounded-3" value="@profile.Location" placeholder="Hà Nội, Việt Nam" maxlength="150" />
+                                <input type="text" name="Location" class="form-control rounded-3" value="@profile.Location" placeholder="@(isEn ? "Hanoi, Vietnam" : "Hà Nội, Việt Nam")" maxlength="150" />
                             </div>
 
                             <div class="col-md-12">
