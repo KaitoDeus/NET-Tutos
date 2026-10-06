@@ -197,9 +197,12 @@
                         {
                             @foreach (var tut in Model.Tutorial.Category.Tutorials.OrderBy(t => t.OrderIndex))
                             {
+                                bool isTutCompleted = Model.CompletedTutorialIds.Contains(tut.Id);
+                                bool isCurrent = tut.Id == Model.Tutorial.Id;
                                 <a asp-action="Details" asp-route-slug="@tut.GetSlug(isEn)"
-                                   class="list-group-item list-group-item-action py-2.5 px-2 rounded-2 mb-1 @(tut.Id == Model.Tutorial.Id ? "active fw-semibold" : "")">
-                                    <i class="bi @(tut.Id == Model.Tutorial.Id ? "bi-check2-circle" : "bi-circle") me-2 opacity-75"></i>
+                                   class="list-group-item list-group-item-action py-2.5 px-2 rounded-2 mb-1 @(isCurrent ? "active fw-semibold" : "")"
+                                   data-tutorial-item-id="@tut.Id">
+                                    <i class="bi @(isTutCompleted ? "bi-check-circle-fill text-success" : (isCurrent ? "bi-play-circle-fill" : "bi-circle text-muted")) me-2 opacity-75"></i>
                                     @tut.GetTitle(isEn)
                                 </a>
                             }
@@ -250,13 +253,16 @@
 
                 try {
                     const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                    const formData = new FormData();
+                    formData.append('tutorialId', tutorialId);
+                    formData.append('__RequestVerificationToken', token);
+
                     const response = await fetch('/Account/ToggleLesson', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
                             'RequestVerificationToken': token
                         },
-                        body: JSON.stringify({ tutorialId: parseInt(tutorialId) })
+                        body: formData
                     });
 
                     if (response.status === 401) {
@@ -267,6 +273,7 @@
                     const isEnLang = @(isEn ? "true" : "false");
                     const res = await response.json();
                     if (res.success) {
+                        const sidebarItem = document.querySelector(`[data-tutorial-item-id="${tutorialId}"] i`);
                         if (res.isCompleted) {
                             btn.className = 'btn btn-outline-success px-4 py-2 fw-semibold rounded-pill shadow-sm';
                             btnText.innerText = isEnLang ? '✓ Completed (Click to undo)' : '✓ Đã hoàn thành (Bấm để hủy)';
@@ -277,6 +284,9 @@
                             if (headerBadgeWrapper) {
                                 headerBadgeWrapper.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> ' + (isEnLang ? 'Completed' : 'Đã hoàn thành') + '</span>';
                             }
+                            if (sidebarItem) {
+                                sidebarItem.className = 'bi bi-check-circle-fill text-success me-2 opacity-75';
+                            }
                         } else {
                             btn.className = 'btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm';
                             btnText.innerText = isEnLang ? 'Mark as Completed (+20 XP)' : 'Đánh dấu đã hoàn thành (+20 XP)';
@@ -286,6 +296,9 @@
                             iconWrap.className = 'rounded-circle p-3 bg-primary-subtle text-primary';
                             if (headerBadgeWrapper) {
                                 headerBadgeWrapper.innerHTML = '';
+                            }
+                            if (sidebarItem) {
+                                sidebarItem.className = 'bi bi-play-circle-fill me-2 opacity-75';
                             }
                         }
                     } else {

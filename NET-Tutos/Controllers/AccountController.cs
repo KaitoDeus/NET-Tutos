@@ -277,7 +277,25 @@ public class AccountController : Controller
             return Json(new { success = false, message = "Chưa đăng nhập" });
         }
 
-        bool isCompleted = await _progressService.ToggleLessonCompletedAsync(userId, tutorialId);
+        int targetId = tutorialId;
+        if (targetId <= 0)
+        {
+            if (Request.HasFormContentType && int.TryParse(Request.Form["tutorialId"], out int fId))
+            {
+                targetId = fId;
+            }
+            else if (int.TryParse(Request.Query["tutorialId"], out int qId))
+            {
+                targetId = qId;
+            }
+        }
+
+        if (targetId <= 0)
+        {
+            return Json(new { success = false, message = "Mã bài học không hợp lệ." });
+        }
+
+        bool isCompleted = await _progressService.ToggleLessonCompletedAsync(userId, targetId);
         return Json(new { success = true, isCompleted = isCompleted });
     }
 }

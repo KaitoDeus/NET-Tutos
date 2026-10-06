@@ -10,6 +10,7 @@ public class TutorialDetailViewModel
     public Tutorial? NextTutorial { get; set; }
     public IEnumerable<Tutorial> RelatedTutorials { get; set; } = new List<Tutorial>();
     public bool IsCompletedByCurrentUser { get; set; }
+    public HashSet<int> CompletedTutorialIds { get; set; } = new();
     public DiscussionSectionViewModel? Discussion { get; set; }
 }
 

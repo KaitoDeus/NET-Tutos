@@ -34,6 +34,12 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     };
 });
 
+// Antiforgery Configuration for AJAX & Fetch requests
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "RequestVerificationToken";
+});
+
 builder.Services.AddSingleton<IMarkdownService, MarkdownService>();
 builder.Services.AddScoped<ITutorialService, TutorialService>();
 builder.Services.AddScoped<ILearningProgressService, LearningProgressService>();

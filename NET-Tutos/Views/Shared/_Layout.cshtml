@@ -596,12 +596,15 @@
     <!-- Global Floating AI Tutor Shortcut Button -->
     @if (currentController != "AiTutor")
     {
-        <div class="position-fixed bottom-0 end-0 p-3 p-md-4 floating-ai-container" style="z-index: 1070;">
-            <a asp-controller="AiTutor" asp-action="Index" class="btn btn-primary rounded-circle shadow-lg p-0 d-flex align-items-center justify-content-center floating-ai-btn text-decoration-none" title="@(isEn ? "Ask AI .NET Tutor & Mentor" : "Trợ lý AI Gia sư .NET")" aria-label="AI Tutor">
-                <i class="bi bi-robot fs-3 text-white"></i>
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light p-1 shadow-sm" style="font-size: 0.65rem;">
+        <div class="floating-ai-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 1070;">
+            <a asp-controller="AiTutor" asp-action="Index" 
+               class="btn btn-primary rounded-circle shadow-lg p-0 d-flex align-items-center justify-content-center floating-ai-btn position-relative text-decoration-none" 
+               title="@(isEn ? "AI .NET Tutor & Mentor - Ask anything!" : "Trợ lý AI Gia sư .NET - Hỏi đáp & Sửa lỗi!")" 
+               aria-label="AI Tutor">
+                <i class="bi bi-robot fs-4 text-white"></i>
+                <span class="position-absolute top-0 start-0 translate-middle badge rounded-pill bg-danger border border-white shadow-sm floating-ai-badge">
                     AI
-                    <span class="visually-hidden">AI Tutor ready</span>
+                    <span class="visually-hidden">AI Tutor</span>
                 </span>
             </a>
         </div>

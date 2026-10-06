@@ -90,6 +90,8 @@ public class TutorialsController : Controller
             if (!string.IsNullOrEmpty(currentUserId))
             {
                 viewModel.IsCompletedByCurrentUser = await _progressService.IsLessonCompletedAsync(currentUserId, tutorial.Id);
+                var completedIds = await _progressService.GetCompletedLessonIdsAsync(currentUserId);
+                viewModel.CompletedTutorialIds = new HashSet<int>(completedIds);
                 _ = _progressService.RecordLessonAccessAsync(currentUserId, tutorial.Id);
             }
         }
