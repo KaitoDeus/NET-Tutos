@@ -2,7 +2,7 @@
 @{
     bool isEn = Context.IsEnglish();
     var title = Model.ActiveChallenge != null 
-        ? (isEn ? $"Challenge: {Model.ActiveChallenge.Title}" : $"Thử thách: {Model.ActiveChallenge.Title}")
+        ? (isEn ? $"Challenge: {Model.ActiveChallenge.GetChallengeTitle(true)}" : $"Thử thách: {Model.ActiveChallenge.Title}")
         : (isEn ? "C# Code Playground" : "Thực hành Code C# Playground");
     ViewData["Title"] = title;
 }
@@ -334,7 +334,7 @@
             if (activeChallengeId > 0 && initialChallengeCode) {
                 defaultCode = initialChallengeCode;
             } else {
-                defaultCode = templates['hello-world'] || '// Nhập mã C# tại đây\nConsole.WriteLine("Xin chào C#!");';
+                defaultCode = templates['hello-world'] || (isEn ? '// Enter C# code here\nConsole.WriteLine("Hello C#!");' : '// Nhập mã C# tại đây\nConsole.WriteLine("Xin chào C#!");');
             }
 
             editorInstance = monaco.editor.create(document.getElementById('monacoEditor'), {
@@ -408,7 +408,7 @@
 
             // Clear Terminal
             btnClearTerminal.addEventListener('click', function () {
-                terminalOutput.innerHTML = '<span class="text-muted">// Cửa sổ console đã được xóa sạch.</span>';
+                terminalOutput.innerHTML = '<span class="text-muted">' + (isEn ? '// Console output cleared.' : '// Cửa sổ console đã được xóa sạch.') + '</span>';
                 execTimerBadge.classList.add('d-none');
                 if (challengeEvaluationBox) challengeEvaluationBox.classList.add('d-none');
             });
@@ -419,8 +419,8 @@
                 const code = editorInstance.getValue();
 
                 btnRunCode.disabled = true;
-                btnRunCode.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Đang chạy...';
-                terminalOutput.innerHTML = '<span class="text-warning">// Đang biên dịch mã nguồn và khởi chạy sandbox...</span>';
+                btnRunCode.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> ' + (isEn ? 'Running...' : 'Đang chạy...');
+                terminalOutput.innerHTML = '<span class="text-warning">' + (isEn ? '// Compiling source code and starting sandbox...' : '// Đang biên dịch mã nguồn và khởi chạy sandbox...') + '</span>';
 
                 try {
                     const response = await fetch('/Playground/Execute', {
@@ -435,17 +435,17 @@
                     execTimerBadge.classList.remove('d-none');
 
                     if (data.isSuccess) {
-                        terminalOutput.innerHTML = `<span class="text-success">[Thực thi thành công trong ${data.executionTimeMs}ms]</span>\n\n${escapeHtml(data.output)}`;
+                        terminalOutput.innerHTML = `<span class="text-success">[${isEn ? 'Execution successful in' : 'Thực thi thành công trong'} ${data.executionTimeMs}ms]</span>\n\n${escapeHtml(data.output)}`;
                         hideAiErrorBanner();
                     } else {
-                        terminalOutput.innerHTML = `<span class="text-danger">[Gặp lỗi]</span>\n\n<span class="text-danger">${escapeHtml(data.error || 'Lỗi không xác định')}</span>`;
+                        terminalOutput.innerHTML = `<span class="text-danger">[${isEn ? 'Execution Error' : 'Gặp lỗi'}]</span>\n\n<span class="text-danger">${escapeHtml(data.error || (isEn ? 'Unknown error' : 'Lỗi không xác định'))}</span>`;
                         showAiErrorBanner(data.error);
                     }
                 } catch (err) {
-                    terminalOutput.innerHTML = `<span class="text-danger">Lỗi kết nối máy chủ: ${escapeHtml(err.message)}</span>`;
+                    terminalOutput.innerHTML = `<span class="text-danger">${isEn ? 'Server connection error:' : 'Lỗi kết nối máy chủ:'} ${escapeHtml(err.message)}</span>`;
                 } finally {
                     btnRunCode.disabled = false;
-                    btnRunCode.innerHTML = '<i class="bi bi-play-fill fs-6"></i> Chạy mã';
+                    btnRunCode.innerHTML = '<i class="bi bi-play-fill fs-6"></i> ' + (isEn ? 'Run Code' : 'Chạy mã');
                 }
             });
 
@@ -456,8 +456,8 @@
                     const code = editorInstance.getValue();
 
                     btnSubmitChallenge.disabled = true;
-                    btnSubmitChallenge.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang chấm...';
-                    terminalOutput.innerHTML = '<span class="text-warning">// Đang kiểm thử qua các Test Cases...</span>';
+                    btnSubmitChallenge.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> ' + (isEn ? 'Evaluating...' : 'Đang chấm...');
+                    terminalOutput.innerHTML = '<span class="text-warning">' + (isEn ? '// Testing across Test Cases...' : '// Đang kiểm thử qua các Test Cases...') + '</span>';
 
                     try {
                         const response = await fetch('/Playground/SubmitChallenge', {
@@ -475,33 +475,33 @@
                         execTimerBadge.classList.remove('d-none');
 
                         if (data.compileError) {
-                            terminalOutput.innerHTML = `<span class="text-danger">[Lỗi biên dịch khi nộp bài]</span>\n\n${escapeHtml(data.compileError)}`;
+                            terminalOutput.innerHTML = `<span class="text-danger">[${isEn ? 'Compilation error on submission' : 'Lỗi biên dịch khi nộp bài'}]</span>\n\n${escapeHtml(data.compileError)}`;
                             evalSummaryCard.className = 'p-3 rounded-3 border border-danger-subtle bg-danger-subtle';
-                            evalSummaryTitle.innerText = 'Biên dịch thất bại';
+                            evalSummaryTitle.innerText = isEn ? 'Compilation Failed' : 'Biên dịch thất bại';
                             evalSummaryBadge.className = 'badge bg-danger text-white rounded-pill';
-                            evalSummaryBadge.innerText = 'Lỗi';
+                            evalSummaryBadge.innerText = isEn ? 'Error' : 'Lỗi';
                             evalSummaryText.innerText = data.compileError;
                             showAiErrorBanner(data.compileError);
                         } else {
                             hideAiErrorBanner();
                             if (data.allPassed) {
-                                terminalOutput.innerHTML = `<span class="text-success">🎉 TUYỆT VỜI! BẠN ĐÃ VƯỢT QUA TOÀN BỘ ${data.totalTestsCount}/${data.totalTestsCount} TEST CASES!</span>\n` +
-                                    (data.xpEarned > 0 ? `<span class="text-warning">⚡ +${data.xpEarned} XP đã được cộng vào tài khoản của bạn!</span>` : `<span class="text-muted">(Thử thách này bạn đã vượt qua trước đó)</span>`);
+                                terminalOutput.innerHTML = `<span class="text-success">🎉 ${isEn ? 'EXCELLENT! YOU PASSED ALL' : 'TUYỆT VỜI! BẠN ĐÃ VƯỢT QUA TOÀN BỘ'} ${data.totalTestsCount}/${data.totalTestsCount} TEST CASES!</span>\n` +
+                                    (data.xpEarned > 0 ? `<span class="text-warning">⚡ +${data.xpEarned} XP ${isEn ? 'added to your account!' : 'đã được cộng vào tài khoản của bạn!'}</span>` : `<span class="text-muted">(${isEn ? 'You already completed this challenge previously' : 'Thử thách này bạn đã vượt qua trước đó'})</span>`);
 
                                 evalSummaryCard.className = 'p-3 rounded-3 border border-success-subtle bg-success-subtle';
-                                evalSummaryTitle.innerText = 'Chấp thuận (Accepted)';
+                                evalSummaryTitle.innerText = isEn ? 'Accepted' : 'Chấp thuận (Accepted)';
                                 evalSummaryBadge.className = 'badge bg-success text-white rounded-pill px-3 py-1';
                                 evalSummaryBadge.innerText = `${data.passedTestsCount}/${data.totalTestsCount} Passed`;
-                                evalSummaryText.innerHTML = `Chúc mừng! Thuật toán của bạn đạt chuẩn tuyệt đối trong <strong>${data.executionTimeMs}ms</strong>.` +
-                                    (data.xpEarned > 0 ? ` Bạn nhận được <strong>+${data.xpEarned} XP</strong>.` : '');
+                                evalSummaryText.innerHTML = `${isEn ? 'Congratulations! Your algorithm met all criteria in' : 'Chúc mừng! Thuật toán của bạn đạt chuẩn tuyệt đối trong'} <strong>${data.executionTimeMs}ms</strong>.` +
+                                    (data.xpEarned > 0 ? ` ${isEn ? 'You earned' : 'Bạn nhận được'} <strong>+${data.xpEarned} XP</strong>.` : '');
                             } else {
-                                terminalOutput.innerHTML = `<span class="text-danger">❌ Chưa vượt qua toàn bộ Test Cases: ${data.passedTestsCount}/${data.totalTestsCount} Tests đạt chuẩn.</span>`;
+                                terminalOutput.innerHTML = `<span class="text-danger">❌ ${isEn ? 'Did not pass all Test Cases:' : 'Chưa vượt qua toàn bộ Test Cases:'} ${data.passedTestsCount}/${data.totalTestsCount} ${isEn ? 'Passed' : 'Tests đạt chuẩn'}.</span>`;
 
                                 evalSummaryCard.className = 'p-3 rounded-3 border border-warning-subtle bg-warning-subtle';
-                                evalSummaryTitle.innerText = 'Kết quả sai (Wrong Answer)';
+                                evalSummaryTitle.innerText = isEn ? 'Wrong Answer' : 'Kết quả sai (Wrong Answer)';
                                 evalSummaryBadge.className = 'badge bg-danger text-white rounded-pill px-3 py-1';
                                 evalSummaryBadge.innerText = `${data.passedTestsCount}/${data.totalTestsCount} Passed`;
-                                evalSummaryText.innerText = 'Một số trường hợp kiểm thử cho kết quả không khớp với kỳ vọng. Hãy kiểm tra lại logic thuật toán.';
+                                evalSummaryText.innerText = isEn ? 'Some test cases did not match expected output. Please check your algorithm logic.' : 'Một số trường hợp kiểm thử cho kết quả không khớp với kỳ vọng. Hãy kiểm tra lại logic thuật toán.';
                             }
 
                             // Render test rows
@@ -515,8 +515,8 @@
                                         <td><code>${escapeHtml(item.expected)}</code></td>
                                         <td>
                                             ${item.passed 
-                                                ? '<span class="badge bg-success-subtle border border-success-subtle text-success rounded-pill">Đạt</span>' 
-                                                : '<span class="badge bg-danger-subtle border border-danger-subtle text-danger rounded-pill">Sai</span>'}
+                                                ? '<span class="badge bg-success-subtle border border-success-subtle text-success rounded-pill">' + (isEn ? 'Pass' : 'Đạt') + '</span>' 
+                                                : '<span class="badge bg-danger-subtle border border-danger-subtle text-danger rounded-pill">' + (isEn ? 'Fail' : 'Sai') + '</span>'}
                                         </td>
                                     `;
                                     evalTestCasesBody.appendChild(tr);
@@ -524,10 +524,10 @@
                             }
                         }
                     } catch (err) {
-                        terminalOutput.innerHTML = `<span class="text-danger">Lỗi kết nối khi nộp bài: ${escapeHtml(err.message)}</span>`;
+                        terminalOutput.innerHTML = `<span class="text-danger">${isEn ? 'Connection error while submitting:' : 'Lỗi kết nối khi nộp bài:'} ${escapeHtml(err.message)}</span>`;
                     } finally {
                         btnSubmitChallenge.disabled = false;
-                        btnSubmitChallenge.innerHTML = '<i class="bi bi-cloud-upload-fill me-1"></i> Nộp bài';
+                        btnSubmitChallenge.innerHTML = '<i class="bi bi-cloud-upload-fill me-1"></i> ' + (isEn ? 'Submit' : 'Nộp bài');
                     }
                 });
             }
@@ -577,7 +577,7 @@
         async function explainCurrentError() {
             openAiOffcanvas();
             const box = document.getElementById('aiTutorResponseBox');
-            box.innerHTML = `<div class="p-3 text-center text-muted small"><div class="spinner-border spinner-border-sm text-primary mb-2"></div><div>Đang phân tích lỗi và đề xuất cách sửa...</div></div>`;
+            box.innerHTML = `<div class="p-3 text-center text-muted small"><div class="spinner-border spinner-border-sm text-primary mb-2"></div><div>${isEn ? 'Analyzing error and suggesting fixes...' : 'Đang phân tích lỗi và đề xuất cách sửa...'}</div></div>`;
 
             const currentCode = editorInstance ? editorInstance.getValue() : '';
 
@@ -596,15 +596,15 @@
                     box.innerHTML = `
                         <div class="card border-danger-subtle bg-danger-subtle p-3 rounded-3 mb-3">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="badge bg-danger rounded-pill fw-bold">${data.errorCode || 'Lỗi Compiler'}</span>
-                                ${data.lineNumber ? `<span class="badge bg-body text-danger border rounded-pill">Dòng ${data.lineNumber}</span>` : ''}
+                                <span class="badge bg-danger rounded-pill fw-bold">${data.errorCode || (isEn ? 'Compiler Error' : 'Lỗi Compiler')}</span>
+                                ${data.lineNumber ? `<span class="badge bg-body text-danger border rounded-pill">${isEn ? 'Line' : 'Dòng'} ${data.lineNumber}</span>` : ''}
                             </div>
                             <h6 class="fw-bold text-danger mb-1">${escapeHtml(data.errorTitle)}</h6>
                             <p class="small text-body mb-0 lh-base">${escapeHtml(data.explanation)}</p>
                         </div>
 
                         <div class="card border p-3 rounded-3 mb-3 bg-body">
-                            <h6 class="fw-bold text-success mb-2"><i class="bi bi-check2-circle me-1"></i>Hướng dẫn khắc phục:</h6>
+                            <h6 class="fw-bold text-success mb-2"><i class="bi bi-check2-circle me-1"></i>${isEn ? 'How to fix:' : 'Hướng dẫn khắc phục:'}</h6>
                             <div class="small lh-base mb-3">${escapeHtml(data.howToFix).replace(/\n/g, '<br/>')}</div>
                             ${data.suggestedFixCode ? `
                                 <div class="bg-dark text-light p-2.5 rounded-3 font-monospace small mb-2 position-relative" style="font-size: 0.8rem;">
@@ -620,17 +620,17 @@
                         ` : ''}
                     `;
                 } else {
-                    box.innerHTML = `<div class="alert alert-warning small">Không thể phân tích lỗi này. Bạn có thể hỏi trực tiếp bên dưới.</div>`;
+                    box.innerHTML = `<div class="alert alert-warning small">${isEn ? 'Unable to analyze this error. You can ask directly below.' : 'Không thể phân tích lỗi này. Bạn có thể hỏi trực tiếp bên dưới.'}</div>`;
                 }
             } catch (e) {
-                box.innerHTML = `<div class="alert alert-danger small">Lỗi khi kết nối đến dịch vụ AI.</div>`;
+                box.innerHTML = `<div class="alert alert-danger small">${isEn ? 'Error connecting to AI service.' : 'Lỗi khi kết nối đến dịch vụ AI.'}</div>`;
             }
         }
 
         async function requestAiHint() {
             openAiOffcanvas();
             const box = document.getElementById('aiTutorResponseBox');
-            box.innerHTML = `<div class="p-3 text-center text-muted small"><div class="spinner-border spinner-border-sm text-warning mb-2"></div><div>Đang tạo gợi ý thuật toán cấp độ ${currentHintLevel}...</div></div>`;
+            box.innerHTML = `<div class="p-3 text-center text-muted small"><div class="spinner-border spinner-border-sm text-warning mb-2"></div><div>${isEn ? 'Generating algorithm hint level' : 'Đang tạo gợi ý thuật toán cấp độ'} ${currentHintLevel}...</div></div>`;
 
             const currentCode = editorInstance ? editorInstance.getValue() : '';
 
@@ -650,8 +650,8 @@
                     box.innerHTML = `
                         <div class="card border-warning-subtle bg-warning-subtle p-3 rounded-3 mb-3">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="badge bg-warning text-dark rounded-pill fw-bold">Cấp độ ${data.hintLevel}/3</span>
-                                <span class="small text-muted">💡 Gợi ý AI</span>
+                                <span class="badge bg-warning text-dark rounded-pill fw-bold">${isEn ? 'Level' : 'Cấp độ'} ${data.hintLevel}/3</span>
+                                <span class="small text-muted">💡 ${isEn ? 'AI Hint' : 'Gợi ý AI'}</span>
                             </div>
                             <h6 class="fw-bold text-body-emphasis mb-2">${escapeHtml(data.title)}</h6>
                             <p class="small text-body mb-3 lh-base">${escapeHtml(data.content)}</p>
@@ -664,22 +664,22 @@
 
                         ${data.hasNextLevel ? `
                             <button type="button" class="btn btn-sm btn-outline-warning rounded-pill w-100 py-1.5 fw-bold" onclick="currentHintLevel++; requestAiHint();">
-                                <i class="bi bi-arrow-right-circle me-1"></i>Xem gợi ý chi tiết hơn (Cấp độ ${currentHintLevel + 1})
+                                <i class="bi bi-arrow-right-circle me-1"></i>${isEn ? 'View more detailed hint (Level ' + (currentHintLevel + 1) + ')' : 'Xem gợi ý chi tiết hơn (Cấp độ ' + (currentHintLevel + 1) + ')'}
                             </button>
                         ` : `
-                            <div class="text-center small text-muted"><i class="bi bi-check-circle-fill text-success me-1"></i>Đã xem hết gợi ý. Giờ hãy bắt tay vào code nhé!</div>
+                            <div class="text-center small text-muted"><i class="bi bi-check-circle-fill text-success me-1"></i>${isEn ? "All hints viewed. Now let's code!" : 'Đã xem hết gợi ý. Giờ hãy bắt tay vào code nhé!'}</div>
                         `}
                     `;
                 }
             } catch (e) {
-                box.innerHTML = `<div class="alert alert-danger small">Lỗi khi lấy gợi ý AI.</div>`;
+                box.innerHTML = `<div class="alert alert-danger small">${isEn ? 'Error fetching AI hint.' : 'Lỗi khi lấy gợi ý AI.'}</div>`;
             }
         }
 
         async function requestAiReview() {
             openAiOffcanvas();
             const box = document.getElementById('aiTutorResponseBox');
-            box.innerHTML = `<div class="p-3 text-center text-muted small"><div class="spinner-border spinner-border-sm text-info mb-2"></div><div>Đang đánh giá chất lượng và tối ưu hóa code...</div></div>`;
+            box.innerHTML = `<div class="p-3 text-center text-muted small"><div class="spinner-border spinner-border-sm text-info mb-2"></div><div>${isEn ? 'Evaluating code quality and optimization...' : 'Đang đánh giá chất lượng và tối ưu hóa code...'}</div></div>`;
 
             const currentCode = editorInstance ? editorInstance.getValue() : '';
 
@@ -704,24 +704,24 @@
                             </div>
                         `).join('');
                     } else {
-                        pointsHtml = `<div class="p-2.5 rounded-3 bg-success-subtle text-success small border border-success-subtle mb-2"><i class="bi bi-check2-circle me-1"></i>Code sạch và tuân thủ chuẩn Modern C#!</div>`;
+                        pointsHtml = `<div class="p-2.5 rounded-3 bg-success-subtle text-success small border border-success-subtle mb-2"><i class="bi bi-check2-circle me-1"></i>${isEn ? 'Clean code conforming to Modern C# standards!' : 'Code sạch và tuân thủ chuẩn Modern C#!'}</div>`;
                     }
 
                     box.innerHTML = `
                         <div class="card border-info-subtle bg-info-subtle p-3 rounded-3 mb-3">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <h6 class="fw-bold text-info-emphasis mb-0"><i class="bi bi-stars me-1 text-info"></i>Điểm Chất Lượng Code</h6>
+                                <h6 class="fw-bold text-info-emphasis mb-0"><i class="bi bi-stars me-1 text-info"></i>${isEn ? 'Code Quality Score' : 'Điểm Chất Lượng Code'}</h6>
                                 <span class="badge bg-primary rounded-pill px-3 py-1 fs-6">${data.score}/100</span>
                             </div>
                             <p class="small text-body mb-0 lh-base">${escapeHtml(data.summary)}</p>
                         </div>
 
-                        <h6 class="fw-bold text-body-emphasis mb-2 small"><i class="bi bi-list-check me-1 text-primary"></i>Điểm cần lưu ý & Cải tiến:</h6>
+                        <h6 class="fw-bold text-body-emphasis mb-2 small"><i class="bi bi-list-check me-1 text-primary"></i>${isEn ? 'Points of note & improvements:' : 'Điểm cần lưu ý & Cải tiến:'}</h6>
                         ${pointsHtml}
                     `;
                 }
             } catch (e) {
-                box.innerHTML = `<div class="alert alert-danger small">Lỗi khi gọi tính năng Review Code.</div>`;
+                box.innerHTML = `<div class="alert alert-danger small">${isEn ? 'Error calling Code Review feature.' : 'Lỗi khi gọi tính năng Review Code.'}</div>`;
             }
         }
 
@@ -735,7 +735,7 @@
             input.value = '';
 
             const loadingId = 'loading_' + Date.now();
-            box.innerHTML += `<div id="${loadingId}" class="p-2 text-muted small"><div class="spinner-border spinner-border-sm text-primary me-1"></div>Đang suy nghĩ...</div>`;
+            box.innerHTML += `<div id="${loadingId}" class="p-2 text-muted small"><div class="spinner-border spinner-border-sm text-primary me-1"></div>${isEn ? 'Thinking...' : 'Đang suy nghĩ...'}</div>`;
             box.scrollTop = box.scrollHeight;
 
             try {
@@ -759,7 +759,7 @@
                 }
             } catch (e) {
                 document.getElementById(loadingId)?.remove();
-                box.innerHTML += `<div class="alert alert-danger small">Lỗi kết nối.</div>`;
+                box.innerHTML += `<div class="alert alert-danger small">${isEn ? 'Connection error.' : 'Lỗi kết nối.'}</div>`;
             }
         }
     </script>

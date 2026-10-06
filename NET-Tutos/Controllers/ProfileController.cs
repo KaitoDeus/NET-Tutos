@@ -59,12 +59,11 @@ public class ProfileController : Controller
     public async Task<IActionResult> UpdateProfile([FromForm] UpdateDeveloperProfileRequest request)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        bool isEn = HttpContext.IsEnglish();
         if (string.IsNullOrEmpty(currentUserId))
         {
-            return Json(new { success = false, message = "Chưa đăng nhập." });
+            return Json(new { success = false, message = isEn ? "Not signed in." : "Chưa đăng nhập." });
         }
-
-        bool isEn = HttpContext.IsEnglish();
         bool success = await _portfolioService.UpdateProfileAsync(currentUserId, request);
 
         return Json(new 

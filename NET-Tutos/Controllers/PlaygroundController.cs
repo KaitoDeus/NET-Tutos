@@ -128,12 +128,13 @@ public class PlaygroundController : Controller
     [HttpPost]
     public async Task<IActionResult> Execute([FromBody] CodeExecutionRequest request)
     {
+        bool isEn = HttpContext.IsEnglish();
         if (request == null || string.IsNullOrWhiteSpace(request.Code))
         {
             return BadRequest(new CodeExecutionResponse
             {
                 IsSuccess = false,
-                Error = "Mã nguồn không được để trống."
+                Error = isEn ? "Source code cannot be empty." : "Mã nguồn không được để trống."
             });
         }
 
@@ -145,11 +146,12 @@ public class PlaygroundController : Controller
     [HttpPost]
     public async Task<IActionResult> SubmitChallenge([FromBody] ChallengeSubmissionRequest request)
     {
+        bool isEn = HttpContext.IsEnglish();
         if (request == null || request.ChallengeId <= 0 || string.IsNullOrWhiteSpace(request.Code))
         {
             return BadRequest(new ChallengeSubmissionResponse
             {
-                CompileError = "Dữ liệu nộp bài không hợp lệ."
+                CompileError = isEn ? "Invalid challenge submission data." : "Dữ liệu nộp bài không hợp lệ."
             });
         }
 
@@ -161,7 +163,7 @@ public class PlaygroundController : Controller
         {
             return NotFound(new ChallengeSubmissionResponse
             {
-                CompileError = "Không tìm thấy thử thách lập trình này."
+                CompileError = isEn ? "Coding challenge not found." : "Không tìm thấy thử thách lập trình này."
             });
         }
 

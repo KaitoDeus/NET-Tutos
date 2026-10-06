@@ -306,7 +306,7 @@
                     }
                 } catch (e) {
                     console.error(e);
-                    alert('Lỗi kết nối máy chủ!');
+                    alert(isEnLang ? 'Server connection error!' : 'Lỗi kết nối máy chủ!');
                 } finally {
                     btn.disabled = false;
                     if (spinner) spinner.classList.add('d-none');

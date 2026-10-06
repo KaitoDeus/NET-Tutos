@@ -97,22 +97,23 @@ public class DeveloperPortfolioService : IDeveloperPortfolioService
         }
 
         // 1. Certificates
-        var certificates = await _context.Certificates
+        var rawCertificates = await _context.Certificates
             .Include(c => c.Category)
             .Where(c => c.UserId == user.Id)
             .OrderByDescending(c => c.IssuedAt)
-            .Select(c => new PortfolioCertificateItem
-            {
-                Id = c.Id,
-                CertificateCode = c.CertificateCode,
-                CourseTitle = c.CourseTitle,
-                StudentFullName = c.StudentFullName,
-                FinalScore = c.FinalScore,
-                IssuedAt = c.IssuedAt,
-                VerificationUrl = c.VerificationUrl,
-                CategoryName = c.Category != null ? c.Category.Name : null
-            })
             .ToListAsync();
+
+        var certificates = rawCertificates.Select(c => new PortfolioCertificateItem
+        {
+            Id = c.Id,
+            CertificateCode = c.CertificateCode,
+            CourseTitle = isEnglish ? LocalizationHelper.TranslateExamTitle(c.CourseTitle, true) : c.CourseTitle,
+            StudentFullName = c.StudentFullName,
+            FinalScore = c.FinalScore,
+            IssuedAt = c.IssuedAt,
+            VerificationUrl = c.VerificationUrl,
+            CategoryName = c.Category != null ? (isEnglish ? c.Category.GetTitle(true) : c.Category.Name) : null
+        }).ToList();
 
         // 2. Capstone Projects (Approved)
         var projectSubmissions = await _context.ProjectSubmissions
@@ -125,9 +126,9 @@ public class DeveloperPortfolioService : IDeveloperPortfolioService
         var projects = projectSubmissions.Select(ps => new PortfolioProjectItem
         {
             Id = ps.Id,
-            Title = ps.Project?.Title ?? "Capstone Project",
-            Description = ps.Project?.ShortDescription ?? string.Empty,
-            CategoryName = ps.Project?.Category?.Name ?? ".NET Full-Stack",
+            Title = isEnglish ? ps.Project.GetProjectTitle(true) : (ps.Project?.Title ?? "Capstone Project"),
+            Description = isEnglish ? ps.Project.GetProjectShortDesc(true) : (ps.Project?.ShortDescription ?? string.Empty),
+            CategoryName = isEnglish ? (ps.Project?.Category.GetTitle(true) ?? ".NET Full-Stack") : (ps.Project?.Category?.Name ?? ".NET Full-Stack"),
             Difficulty = ps.Project?.Level.ToString() ?? "Advanced",
             GitHubRepoUrl = ps.GitHubRepoUrl,
             LiveDemoUrl = ps.LiveDemoUrl,
@@ -138,19 +139,20 @@ public class DeveloperPortfolioService : IDeveloperPortfolioService
         }).ToList();
 
         // 3. Badges
-        var badges = await _context.UserBadges
+        var rawBadges = await _context.UserBadges
             .Where(b => b.UserId == user.Id)
             .OrderByDescending(b => b.EarnedAt)
-            .Select(b => new PortfolioBadgeItem
-            {
-                BadgeCode = b.BadgeCode,
-                Title = isEnglish ? LocalizationHelper.TranslateNotificationTitle(b.Title, true) : b.Title,
-                Description = isEnglish ? LocalizationHelper.TranslateNotificationMessage(b.Description, true) : b.Description,
-                IconClass = b.IconClass,
-                ColorClass = b.ColorClass,
-                EarnedAt = b.EarnedAt
-            })
             .ToListAsync();
+
+        var badges = rawBadges.Select(b => new PortfolioBadgeItem
+        {
+            BadgeCode = b.BadgeCode,
+            Title = isEnglish ? LocalizationHelper.GetBadgeTitle(b.BadgeCode, b.Title, true) : b.Title,
+            Description = isEnglish ? LocalizationHelper.GetBadgeDescription(b.BadgeCode, b.Description, true) : b.Description,
+            IconClass = b.IconClass,
+            ColorClass = b.ColorClass,
+            EarnedAt = b.EarnedAt
+        }).ToList();
 
         // 4. Distinct Passed Coding Challenges
         var passedSubmissions = await _context.CodeSubmissions
@@ -165,7 +167,7 @@ public class DeveloperPortfolioService : IDeveloperPortfolioService
             .Select(cs => new PortfolioChallengeItem
             {
                 ChallengeId = cs.CodingChallengeId,
-                Title = cs.CodingChallenge?.Title ?? (isEnglish ? "Challenge" : "Thử thách"),
+                Title = isEnglish ? cs.CodingChallenge.GetChallengeTitle(true) : (cs.CodingChallenge?.Title ?? "Thử thách"),
                 Difficulty = cs.CodingChallenge?.Difficulty.ToString() ?? "Easy",
                 Slug = cs.CodingChallenge?.Slug ?? cs.CodingChallengeId.ToString(),
                 SolvedAt = cs.SubmittedAt

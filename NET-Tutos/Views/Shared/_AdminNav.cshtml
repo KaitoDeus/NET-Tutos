@@ -1,5 +1,6 @@
 @{
     var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+    bool isEn = Context.IsEnglish();
 }
 
 <div class="card border-0 shadow-sm rounded-4 mb-4 bg-body">
@@ -8,18 +9,18 @@
             <div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge bg-danger-subtle border border-danger-subtle px-3 py-1.5 rounded-pill fw-semibold">
-                        <i class="bi bi-shield-lock-fill me-1"></i> Quản trị viên
+                        <i class="bi bi-shield-lock-fill me-1"></i> @(isEn ? "Administrator" : "Quản trị viên")
                     </span>
-                    <span class="text-body-secondary small">Hệ thống Quản lý Đào tạo .NET (LMS)</span>
+                    <span class="text-body-secondary small">@(isEn ? ".NET Training & Learning Management System (LMS)" : "Hệ thống Quản lý Đào tạo .NET (LMS)")</span>
                 </div>
-                <h4 class="fw-bold mb-0 mt-2">Bảng điều khiển Quản trị LMS</h4>
+                <h4 class="fw-bold mb-0 mt-2">@(isEn ? "LMS Admin Dashboard" : "Bảng điều khiển Quản trị LMS")</h4>
             </div>
             <div class="d-flex flex-wrap gap-2">
                 <a asp-controller="AdminTutorials" asp-action="Create" class="btn btn-sm btn-primary rounded-pill px-3 py-2 fw-semibold">
-                    <i class="bi bi-plus-circle me-1"></i> Soạn bài học mới
+                    <i class="bi bi-plus-circle me-1"></i> @(isEn ? "Create New Tutorial" : "Soạn bài học mới")
                 </a>
                 <a asp-controller="AdminQuizzes" asp-action="Create" class="btn btn-sm btn-outline-success rounded-pill px-3 py-2 fw-semibold">
-                    <i class="bi bi-patch-question me-1"></i> Thêm câu hỏi thi
+                    <i class="bi bi-patch-question me-1"></i> @(isEn ? "Add Exam Question" : "Thêm câu hỏi thi")
                 </a>
             </div>
         </div>
@@ -31,31 +32,31 @@
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "Admin" ? "active" : "text-body")" 
                    asp-controller="Admin" asp-action="Index">
-                    <i class="bi bi-speedometer2 me-1"></i> Tổng quan KPI
+                    <i class="bi bi-speedometer2 me-1"></i> @(isEn ? "KPI Overview" : "Tổng quan KPI")
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "AdminTutorials" ? "active" : "text-body")" 
                    asp-controller="AdminTutorials" asp-action="Index">
-                    <i class="bi bi-journal-richtext me-1"></i> Quản lý Bài học (CMS)
+                    <i class="bi bi-journal-richtext me-1"></i> @(isEn ? "Tutorials CMS" : "Quản lý Bài học (CMS)")
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "AdminQuizzes" ? "active" : "text-body")" 
                    asp-controller="AdminQuizzes" asp-action="Index">
-                    <i class="bi bi-patch-question me-1"></i> Ngân hàng Đề thi
+                    <i class="bi bi-patch-question me-1"></i> @(isEn ? "Question Bank" : "Ngân hàng Đề thi")
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "AdminUsers" ? "active" : "text-body")" 
                    asp-controller="AdminUsers" asp-action="Index">
-                    <i class="bi bi-people me-1"></i> Học viên & Phân quyền
+                    <i class="bi bi-people me-1"></i> @(isEn ? "Learners & Roles" : "Học viên & Phân quyền")
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "AdminProjects" ? "active" : "text-body")" 
                    asp-controller="AdminProjects" asp-action="Submissions">
-                    <i class="bi bi-folder-check me-1"></i> Duyệt Đồ án Thực chiến
+                    <i class="bi bi-folder-check me-1"></i> @(isEn ? "Review Capstone Projects" : "Duyệt Đồ án Thực chiến")
                 </a>
             </li>
         </ul>

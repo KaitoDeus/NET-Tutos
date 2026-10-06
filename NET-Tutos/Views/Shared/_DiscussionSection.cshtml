@@ -350,11 +350,11 @@
                 }
             } else {
                 const err = await response.json();
-                alert(err.message || "Không thể gửi bình luận.");
+                alert(err.message || '@(isEn ? "Unable to post comment." : "Không thể gửi bình luận.")');
             }
         } catch (e) {
             console.error(e);
-            alert("Lỗi kết nối khi gửi bình luận.");
+            alert('@(isEn ? "Connection error while submitting comment." : "Lỗi kết nối khi gửi bình luận.")');
         } finally {
             if (spinner) spinner.classList.add("d-none");
             if (btn) btn.disabled = false;
@@ -402,7 +402,7 @@
     }
 
     async function markBestAnswer(commentId) {
-        if (!confirm("Bạn có chắc chắn muốn đánh dấu bình luận này là giải pháp chính xác (+15 XP)?")) return;
+        if (!confirm('@(isEn ? "Are you sure you want to mark this comment as the accepted solution (+15 XP)?" : "Bạn có chắc chắn muốn đánh dấu bình luận này là giải pháp chính xác (+15 XP)?")')) return;
 
         try {
             const response = await fetch(`/api/discussion/mark-best-answer?topicType=${encodeURIComponent(topicType)}&topicId=${topicId}`, {
@@ -415,7 +415,7 @@
                 location.reload();
             } else {
                 const err = await response.json();
-                alert(err.message || "Không thể đánh dấu giải pháp.");
+                alert(err.message || '@(isEn ? "Unable to mark solution." : "Không thể đánh dấu giải pháp.")');
             }
         } catch (e) {
             console.error(e);
@@ -423,7 +423,7 @@
     }
 
     async function deleteComment(commentId) {
-        if (!confirm("Bạn có chắc chắn muốn xóa bình luận này không?")) return;
+        if (!confirm('@(isEn ? "Are you sure you want to delete this comment?" : "Bạn có chắc chắn muốn xóa bình luận này không?")')) return;
 
         try {
             const response = await fetch(`/api/discussion/delete-comment?topicType=${encodeURIComponent(topicType)}&topicId=${topicId}`, {
@@ -437,7 +437,7 @@
                 if (el) el.remove();
             } else {
                 const err = await response.json();
-                alert(err.message || "Không thể xóa bình luận.");
+                alert(err.message || '@(isEn ? "Unable to delete comment." : "Không thể xóa bình luận.")');
             }
         } catch (e) {
             console.error(e);
@@ -451,7 +451,7 @@
         div.id = `comment-${c.id}`;
 
         const initial = c.authorName ? c.authorName.charAt(0).toUpperCase() : "U";
-        const adminBadge = c.isAdmin ? `<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill small">Quản trị viên</span>` : "";
+        const adminBadge = c.isAdmin ? `<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill small">@(isEn ? "Admin" : "Quản trị viên")</span>` : "";
 
         div.innerHTML = `
             <div class="d-flex align-items-start gap-3">
@@ -464,7 +464,7 @@
                             <span class="fw-bold">${c.authorName}</span>
                             ${adminBadge}
                             <span class="badge bg-secondary-subtle text-secondary rounded-pill small"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>${c.authorXp} XP</span>
-                            <span class="text-muted small">· ${c.createdAgo || 'Vừa xong'}</span>
+                            <span class="text-muted small">· ${c.createdAgo || '@(isEn ? "Just now" : "Vừa xong")'}</span>
                         </div>
                     </div>
                     <div class="comment-content text-break mb-3">
@@ -475,13 +475,13 @@
                             <i class="bi bi-hand-thumbs-up me-1"></i>
                             <span class="upvote-count">${c.upvotesCount}</span>
                         </button>
-                        ${isAuthenticated ? `<button type="button" class="btn btn-sm btn-link text-decoration-none text-muted p-0" onclick="toggleReplyBox(${c.id})"><i class="bi bi-reply-fill me-1"></i>Trả lời</button>` : ''}
-                        ${(isAdmin || c.userId === currentUserId) ? `<button type="button" class="btn btn-sm btn-link text-decoration-none text-danger p-0 ms-auto" onclick="deleteComment(${c.id})"><i class="bi bi-trash3 me-1"></i>Xóa</button>` : ''}
+                        ${isAuthenticated ? `<button type="button" class="btn btn-sm btn-link text-decoration-none text-muted p-0" onclick="toggleReplyBox(${c.id})"><i class="bi bi-reply-fill me-1"></i>@(isEn ? "Reply" : "Trả lời")</button>` : ''}
+                        ${(isAdmin || c.userId === currentUserId) ? `<button type="button" class="btn btn-sm btn-link text-decoration-none text-danger p-0 ms-auto" onclick="deleteComment(${c.id})"><i class="bi bi-trash3 me-1"></i>@(isEn ? "Delete" : "Xóa")</button>` : ''}
                     </div>
                     <div class="reply-box mt-3 pt-3 border-top d-none" id="replyBox-${c.id}">
                         <div class="d-flex gap-2">
-                            <input type="text" class="form-control form-control-sm rounded-pill" id="replyInput-${c.id}" placeholder="Viết câu trả lời của bạn..." onkeydown="if(event.key==='Enter') submitNewComment(${c.id}, 'replyInput-${c.id}')" />
-                            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" onclick="submitNewComment(${c.id}, 'replyInput-${c.id}')">Gửi</button>
+                            <input type="text" class="form-control form-control-sm rounded-pill" id="replyInput-${c.id}" placeholder="@(isEn ? "Write your reply..." : "Viết câu trả lời của bạn...")" onkeydown="if(event.key==='Enter') submitNewComment(${c.id}, 'replyInput-${c.id}')" />
+                            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" onclick="submitNewComment(${c.id}, 'replyInput-${c.id}')">@(isEn ? "Send" : "Gửi")</button>
                         </div>
                     </div>
                     <div class="replies-container mt-3 ps-3 border-start border-2 d-flex flex-column gap-2" id="replies-${c.id}"></div>
@@ -507,7 +507,7 @@
                 <div class="d-flex align-items-center gap-2">
                     <span class="fw-semibold small">${r.authorName}</span>
                     ${adminBadge}
-                    <span class="text-muted" style="font-size: 0.75rem;">· ${r.createdAgo || 'Vừa xong'}</span>
+                    <span class="text-muted" style="font-size: 0.75rem;">· ${r.createdAgo || '@(isEn ? "Just now" : "Vừa xong")'}</span>
                 </div>
             </div>
             <div class="reply-content small text-break mb-2">
