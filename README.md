@@ -1,176 +1,209 @@
 # NET-Tutos
 
-NET-Tutos is a comprehensive, production-ready educational platform and Learning Management System (LMS) designed for mastering modern .NET development. Built with ASP.NET Core MVC (.NET 10) and Entity Framework Core, the platform serves as an interactive learning environment for students and an administrative content management system for educators.
+[![.NET Version](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-MVC-512BD4?logo=dotnet)](https://learn.microsoft.com/aspnet/core)
+[![.NET MAUI](https://img.shields.io/badge/.NET_MAUI-Android-512BD4?logo=dotnet)](https://learn.microsoft.com/dotnet/maui/)
+[![C# 14](https://img.shields.io/badge/C%23-14.0-239120?logo=csharp)](https://learn.microsoft.com/dotnet/csharp/)
+[![Entity Framework Core](https://img.shields.io/badge/EF_Core-10.0-512BD4)](https://learn.microsoft.com/ef/core/)
+[![Real-Time](https://img.shields.io/badge/SignalR-Real--Time-blue)](https://learn.microsoft.com/aspnet/core/signalr)
+[![PWA Ready](https://img.shields.io/badge/PWA-Offline_Enabled-success)](https://web.dev/progressive-web-apps/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+**NET-Tutos** is an enterprise-grade, full-stack educational ecosystem and Learning Management System (LMS) designed for mastering modern .NET development. Engineered on **.NET 10**, the solution pairs a high-performance **ASP.NET Core MVC** web application with a cross-platform **.NET MAUI** mobile app, backed by a unified RESTful API, Roslyn sandboxed code evaluation, real-time SignalR networking, and dual-provider database persistence.
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Key Features](#key-features)
+  - [1. Comprehensive Curriculum & Markdown Tutorials](#1-comprehensive-curriculum--markdown-tutorials)
+  - [2. Interactive C# Playground & Online Judge (Roslyn)](#2-interactive-c-playground--online-judge-roslyn)
+  - [3. Cross-Platform .NET MAUI Mobile Application](#3-cross-platform-net-maui-mobile-application)
+  - [4. Timed Examinations, Vector PDF Certificates & QR Verification](#4-timed-examinations-vector-pdf-certificates--qr-verification)
+  - [5. Real-Time SignalR Community Discussion & Q&A](#5-real-time-signalr-community-discussion--qa)
+  - [6. Gamification: Flame Streaks, XP, Badges & Leaderboard](#6-gamification-flame-streaks-xp-badges--leaderboard)
+  - [7. Technical Interview Preparation & Mock Interviews](#7-technical-interview-preparation--mock-interviews)
+  - [8. Capstone Project Studio & Public Developer Portfolios](#8-capstone-project-studio--public-developer-portfolios)
+  - [9. Offline-First PWA & Universal Command Palette (Ctrl+K)](#9-offline-first-pwa--universal-command-palette-ctrlk)
+  - [10. Administrative LMS Control Center & CMS Studio](#10-administrative-lms-control-center--cms-studio)
+  - [11. Bilingual Localization (English & Tiếng Việt)](#11-bilingual-localization-english--tiếng-việt)
+- [Architecture & Solution Structure](#architecture--solution-structure)
+- [Mobile REST API Endpoints](#mobile-rest-api-endpoints)
+- [Technology Stack](#technology-stack)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Running the Web Application](#running-the-web-application)
+  - [Running the Mobile Application](#running-the-mobile-application)
+  - [Pre-Seeded Demo Accounts](#pre-seeded-demo-accounts)
+- [Database Configuration & Resilient Fallback](#database-configuration--resilient-fallback)
+- [License](#license)
 
 ---
 
 ## Overview
 
-NET-Tutos provides structured learning pathways, self-paced tutorials, real-time interactive quizzes, code cheat sheets, automated online examinations, digital vector PDF certificate generation, and an administrative CMS for curriculum management. It adheres to clean architecture principles, modern dependency injection lifetimes, repository and service abstractions, role-based authorization, and robust dual-engine data persistence with zero-configuration automated seeding.
+NET-Tutos delivers an end-to-end learning environment for developers transitioning from C# fundamentals to cloud-scale enterprise architectures. It combines self-paced reading with active coding challenges, real-time peer collaboration, structured practice quizzes, and formal certification.
+
+The system is organized into a clean .NET 10 solution (`NET-Tutos.slnx`) containing:
+- **`NET-Tutos.WebApp`**: The flagship web application featuring MVC presentation, CMS authoring tools, Roslyn code compilation, SignalR hubs, and Mobile REST APIs.
+- **`NET-Tutos.Mobile`**: A native Android client built with .NET MAUI and the MVVM architecture pattern, providing seamless offline/online learning on the go.
 
 ---
 
 ## Key Features
 
-### 1. Account and Student Progress Management (LMS)
-- Integrated ASP.NET Core Identity authentication system with secure cookie-based session management.
-- Student profile dashboard displaying completed lessons, total experience points (XP), enrolled tracks, and certification history.
-- Dynamic lesson progress tracking with instantaneous AJAX completion toggling and reward mechanics (+20 XP per completed lesson).
-- Automatic course enrollment tracking and completion rate calculations.
+### 1. Comprehensive Curriculum & Markdown Tutorials
+- **4-Stage Mastery Roadmap**: Fundamentals & C# Syntax ➔ Object-Oriented Programming & LINQ ➔ Entity Framework Core & Data Modeling ➔ ASP.NET Core MVC & Enterprise Web APIs.
+- **Rich Markdown Engine**: Markdig-powered lesson renderer supporting GFM tables, alerts, callouts, and code blocks.
+- **Syntax Highlighting**: Integrated Prism.js with dark theme styling, line highlights, and instant copy-to-clipboard.
+- **Reading Progress Bar**: Dynamic scroll-based progress indicator and lesson-to-lesson stepper navigation.
+- **Interactive Checkpoints**: Lesson completion toggle (+20 XP) with instant AJAX state persistence.
 
-### 2. Timed Online Examinations and Automated Certification
-- Randomized examination generator with customizable question pools and countdown timer.
-- Automated instant grading and evaluation with detailed answer reviews.
-- Vector PDF certificate generation powered by QuestPDF with embedded QR verification codes generated via QRCoder.
-- Public digital verification endpoint (`/verify-certificate/{code}`) for third-party certificate authenticity validation.
+### 2. Interactive C# Playground & Online Judge (Roslyn)
+- **Embedded Monaco Editor**: VS Code's editor engine in the browser with code folding, autocomplete, and theme toggling.
+- **Sandboxed Execution**: Powered by `Microsoft.CodeAnalysis.CSharp.Scripting` (Roslyn) executing safe C# scripts with timeout protection (4-second guardrail) and security filters.
+- **Algorithm Challenge Catalog**: LeetCode-style problem set across Easy, Intermediate, and Advanced tiers with hidden unit tests, runtime measurement, and automated XP rewards.
+- **Pre-Configured Starter Templates**: One-click code templates for Hello World, LINQ transforms, C# 14 pattern matching, async/await parallelism, and algorithms.
 
-### 3. Administrative LMS Control Panel and CMS Content Studio
-- Role-based authorization distinguishing `Admin` and `Student` accounts.
-- Administrative dashboard with key performance indicators (KPIs): student count, completion rates, examination metrics, and top student rankings.
-- Visual Markdown authoring studio with split-screen live preview, syntax highlighting, and formatting toolbars.
-- Comprehensive question bank management for creating and maintaining quiz and examination items.
-- Student management directory with role elevation and experience point moderation tools.
-- Default seeded administrator account:
-  - Email: `admin@nettutos.com`
-  - Password: `AdminPassword@123`
+### 3. Cross-Platform .NET MAUI Mobile Application
+- **Native Android Experience**: Optimized for smartphones and tablets using .NET MAUI and Android SDK 36.
+- **MVVM Architecture**: Built using `CommunityToolkit.Mvvm` with reactive ViewModels, observable properties, and relay commands.
+- **Real-Time Data Sync**: Synchronizes lessons, categories, roadmaps, study progress, and streaks directly with the backend API.
+- **Token-Based Mobile Authentication**: Secure mobile login, registration, and persistent user session storage via MAUI Preferences.
 
-### 4. Structured Learning Roadmap
-- Four comprehensive curriculum stages transitioning developers from fundamentals to enterprise-grade proficiency:
-  - Stage 1: C# Fundamentals and Syntax (Types, Control Flow, Collections, Memory basics).
-  - Stage 2: Object-Oriented Programming and Advanced C# (Inheritance, Interfaces, Generics, LINQ, Async/Await).
-  - Stage 3: Entity Framework Core and Data Persistence (Code-First modeling, Migrations, Change Tracker, AsNoTracking optimization).
-  - Stage 4: ASP.NET Core MVC and Web APIs (Middleware pipeline, Controllers, Razor engine, Dependency Injection lifetimes, SOLID principles).
+### 4. Timed Examinations, Vector PDF Certificates & QR Verification
+- **Automated Exam Engine**: Dynamic question pool shuffling, countdown timer, and instantaneous grading with comprehensive answer explanations.
+- **Vector PDF Certificate Generation**: High-fidelity, print-ready digital certificates generated dynamically using **QuestPDF**.
+- **Cryptographic QR Code Validation**: Embedded QR codes generated via **QRCoder** linking to a public verification endpoint (`/verify-certificate/{code}`).
 
-### 5. Reading and Tutorial Experience
-- Full Markdown rendering with Markdig support for tables, blockquotes, code blocks, and structured callouts.
-- Code syntax highlighting powered by Prism.js with VS Code dark theme styling.
-- One-click copy-to-clipboard functionality for code snippets.
-- Real-time reading progress indicator bar.
-- Seamless previous and next lesson navigation.
+### 5. Real-Time SignalR Community Discussion & Q&A
+- **Bidirectional Lesson Discussions**: ASP.NET Core SignalR (`DiscussionHub`) broadcasting new questions and replies live to active learners.
+- **Nested Threaded Comments**: Markdown-formatted replies, peer upvoting, and learner presence counters.
+- **Accepted Solutions**: Question authors and administrators can mark comments as "Accepted Solution", rewarding community contributors with bonus XP (+15 XP).
 
-### 6. Interactive Practice Quizzes and Code Reference
-- Topic-specific quizzes with instant feedback and answer explanations.
-- Standardized syntax directory containing quick-reference snippets for C#, LINQ, EF Core, and ASP.NET Core.
+### 6. Gamification: Flame Streaks, XP, Badges & Leaderboard
+- **Daily Check-In & Streak Engine**: Consecutive day tracking with flame animations, milestone notifications, and bonus experience points.
+- **Hall of Fame Leaderboard**: Live global student rankings featuring top-3 podiums, gold/silver/bronze medallions, and detailed XP stats.
+- **Achievement Badges**: Automated trigger-based badges (Newbie, Scholar, Algorithm Hunter, Algorithm Master, Certified, Community Hero).
 
-### 7. Interactive C# Playground and Automated Coding Challenges
-- Monaco Editor (VS Code web engine) with C# syntax highlighting, code folding, auto-indentation, and dark/light theme synchronization.
-- Free-form C# code runner with pre-configured templates (Hello World, LINQ queries, Modern Records & Pattern Matching, Async/Await parallelism, Fibonacci generator).
-- Roslyn scripting compiler backend (`Microsoft.CodeAnalysis.CSharp.Scripting`) with sandboxed execution, real-time diagnostic reporting (line/column error tracking), and standard output capture.
-- LeetCode-style algorithm challenge catalog with difficulty tiering (Beginner, Intermediate, Advanced) and category categorization.
-- Automated judge test harness executing code against public test cases and hidden evaluation cases.
-- Execution timeout protection (4-second cutoff) and keyword security filtering to prevent malicious code invocation or infinite loops.
-- Gamified experience point (XP) rewards upon passing all test cases with persistent submission history tracking (`CodeSubmission`).
+### 7. Technical Interview Preparation & Mock Interviews
+- **Curated Question Bank**: Senior-level and junior-level technical interview questions covering C#, CLR internals, EF Core query performance, dependency injection, and REST API design.
+- **Interactive Flashcards**: 3D flip card animations with self-assessment rating (Needs Review vs. Mastered).
+- **Mock Interview Simulator**: Timed evaluation sessions mimicking real technical interview rounds.
 
-### 8. Real-Time Community Discussion and Q&A Engine (SignalR)
-- Instant bidirectional communication powered by ASP.NET Core SignalR (`DiscussionHub`).
-- Interactive discussion threads beneath each tutorial lesson with live online learner counter.
-- Markdown commenting supporting formatted text, quotes, and C# code snippets.
-- Threaded discussions with parent-child nested replies.
-- Peer upvoting with live counter synchronization across active learners.
-- Verified solution recognition: Author or Administrator can mark comments as "Accepted Solution" with bonus XP rewards (+15 XP).
-- Contribution incentives granting +5 XP for each valuable discussion contribution.
+### 8. Capstone Project Studio & Public Developer Portfolios
+- **Hands-On Capstone Submissions**: Students submit GitHub repository links and live demo URLs for practical graduation projects.
+- **Admin Review & Grading**: Instructors review code submissions, assign grades, and provide feedback directly in the CMS.
+- **Public Developer Showcase**: Shareable profile page (`/u/{username}`) showcasing completed milestones, earned badges, algorithm stats, and verified certificates.
 
-### 9. Gamification Leaderboard and Achievement Badges
-- Public student ranking hall (`/Leaderboard`) showcasing top developers ranked by total Experience Points (XP).
-- Visual podium honoring 1st, 2nd, and 3rd place champions with gold, silver, and bronze badges.
-- Dynamic student rank card displaying real-time standing, completed lessons, solved algorithms, and earned credentials.
-- Multi-tier achievement badge system:
-  - Newbie: First lesson completed.
-  - Scholar: 5 lessons completed.
-  - Algorithm Hunter: First C# challenge solved.
-  - Algorithm Master: 3 C# challenges conquered.
-  - Certified: Official certificate achieved.
-  - Community Hero: Accepted solution provided or active discussion participant.
+### 9. Offline-First PWA & Universal Command Palette (Ctrl+K)
+- **Progressive Web App**: Service Worker (`sw.js`) and manifest caching core app shell and offline fallbacks (`offline.html`).
+- **Command Palette (`Ctrl + K`)**: Keyboard-driven command center for jumping to lessons, challenges, quizzes, and documentation in milliseconds.
 
-### 10. Modern Responsive UI
-- Fully responsive interface engineered with Bootstrap 5 and customized modern typography.
-- Native Light and Dark theme switcher with persistent client preference storage.
+### 10. Administrative LMS Control Center & CMS Studio
+- **Role-Based Access Control**: Strict segregation between `Admin` and `Student` roles via ASP.NET Core Identity.
+- **KPI Metrics Dashboard**: High-level platform analytics covering active users, pass rates, popular lessons, and completion percentages.
+- **Split-Screen WYSIWYG Studio**: Real-time live Markdown editor for publishing and editing course content with image and syntax preview.
+- **Question & User Management**: Full CRUD over question banks, quiz sets, student roles, and XP moderation.
+
+### 11. Bilingual Localization (English & Tiếng Việt)
+- **Native Dual-Language Support**: Complete UI, navigation, roadmap, lesson content, quizzes, and certificate templates localized in both English and Vietnamese.
+- **One-Click Flag Switcher**: Cookie-backed language preference toggling instantly without page loss.
 
 ---
 
-## Technical Stack
+## Architecture & Solution Structure
 
-- Framework: ASP.NET Core MVC (.NET 10)
-- Language: C# 14
-- ORM: Entity Framework Core 10
-- Real-Time Communication: ASP.NET Core SignalR
-- Code Analysis and Scripting Engine: Microsoft.CodeAnalysis.CSharp.Scripting (Roslyn)
-- Web Code Editor: Monaco Editor
-- Authentication: ASP.NET Core Identity with Role-Based Access Control (RBAC)
-- Document Generation: QuestPDF
-- Barcode Generation: QRCoder
-- Markdown Engine: Markdig
-- Client Libraries: Bootstrap 5, Bootstrap Icons, Prism.js, Monaco Editor, Microsoft SignalR Client
-- Database Support: Microsoft SQL Server (LocalDB) with automated fallback to SQLite
+The project follows clean architecture principles with distinct separation of concerns:
+
+```text
+d:\.ASPNET-Tutos\
+├── NET-Tutos.slnx                      # Modern .NET 10 solution definition
+├── .gitignore                          # Standard .NET gitignore with local script exclusions
+├── README.md                           # Platform documentation
+│
+├── NET-Tutos.WebApp/                   # ASP.NET Core 10 MVC & Mobile Web API
+│   ├── NET-Tutos.WebApp.csproj         # Web project dependencies & SDK targets
+│   ├── Controllers/                    # MVC Controllers
+│   │   ├── AccountController.cs        # Identity, student dashboard & progress
+│   │   ├── Admin*.cs                   # LMS administrative CMS, quizzes, projects & users
+│   │   ├── CertificateController.cs    # PDF generation & public QR verification
+│   │   ├── DiscussionController.cs     # Real-time discussion API with SignalR
+│   │   ├── ExamController.cs           # Online exams & automated grading
+│   │   ├── InterviewController.cs      # Flashcards & mock interview simulator
+│   │   ├── LeaderboardController.cs    # Rankings, podium & achievements
+│   │   ├── PlaygroundController.cs     # Monaco editor & Roslyn judge harness
+│   │   ├── ProfileController.cs        # Public developer portfolio showcase (/u/{username})
+│   │   ├── ProjectController.cs        # Capstone project submission & reviews
+│   │   ├── StreakController.cs         # Daily check-ins & streak tracking
+│   │   ├── TutorialsController.cs      # Course curriculum & lesson reader
+│   │   └── Api/                        # RESTful API for Mobile App
+│   │       ├── MobileAuthController.cs # Mobile JWT/Bearer authentication
+│   │       └── MobileTutorialsController.cs # Tutorials, categories & roadmap API
+│   ├── Data/                           # Database contexts & seeders
+│   │   ├── AppDbContext.cs             # Identity & EF Core DbContext
+│   │   └── DbInitializer.cs            # Zero-config schema & sample curriculum seeder
+│   ├── Hubs/                           # SignalR Hubs
+│   │   └── DiscussionHub.cs            # Live learner presence & comments hub
+│   ├── Models/                         # Domain entities & ViewModels
+│   │   ├── Entities/                   # Tutorials, Quizzes, Challenges, Streaks, Badges
+│   │   └── DTOs/Mobile/                # Data Transfer Objects for Mobile endpoints
+│   ├── Services/                       # Business logic services
+│   │   ├── CertificateService.cs       # QuestPDF vector document generator
+│   │   ├── CodeExecutionService.cs     # Roslyn C# sandbox & test-case evaluator
+│   │   ├── DiscussionService.cs        # Discussion persistence & upvoting
+│   │   └── MobileAuthService.cs        # Mobile token validation & profile service
+│   ├── Views/                          # Razor MVC views (.cshtml)
+│   ├── wwwroot/                        # Static assets, PWA Service Worker & manifest
+│   └── Program.cs                      # Application pipeline, DI configuration & middleware
+│
+└── NET-Tutos.Mobile/                   # Cross-Platform .NET MAUI 10 Mobile App
+    ├── NET_Tutos.Mobile.csproj         # MAUI Android project configuration
+    ├── AppShell.xaml                   # Flyout/Tab navigation shell
+    ├── MauiProgram.cs                  # MAUI dependency injection builder
+    ├── Models/                         # Client-side domain models
+    ├── Services/                       # HTTP API client (ApiService.cs)
+    ├── ViewModels/                     # MVVM ViewModels (Home, Login, Roadmap, Tutorials)
+    └── Views/                          # XAML Pages (HomePage, LoginPage, RoadmapPage, etc.)
+```
 
 ---
 
-## Architecture and Project Structure
+## Mobile REST API Endpoints
 
-```
-.ASPNET-Tutos/
-├── NET-Tutos.slnx                      # Solution definition (.NET 10 format)
-├── .gitattributes                      # Repository metadata and Linguist rules
-├── README.md                           # Project documentation
-├── NET-Tutos.Mobile/                   # Cross-platform .NET MAUI mobile application
-└── NET-Tutos.WebApp/                   # Core ASP.NET Core web application & REST API
-    ├── NET-Tutos.WebApp.csproj         # Project configuration and package references
-    ├── Hubs/                           # SignalR Real-Time Hubs
-    │   └── DiscussionHub.cs            # Live connection group management and learner presence
-    ├── Controllers/                    # MVC & API Controllers
-    │   ├── AccountController.cs        # Authentication, student dashboard, and progress toggling
-    │   ├── AdminController.cs          # LMS Admin dashboard, analytics, and Markdown live preview
-    │   ├── AdminTutorialsController.cs # CMS tutorial management and authoring studio
-    │   ├── AdminQuizzesController.cs   # Examination question bank management
-    │   ├── AdminUsersController.cs     # Student roster, roles, and XP moderation
-    │   ├── CertificateController.cs    # Certificate download and public QR verification
-    │   ├── CheatSheetController.cs     # Code reference explorer
-    │   ├── DiscussionController.cs     # Real-time discussion API with SignalR broadcasting
-    │   ├── ExamController.cs           # Timed examinations, scoring, and certification issuance
-    │   ├── HomeController.cs           # Landing page, curriculum overview, and metrics
-    │   ├── LeaderboardController.cs    # Hall of fame student rankings and badge showcase
-    │   ├── PlaygroundController.cs     # Interactive C# sandbox, code templates, and automated challenge judging
-    │   ├── QuizController.cs           # Interactive practice quiz engine
-    │   ├── RoadmapController.cs        # Learning roadmap pathways
-    │   └── TutorialsController.cs      # Catalog browsing, lesson reading, search
-    ├── Data/                           # Data access and persistence layer
-    │   ├── AppDbContext.cs             # Identity and application database context
-    │   └── DbInitializer.cs            # Schema setup, role creation, and default administrator seeding
-    ├── Models/                         # Domain entities and viewmodels
-    │   ├── Entities/                   # ApplicationUser, Category, Tutorial, QuizQuestion, Certificate, CodingChallenge, CodeTestCase, CodeSubmission, DiscussionComment, CommentUpvote, UserBadge
-    │   └── ViewModels/                 # Presentation viewmodels (Account, Admin, Exam, Playground, Discussion, Leaderboard)
-    ├── Services/                       # Application business logic layer
-    │   ├── CertificateService.cs       # Vector PDF certificate generation with QR codes
-    │   ├── CodeExecutionService.cs     # Roslyn-powered sandboxed execution and test case judge harness
-    │   ├── DiscussionService.cs        # Threaded discussion logic, upvoting, and solution marking
-    │   ├── ExamService.cs              # Timed examination grading and question generation
-    │   ├── ICodeExecutionService.cs    # Sandboxed execution and evaluation interface contract
-    │   ├── IDiscussionService.cs       # Discussion service interface contract
-    │   ├── ILeaderboardService.cs      # Ranking calculations and automated badge triggers
-    │   ├── LeaderboardService.cs       # Leaderboard and achievement computation service
-    │   ├── LearningProgressService.cs  # Student progress and XP calculation service
-    │   ├── MarkdownService.cs          # Markdown transformation service
-    │   └── TutorialService.cs          # Content retrieval and search service
-    ├── Views/                          # Razor views (.cshtml)
-    │   ├── Account/                    # Login, Register, Student profile dashboard
-    │   ├── Admin/                      # LMS overview and KPI dashboard
-    │   ├── AdminQuizzes/               # Question bank management views
-    │   ├── AdminTutorials/             # Tutorial CMS listing and WYSIWYG editor
-    │   ├── AdminUsers/                 # Student and role management views
-    │   ├── Certificate/                # Public certificate verification
-    │   ├── CheatSheet/                 # Snippet catalog
-    │   ├── Exam/                       # Examination hall, countdown timer, and results
-    │   ├── Home/                       # Index, About
-    │   ├── Leaderboard/                # Student ranking podium, table, and badges catalog
-    │   ├── Playground/                 # Monaco Editor runner and challenge directory views
-    │   ├── Quiz/                       # Quiz index and interactive test view
-    │   ├── Roadmap/                    # Roadmap visualization
-    │   ├── Shared/                     # Navigation, footer, _DiscussionSection.cshtml
-    │   └── Tutorials/                  # Lesson listing, reader view, and Q&A section
-    ├── wwwroot/                        # Static client assets (CSS, JS, images, icons)
-    ├── appsettings.json                # Environment and database configuration
-    └── Program.cs                      # Dependency injection, middleware pipeline, and host bootstrapping
-```
+The WebApp exposes dedicated JSON endpoints under `/api/mobile/` consumed by the .NET MAUI application:
+
+| Endpoint | Method | Auth | Description |
+| :--- | :---: | :---: | :--- |
+| `/api/mobile/auth/login` | `POST` | Public | Authenticates credentials and returns user profile & token |
+| `/api/mobile/auth/register` | `POST` | Public | Registers a new student account |
+| `/api/mobile/auth/profile` | `GET` | Required | Retrieves the authenticated student's profile & statistics |
+| `/api/mobile/categories` | `GET` | Public | Returns curriculum categories with lesson counters |
+| `/api/mobile/tutorials` | `GET` | Public | Retrieves paginated lessons with search and category filters |
+| `/api/mobile/tutorials/{slug}` | `GET` | Public | Returns full lesson Markdown details and completion state |
+| `/api/mobile/tutorials/{id}/complete` | `POST` | Required | Toggles lesson completion status and awards XP |
+| `/api/mobile/roadmap` | `GET` | Public | Returns structured learning pathways & stage milestones |
+| `/api/mobile/streak` | `GET` | Required | Returns current daily check-in streak and flame status |
+
+---
+
+## Technology Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Backend Framework** | ASP.NET Core 10.0 (MVC + Minimal API endpoints) |
+| **Language** | C# 14 |
+| **Mobile Platform** | .NET MAUI 10.0 (Targeting Android 5.0+ / API 21-36) |
+| **MVVM Framework** | `CommunityToolkit.Mvvm` 8.4 |
+| **ORM / Data Access** | Entity Framework Core 10.0 |
+| **Database Engines** | Microsoft SQL Server (LocalDB) / SQLite (Resilient fallback) |
+| **Code Scripting** | `Microsoft.CodeAnalysis.CSharp.Scripting` 5.0 (Roslyn Engine) |
+| **Real-Time Web** | ASP.NET Core SignalR |
+| **PDF Generation** | QuestPDF 2026.9 |
+| **QR Code Engine** | QRCoder 1.8 |
+| **Markdown Parser** | Markdig 1.4 |
+| **Web Frontend** | Bootstrap 5.3, Bootstrap Icons, Monaco Editor, Prism.js, PWA |
 
 ---
 
@@ -178,39 +211,63 @@ NET-Tutos provides structured learning pathways, self-paced tutorials, real-time
 
 ### Prerequisites
 
-- .NET 10 SDK (or .NET 8.0+ SDK)
-- Modern web browser
-- Optional: SQL Server or SQL Server LocalDB (SQLite is supported out-of-the-box)
+- [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (or .NET 8.0+ SDK)
+- Modern web browser (Chrome, Edge, Firefox)
+- *(Optional for Mobile)* Android SDK (API 34+) and Android Emulator (e.g. Pixel 9a)
 
-### Installation and Run
+---
 
-1. Clone the repository:
+### Running the Web Application
+
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/KaitoDeus/NET-Tutos.git
    cd NET-Tutos
    ```
 
-2. Build the solution:
+2. **Build the entire solution:**
    ```bash
    dotnet build NET-Tutos.slnx
    ```
 
-3. Run the application:
-   ```bash
+3. **Launch the Web Application:**
+   ```powershell
    dotnet run --project NET-Tutos.WebApp/NET-Tutos.WebApp.csproj
    ```
 
-4. Open your browser and navigate to `http://localhost:5262`.
-
-5. Sign in as administrator:
-   - Email: `admin@nettutos.com`
-   - Password: `AdminPassword@123`
+4. **Access the application:**
+   Open your browser and navigate to:
+   - **`http://localhost:5000`** or **`http://localhost:5262`**
 
 ---
 
-## Database Configuration
+### Running the Mobile Application
 
-The application implements a dual-provider database strategy configured in `appsettings.json`:
+To run the .NET MAUI mobile app on an Android emulator:
+
+1. **Ensure the WebApp is running on port 5000** (as the Android emulator connects to host via `10.0.2.2:5000`).
+2. **Start your Android emulator** (e.g. via Android Studio Device Manager or `emulator -avd Pixel_9a`).
+3. **Build and deploy the app:**
+   ```powershell
+   dotnet build NET-Tutos.Mobile/NET_Tutos.Mobile.csproj -t:Run -f net10.0-android
+   ```
+
+---
+
+### Pre-Seeded Demo Accounts
+
+The system automatically initializes and seeds default accounts upon first execution:
+
+| Role | Username / Email | Password | Permissions |
+| :--- | :--- | :--- | :--- |
+| **Administrator** | `admin@nettutos.com` | `AdminPassword@123` | Full access to LMS CMS studio, analytics, quiz manager, grading, and role moderation. |
+| **Demo Student** | `student@nettutos.com` | `StudentPassword@123` | Pre-enrolled student with 350 XP, 5-day active streak, and progress history. |
+
+---
+
+## Database Configuration & Resilient Fallback
+
+The application features a dual-provider database configuration in `appsettings.json`:
 
 ```json
 {
@@ -222,14 +279,13 @@ The application implements a dual-provider database strategy configured in `apps
 }
 ```
 
-### Automatic Fallback Architecture
-
-- **Primary Provider**: Microsoft SQL Server LocalDB (`DefaultConnection`).
-- **Resilient Fallback**: If SQL Server LocalDB is unavailable or not running on the host system, the runtime seamlessly switches to SQLite (`dotnet_tutorials.db`).
-- **Automated Seeding**: On first run, the database schema, default roles (`Admin`, `Student`), administrator account, and a complete curriculum of tutorials, categories, and quizzes are automatically provisioned without requiring manual migration scripts.
+### Automatic Resilient Fallback:
+1. **Primary Provider**: Microsoft SQL Server LocalDB (`DefaultConnection`).
+2. **Instant Fallback**: If SQL Server LocalDB is not installed or unreachable, the system automatically and seamlessly shifts to local **SQLite** (`dotnet_tutorials.db`).
+3. **Zero Migration Overhead**: The database schema, roles, default users, quizzes, flashcards, challenges, and roadmaps are seeded on startup (`DbInitializer.cs`), allowing developers to clone and run instantly with zero manual SQL configuration.
 
 ---
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for complete details.
