@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:NET_Tutos.Mobile.ViewModels"
+             xmlns:models="clr-namespace:NET_Tutos.Mobile.Models"
+             x:Class="NET_Tutos.Mobile.Views.HomePage"
+             x:DataType="vm:HomeViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="#0b0f19">
+
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadDataCommand}">
+        <ScrollView>
+            <VerticalStackLayout Spacing="24" Padding="20">
+                <!-- Header Banner -->
+                <Border StrokeShape="RoundRectangle 20"
+                        Stroke="#312e81"
+                        BackgroundColor="#1e1b4b"
+                        Padding="20">
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                            <Label Text="{Binding GreetingText}"
+                                   TextColor="White"
+                                   FontSize="20"
+                                   FontAttributes="Bold" />
+                            <Label Text="Tiếp tục lộ trình chinh phục .NET 10"
+                                   TextColor="#a5b4fc"
+                                   FontSize="13" />
+                        </VerticalStackLayout>
+
+                        <!-- Streak Badge -->
+                        <Border Grid.Column="1"
+                                StrokeShape="RoundRectangle 16"
+                                Stroke="#f59e0b"
+                                BackgroundColor="#78350f"
+                                Padding="12,6"
+                                VerticalOptions="Center">
+                            <Label Text="{Binding StreakBadgeText}"
+                                   TextColor="#fde68a"
+                                   FontSize="13"
+                                   FontAttributes="Bold" />
+                        </Border>
+
+                        <!-- Stats Row -->
+                        <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="*,*,*" Margin="0,16,0,0">
+                            <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" Spacing="2">
+                                <Label Text="{Binding User.TotalXp, FallbackValue=0}" TextColor="#60a5fa" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" />
+                                <Label Text="Điểm XP" TextColor="#94a3b8" FontSize="11" HorizontalOptions="Center" />
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" Spacing="2">
+                                <Label Text="{Binding User.Level, FallbackValue=1}" TextColor="#34d399" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" />
+                                <Label Text="Cấp Độ" TextColor="#94a3b8" FontSize="11" HorizontalOptions="Center" />
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center" Spacing="2">
+                                <Label Text="{Binding User.CompletedLessonsCount, FallbackValue=0}" TextColor="#f472b6" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" />
+                                <Label Text="Bài Đã Học" TextColor="#94a3b8" FontSize="11" HorizontalOptions="Center" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- Featured Categories Section -->
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Chuyên Đề Lập Trình" TextColor="White" FontSize="17" FontAttributes="Bold" />
+                    
+                    <CollectionView ItemsSource="{Binding Categories}">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Horizontal" ItemSpacing="12" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:CategoryItem">
+                                <Border StrokeShape="RoundRectangle 16"
+                                        Stroke="#1e293b"
+                                        BackgroundColor="#0f172a"
+                                        WidthRequest="140"
+                                        HeightRequest="100"
+                                        Padding="14">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, Path=OpenCategoryCommand}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="6" VerticalOptions="Center">
+                                        <Label Text="📘" FontSize="20" />
+                                        <Label Text="{Binding Name}" TextColor="White" FontSize="13" FontAttributes="Bold" MaxLines="1" LineBreakMode="TailTruncation" />
+                                        <Label Text="{Binding TutorialCount, StringFormat='{0} bài học'}" TextColor="#94a3b8" FontSize="11" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- Recent Tutorials Section -->
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Bài Học Mới Nhất" TextColor="White" FontSize="17" FontAttributes="Bold" />
+
+                    <CollectionView ItemsSource="{Binding RecentTutorials}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:TutorialSummary">
+                                <Border StrokeShape="RoundRectangle 16"
+                                        Stroke="#1e293b"
+                                        BackgroundColor="#0f172a"
+                                        Padding="16"
+                                        Margin="0,0,0,12">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, Path=OpenTutorialCommand}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
+                                        <Label Grid.Row="0" Grid.Column="0"
+                                               Text="{Binding Title}"
+                                               TextColor="White"
+                                               FontSize="15"
+                                               FontAttributes="Bold"
+                                               MaxLines="2"
+                                               LineBreakMode="TailTruncation" />
+
+                                        <Border Grid.Row="0" Grid.Column="1"
+                                                IsVisible="{Binding IsCompleted}"
+                                                StrokeShape="RoundRectangle 12"
+                                                Stroke="#059669"
+                                                BackgroundColor="#064e3b"
+                                                Padding="8,4"
+                                                VerticalOptions="Start">
+                                            <Label Text="✓ Đã học" TextColor="#6ee7b7" FontSize="11" FontAttributes="Bold" />
+                                        </Border>
+
+                                        <Label Grid.Row="1" Grid.ColumnSpan="2"
+                                               Text="{Binding Summary}"
+                                               TextColor="#94a3b8"
+                                               FontSize="12"
+                                               MaxLines="2"
+                                               LineBreakMode="TailTruncation"
+                                               Margin="0,4,0,8" />
+
+                                        <HorizontalStackLayout Grid.Row="2" Grid.ColumnSpan="2" Spacing="10">
+                                            <Label Text="{Binding CategoryName}" TextColor="#818cf8" FontSize="11" FontAttributes="Bold" />
+                                            <Label Text="•" TextColor="#64748b" FontSize="11" />
+                                            <Label Text="{Binding ReadingTimeDisplay}" TextColor="#94a3b8" FontSize="11" />
+                                            <Label Text="•" TextColor="#64748b" FontSize="11" />
+                                            <Label Text="{Binding Difficulty}" TextColor="#cbd5e1" FontSize="11" />
+                                        </HorizontalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

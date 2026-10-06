@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:NET_Tutos.Mobile.ViewModels"
+             x:Class="NET_Tutos.Mobile.Views.LoginPage"
+             x:DataType="vm:LoginViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="#0b0f19">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="20" Padding="28,40" VerticalOptions="Center">
+            <!-- App Logo & Branding -->
+            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                <Border StrokeShape="RoundRectangle 24"
+                        Stroke="#6366f1"
+                        StrokeThickness="2"
+                        BackgroundColor="#1e1b4b"
+                        WidthRequest="80"
+                        HeightRequest="80"
+                        HorizontalOptions="Center">
+                    <Label Text="C#" 
+                           TextColor="#818cf8" 
+                           FontSize="32" 
+                           FontAttributes="Bold" 
+                           HorizontalOptions="Center" 
+                           VerticalOptions="Center" />
+                </Border>
+
+                <Label Text=".NET Tutos Mobile"
+                       TextColor="White"
+                       FontSize="26"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center" />
+
+                <Label Text="Học lập trình C# &amp; .NET 10 mọi lúc mọi nơi"
+                       TextColor="#94a3b8"
+                       FontSize="13"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <!-- Error Banner -->
+            <Border IsVisible="{Binding HasError}"
+                    BackgroundColor="#450a0a"
+                    Stroke="#dc2626"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="14,10">
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="#fca5a5"
+                       FontSize="13" />
+            </Border>
+
+            <!-- Input Fields -->
+            <VerticalStackLayout Spacing="14">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Tài khoản hoặc Email" TextColor="#cbd5e1" FontSize="13" FontAttributes="Bold" />
+                    <Border StrokeShape="RoundRectangle 12" Stroke="#334155" BackgroundColor="#1e293b" Padding="14,2">
+                        <Entry Text="{Binding UsernameOrEmail}"
+                               Placeholder="vd: student@nettutos.com"
+                               PlaceholderColor="#64748b"
+                               TextColor="White"
+                               FontSize="14" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Mật khẩu" TextColor="#cbd5e1" FontSize="13" FontAttributes="Bold" />
+                    <Border StrokeShape="RoundRectangle 12" Stroke="#334155" BackgroundColor="#1e293b" Padding="14,2">
+                        <Entry Text="{Binding Password}"
+                               IsPassword="True"
+                               Placeholder="••••••••"
+                               PlaceholderColor="#64748b"
+                               TextColor="White"
+                               FontSize="14" />
+                    </Border>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+
+            <!-- Action Buttons -->
+            <VerticalStackLayout Spacing="10" Margin="0,10,0,0">
+                <Button Text="Đăng Nhập Ngay"
+                        Command="{Binding LoginCommand}"
+                        BackgroundColor="#6366f1"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="12"
+                        HeightRequest="48"
+                        IsEnabled="{Binding IsNotBusy}" />
+
+                <Button Text="Khám Phá Dưới Tên Khách"
+                        Command="{Binding ContinueAsGuestCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="#94a3b8"
+                        FontSize="13"
+                        HeightRequest="40" />
+            </VerticalStackLayout>
+
+            <!-- Server URL Config Toggle -->
+            <VerticalStackLayout Spacing="10" Margin="0,10,0,0">
+                <Button Text="⚙️ Cài đặt địa chỉ máy chủ API"
+                        Command="{Binding ToggleServerConfigCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="#64748b"
+                        FontSize="12"
+                        HeightRequest="32" />
+
+                <VerticalStackLayout IsVisible="{Binding IsConfiguringServer}" Spacing="8">
+                    <Border StrokeShape="RoundRectangle 8" Stroke="#334155" BackgroundColor="#1e293b" Padding="10,2">
+                        <Entry Text="{Binding ServerUrl}"
+                               TextColor="White"
+                               FontSize="12" />
+                    </Border>
+                    <Button Text="Lưu Địa Chỉ Máy Chủ"
+                            Command="{Binding SaveServerUrlCommand}"
+                            BackgroundColor="#334155"
+                            TextColor="White"
+                            FontSize="12"
+                            HeightRequest="36"
+                            CornerRadius="8" />
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               Color="#6366f1"
+                               HorizontalOptions="Center" />
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

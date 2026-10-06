@@ -57,6 +57,7 @@ builder.Services.AddScoped<ICurriculumService, CurriculumService>();
 builder.Services.AddScoped<IStudyPlannerService, StudyPlannerService>();
 builder.Services.AddScoped<IAiTutorService, AiTutorService>();
 builder.Services.AddScoped<IDeveloperPortfolioService, DeveloperPortfolioService>();
+builder.Services.AddScoped<IMobileAuthService, MobileAuthService>();
 
 // Determine Database Provider
 var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";

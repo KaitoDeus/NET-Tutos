@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="NET-Tutos/NET-Tutos.csproj" />
+  <Project Path="NET-Tutos.Mobile/NET_Tutos.Mobile.csproj" />
 </Solution>

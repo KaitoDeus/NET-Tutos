@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:NET_Tutos.Mobile.ViewModels"
+             xmlns:models="clr-namespace:NET_Tutos.Mobile.Models"
+             x:Class="NET_Tutos.Mobile.Views.RoadmapPage"
+             x:DataType="vm:RoadmapViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="#0b0f19">
+
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadRoadmapCommand}">
+        <ScrollView>
+            <VerticalStackLayout Spacing="20" Padding="18">
+                <!-- Roadmap Intro Banner -->
+                <Border StrokeShape="RoundRectangle 18"
+                        Stroke="#854d0e"
+                        BackgroundColor="#451a03"
+                        Padding="18">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="🗺️ Lộ Trình C# .NET Chuẩn Hóa" TextColor="#fde047" FontSize="18" FontAttributes="Bold" />
+                        <Label Text="Theo sát lộ trình chuẩn từ Zero đến Senior .NET Developer. Học từng bước, bài bản và vững chắc."
+                               TextColor="#fef08a"
+                               FontSize="12" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Modules List -->
+                <CollectionView ItemsSource="{Binding Modules}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:RoadmapModule">
+                            <Border StrokeShape="RoundRectangle 18"
+                                    Stroke="#1e293b"
+                                    BackgroundColor="#0f172a"
+                                    Padding="18"
+                                    Margin="0,0,0,16">
+                                <VerticalStackLayout Spacing="12">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0"
+                                               Text="{Binding Title, StringFormat='Module {0}'}"
+                                               TextColor="White"
+                                               FontSize="16"
+                                               FontAttributes="Bold" />
+
+                                        <Border Grid.Column="1"
+                                                StrokeShape="RoundRectangle 10"
+                                                Stroke="#334155"
+                                                BackgroundColor="#1e293b"
+                                                Padding="8,4">
+                                            <Label Text="{Binding ProgressText}" TextColor="#a5b4fc" FontSize="11" FontAttributes="Bold" />
+                                        </Border>
+                                    </Grid>
+
+                                    <Label Text="{Binding Description}" TextColor="#94a3b8" FontSize="12" />
+
+                                    <ProgressBar Progress="{Binding ProgressPercent}" ProgressColor="#6366f1" />
+
+                                    <!-- Lessons in this module -->
+                                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Lessons}" Spacing="8" Margin="0,8,0,0">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="models:TutorialSummary">
+                                                <Border StrokeShape="RoundRectangle 10"
+                                                        Stroke="#1e293b"
+                                                        BackgroundColor="#1e293b"
+                                                        Padding="12,10">
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:RoadmapViewModel}}, Path=OpenTutorialCommand}"
+                                                                              CommandParameter="{Binding .}" />
+                                                    </Border.GestureRecognizers>
+                                                    <Grid ColumnDefinitions="*,Auto">
+                                                        <Label Grid.Column="0" Text="{Binding Title}" TextColor="#e2e8f0" FontSize="13" MaxLines="1" LineBreakMode="TailTruncation" />
+                                                        <Label Grid.Column="1" Text="→" TextColor="#6366f1" FontSize="14" FontAttributes="Bold" Margin="8,0,0,0" />
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

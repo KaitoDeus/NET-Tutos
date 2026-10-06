@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="NET_Tutos.Mobile.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:NET_Tutos.Mobile.Views"
+    Title=".NET Tutos"
+    BackgroundColor="#0b0f19"
+    ForegroundColor="#6366f1">
+
+    <TabBar>
+        <Tab Title="Trang chủ" Route="home">
+            <ShellContent
+                Title="Trang chủ"
+                ContentTemplate="{DataTemplate views:HomePage}" />
+        </Tab>
+
+        <Tab Title="Bài học" Route="tutorials">
+            <ShellContent
+                Title="Bài học"
+                ContentTemplate="{DataTemplate views:TutorialsPage}" />
+        </Tab>
+
+        <Tab Title="Lộ trình" Route="roadmap">
+            <ShellContent
+                Title="Lộ trình"
+                ContentTemplate="{DataTemplate views:RoadmapPage}" />
+        </Tab>
+
+        <Tab Title="Tài khoản" Route="login">
+            <ShellContent
+                Title="Tài khoản"
+                ContentTemplate="{DataTemplate views:LoginPage}" />
+        </Tab>
+    </TabBar>
+
+</Shell>
