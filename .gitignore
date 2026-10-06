@@ -487,3 +487,7 @@ $RECYCLE.BIN/
 *.db-wal
 *.sqlite
 *.sqlite3
+
+# Local run scripts
+run-mobile.bat
+run-mobile.ps1

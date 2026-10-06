@@ -112,8 +112,9 @@ NET-Tutos provides structured learning pathways, self-paced tutorials, real-time
 ├── NET-Tutos.slnx                      # Solution definition (.NET 10 format)
 ├── .gitattributes                      # Repository metadata and Linguist rules
 ├── README.md                           # Project documentation
-└── NET-Tutos/                          # Core ASP.NET Core web application
-    ├── NET-Tutos.csproj                # Project configuration and package references
+├── NET-Tutos.Mobile/                   # Cross-platform .NET MAUI mobile application
+└── NET-Tutos.WebApp/                   # Core ASP.NET Core web application & REST API
+    ├── NET-Tutos.WebApp.csproj         # Project configuration and package references
     ├── Hubs/                           # SignalR Real-Time Hubs
     │   └── DiscussionHub.cs            # Live connection group management and learner presence
     ├── Controllers/                    # MVC & API Controllers
@@ -196,7 +197,7 @@ NET-Tutos provides structured learning pathways, self-paced tutorials, real-time
 
 3. Run the application:
    ```bash
-   dotnet run --project NET-Tutos/NET-Tutos.csproj
+   dotnet run --project NET-Tutos.WebApp/NET-Tutos.WebApp.csproj
    ```
 
 4. Open your browser and navigate to `http://localhost:5262`.

@@ -1789,23 +1789,38 @@ Viết hàm `Fibonacci(int n)` trả về số Fibonacci thứ $n$.
         var isSqlite = context.Database.IsSqlite();
         if (isSqlite)
         {
-            try
+            var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var connection = context.Database.GetDbConnection();
+            if (connection.State != System.Data.ConnectionState.Open)
+            {
+                await connection.OpenAsync();
+            }
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = "PRAGMA table_info([AspNetUsers]);";
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        existingColumns.Add(reader.GetString(1));
+                    }
+                }
+            }
+
+            if (!existingColumns.Contains("CurrentStreak"))
             {
                 await context.Database.ExecuteSqlRawAsync("ALTER TABLE [AspNetUsers] ADD COLUMN [CurrentStreak] INTEGER NOT NULL DEFAULT 0;");
             }
-            catch { }
 
-            try
+            if (!existingColumns.Contains("LongestStreak"))
             {
                 await context.Database.ExecuteSqlRawAsync("ALTER TABLE [AspNetUsers] ADD COLUMN [LongestStreak] INTEGER NOT NULL DEFAULT 0;");
             }
-            catch { }
 
-            try
+            if (!existingColumns.Contains("LastCheckInDate"))
             {
                 await context.Database.ExecuteSqlRawAsync("ALTER TABLE [AspNetUsers] ADD COLUMN [LastCheckInDate] TEXT NULL;");
             }
-            catch { }
 
             await context.Database.ExecuteSqlRawAsync(@"
                 CREATE TABLE IF NOT EXISTS [DailyCheckIns] (
