@@ -22,6 +22,8 @@
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
 		<AndroidSdkDirectory Condition="'$(AndroidSdkDirectory)' == '' and exists('$(LOCALAPPDATA)\Android\Sdk')">$(LOCALAPPDATA)\Android\Sdk</AndroidSdkDirectory>
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+		<AndroidEnableFastDeployment>false</AndroidEnableFastDeployment>
 	</PropertyGroup>
 
 	<ItemGroup>
