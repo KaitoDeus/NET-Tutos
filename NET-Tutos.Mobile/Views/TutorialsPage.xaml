@@ -6,26 +6,34 @@
              x:Class="NET_Tutos.Mobile.Views.TutorialsPage"
              x:DataType="vm:TutorialsViewModel"
              Title="{Binding Title}"
-             BackgroundColor="#0b0f19">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#0B1120">
 
-    <Grid RowDefinitions="Auto,Auto,*" Padding="16,16,16,0">
-        <!-- Search Bar -->
-        <Border Grid.Row="0"
-                StrokeShape="RoundRectangle 14"
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="20,24,20,0">
+        
+        <!-- Header Title Bar -->
+        <VerticalStackLayout Grid.Row="0" Spacing="4" Margin="0,0,0,16">
+            <Label Text="Kho Bài Học" TextColor="#F8FAFC" FontSize="22" FontAttributes="Bold" />
+            <Label Text="Khám phá các bài học thực chiến C# 14 &amp; .NET 10" TextColor="#94A3B8" FontSize="13" />
+        </VerticalStackLayout>
+
+        <!-- Modern Search Bar -->
+        <Border Grid.Row="1"
+                StrokeShape="RoundRectangle 16"
                 Stroke="#334155"
-                BackgroundColor="#1e293b"
+                BackgroundColor="#111827"
                 Padding="12,0"
-                Margin="0,0,0,12">
+                Margin="0,0,0,14">
             <SearchBar Text="{Binding SearchQuery}"
                        Placeholder="Tìm kiếm bài học C#, cú pháp..."
-                       PlaceholderColor="#64748b"
-                       TextColor="White"
+                       PlaceholderColor="#64748B"
+                       TextColor="#F8FAFC"
                        SearchCommand="{Binding PerformSearchCommand}"
                        BackgroundColor="Transparent" />
         </Border>
 
         <!-- Category Horizontal Filter Chips -->
-        <CollectionView Grid.Row="1"
+        <CollectionView Grid.Row="2"
                         ItemsSource="{Binding Categories}"
                         HeightRequest="42"
                         Margin="0,0,0,14">
@@ -35,15 +43,15 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:CategoryItem">
                     <Border StrokeShape="RoundRectangle 20"
-                            Stroke="#334155"
-                            BackgroundColor="#1e293b"
+                            Stroke="#1E293B"
+                            BackgroundColor="#0F172A"
                             Padding="14,6">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:TutorialsViewModel}}, Path=SelectCategoryCommand}"
                                                   CommandParameter="{Binding .}" />
                         </Border.GestureRecognizers>
                         <Label Text="{Binding Name}"
-                               TextColor="White"
+                               TextColor="#E2E8F0"
                                FontSize="12"
                                FontAttributes="Bold" />
                     </Border>
@@ -52,15 +60,15 @@
         </CollectionView>
 
         <!-- Tutorials List with Pull-to-refresh -->
-        <RefreshView Grid.Row="2"
+        <RefreshView Grid.Row="3"
                      IsRefreshing="{Binding IsBusy}"
                      Command="{Binding LoadTutorialsCommand}">
             <CollectionView ItemsSource="{Binding Tutorials}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:TutorialSummary">
-                        <Border StrokeShape="RoundRectangle 16"
-                                Stroke="#1e293b"
-                                BackgroundColor="#0f172a"
+                        <Border StrokeShape="RoundRectangle 18"
+                                Stroke="#1E293B"
+                                BackgroundColor="#0F172A"
                                 Padding="16"
                                 Margin="0,0,0,12">
                             <Border.GestureRecognizers>
@@ -70,7 +78,7 @@
                             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
                                 <Label Grid.Row="0" Grid.Column="0"
                                        Text="{Binding Title}"
-                                       TextColor="White"
+                                       TextColor="#F8FAFC"
                                        FontSize="15"
                                        FontAttributes="Bold"
                                        MaxLines="2"
@@ -80,26 +88,30 @@
                                         IsVisible="{Binding IsCompleted}"
                                         StrokeShape="RoundRectangle 12"
                                         Stroke="#059669"
-                                        BackgroundColor="#064e3b"
+                                        BackgroundColor="#064E3B"
                                         Padding="8,4"
                                         VerticalOptions="Start">
-                                    <Label Text="✓ Đã học" TextColor="#6ee7b7" FontSize="11" FontAttributes="Bold" />
+                                    <Label Text="✓ Đã học" TextColor="#6EE7B7" FontSize="11" FontAttributes="Bold" />
                                 </Border>
 
                                 <Label Grid.Row="1" Grid.ColumnSpan="2"
                                        Text="{Binding Summary}"
-                                       TextColor="#94a3b8"
+                                       TextColor="#94A3B8"
                                        FontSize="12"
                                        MaxLines="2"
                                        LineBreakMode="TailTruncation"
-                                       Margin="0,4,0,8" />
+                                       Margin="0,4,0,10" />
 
-                                <HorizontalStackLayout Grid.Row="2" Grid.ColumnSpan="2" Spacing="10">
-                                    <Label Text="{Binding CategoryName}" TextColor="#818cf8" FontSize="11" FontAttributes="Bold" />
-                                    <Label Text="•" TextColor="#64748b" FontSize="11" />
-                                    <Label Text="{Binding ReadingTimeDisplay}" TextColor="#94a3b8" FontSize="11" />
-                                    <Label Text="•" TextColor="#64748b" FontSize="11" />
-                                    <Label Text="{Binding Difficulty}" TextColor="#cbd5e1" FontSize="11" />
+                                <HorizontalStackLayout Grid.Row="2" Grid.ColumnSpan="2" Spacing="8">
+                                    <Border StrokeShape="RoundRectangle 8" BackgroundColor="#1E1B4B" Padding="8,3">
+                                        <Label Text="{Binding CategoryName}" TextColor="#A5B4FC" FontSize="11" FontAttributes="Bold" />
+                                    </Border>
+                                    <Border StrokeShape="RoundRectangle 8" BackgroundColor="#111827" Padding="8,3">
+                                        <Label Text="{Binding ReadingTimeDisplay}" TextColor="#94A3B8" FontSize="11" />
+                                    </Border>
+                                    <Border StrokeShape="RoundRectangle 8" BackgroundColor="#111827" Padding="8,3">
+                                        <Label Text="{Binding Difficulty}" TextColor="#CBD5E1" FontSize="11" />
+                                    </Border>
                                 </HorizontalStackLayout>
                             </Grid>
                         </Border>

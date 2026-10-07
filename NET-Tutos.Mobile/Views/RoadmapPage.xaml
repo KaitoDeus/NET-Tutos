@@ -6,22 +6,38 @@
              x:Class="NET_Tutos.Mobile.Views.RoadmapPage"
              x:DataType="vm:RoadmapViewModel"
              Title="{Binding Title}"
-             BackgroundColor="#0b0f19">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#0B1120">
 
     <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadRoadmapCommand}">
         <ScrollView>
-            <VerticalStackLayout Spacing="20" Padding="18">
+            <VerticalStackLayout Spacing="20" Padding="20,24,20,24">
+                
+                <!-- Header Title Bar -->
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Lộ Trình Phát Triển" TextColor="#F8FAFC" FontSize="22" FontAttributes="Bold" />
+                    <Label Text="Con đường chuẩn hóa từ Zero đến Senior .NET Developer" TextColor="#94A3B8" FontSize="13" />
+                </VerticalStackLayout>
+
                 <!-- Roadmap Intro Banner -->
-                <Border StrokeShape="RoundRectangle 18"
-                        Stroke="#854d0e"
-                        BackgroundColor="#451a03"
+                <Border StrokeShape="RoundRectangle 20"
+                        Stroke="#312E81"
                         Padding="18">
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="🗺️ Lộ Trình C# .NET Chuẩn Hóa" TextColor="#fde047" FontSize="18" FontAttributes="Bold" />
-                        <Label Text="Theo sát lộ trình chuẩn từ Zero đến Senior .NET Developer. Học từng bước, bài bản và vững chắc."
-                               TextColor="#fef08a"
-                               FontSize="12" />
-                    </VerticalStackLayout>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#1E1B4B" Offset="0.0" />
+                            <GradientStop Color="#0F172A" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalOptions="Center">
+                        <Label Grid.Column="0" Text="🗺️" FontSize="26" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label Text="4 Giai Đoạn Chinh Phục .NET 10" TextColor="#A5B4FC" FontSize="15" FontAttributes="Bold" />
+                            <Label Text="Học tuần tự từng module để nắm vững từ cú pháp C#, tư duy OOP, kiến trúc EF Core đến thiết kế Web API enterprise."
+                                   TextColor="#CBD5E1"
+                                   FontSize="12" />
+                        </VerticalStackLayout>
+                    </Grid>
                 </Border>
 
                 <!-- Modules List -->
@@ -29,46 +45,46 @@
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:RoadmapModule">
                             <Border StrokeShape="RoundRectangle 18"
-                                    Stroke="#1e293b"
-                                    BackgroundColor="#0f172a"
+                                    Stroke="#1E293B"
+                                    BackgroundColor="#0F172A"
                                     Padding="18"
                                     Margin="0,0,0,16">
                                 <VerticalStackLayout Spacing="12">
                                     <Grid ColumnDefinitions="*,Auto">
                                         <Label Grid.Column="0"
                                                Text="{Binding Title, StringFormat='Module {0}'}"
-                                               TextColor="White"
+                                               TextColor="#F8FAFC"
                                                FontSize="16"
                                                FontAttributes="Bold" />
 
                                         <Border Grid.Column="1"
                                                 StrokeShape="RoundRectangle 10"
                                                 Stroke="#334155"
-                                                BackgroundColor="#1e293b"
+                                                BackgroundColor="#111827"
                                                 Padding="8,4">
-                                            <Label Text="{Binding ProgressText}" TextColor="#a5b4fc" FontSize="11" FontAttributes="Bold" />
+                                            <Label Text="{Binding ProgressText}" TextColor="#818CF8" FontSize="11" FontAttributes="Bold" />
                                         </Border>
                                     </Grid>
 
-                                    <Label Text="{Binding Description}" TextColor="#94a3b8" FontSize="12" />
+                                    <Label Text="{Binding Description}" TextColor="#94A3B8" FontSize="12" />
 
-                                    <ProgressBar Progress="{Binding ProgressPercent}" ProgressColor="#6366f1" />
+                                    <ProgressBar Progress="{Binding ProgressPercent}" ProgressColor="#6366F1" />
 
                                     <!-- Lessons in this module -->
                                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding Lessons}" Spacing="8" Margin="0,8,0,0">
                                         <BindableLayout.ItemTemplate>
                                             <DataTemplate x:DataType="models:TutorialSummary">
-                                                <Border StrokeShape="RoundRectangle 10"
-                                                        Stroke="#1e293b"
-                                                        BackgroundColor="#1e293b"
+                                                <Border StrokeShape="RoundRectangle 12"
+                                                        Stroke="#1E293B"
+                                                        BackgroundColor="#111827"
                                                         Padding="12,10">
                                                     <Border.GestureRecognizers>
                                                         <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:RoadmapViewModel}}, Path=OpenTutorialCommand}"
                                                                               CommandParameter="{Binding .}" />
                                                     </Border.GestureRecognizers>
                                                     <Grid ColumnDefinitions="*,Auto">
-                                                        <Label Grid.Column="0" Text="{Binding Title}" TextColor="#e2e8f0" FontSize="13" MaxLines="1" LineBreakMode="TailTruncation" />
-                                                        <Label Grid.Column="1" Text="→" TextColor="#6366f1" FontSize="14" FontAttributes="Bold" Margin="8,0,0,0" />
+                                                        <Label Grid.Column="0" Text="{Binding Title}" TextColor="#E2E8F0" FontSize="13" MaxLines="1" LineBreakMode="TailTruncation" />
+                                                        <Label Grid.Column="1" Text="→" TextColor="#818CF8" FontSize="14" FontAttributes="Bold" Margin="8,0,0,0" />
                                                     </Grid>
                                                 </Border>
                                             </DataTemplate>

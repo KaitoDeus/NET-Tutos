@@ -5,10 +5,19 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:NET_Tutos.Mobile.Views"
     Title=".NET Tutos"
-    BackgroundColor="#0b0f19"
-    ForegroundColor="#6366f1">
+    Shell.NavBarIsVisible="False"
+    Shell.BackgroundColor="#0B1120"
+    Shell.ForegroundColor="#F8FAFC"
+    Shell.TitleColor="#FFFFFF"
+    Shell.TabBarBackgroundColor="#0B1120"
+    Shell.TabBarForegroundColor="#818CF8"
+    Shell.TabBarTitleColor="#818CF8"
+    Shell.TabBarUnselectedColor="#64748B">
 
-    <TabBar>
+    <TabBar Shell.TabBarBackgroundColor="#0B1120"
+            Shell.TabBarForegroundColor="#818CF8"
+            Shell.TabBarTitleColor="#818CF8"
+            Shell.TabBarUnselectedColor="#64748B">
         <Tab Title="Trang chủ" Route="home">
             <ShellContent
                 Title="Trang chủ"
