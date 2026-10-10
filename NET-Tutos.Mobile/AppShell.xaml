@@ -6,18 +6,18 @@
     xmlns:views="clr-namespace:NET_Tutos.Mobile.Views"
     Title=".NET Tutos"
     Shell.NavBarIsVisible="False"
-    Shell.BackgroundColor="#0B1120"
-    Shell.ForegroundColor="#F8FAFC"
-    Shell.TitleColor="#FFFFFF"
-    Shell.TabBarBackgroundColor="#0B1120"
-    Shell.TabBarForegroundColor="#818CF8"
-    Shell.TabBarTitleColor="#818CF8"
-    Shell.TabBarUnselectedColor="#64748B">
+    Shell.BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#0B1120}"
+    Shell.ForegroundColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+    Shell.TitleColor="{AppThemeBinding Light=#0F172A, Dark=#FFFFFF}"
+    Shell.TabBarBackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#0F172A}"
+    Shell.TabBarForegroundColor="#6366F1"
+    Shell.TabBarTitleColor="#6366F1"
+    Shell.TabBarUnselectedColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}">
 
-    <TabBar Shell.TabBarBackgroundColor="#0F172A"
-            Shell.TabBarForegroundColor="#818CF8"
-            Shell.TabBarTitleColor="#818CF8"
-            Shell.TabBarUnselectedColor="#94A3B8">
+    <TabBar Shell.TabBarBackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#0F172A}"
+            Shell.TabBarForegroundColor="#6366F1"
+            Shell.TabBarTitleColor="#6366F1"
+            Shell.TabBarUnselectedColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}">
         <Tab Title="Trang chủ" Route="home" Icon="nav_home.png">
             <ShellContent
                 Title="Trang chủ"

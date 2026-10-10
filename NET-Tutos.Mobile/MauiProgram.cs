@@ -24,6 +24,7 @@ public static class MauiProgram
 
 		// Services
 		builder.Services.AddSingleton<IApiService, ApiService>();
+		builder.Services.AddSingleton<IThemeService, ThemeService>();
 
 		// ViewModels
 		builder.Services.AddTransient<HomeViewModel>();
@@ -31,6 +32,7 @@ public static class MauiProgram
 		builder.Services.AddTransient<TutorialDetailViewModel>();
 		builder.Services.AddTransient<RoadmapViewModel>();
 		builder.Services.AddTransient<LoginViewModel>();
+		builder.Services.AddTransient<SettingsViewModel>();
 
 		// Views
 		builder.Services.AddTransient<HomePage>();
@@ -38,6 +40,7 @@ public static class MauiProgram
 		builder.Services.AddTransient<TutorialDetailPage>();
 		builder.Services.AddTransient<RoadmapPage>();
 		builder.Services.AddTransient<LoginPage>();
+		builder.Services.AddTransient<SettingsPage>();
 
 		return builder.Build();
 	}

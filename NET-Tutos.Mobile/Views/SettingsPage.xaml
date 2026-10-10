@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:NET_Tutos.Mobile.ViewModels"
+             x:Class="NET_Tutos.Mobile.Views.SettingsPage"
+             x:DataType="vm:SettingsViewModel"
+             Title="{Binding Title}"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#0B1120}">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="20" Padding="18,22,18,36">
+            
+            <!-- Top Navigation & Title Bar -->
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalOptions="Center">
+                <Button Grid.Column="0"
+                        Text="← Quay lại"
+                        Command="{Binding GoBackCommand}"
+                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
+                        BorderColor="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                        BorderWidth="1"
+                        TextColor="{AppThemeBinding Light=#4338CA, Dark=#A5B4FC}"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        CornerRadius="12"
+                        HeightRequest="40"
+                        Padding="14,0" />
+
+                <Label Grid.Column="1"
+                       Text="Cài Đặt Hệ Thống"
+                       TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       VerticalOptions="Center" />
+            </Grid>
+
+            <!-- Status Notification Banner -->
+            <Border IsVisible="{Binding HasStatusMessage}"
+                    StrokeShape="RoundRectangle 12"
+                    Stroke="#4338CA"
+                    BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
+                    Padding="14,10">
+                <Label Text="{Binding StatusMessage}"
+                       TextColor="{AppThemeBinding Light=#3730A3, Dark=#C7D2FE}"
+                       FontSize="13"
+                       FontAttributes="Bold" />
+            </Border>
+
+            <!-- SECTION 1: THEME & COLOR MODE -->
+            <VerticalStackLayout Spacing="10">
+                <Label Text="GIAO DIỆN &amp; MÀU SẮC"
+                       TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}"
+                       FontSize="12"
+                       FontAttributes="Bold"
+                       CharacterSpacing="1" />
+
+                <Label Text="{Binding CurrentThemeSummary}"
+                       TextColor="{AppThemeBinding Light=#6366F1, Dark=#818CF8}"
+                       FontSize="13" />
+
+                <!-- Theme Option 1: System Default -->
+                <Border StrokeShape="RoundRectangle 16"
+                        Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#0F172A}"
+                        Padding="16,14">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding SelectThemeCommand}" CommandParameter="system" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                            <Label Text="Tự động theo hệ thống"
+                                   TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                                   FontSize="15"
+                                   FontAttributes="Bold" />
+                            <Label Text="Thích ứng linh hoạt theo cài đặt sáng / tối của máy điện thoại"
+                                   TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}"
+                                   FontSize="12" />
+                        </VerticalStackLayout>
+                        <Border Grid.Column="1"
+                                IsVisible="{Binding IsSystemTheme}"
+                                StrokeShape="RoundRectangle 8"
+                                BackgroundColor="#4338CA"
+                                Padding="10,4">
+                            <Label Text="ĐANG DÙNG" TextColor="#FFFFFF" FontSize="11" FontAttributes="Bold" />
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Theme Option 2: Light Mode -->
+                <Border StrokeShape="RoundRectangle 16"
+                        Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#0F172A}"
+                        Padding="16,14">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding SelectThemeCommand}" CommandParameter="light" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                            <Label Text="Chế độ Sáng (Light Mode)"
+                                   TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                                   FontSize="15"
+                                   FontAttributes="Bold" />
+                            <Label Text="Nền sáng tinh tươm, tương phản cao, tối ưu đọc bài ban ngày"
+                                   TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}"
+                                   FontSize="12" />
+                        </VerticalStackLayout>
+                        <Border Grid.Column="1"
+                                IsVisible="{Binding IsLightTheme}"
+                                StrokeShape="RoundRectangle 8"
+                                BackgroundColor="#0284C7"
+                                Padding="10,4">
+                            <Label Text="ĐANG DÙNG" TextColor="#FFFFFF" FontSize="11" FontAttributes="Bold" />
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Theme Option 3: Dark Mode -->
+                <Border StrokeShape="RoundRectangle 16"
+                        Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#0F172A}"
+                        Padding="16,14">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding SelectThemeCommand}" CommandParameter="dark" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                            <Label Text="Chế độ Tối (Dark Mode)"
+                                   TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                                   FontSize="15"
+                                   FontAttributes="Bold" />
+                            <Label Text="Nền đen chàm cao cấp, dịu mắt ban đêm, tiết kiệm pin OLED"
+                                   TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}"
+                                   FontSize="12" />
+                        </VerticalStackLayout>
+                        <Border Grid.Column="1"
+                                IsVisible="{Binding IsDarkTheme}"
+                                StrokeShape="RoundRectangle 8"
+                                BackgroundColor="#312E81"
+                                Padding="10,4">
+                            <Label Text="ĐANG DÙNG" TextColor="#A5B4FC" FontSize="11" FontAttributes="Bold" />
+                        </Border>
+                    </Grid>
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- SECTION 2: READER FONT SIZE -->
+            <VerticalStackLayout Spacing="10">
+                <Label Text="CỠ CHỮ ĐỌC BÀI HỌC"
+                       TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}"
+                       FontSize="12"
+                       FontAttributes="Bold"
+                       CharacterSpacing="1" />
+
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 12"
+                            Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                            BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
+                            Padding="12,10">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectFontSizeCommand}" CommandParameter="small" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                            <Label Text="Nhỏ" TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}" FontSize="13" FontAttributes="Bold" HorizontalOptions="Center" />
+                            <Label Text="13sp" TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" FontSize="11" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Grid.Column="1"
+                            StrokeShape="RoundRectangle 12"
+                            Stroke="#4F46E5"
+                            BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
+                            Padding="12,10">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectFontSizeCommand}" CommandParameter="normal" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                            <Label Text="Chuẩn" TextColor="{AppThemeBinding Light=#3730A3, Dark=#C7D2FE}" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center" />
+                            <Label Text="15sp" TextColor="{AppThemeBinding Light=#4F46E5, Dark=#818CF8}" FontSize="11" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Grid.Column="2"
+                            StrokeShape="RoundRectangle 12"
+                            Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                            BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
+                            Padding="12,10">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectFontSizeCommand}" CommandParameter="large" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                            <Label Text="Lớn" TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}" FontSize="15" FontAttributes="Bold" HorizontalOptions="Center" />
+                            <Label Text="17sp" TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" FontSize="11" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+            </VerticalStackLayout>
+
+            <!-- SECTION 3: API SERVER CONFIG -->
+            <VerticalStackLayout Spacing="10">
+                <Label Text="KẾT NỐI MÁY CHỦ API"
+                       TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}"
+                       FontSize="12"
+                       FontAttributes="Bold"
+                       CharacterSpacing="1" />
+
+                <Border StrokeShape="RoundRectangle 16"
+                        Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#0F172A}"
+                        Padding="16,14">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Địa chỉ Backend API"
+                               TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                               FontSize="14"
+                               FontAttributes="Bold" />
+
+                        <Border StrokeShape="RoundRectangle 10"
+                                Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                                BackgroundColor="{AppThemeBinding Light=#F1F5F9, Dark=#111827}"
+                                Padding="12,2">
+                            <Entry Text="{Binding ServerUrl}"
+                                   TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                                   FontSize="13" />
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Grid.Column="0"
+                                    Text="Lưu địa chỉ"
+                                    Command="{Binding SaveServerUrlCommand}"
+                                    BackgroundColor="#4F46E5"
+                                    TextColor="#FFFFFF"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    CornerRadius="10"
+                                    HeightRequest="42" />
+
+                            <Button Grid.Column="1"
+                                    Text="Mặc định"
+                                    Command="{Binding ResetDefaultServerUrlCommand}"
+                                    BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                                    TextColor="{AppThemeBinding Light=#0F172A, Dark=#CBD5E1}"
+                                    FontSize="13"
+                                    CornerRadius="10"
+                                    HeightRequest="42" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- SECTION 4: DATA & CACHE -->
+            <VerticalStackLayout Spacing="10">
+                <Label Text="BỘ NHỚ &amp; DỮ LIỆU"
+                       TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}"
+                       FontSize="12"
+                       FontAttributes="Bold"
+                       CharacterSpacing="1" />
+
+                <Border StrokeShape="RoundRectangle 16"
+                        Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#0F172A}"
+                        Padding="16,14">
+                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                            <Label Text="Bộ nhớ đệm ứng dụng"
+                                   TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                                   FontSize="14"
+                                   FontAttributes="Bold" />
+                            <Label Text="Làm mới bộ nhớ tạm thời của các bài học và chuyên đề"
+                                   TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}"
+                                   FontSize="12" />
+                        </VerticalStackLayout>
+                        <Button Grid.Column="1"
+                                Text="Xóa Cache"
+                                Command="{Binding ClearCacheCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#F1F5F9, Dark=#1E293B}"
+                                TextColor="{AppThemeBinding Light=#DC2626, Dark=#F87171}"
+                                FontSize="12"
+                                FontAttributes="Bold"
+                                CornerRadius="8"
+                                HeightRequest="36"
+                                Padding="12,0" />
+                    </Grid>
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- SECTION 5: APP INFO -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#0F172A}"
+                    Padding="16,14">
+                <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                    <Label Text="{Binding AppVersionInfo}"
+                           TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}"
+                           FontSize="12"
+                           HorizontalOptions="Center" />
+                    <Label Text="Học lập trình C# 14 &amp; ASP.NET Core 10 Thực Chiến"
+                           TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

@@ -95,4 +95,10 @@ public partial class LoginViewModel : BaseViewModel
     {
         await Shell.Current.GoToAsync("//home");
     }
+
+    [RelayCommand]
+    public async Task OpenSettingsAsync()
+    {
+        await Shell.Current.GoToAsync("settings");
+    }
 }

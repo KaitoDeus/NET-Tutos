@@ -96,4 +96,10 @@ public partial class HomeViewModel : BaseViewModel
         if (category == null) return;
         await Shell.Current.GoToAsync($"//tutorials?category={category.Slug}");
     }
+
+    [RelayCommand]
+    public async Task OpenSettingsAsync()
+    {
+        await Shell.Current.GoToAsync("settings");
+    }
 }

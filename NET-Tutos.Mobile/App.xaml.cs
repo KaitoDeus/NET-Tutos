@@ -1,13 +1,13 @@
-using Microsoft.Extensions.DependencyInjection;
+using NET_Tutos.Mobile.Services;
 
 namespace NET_Tutos.Mobile;
 
 public partial class App : Application
 {
-	public App()
+	public App(IThemeService themeService)
 	{
 		InitializeComponent();
-		UserAppTheme = AppTheme.Dark;
+		themeService.Initialize();
 	}
 
 	protected override Window CreateWindow(IActivationState? activationState)

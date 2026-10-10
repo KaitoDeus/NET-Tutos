@@ -6,19 +6,19 @@
              x:DataType="vm:LoginViewModel"
              Title="{Binding Title}"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="#0B1120">
+             BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#0B1120}">
 
     <ScrollView>
-        <VerticalStackLayout Spacing="22" Padding="24,36,24,36" VerticalOptions="Center">
+        <VerticalStackLayout Spacing="20" Padding="24,32,24,36" VerticalOptions="Center">
             
             <!-- Platform Pill Badge -->
             <Border StrokeShape="RoundRectangle 20"
-                    Stroke="#312E81"
-                    BackgroundColor="#1E1B4B"
+                    Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#312E81}"
+                    BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
                     Padding="14,6"
                     HorizontalOptions="Center">
                 <Label Text="NỀN TẢNG HỌC LẬP TRÌNH .NET 10"
-                       TextColor="#A5B4FC"
+                       TextColor="{AppThemeBinding Light=#4338CA, Dark=#A5B4FC}"
                        FontSize="11"
                        FontAttributes="Bold"
                        HorizontalOptions="Center" />
@@ -28,8 +28,8 @@
             <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
                 <Border StrokeShape="RoundRectangle 26"
                         StrokeThickness="2"
-                        WidthRequest="88"
-                        HeightRequest="88"
+                        WidthRequest="84"
+                        HeightRequest="84"
                         HorizontalOptions="Center">
                     <Border.Stroke>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -39,18 +39,18 @@
                     </Border.Stroke>
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#1E1B4B" Offset="0.0" />
-                            <GradientStop Color="#0F172A" Offset="1.0" />
+                            <GradientStop Color="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}" Offset="0.0" />
+                            <GradientStop Color="{AppThemeBinding Light=#FFFFFF, Dark=#0F172A}" Offset="1.0" />
                         </LinearGradientBrush>
                     </Border.Background>
                     <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="0">
                         <Label Text=".NET" 
-                               TextColor="#818CF8" 
-                               FontSize="26" 
+                               TextColor="#6366F1" 
+                               FontSize="24" 
                                FontAttributes="Bold" 
                                HorizontalOptions="Center" />
                         <Label Text="C# 14" 
-                               TextColor="#C084FC" 
+                               TextColor="#A855F7" 
                                FontSize="11" 
                                FontAttributes="Bold" 
                                HorizontalOptions="Center" 
@@ -59,37 +59,37 @@
                 </Border>
 
                 <Label Text=".NET Tutos"
-                       TextColor="#F8FAFC"
-                       FontSize="26"
+                       TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                       FontSize="24"
                        FontAttributes="Bold"
                        HorizontalOptions="Center" />
 
                 <Label Text="Làm chủ C# &amp; ASP.NET Core từ thiết bị di động"
-                       TextColor="#94A3B8"
+                       TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}"
                        FontSize="13"
                        HorizontalOptions="Center" />
             </VerticalStackLayout>
 
             <!-- Quick Demo Helper Card -->
             <Border StrokeShape="RoundRectangle 14"
-                    Stroke="#1E293B"
-                    BackgroundColor="#0F172A"
+                    Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#0F172A}"
                     Padding="14,10">
                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
                     <Border Grid.Column="0"
                             StrokeShape="RoundRectangle 6"
-                            BackgroundColor="#1E293B"
+                            BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
                             Padding="6,3"
                             VerticalOptions="Center">
-                        <Label Text="DEMO" TextColor="#818CF8" FontSize="10" FontAttributes="Bold" />
+                        <Label Text="DEMO" TextColor="{AppThemeBinding Light=#4338CA, Dark=#818CF8}" FontSize="10" FontAttributes="Bold" />
                     </Border>
                     <VerticalStackLayout Grid.Column="1" Spacing="2">
                         <Label Text="Tài khoản học viên trải nghiệm:"
-                               TextColor="#CBD5E1"
+                               TextColor="{AppThemeBinding Light=#0F172A, Dark=#CBD5E1}"
                                FontSize="11"
                                FontAttributes="Bold" />
                         <Label Text="student@nettutos.com / StudentPassword@123"
-                               TextColor="#818CF8"
+                               TextColor="{AppThemeBinding Light=#4338CA, Dark=#818CF8}"
                                FontSize="11" />
                     </VerticalStackLayout>
                 </Grid>
@@ -110,15 +110,15 @@
             <VerticalStackLayout Spacing="14">
                 <!-- Username/Email Input -->
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Tài khoản hoặc Email" TextColor="#CBD5E1" FontSize="13" FontAttributes="Bold" />
+                    <Label Text="Tài khoản hoặc Email" TextColor="{AppThemeBinding Light=#334155, Dark=#CBD5E1}" FontSize="13" FontAttributes="Bold" />
                     <Border StrokeShape="RoundRectangle 14" 
-                            Stroke="#334155" 
-                            BackgroundColor="#111827" 
+                            Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#334155}" 
+                            BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}" 
                             Padding="14,2">
                         <Entry Text="{Binding UsernameOrEmail}"
                                Placeholder="vd: student@nettutos.com"
-                               PlaceholderColor="#64748B"
-                               TextColor="#F8FAFC"
+                               PlaceholderColor="{AppThemeBinding Light=#94A3B8, Dark=#64748B}"
+                               TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
                                FontSize="14"
                                HeightRequest="46" />
                     </Border>
@@ -126,16 +126,16 @@
 
                 <!-- Password Input -->
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Mật khẩu" TextColor="#CBD5E1" FontSize="13" FontAttributes="Bold" />
+                    <Label Text="Mật khẩu" TextColor="{AppThemeBinding Light=#334155, Dark=#CBD5E1}" FontSize="13" FontAttributes="Bold" />
                     <Border StrokeShape="RoundRectangle 14" 
-                            Stroke="#334155" 
-                            BackgroundColor="#111827" 
+                            Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#334155}" 
+                            BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}" 
                             Padding="14,2">
                         <Entry Text="{Binding Password}"
                                IsPassword="True"
                                Placeholder="Nhập mật khẩu của bạn..."
-                               PlaceholderColor="#64748B"
-                               TextColor="#F8FAFC"
+                               PlaceholderColor="{AppThemeBinding Light=#94A3B8, Dark=#64748B}"
+                               TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
                                FontSize="14"
                                HeightRequest="46" />
                     </Border>
@@ -143,7 +143,7 @@
             </VerticalStackLayout>
 
             <!-- Action Buttons -->
-            <VerticalStackLayout Spacing="10" Margin="0,6,0,0">
+            <VerticalStackLayout Spacing="10" Margin="0,4,0,0">
                 <!-- Primary Login Button with Gradient -->
                 <Button Text="Đăng Nhập Ngay"
                         Command="{Binding LoginCommand}"
@@ -151,7 +151,7 @@
                         FontAttributes="Bold"
                         FontSize="15"
                         CornerRadius="14"
-                        HeightRequest="50"
+                        HeightRequest="48"
                         IsEnabled="{Binding IsNotBusy}">
                     <Button.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
@@ -164,39 +164,42 @@
                 <!-- Guest Button -->
                 <Button Text="Khám Phá Dưới Tên Khách"
                         Command="{Binding ContinueAsGuestCommand}"
-                        BackgroundColor="#0F172A"
-                        BorderColor="#1E293B"
+                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#0F172A}"
+                        BorderColor="{AppThemeBinding Light=#CBD5E1, Dark=#1E293B}"
                         BorderWidth="1"
-                        TextColor="#CBD5E1"
+                        TextColor="{AppThemeBinding Light=#334155, Dark=#CBD5E1}"
                         FontSize="13"
                         CornerRadius="14"
                         HeightRequest="46" />
             </VerticalStackLayout>
 
-            <!-- Server URL Config Toggle -->
-            <VerticalStackLayout Spacing="8" Margin="0,4,0,0">
-                <Button Text="Thiết lập địa chỉ API Server"
-                        Command="{Binding ToggleServerConfigCommand}"
-                        BackgroundColor="Transparent"
-                        TextColor="#64748B"
-                        FontSize="12"
-                        HeightRequest="32" />
-
-                <VerticalStackLayout IsVisible="{Binding IsConfiguringServer}" Spacing="8">
-                    <Border StrokeShape="RoundRectangle 10" Stroke="#334155" BackgroundColor="#111827" Padding="12,2">
-                        <Entry Text="{Binding ServerUrl}"
-                               TextColor="#F8FAFC"
-                               FontSize="12" />
-                    </Border>
-                    <Button Text="Lưu Địa Chỉ Máy Chủ"
-                            Command="{Binding SaveServerUrlCommand}"
-                            BackgroundColor="#1E293B"
-                            TextColor="#A5B4FC"
-                            FontSize="12"
-                            HeightRequest="38"
-                            CornerRadius="10" />
-                </VerticalStackLayout>
-            </VerticalStackLayout>
+            <!-- Settings Quick Action Card -->
+            <Border StrokeShape="RoundRectangle 14"
+                    Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#0F172A}"
+                    Padding="14,12"
+                    Margin="0,4,0,0">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenSettingsCommand}" />
+                </Border.GestureRecognizers>
+                <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                        <Label Text="Cài Đặt Hệ Thống &amp; Giao Diện"
+                               TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                               FontSize="13"
+                               FontAttributes="Bold" />
+                        <Label Text="Tùy chỉnh chế độ Sáng / Tối, cỡ chữ bài học, máy chủ API"
+                               TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}"
+                               FontSize="11" />
+                    </VerticalStackLayout>
+                    <Label Grid.Column="1"
+                           Text="Mở →"
+                           TextColor="{AppThemeBinding Light=#4338CA, Dark=#818CF8}"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           VerticalOptions="Center" />
+                </Grid>
+            </Border>
 
             <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"

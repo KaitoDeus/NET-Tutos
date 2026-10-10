@@ -7,27 +7,27 @@
              x:DataType="vm:TutorialsViewModel"
              Title="{Binding Title}"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="#0B1120">
+             BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#0B1120}">
 
     <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="18,22,18,0">
         
         <!-- Header Title Bar -->
         <VerticalStackLayout Grid.Row="0" Spacing="4" Margin="0,0,0,16">
-            <Label Text="Kho Bài Học Thực Chiến" TextColor="#F8FAFC" FontSize="22" FontAttributes="Bold" />
-            <Label Text="Khám phá các bài học chuyên sâu C# 14 &amp; .NET 10" TextColor="#94A3B8" FontSize="13" />
+            <Label Text="Kho Bài Học Thực Chiến" TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}" FontSize="22" FontAttributes="Bold" />
+            <Label Text="Khám phá các bài học chuyên sâu C# 14 &amp; .NET 10" TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}" FontSize="13" />
         </VerticalStackLayout>
 
         <!-- Modern Search Bar -->
         <Border Grid.Row="1"
                 StrokeShape="RoundRectangle 16"
-                Stroke="#334155"
-                BackgroundColor="#111827"
+                Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
                 Padding="12,0"
                 Margin="0,0,0,14">
             <SearchBar Text="{Binding SearchQuery}"
                        Placeholder="Tìm kiếm bài học C#, cú pháp..."
-                       PlaceholderColor="#64748B"
-                       TextColor="#F8FAFC"
+                       PlaceholderColor="{AppThemeBinding Light=#94A3B8, Dark=#64748B}"
+                       TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
                        SearchCommand="{Binding PerformSearchCommand}"
                        BackgroundColor="Transparent" />
         </Border>
@@ -69,13 +69,13 @@
                     <DataTemplate x:DataType="models:TutorialSummary">
                         <!-- Vibrant Card with Left Color Accent Indicator -->
                         <Border StrokeShape="RoundRectangle 18"
-                                Stroke="#1E293B"
+                                Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
                                 StrokeThickness="1"
                                 Margin="0,0,0,14">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#141E33" Offset="0.0" />
-                                    <GradientStop Color="#0F172A" Offset="1.0" />
+                                    <GradientStop Color="{AppThemeBinding Light=#FFFFFF, Dark=#141E33}" Offset="0.0" />
+                                    <GradientStop Color="{AppThemeBinding Light=#F8FAFC, Dark=#0F172A}" Offset="1.0" />
                                 </LinearGradientBrush>
                             </Border.Background>
                             <Border.GestureRecognizers>
@@ -127,7 +127,7 @@
 
                                     <!-- Title -->
                                     <Label Text="{Binding Title}"
-                                           TextColor="#F8FAFC"
+                                           TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
                                            FontSize="15"
                                            FontAttributes="Bold"
                                            LineHeight="1.2"
@@ -136,7 +136,7 @@
 
                                     <!-- Summary -->
                                     <Label Text="{Binding Summary}"
-                                           TextColor="#94A3B8"
+                                           TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}"
                                            FontSize="12"
                                            LineHeight="1.3"
                                            MaxLines="2"
@@ -147,11 +147,11 @@
                                         <!-- Reading Time Pill -->
                                         <Border Grid.Column="0"
                                                 StrokeShape="RoundRectangle 8"
-                                                Stroke="#334155"
-                                                BackgroundColor="#111827"
+                                                Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#334155}"
+                                                BackgroundColor="{AppThemeBinding Light=#F1F5F9, Dark=#111827}"
                                                 Padding="8,3">
                                             <Label Text="{Binding ReadingTimeDisplay}"
-                                                   TextColor="#94A3B8"
+                                                   TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}"
                                                    FontSize="11" />
                                         </Border>
 
@@ -171,7 +171,7 @@
                                         <Label Grid.Column="2"
                                                IsVisible="{Binding IsNotCompleted}"
                                                Text="Khám phá →"
-                                               TextColor="#818CF8"
+                                               TextColor="{AppThemeBinding Light=#4338CA, Dark=#818CF8}"
                                                FontSize="12"
                                                FontAttributes="Bold"
                                                VerticalOptions="Center" />
