@@ -110,7 +110,7 @@ public partial class TutorialDetailViewModel : BaseViewModel, IQueryAttributable
                 UpdateCompletionState();
 
                 await Shell.Current.DisplayAlertAsync(
-                    IsCompleted ? "Tuyệt vời! 🎉" : "Thông báo",
+                    IsCompleted ? "Thành công" : "Thông báo",
                     result.Message,
                     "OK");
             }

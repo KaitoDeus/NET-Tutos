@@ -47,8 +47,8 @@
                             BackgroundColor="#451A03"
                             Padding="12,6"
                             VerticalOptions="Center">
-                        <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                            <Label Text="🔥" FontSize="12" VerticalOptions="Center" />
+                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                            <BoxView Color="#F59E0B" WidthRequest="6" HeightRequest="6" CornerRadius="3" VerticalOptions="Center" />
                             <Label Text="{Binding StreakBadgeText}"
                                    TextColor="#FDE68A"
                                    FontSize="12"
@@ -94,13 +94,11 @@
                                            FontSize="20"
                                            FontAttributes="Bold"
                                            HorizontalOptions="Center" />
-                                    <HorizontalStackLayout Spacing="3" HorizontalOptions="Center">
-                                        <Label Text="⭐" FontSize="10" VerticalOptions="Center" />
-                                        <Label Text="Điểm XP"
-                                               TextColor="#BAE6FD"
-                                               FontSize="11"
-                                               FontAttributes="Bold" />
-                                    </HorizontalStackLayout>
+                                    <Label Text="ĐIỂM XP"
+                                           TextColor="#BAE6FD"
+                                           FontSize="11"
+                                           FontAttributes="Bold"
+                                           HorizontalOptions="Center" />
                                 </VerticalStackLayout>
                             </Border>
 
@@ -116,13 +114,11 @@
                                            FontSize="20"
                                            FontAttributes="Bold"
                                            HorizontalOptions="Center" />
-                                    <HorizontalStackLayout Spacing="3" HorizontalOptions="Center">
-                                        <Label Text="🏆" FontSize="10" VerticalOptions="Center" />
-                                        <Label Text="Cấp Độ"
-                                               TextColor="#A7F3D0"
-                                               FontSize="11"
-                                               FontAttributes="Bold" />
-                                    </HorizontalStackLayout>
+                                    <Label Text="CẤP ĐỘ"
+                                           TextColor="#A7F3D0"
+                                           FontSize="11"
+                                           FontAttributes="Bold"
+                                           HorizontalOptions="Center" />
                                 </VerticalStackLayout>
                             </Border>
 
@@ -138,13 +134,11 @@
                                            FontSize="20"
                                            FontAttributes="Bold"
                                            HorizontalOptions="Center" />
-                                    <HorizontalStackLayout Spacing="3" HorizontalOptions="Center">
-                                        <Label Text="📚" FontSize="10" VerticalOptions="Center" />
-                                        <Label Text="Đã Học"
-                                               TextColor="#FECDD3"
-                                               FontSize="11"
-                                               FontAttributes="Bold" />
-                                    </HorizontalStackLayout>
+                                    <Label Text="ĐÃ HỌC"
+                                           TextColor="#FECDD3"
+                                           FontSize="11"
+                                           FontAttributes="Bold"
+                                           HorizontalOptions="Center" />
                                 </VerticalStackLayout>
                             </Border>
                         </Grid>
@@ -181,13 +175,17 @@
                                                               CommandParameter="{Binding .}" />
                                     </Border.GestureRecognizers>
                                     <VerticalStackLayout Spacing="8" VerticalOptions="Center">
-                                        <!-- Colorful Icon Container -->
-                                        <Border StrokeShape="RoundRectangle 12"
+                                        <!-- Category Code Badge -->
+                                        <Border StrokeShape="RoundRectangle 8"
                                                 BackgroundColor="{Binding IconBgColor}"
-                                                WidthRequest="38"
-                                                HeightRequest="38"
+                                                Padding="8,4"
                                                 HorizontalOptions="Start">
-                                            <Label Text="{Binding IconEmoji}" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
+                                            <Label Text="{Binding CategoryCode}"
+                                                   TextColor="{Binding AccentColor}"
+                                                   FontSize="11"
+                                                   FontAttributes="Bold"
+                                                   HorizontalOptions="Center"
+                                                   VerticalOptions="Center" />
                                         </Border>
                                         <Label Text="{Binding Name}"
                                                TextColor="#F8FAFC"
@@ -245,16 +243,13 @@
                                                         BackgroundColor="{Binding CategoryBgColor}"
                                                         Padding="8,3"
                                                         HorizontalOptions="Start">
-                                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                                                        <Label Text="{Binding CategoryIcon}" FontSize="11" VerticalOptions="Center" />
-                                                        <Label Text="{Binding CategoryName}"
-                                                               TextColor="{Binding CategoryAccentColor}"
-                                                               FontSize="11"
-                                                               FontAttributes="Bold"
-                                                               MaxLines="1"
-                                                               LineBreakMode="TailTruncation"
-                                                               VerticalOptions="Center" />
-                                                    </HorizontalStackLayout>
+                                                    <Label Text="{Binding CategoryName}"
+                                                           TextColor="{Binding CategoryAccentColor}"
+                                                           FontSize="11"
+                                                           FontAttributes="Bold"
+                                                           MaxLines="1"
+                                                           LineBreakMode="TailTruncation"
+                                                           VerticalOptions="Center" />
                                                 </Border>
 
                                                 <Border Grid.Column="1"

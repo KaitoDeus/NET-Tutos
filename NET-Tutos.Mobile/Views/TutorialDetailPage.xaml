@@ -54,7 +54,7 @@
                         <Border StrokeShape="RoundRectangle 8"
                                 BackgroundColor="#111827"
                                 Padding="10,4">
-                            <Label Text="{Binding Tutorial.EstimatedReadingMinutes, StringFormat='⏱️ ~{0} phút đọc'}" TextColor="#94A3B8" FontSize="11" />
+                            <Label Text="{Binding Tutorial.EstimatedReadingMinutes, StringFormat='~{0} phút đọc'}" TextColor="#94A3B8" FontSize="11" />
                         </Border>
                     </HorizontalStackLayout>
 
@@ -87,10 +87,7 @@
                     </LinearGradientBrush>
                 </Border.Background>
                 <VerticalStackLayout Spacing="14">
-                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-                        <Label Text="🏆" FontSize="20" VerticalOptions="Center" />
-                        <Label Text="Ghi Nhận Tiến Độ Học Tập" TextColor="#F8FAFC" FontSize="16" FontAttributes="Bold" VerticalOptions="Center" />
-                    </HorizontalStackLayout>
+                    <Label Text="Ghi Nhận Tiến Độ Học Tập" TextColor="#F8FAFC" FontSize="16" FontAttributes="Bold" />
                     <Label Text="Hoàn thành bài đọc để nhận ngay +20 XP điểm kinh nghiệm và duy trì chuỗi Streak của bạn."
                            TextColor="#CBD5E1"
                            FontSize="12"

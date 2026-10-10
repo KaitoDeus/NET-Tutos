@@ -17,7 +17,7 @@
                     BackgroundColor="#1E1B4B"
                     Padding="14,6"
                     HorizontalOptions="Center">
-                <Label Text="✨ NỀN TẢNG HỌC LẬP TRÌNH .NET 10"
+                <Label Text="NỀN TẢNG HỌC LẬP TRÌNH .NET 10"
                        TextColor="#A5B4FC"
                        FontSize="11"
                        FontAttributes="Bold"
@@ -76,7 +76,13 @@
                     BackgroundColor="#0F172A"
                     Padding="14,10">
                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
-                    <Label Grid.Column="0" Text="💡" FontSize="18" VerticalOptions="Center" />
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 6"
+                            BackgroundColor="#1E293B"
+                            Padding="6,3"
+                            VerticalOptions="Center">
+                        <Label Text="DEMO" TextColor="#818CF8" FontSize="10" FontAttributes="Bold" />
+                    </Border>
                     <VerticalStackLayout Grid.Column="1" Spacing="2">
                         <Label Text="Tài khoản học viên trải nghiệm:"
                                TextColor="#CBD5E1"
@@ -109,16 +115,12 @@
                             Stroke="#334155" 
                             BackgroundColor="#111827" 
                             Padding="14,2">
-                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
-                            <Label Grid.Column="0" Text="✉️" FontSize="14" VerticalOptions="Center" TextColor="#64748B" />
-                            <Entry Grid.Column="1"
-                                   Text="{Binding UsernameOrEmail}"
-                                   Placeholder="vd: student@nettutos.com"
-                                   PlaceholderColor="#64748B"
-                                   TextColor="#F8FAFC"
-                                   FontSize="14"
-                                   HeightRequest="46" />
-                        </Grid>
+                        <Entry Text="{Binding UsernameOrEmail}"
+                               Placeholder="vd: student@nettutos.com"
+                               PlaceholderColor="#64748B"
+                               TextColor="#F8FAFC"
+                               FontSize="14"
+                               HeightRequest="46" />
                     </Border>
                 </VerticalStackLayout>
 
@@ -129,17 +131,13 @@
                             Stroke="#334155" 
                             BackgroundColor="#111827" 
                             Padding="14,2">
-                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
-                            <Label Grid.Column="0" Text="🔒" FontSize="14" VerticalOptions="Center" TextColor="#64748B" />
-                            <Entry Grid.Column="1"
-                                   Text="{Binding Password}"
-                                   IsPassword="True"
-                                   Placeholder="Nhập mật khẩu của bạn..."
-                                   PlaceholderColor="#64748B"
-                                   TextColor="#F8FAFC"
-                                   FontSize="14"
-                                   HeightRequest="46" />
-                        </Grid>
+                        <Entry Text="{Binding Password}"
+                               IsPassword="True"
+                               Placeholder="Nhập mật khẩu của bạn..."
+                               PlaceholderColor="#64748B"
+                               TextColor="#F8FAFC"
+                               FontSize="14"
+                               HeightRequest="46" />
                     </Border>
                 </VerticalStackLayout>
             </VerticalStackLayout>
@@ -177,7 +175,7 @@
 
             <!-- Server URL Config Toggle -->
             <VerticalStackLayout Spacing="8" Margin="0,4,0,0">
-                <Button Text="⚙️ Cài đặt địa chỉ máy chủ API"
+                <Button Text="Thiết lập địa chỉ API Server"
                         Command="{Binding ToggleServerConfigCommand}"
                         BackgroundColor="Transparent"
                         TextColor="#64748B"

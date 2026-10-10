@@ -32,13 +32,13 @@ public partial class CategoryItem : ObservableObject
     [NotifyPropertyChangedFor(nameof(ChipTextColor))]
     private bool isSelected;
 
-    public string IconEmoji => Slug switch
+    public string CategoryCode => Slug switch
     {
-        var s when s.Contains("co-ban") || s.Contains("basic") => "💻",
-        var s when s.Contains("oop") || s.Contains("nang-cao") => "🧩",
-        var s when s.Contains("entity") || s.Contains("database") || s.Contains("ef") => "🗄️",
-        var s when s.Contains("aspnet") || s.Contains("web") || s.Contains("api") => "🌐",
-        _ => "📘"
+        var s when s.Contains("co-ban") || s.Contains("basic") => "C#",
+        var s when s.Contains("oop") || s.Contains("nang-cao") => "OOP",
+        var s when s.Contains("entity") || s.Contains("database") || s.Contains("ef") => "EF",
+        var s when s.Contains("aspnet") || s.Contains("web") || s.Contains("api") => "API",
+        _ => ".NET"
     };
 
     public string GradientStart => Slug switch
@@ -79,16 +79,16 @@ public class TutorialSummary
     public int ViewCount { get; set; }
     public bool IsCompleted { get; set; }
 
-    public string ReadingTimeDisplay => $"⏱️ {EstimatedReadingMinutes} phút";
+    public string ReadingTimeDisplay => $"{EstimatedReadingMinutes} phút đọc";
     public string StatusBadge => IsCompleted ? "✓ Đã học" : "";
     public bool IsNotCompleted => !IsCompleted;
 
-    // Vibrant Difficulty Styling
+    // Professional Clean Difficulty Labels
     public string DifficultyText => Difficulty?.ToLower() switch
     {
-        "beginner" => "🌱 Cơ bản",
-        "intermediate" => "⚡ Trung cấp",
-        "advanced" => "🔥 Nâng cao",
+        "beginner" => "Cơ bản",
+        "intermediate" => "Trung cấp",
+        "advanced" => "Nâng cao",
         _ => Difficulty ?? "Cơ bản"
     };
 
@@ -116,7 +116,7 @@ public class TutorialSummary
         _ => Color.FromArgb("#0284C7")
     };
 
-    // Category Color & Icon
+    // Category Color
     public Color CategoryAccentColor => (CategoryId % 4) switch
     {
         1 => Color.FromArgb("#38BDF8"),
@@ -143,15 +143,6 @@ public class TutorialSummary
         0 => Color.FromArgb("#EA580C"),
         _ => Color.FromArgb("#4F46E5")
     };
-
-    public string CategoryIcon => (CategoryId % 4) switch
-    {
-        1 => "💻",
-        2 => "🧩",
-        3 => "🗄️",
-        0 => "🌐",
-        _ => "📘"
-    };
 }
 
 public class TutorialDetail
@@ -174,9 +165,9 @@ public class TutorialDetail
 
     public string DifficultyText => Difficulty?.ToLower() switch
     {
-        "beginner" => "🌱 Cơ bản",
-        "intermediate" => "⚡ Trung cấp",
-        "advanced" => "🔥 Nâng cao",
+        "beginner" => "Cơ bản",
+        "intermediate" => "Trung cấp",
+        "advanced" => "Nâng cao",
         _ => Difficulty ?? "Cơ bản"
     };
 
@@ -261,14 +252,7 @@ public class RoadmapModule
         _ => Color.FromArgb("#1E1B4B")
     };
 
-    public string ModuleIcon => (ModuleNumber % 4) switch
-    {
-        1 => "🚀",
-        2 => "🧩",
-        3 => "🗄️",
-        0 => "🌐",
-        _ => "📍"
-    };
+    public string ModuleTag => $"M{ModuleNumber}";
 }
 
 public class AuthResult

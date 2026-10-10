@@ -48,7 +48,7 @@ public partial class HomeViewModel : BaseViewModel
                 if (User != null)
                 {
                     GreetingText = $"Chào, {User.FullName}!";
-                    StreakBadgeText = $"🔥 {User.StreakDays} ngày";
+                    StreakBadgeText = $"{User.StreakDays} ngày";
                 }
             }
             else
