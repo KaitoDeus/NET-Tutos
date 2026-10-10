@@ -14,29 +14,29 @@
     Shell.TabBarTitleColor="#818CF8"
     Shell.TabBarUnselectedColor="#64748B">
 
-    <TabBar Shell.TabBarBackgroundColor="#0B1120"
+    <TabBar Shell.TabBarBackgroundColor="#0F172A"
             Shell.TabBarForegroundColor="#818CF8"
             Shell.TabBarTitleColor="#818CF8"
-            Shell.TabBarUnselectedColor="#64748B">
-        <Tab Title="Trang chủ" Route="home">
+            Shell.TabBarUnselectedColor="#94A3B8">
+        <Tab Title="Trang chủ" Route="home" Icon="nav_home.png">
             <ShellContent
                 Title="Trang chủ"
                 ContentTemplate="{DataTemplate views:HomePage}" />
         </Tab>
 
-        <Tab Title="Bài học" Route="tutorials">
+        <Tab Title="Bài học" Route="tutorials" Icon="nav_tutorials.png">
             <ShellContent
                 Title="Bài học"
                 ContentTemplate="{DataTemplate views:TutorialsPage}" />
         </Tab>
 
-        <Tab Title="Lộ trình" Route="roadmap">
+        <Tab Title="Lộ trình" Route="roadmap" Icon="nav_roadmap.png">
             <ShellContent
                 Title="Lộ trình"
                 ContentTemplate="{DataTemplate views:RoadmapPage}" />
         </Tab>
 
-        <Tab Title="Tài khoản" Route="login">
+        <Tab Title="Tài khoản" Route="login" Icon="nav_account.png">
             <ShellContent
                 Title="Tài khoản"
                 ContentTemplate="{DataTemplate views:LoginPage}" />

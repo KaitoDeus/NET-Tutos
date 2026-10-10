@@ -10,7 +10,7 @@
              BackgroundColor="#0B1120">
 
     <ScrollView>
-        <VerticalStackLayout Spacing="20" Padding="20,24,20,30">
+        <VerticalStackLayout Spacing="20" Padding="18,22,18,30">
             
             <!-- Top Navigation Bar -->
             <Grid ColumnDefinitions="Auto,*" VerticalOptions="Center">
@@ -18,37 +18,49 @@
                         Text="← Quay lại"
                         Command="{Binding GoBackCommand}"
                         BackgroundColor="#111827"
-                        BorderColor="#1E293B"
+                        BorderColor="#334155"
                         BorderWidth="1"
                         TextColor="#A5B4FC"
-                        FontSize="12"
+                        FontSize="13"
                         FontAttributes="Bold"
                         CornerRadius="12"
-                        HeightRequest="38"
-                        Padding="14,0" />
+                        HeightRequest="40"
+                        Padding="16,0" />
             </Grid>
 
-            <!-- Article Header Card -->
+            <!-- Article Header Card with Subtle Gradient -->
             <Border StrokeShape="RoundRectangle 20"
                     Stroke="#1E293B"
-                    BackgroundColor="#0F172A"
+                    StrokeThickness="1"
                     Padding="20">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#141E33" Offset="0.0" />
+                        <GradientStop Color="#0F172A" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
                 <VerticalStackLayout Spacing="14">
                     <HorizontalStackLayout Spacing="8">
-                        <Border StrokeShape="RoundRectangle 10" Stroke="#4338CA" BackgroundColor="#1E1B4B" Padding="10,4">
-                            <Label Text="{Binding Tutorial.CategoryName}" TextColor="#A5B4FC" FontSize="11" FontAttributes="Bold" />
+                        <Border StrokeShape="RoundRectangle 8"
+                                BackgroundColor="{Binding Tutorial.CategoryBgColor}"
+                                Padding="10,4">
+                            <Label Text="{Binding Tutorial.CategoryName}" TextColor="{Binding Tutorial.CategoryAccentColor}" FontSize="11" FontAttributes="Bold" />
                         </Border>
-                        <Border StrokeShape="RoundRectangle 10" Stroke="#334155" BackgroundColor="#111827" Padding="10,4">
-                            <Label Text="{Binding Tutorial.Difficulty}" TextColor="#94A3B8" FontSize="11" />
+                        <Border StrokeShape="RoundRectangle 8"
+                                BackgroundColor="{Binding Tutorial.DifficultyBgColor}"
+                                Padding="10,4">
+                            <Label Text="{Binding Tutorial.DifficultyText}" TextColor="{Binding Tutorial.DifficultyColor}" FontSize="11" FontAttributes="Bold" />
                         </Border>
-                        <Border StrokeShape="RoundRectangle 10" Stroke="#334155" BackgroundColor="#111827" Padding="10,4">
-                            <Label Text="{Binding Tutorial.EstimatedReadingMinutes, StringFormat='~{0} phút đọc'}" TextColor="#94A3B8" FontSize="11" />
+                        <Border StrokeShape="RoundRectangle 8"
+                                BackgroundColor="#111827"
+                                Padding="10,4">
+                            <Label Text="{Binding Tutorial.EstimatedReadingMinutes, StringFormat='⏱️ ~{0} phút đọc'}" TextColor="#94A3B8" FontSize="11" />
                         </Border>
                     </HorizontalStackLayout>
 
-                    <Label Text="{Binding Tutorial.Title}" TextColor="#F8FAFC" FontSize="22" FontAttributes="Bold" />
+                    <Label Text="{Binding Tutorial.Title}" TextColor="#F8FAFC" FontSize="21" FontAttributes="Bold" LineHeight="1.25" />
 
-                    <Label Text="{Binding Tutorial.Summary}" TextColor="#94A3B8" FontSize="13" LineHeight="1.3" />
+                    <Label Text="{Binding Tutorial.Summary}" TextColor="#94A3B8" FontSize="13" LineHeight="1.4" />
                 </VerticalStackLayout>
             </Border>
 
@@ -63,9 +75,10 @@
                        LineHeight="1.6" />
             </Border>
 
-            <!-- Complete Lesson Action Box -->
+            <!-- Complete Lesson Action Box with Gradient -->
             <Border StrokeShape="RoundRectangle 20"
-                    Stroke="#312E81"
+                    Stroke="#4338CA"
+                    StrokeThickness="1.5"
                     Padding="20">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -73,11 +86,15 @@
                         <GradientStop Color="#0F172A" Offset="1.0" />
                     </LinearGradientBrush>
                 </Border.Background>
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="Ghi Nhận Tiến Độ Học Tập" TextColor="#F8FAFC" FontSize="16" FontAttributes="Bold" />
+                <VerticalStackLayout Spacing="14">
+                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                        <Label Text="🏆" FontSize="20" VerticalOptions="Center" />
+                        <Label Text="Ghi Nhận Tiến Độ Học Tập" TextColor="#F8FAFC" FontSize="16" FontAttributes="Bold" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
                     <Label Text="Hoàn thành bài đọc để nhận ngay +20 XP điểm kinh nghiệm và duy trì chuỗi Streak của bạn."
                            TextColor="#CBD5E1"
-                           FontSize="12" />
+                           FontSize="12"
+                           LineHeight="1.3" />
 
                     <Button Text="{Binding CompletionButtonText}"
                             Command="{Binding ToggleCompleteCommand}"
@@ -92,7 +109,7 @@
 
             <!-- Quick Knowledge Quiz Section -->
             <VerticalStackLayout Spacing="14" IsVisible="{Binding Quizzes.Count}">
-                <Label Text="Trắc Nghiệm Ôn Tập Nhanh" TextColor="#F8FAFC" FontSize="17" FontAttributes="Bold" />
+                <Label Text="Trắc Nghiệm Ôn Tập Nhanh" TextColor="#F8FAFC" FontSize="18" FontAttributes="Bold" />
 
                 <CollectionView ItemsSource="{Binding Quizzes}">
                     <CollectionView.ItemTemplate>

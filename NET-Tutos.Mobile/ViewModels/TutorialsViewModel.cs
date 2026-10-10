@@ -41,9 +41,11 @@ public partial class TutorialsViewModel : BaseViewModel, IQueryAttributable
         {
             var cats = await _apiService.GetCategoriesAsync();
             Categories.Clear();
-            Categories.Add(new CategoryItem { Id = 0, Name = "Tất cả", Slug = "" });
+            var allCat = new CategoryItem { Id = 0, Name = "Tất cả", Slug = "", IsSelected = string.IsNullOrEmpty(SelectedCategorySlug) };
+            Categories.Add(allCat);
             foreach (var c in cats)
             {
+                c.IsSelected = (c.Slug == SelectedCategorySlug);
                 Categories.Add(c);
             }
         }
@@ -86,6 +88,10 @@ public partial class TutorialsViewModel : BaseViewModel, IQueryAttributable
     {
         if (category == null) return;
         SelectedCategorySlug = category.Slug;
+        foreach (var c in Categories)
+        {
+            c.IsSelected = (c.Slug == SelectedCategorySlug);
+        }
         await LoadTutorialsAsync();
     }
 

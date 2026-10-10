@@ -11,14 +11,14 @@
 
     <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadDataCommand}">
         <ScrollView>
-            <VerticalStackLayout Spacing="24" Padding="20,28,20,24">
+            <VerticalStackLayout Spacing="24" Padding="18,24,18,24">
                 
                 <!-- Modern Top Brand Bar -->
                 <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
                     <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
                         <Border StrokeShape="RoundRectangle 12"
-                                WidthRequest="36"
-                                HeightRequest="36"
+                                WidthRequest="40"
+                                HeightRequest="40"
                                 Stroke="#6366F1"
                                 StrokeThickness="1.5">
                             <Border.Background>
@@ -29,14 +29,14 @@
                             </Border.Background>
                             <Label Text=".NET"
                                    TextColor="White"
-                                   FontSize="12"
+                                   FontSize="13"
                                    FontAttributes="Bold"
                                    HorizontalOptions="Center"
                                    VerticalOptions="Center" />
                         </Border>
-                        <VerticalStackLayout Spacing="0" VerticalOptions="Center">
-                            <Label Text="NET-Tutos" TextColor="#F8FAFC" FontSize="16" FontAttributes="Bold" />
-                            <Label Text="C# &amp; ASP.NET Core" TextColor="#818CF8" FontSize="11" />
+                        <VerticalStackLayout Spacing="1" VerticalOptions="Center">
+                            <Label Text="NET-Tutos" TextColor="#F8FAFC" FontSize="17" FontAttributes="Bold" />
+                            <Label Text="C# 14 &amp; .NET 10" TextColor="#818CF8" FontSize="11" />
                         </VerticalStackLayout>
                     </HorizontalStackLayout>
 
@@ -47,16 +47,20 @@
                             BackgroundColor="#451A03"
                             Padding="12,6"
                             VerticalOptions="Center">
-                        <Label Text="{Binding StreakBadgeText}"
-                               TextColor="#FDE68A"
-                               FontSize="12"
-                               FontAttributes="Bold" />
+                        <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                            <Label Text="🔥" FontSize="12" VerticalOptions="Center" />
+                            <Label Text="{Binding StreakBadgeText}"
+                                   TextColor="#FDE68A"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center" />
+                        </HorizontalStackLayout>
                     </Border>
                 </Grid>
 
                 <!-- Hero Greeting & Stats Card -->
                 <Border StrokeShape="RoundRectangle 22"
-                        Stroke="#312E81"
+                        Stroke="#4338CA"
                         StrokeThickness="1.5"
                         Padding="20">
                     <Border.Background>
@@ -65,73 +69,82 @@
                             <GradientStop Color="#0F172A" Offset="1.0" />
                         </LinearGradientBrush>
                     </Border.Background>
-                    <VerticalStackLayout Spacing="16">
+                    <VerticalStackLayout Spacing="18">
                         <VerticalStackLayout Spacing="4">
                             <Label Text="{Binding GreetingText}"
                                    TextColor="#F8FAFC"
-                                   FontSize="20"
+                                   FontSize="21"
                                    FontAttributes="Bold" />
                             <Label Text="Lộ trình học tập .NET 10 chuẩn mực &amp; thực chiến"
                                    TextColor="#A5B4FC"
                                    FontSize="13" />
                         </VerticalStackLayout>
 
-                        <!-- Stats Row -->
+                        <!-- Stats Row with distinct colors -->
                         <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
-                            <!-- XP Stat -->
+                            <!-- XP Stat: Sky Blue -->
                             <Border Grid.Column="0"
                                     StrokeShape="RoundRectangle 14"
-                                    Stroke="#1E293B"
-                                    BackgroundColor="#111827"
+                                    Stroke="#0284C7"
+                                    BackgroundColor="#082F49"
                                     Padding="10,12">
                                 <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
                                     <Label Text="{Binding User.TotalXp, FallbackValue=0}"
-                                           TextColor="#60A5FA"
-                                           FontSize="19"
+                                           TextColor="#38BDF8"
+                                           FontSize="20"
                                            FontAttributes="Bold"
                                            HorizontalOptions="Center" />
-                                    <Label Text="Điểm XP"
-                                           TextColor="#94A3B8"
-                                           FontSize="11"
-                                           HorizontalOptions="Center" />
+                                    <HorizontalStackLayout Spacing="3" HorizontalOptions="Center">
+                                        <Label Text="⭐" FontSize="10" VerticalOptions="Center" />
+                                        <Label Text="Điểm XP"
+                                               TextColor="#BAE6FD"
+                                               FontSize="11"
+                                               FontAttributes="Bold" />
+                                    </HorizontalStackLayout>
                                 </VerticalStackLayout>
                             </Border>
 
-                            <!-- Level Stat -->
+                            <!-- Level Stat: Mint Green -->
                             <Border Grid.Column="1"
                                     StrokeShape="RoundRectangle 14"
-                                    Stroke="#1E293B"
-                                    BackgroundColor="#111827"
+                                    Stroke="#059669"
+                                    BackgroundColor="#022C22"
                                     Padding="10,12">
                                 <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
                                     <Label Text="{Binding User.Level, FallbackValue=1}"
                                            TextColor="#34D399"
-                                           FontSize="19"
+                                           FontSize="20"
                                            FontAttributes="Bold"
                                            HorizontalOptions="Center" />
-                                    <Label Text="Cấp Độ"
-                                           TextColor="#94A3B8"
-                                           FontSize="11"
-                                           HorizontalOptions="Center" />
+                                    <HorizontalStackLayout Spacing="3" HorizontalOptions="Center">
+                                        <Label Text="🏆" FontSize="10" VerticalOptions="Center" />
+                                        <Label Text="Cấp Độ"
+                                               TextColor="#A7F3D0"
+                                               FontSize="11"
+                                               FontAttributes="Bold" />
+                                    </HorizontalStackLayout>
                                 </VerticalStackLayout>
                             </Border>
 
-                            <!-- Lessons Stat -->
+                            <!-- Lessons Stat: Rose / Pink -->
                             <Border Grid.Column="2"
                                     StrokeShape="RoundRectangle 14"
-                                    Stroke="#1E293B"
-                                    BackgroundColor="#111827"
+                                    Stroke="#E11D48"
+                                    BackgroundColor="#4C0519"
                                     Padding="10,12">
                                 <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
                                     <Label Text="{Binding User.CompletedLessonsCount, FallbackValue=0}"
-                                           TextColor="#F472B6"
-                                           FontSize="19"
+                                           TextColor="#FB7185"
+                                           FontSize="20"
                                            FontAttributes="Bold"
                                            HorizontalOptions="Center" />
-                                    <Label Text="Bài Đã Học"
-                                           TextColor="#94A3B8"
-                                           FontSize="11"
-                                           HorizontalOptions="Center" />
+                                    <HorizontalStackLayout Spacing="3" HorizontalOptions="Center">
+                                        <Label Text="📚" FontSize="10" VerticalOptions="Center" />
+                                        <Label Text="Đã Học"
+                                               TextColor="#FECDD3"
+                                               FontSize="11"
+                                               FontAttributes="Bold" />
+                                    </HorizontalStackLayout>
                                 </VerticalStackLayout>
                             </Border>
                         </Grid>
@@ -141,8 +154,8 @@
                 <!-- Featured Categories Section -->
                 <VerticalStackLayout Spacing="14">
                     <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
-                        <Label Grid.Column="0" Text="Chuyên Đề Lập Trình" TextColor="#F8FAFC" FontSize="17" FontAttributes="Bold" />
-                        <Label Grid.Column="1" Text="Xem tất cả" TextColor="#818CF8" FontSize="12" VerticalOptions="Center" />
+                        <Label Grid.Column="0" Text="Chuyên Đề Lập Trình" TextColor="#F8FAFC" FontSize="18" FontAttributes="Bold" />
+                        <Label Grid.Column="1" Text="Xem tất cả →" TextColor="#818CF8" FontSize="13" FontAttributes="Bold" VerticalOptions="Center" />
                     </Grid>
 
                     <CollectionView ItemsSource="{Binding Categories}">
@@ -151,23 +164,30 @@
                         </CollectionView.ItemsLayout>
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:CategoryItem">
+                                <!-- Category Card with Colorful Accent -->
                                 <Border StrokeShape="RoundRectangle 18"
-                                        Stroke="#1E293B"
-                                        BackgroundColor="#0F172A"
-                                        WidthRequest="150"
-                                        HeightRequest="110"
+                                        Stroke="#24324D"
+                                        WidthRequest="160"
+                                        HeightRequest="120"
                                         Padding="14">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#141E33" Offset="0.0" />
+                                            <GradientStop Color="#0F172A" Offset="1.0" />
+                                        </LinearGradientBrush>
+                                    </Border.Background>
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, Path=OpenCategoryCommand}"
                                                               CommandParameter="{Binding .}" />
                                     </Border.GestureRecognizers>
-                                    <VerticalStackLayout Spacing="6" VerticalOptions="Center">
-                                        <Border StrokeShape="RoundRectangle 10"
-                                                BackgroundColor="#1E1B4B"
-                                                WidthRequest="32"
-                                                HeightRequest="32"
+                                    <VerticalStackLayout Spacing="8" VerticalOptions="Center">
+                                        <!-- Colorful Icon Container -->
+                                        <Border StrokeShape="RoundRectangle 12"
+                                                BackgroundColor="{Binding IconBgColor}"
+                                                WidthRequest="38"
+                                                HeightRequest="38"
                                                 HorizontalOptions="Start">
-                                            <Label Text="📘" FontSize="16" HorizontalOptions="Center" VerticalOptions="Center" />
+                                            <Label Text="{Binding IconEmoji}" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
                                         </Border>
                                         <Label Text="{Binding Name}"
                                                TextColor="#F8FAFC"
@@ -176,8 +196,9 @@
                                                MaxLines="1"
                                                LineBreakMode="TailTruncation" />
                                         <Label Text="{Binding TutorialCount, StringFormat='{0} bài học'}"
-                                               TextColor="#94A3B8"
-                                               FontSize="11" />
+                                               TextColor="#818CF8"
+                                               FontSize="11"
+                                               FontAttributes="Bold" />
                                     </VerticalStackLayout>
                                 </Border>
                             </DataTemplate>
@@ -187,63 +208,125 @@
 
                 <!-- Recent Tutorials Section -->
                 <VerticalStackLayout Spacing="14">
-                    <Label Text="Bài Học Mới Nhất" TextColor="#F8FAFC" FontSize="17" FontAttributes="Bold" />
+                    <Label Text="Bài Học Mới Nhất" TextColor="#F8FAFC" FontSize="18" FontAttributes="Bold" />
 
-                    <CollectionView ItemsSource="{Binding RecentTutorials}">
-                        <CollectionView.ItemTemplate>
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding RecentTutorials}" Spacing="12">
+                        <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="models:TutorialSummary">
                                 <Border StrokeShape="RoundRectangle 18"
                                         Stroke="#1E293B"
-                                        BackgroundColor="#0F172A"
-                                        Padding="16"
+                                        StrokeThickness="1"
                                         Margin="0,0,0,12">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#141E33" Offset="0.0" />
+                                            <GradientStop Color="#0F172A" Offset="1.0" />
+                                        </LinearGradientBrush>
+                                    </Border.Background>
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, Path=OpenTutorialCommand}"
                                                               CommandParameter="{Binding .}" />
                                     </Border.GestureRecognizers>
-                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
-                                        <Label Grid.Row="0" Grid.Column="0"
-                                               Text="{Binding Title}"
-                                               TextColor="#F8FAFC"
-                                               FontSize="15"
-                                               FontAttributes="Bold"
-                                               MaxLines="2"
-                                               LineBreakMode="TailTruncation" />
+                                    
+                                    <Grid ColumnDefinitions="4,*" ColumnSpacing="12" Padding="0,0,16,0">
+                                        <!-- Left Accent Stripe -->
+                                        <BoxView Grid.Column="0"
+                                                 Color="{Binding CategoryAccentColor}"
+                                                 VerticalOptions="Fill" />
 
-                                        <Border Grid.Row="0" Grid.Column="1"
-                                                IsVisible="{Binding IsCompleted}"
-                                                StrokeShape="RoundRectangle 12"
-                                                Stroke="#059669"
-                                                BackgroundColor="#064E3B"
-                                                Padding="8,4"
-                                                VerticalOptions="Start">
-                                            <Label Text="✓ Đã học" TextColor="#6EE7B7" FontSize="11" FontAttributes="Bold" />
-                                        </Border>
+                                        <!-- Card Content -->
+                                        <VerticalStackLayout Grid.Column="1" Spacing="10" Padding="0,14,0,14">
+                                            
+                                            <!-- Badges Row -->
+                                            <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                                                <Border Grid.Column="0"
+                                                        StrokeShape="RoundRectangle 8"
+                                                        Stroke="{Binding CategoryBorderColor}"
+                                                        BackgroundColor="{Binding CategoryBgColor}"
+                                                        Padding="8,3"
+                                                        HorizontalOptions="Start">
+                                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                                        <Label Text="{Binding CategoryIcon}" FontSize="11" VerticalOptions="Center" />
+                                                        <Label Text="{Binding CategoryName}"
+                                                               TextColor="{Binding CategoryAccentColor}"
+                                                               FontSize="11"
+                                                               FontAttributes="Bold"
+                                                               MaxLines="1"
+                                                               LineBreakMode="TailTruncation"
+                                                               VerticalOptions="Center" />
+                                                    </HorizontalStackLayout>
+                                                </Border>
 
-                                        <Label Grid.Row="1" Grid.ColumnSpan="2"
-                                               Text="{Binding Summary}"
-                                               TextColor="#94A3B8"
-                                               FontSize="12"
-                                               MaxLines="2"
-                                               LineBreakMode="TailTruncation"
-                                               Margin="0,4,0,10" />
+                                                <Border Grid.Column="1"
+                                                        StrokeShape="RoundRectangle 8"
+                                                        Stroke="{Binding DifficultyBorderColor}"
+                                                        BackgroundColor="{Binding DifficultyBgColor}"
+                                                        Padding="8,3"
+                                                        HorizontalOptions="End">
+                                                    <Label Text="{Binding DifficultyText}"
+                                                           TextColor="{Binding DifficultyColor}"
+                                                           FontSize="11"
+                                                           FontAttributes="Bold"
+                                                           VerticalOptions="Center" />
+                                                </Border>
+                                            </Grid>
 
-                                        <HorizontalStackLayout Grid.Row="2" Grid.ColumnSpan="2" Spacing="8">
-                                            <Border StrokeShape="RoundRectangle 8" BackgroundColor="#1E1B4B" Padding="8,3">
-                                                <Label Text="{Binding CategoryName}" TextColor="#A5B4FC" FontSize="11" FontAttributes="Bold" />
-                                            </Border>
-                                            <Border StrokeShape="RoundRectangle 8" BackgroundColor="#111827" Padding="8,3">
-                                                <Label Text="{Binding ReadingTimeDisplay}" TextColor="#94A3B8" FontSize="11" />
-                                            </Border>
-                                            <Border StrokeShape="RoundRectangle 8" BackgroundColor="#111827" Padding="8,3">
-                                                <Label Text="{Binding Difficulty}" TextColor="#CBD5E1" FontSize="11" />
-                                            </Border>
-                                        </HorizontalStackLayout>
+                                            <!-- Title -->
+                                            <Label Text="{Binding Title}"
+                                                   TextColor="#F8FAFC"
+                                                   FontSize="15"
+                                                   FontAttributes="Bold"
+                                                   LineHeight="1.2"
+                                                   MaxLines="2"
+                                                   LineBreakMode="TailTruncation" />
+
+                                            <!-- Summary -->
+                                            <Label Text="{Binding Summary}"
+                                                   TextColor="#94A3B8"
+                                                   FontSize="12"
+                                                   LineHeight="1.3"
+                                                   MaxLines="2"
+                                                   LineBreakMode="TailTruncation" />
+
+                                            <!-- Bottom Row -->
+                                            <Grid ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center">
+                                                <Border Grid.Column="0"
+                                                        StrokeShape="RoundRectangle 8"
+                                                        Stroke="#334155"
+                                                        BackgroundColor="#111827"
+                                                        Padding="8,3">
+                                                    <Label Text="{Binding ReadingTimeDisplay}"
+                                                           TextColor="#94A3B8"
+                                                           FontSize="11" />
+                                                </Border>
+
+                                                <Border Grid.Column="2"
+                                                        IsVisible="{Binding IsCompleted}"
+                                                        StrokeShape="RoundRectangle 8"
+                                                        Stroke="#059669"
+                                                        BackgroundColor="#064E3B"
+                                                        Padding="8,3">
+                                                    <Label Text="✓ Đã học"
+                                                           TextColor="#6EE7B7"
+                                                           FontSize="11"
+                                                           FontAttributes="Bold" />
+                                                </Border>
+
+                                                <Label Grid.Column="2"
+                                                       IsVisible="{Binding IsNotCompleted}"
+                                                       Text="Khám phá →"
+                                                       TextColor="#818CF8"
+                                                       FontSize="12"
+                                                       FontAttributes="Bold"
+                                                       VerticalOptions="Center" />
+                                            </Grid>
+
+                                        </VerticalStackLayout>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
                 </VerticalStackLayout>
             </VerticalStackLayout>
         </ScrollView>
