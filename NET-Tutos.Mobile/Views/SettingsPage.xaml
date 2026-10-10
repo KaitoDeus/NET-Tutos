@@ -66,8 +66,14 @@
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding SelectThemeCommand}" CommandParameter="system" />
                     </Border.GestureRecognizers>
-                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
-                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border" Binding="{Binding IsSystemTheme}" Value="True">
+                            <Setter Property="Stroke" Value="#4F46E5" />
+                            <Setter Property="StrokeThickness" Value="1.5" />
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4" VerticalOptions="Center">
                             <Label Text="Tự động theo hệ thống"
                                    TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
                                    FontSize="15"
@@ -78,10 +84,27 @@
                         </VerticalStackLayout>
                         <Border Grid.Column="1"
                                 IsVisible="{Binding IsSystemTheme}"
-                                StrokeShape="RoundRectangle 8"
-                                BackgroundColor="#4338CA"
-                                Padding="10,4">
-                            <Label Text="ĐANG DÙNG" TextColor="#FFFFFF" FontSize="11" FontAttributes="Bold" />
+                                VerticalOptions="Center"
+                                HorizontalOptions="End"
+                                HeightRequest="28"
+                                StrokeShape="RoundRectangle 14"
+                                Stroke="{AppThemeBinding Light=#C7D2FE, Dark=#4338CA}"
+                                StrokeThickness="1"
+                                BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
+                                Padding="10,0">
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center" HorizontalOptions="Center">
+                                <BoxView WidthRequest="6"
+                                         HeightRequest="6"
+                                         CornerRadius="3"
+                                         Color="{AppThemeBinding Light=#4F46E5, Dark=#818CF8}"
+                                         VerticalOptions="Center" />
+                                <Label Text="Đang dùng"
+                                       TextColor="{AppThemeBinding Light=#4338CA, Dark=#C7D2FE}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       VerticalOptions="Center"
+                                       VerticalTextAlignment="Center" />
+                            </HorizontalStackLayout>
                         </Border>
                     </Grid>
                 </Border>
@@ -94,8 +117,14 @@
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding SelectThemeCommand}" CommandParameter="light" />
                     </Border.GestureRecognizers>
-                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
-                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border" Binding="{Binding IsLightTheme}" Value="True">
+                            <Setter Property="Stroke" Value="#4F46E5" />
+                            <Setter Property="StrokeThickness" Value="1.5" />
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4" VerticalOptions="Center">
                             <Label Text="Chế độ Sáng (Light Mode)"
                                    TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
                                    FontSize="15"
@@ -106,10 +135,27 @@
                         </VerticalStackLayout>
                         <Border Grid.Column="1"
                                 IsVisible="{Binding IsLightTheme}"
-                                StrokeShape="RoundRectangle 8"
-                                BackgroundColor="#0284C7"
-                                Padding="10,4">
-                            <Label Text="ĐANG DÙNG" TextColor="#FFFFFF" FontSize="11" FontAttributes="Bold" />
+                                VerticalOptions="Center"
+                                HorizontalOptions="End"
+                                HeightRequest="28"
+                                StrokeShape="RoundRectangle 14"
+                                Stroke="{AppThemeBinding Light=#C7D2FE, Dark=#4338CA}"
+                                StrokeThickness="1"
+                                BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
+                                Padding="10,0">
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center" HorizontalOptions="Center">
+                                <BoxView WidthRequest="6"
+                                         HeightRequest="6"
+                                         CornerRadius="3"
+                                         Color="{AppThemeBinding Light=#4F46E5, Dark=#818CF8}"
+                                         VerticalOptions="Center" />
+                                <Label Text="Đang dùng"
+                                       TextColor="{AppThemeBinding Light=#4338CA, Dark=#C7D2FE}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       VerticalOptions="Center"
+                                       VerticalTextAlignment="Center" />
+                            </HorizontalStackLayout>
                         </Border>
                     </Grid>
                 </Border>
@@ -122,8 +168,14 @@
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding SelectThemeCommand}" CommandParameter="dark" />
                     </Border.GestureRecognizers>
-                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
-                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border" Binding="{Binding IsDarkTheme}" Value="True">
+                            <Setter Property="Stroke" Value="#4F46E5" />
+                            <Setter Property="StrokeThickness" Value="1.5" />
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4" VerticalOptions="Center">
                             <Label Text="Chế độ Tối (Dark Mode)"
                                    TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
                                    FontSize="15"
@@ -134,10 +186,27 @@
                         </VerticalStackLayout>
                         <Border Grid.Column="1"
                                 IsVisible="{Binding IsDarkTheme}"
-                                StrokeShape="RoundRectangle 8"
-                                BackgroundColor="#312E81"
-                                Padding="10,4">
-                            <Label Text="ĐANG DÙNG" TextColor="#A5B4FC" FontSize="11" FontAttributes="Bold" />
+                                VerticalOptions="Center"
+                                HorizontalOptions="End"
+                                HeightRequest="28"
+                                StrokeShape="RoundRectangle 14"
+                                Stroke="{AppThemeBinding Light=#C7D2FE, Dark=#4338CA}"
+                                StrokeThickness="1"
+                                BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
+                                Padding="10,0">
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center" HorizontalOptions="Center">
+                                <BoxView WidthRequest="6"
+                                         HeightRequest="6"
+                                         CornerRadius="3"
+                                         Color="{AppThemeBinding Light=#4F46E5, Dark=#818CF8}"
+                                         VerticalOptions="Center" />
+                                <Label Text="Đang dùng"
+                                       TextColor="{AppThemeBinding Light=#4338CA, Dark=#C7D2FE}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       VerticalOptions="Center"
+                                       VerticalTextAlignment="Center" />
+                            </HorizontalStackLayout>
                         </Border>
                     </Grid>
                 </Border>
@@ -160,6 +229,12 @@
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding SelectFontSizeCommand}" CommandParameter="small" />
                         </Border.GestureRecognizers>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding FontSizeSmall}" Value="True">
+                                <Setter Property="Stroke" Value="#4F46E5" />
+                                <Setter Property="StrokeThickness" Value="1.5" />
+                            </DataTrigger>
+                        </Border.Triggers>
                         <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
                             <Label Text="Nhỏ" TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}" FontSize="13" FontAttributes="Bold" HorizontalOptions="Center" />
                             <Label Text="13sp" TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" FontSize="11" HorizontalOptions="Center" />
@@ -168,15 +243,21 @@
 
                     <Border Grid.Column="1"
                             StrokeShape="RoundRectangle 12"
-                            Stroke="#4F46E5"
-                            BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
+                            Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                            BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
                             Padding="12,10">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding SelectFontSizeCommand}" CommandParameter="normal" />
                         </Border.GestureRecognizers>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding FontSizeNormal}" Value="True">
+                                <Setter Property="Stroke" Value="#4F46E5" />
+                                <Setter Property="StrokeThickness" Value="1.5" />
+                            </DataTrigger>
+                        </Border.Triggers>
                         <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
-                            <Label Text="Chuẩn" TextColor="{AppThemeBinding Light=#3730A3, Dark=#C7D2FE}" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center" />
-                            <Label Text="15sp" TextColor="{AppThemeBinding Light=#4F46E5, Dark=#818CF8}" FontSize="11" HorizontalOptions="Center" />
+                            <Label Text="Chuẩn" TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center" />
+                            <Label Text="15sp" TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" FontSize="11" HorizontalOptions="Center" />
                         </VerticalStackLayout>
                     </Border>
 
@@ -188,6 +269,12 @@
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding SelectFontSizeCommand}" CommandParameter="large" />
                         </Border.GestureRecognizers>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding FontSizeLarge}" Value="True">
+                                <Setter Property="Stroke" Value="#4F46E5" />
+                                <Setter Property="StrokeThickness" Value="1.5" />
+                            </DataTrigger>
+                        </Border.Triggers>
                         <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
                             <Label Text="Lớn" TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}" FontSize="15" FontAttributes="Bold" HorizontalOptions="Center" />
                             <Label Text="17sp" TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" FontSize="11" HorizontalOptions="Center" />
