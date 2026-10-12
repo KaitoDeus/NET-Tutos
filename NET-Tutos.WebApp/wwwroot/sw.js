@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nettutos-v1';
+const CACHE_NAME = 'nettutos-v2';
 const STATIC_ASSETS = [
     '/',
     '/offline.html',
