@@ -175,6 +175,12 @@
                             <button type="button" id="btnAiReview" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1.5 fw-semibold shadow-none d-flex align-items-center gap-1.5" onclick="requestAiReview()" title="@(isEn ? "Clean code & optimize" : "Tối ưu code C#")">
                                 <i class="bi bi-stars text-info"></i> <span class="d-none d-sm-inline">@(isEn ? "Review" : "Tối ưu")</span>
                             </button>
+                            <button type="button" id="btnAiComplexity" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 fw-semibold shadow-none d-flex align-items-center gap-1.5" onclick="requestAiComplexity()" title="@(isEn ? "Analyze Time & Space Complexity (Big-O)" : "Đo độ phức tạp thuật toán Big-O")">
+                                <i class="bi bi-speedometer2 text-success"></i> <span class="d-none d-md-inline">@(isEn ? "Big-O" : "Độ phức tạp")</span>
+                            </button>
+                            <button type="button" id="btnAiUnitTest" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1.5 fw-semibold shadow-none d-flex align-items-center gap-1.5" onclick="requestAiUnitTest()" title="@(isEn ? "Generate xUnit Test Suite" : "Tạo bộ Unit Test xUnit")">
+                                <i class="bi bi-patch-check text-primary"></i> <span class="d-none d-lg-inline">@(isEn ? "Unit Test" : "Test")</span>
+                            </button>
                             <!-- Editor Settings Dropdown -->
                             <div class="dropdown">
                                 <button type="button" id="btnEditorSettings" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1.5 shadow-none d-flex align-items-center gap-1.5" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="@(isEn ? "IDE & Editor Settings" : "Tùy biến IDE & Trình soạn thảo")">
@@ -353,12 +359,14 @@
     </div>
     <div class="offcanvas-body p-3 d-flex flex-column bg-body" id="offcanvasAiBody">
         <!-- Quick Action Tabs inside Drawer -->
-        <div class="d-flex gap-2 mb-3">
-            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill flex-fill py-1 small fw-semibold" onclick="requestAiReview()"><i class="bi bi-stars me-1"></i>@(isEn ? "Review Code" : "Tối ưu code")</button>
+        <div class="d-flex flex-wrap gap-1.5 mb-3">
+            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill flex-fill py-1 small fw-semibold" onclick="requestAiReview()"><i class="bi bi-stars me-1 text-primary"></i>@(isEn ? "Review Code" : "Tối ưu")</button>
+            <button type="button" class="btn btn-sm btn-outline-success rounded-pill flex-fill py-1 small fw-semibold" onclick="requestAiComplexity()"><i class="bi bi-speedometer2 me-1 text-success"></i>@(isEn ? "Big-O" : "Độ phức tạp")</button>
             @if (Model.ActiveChallenge != null)
             {
-                <button type="button" class="btn btn-sm btn-outline-warning rounded-pill flex-fill py-1 small fw-semibold text-body" onclick="requestAiHint()"><i class="bi bi-lightbulb me-1"></i>@(isEn ? "Get Hint" : "Gợi ý bài")</button>
+                <button type="button" class="btn btn-sm btn-outline-warning rounded-pill flex-fill py-1 small fw-semibold text-body" onclick="requestAiHint()"><i class="bi bi-lightbulb me-1 text-warning"></i>@(isEn ? "Hint" : "Gợi ý")</button>
             }
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill flex-fill py-1 small fw-semibold" onclick="requestAiUnitTest()"><i class="bi bi-patch-check me-1 text-primary"></i>@(isEn ? "Unit Test" : "xUnit Test")</button>
         </div>
 
         <!-- Dynamic AI Content Output -->
@@ -390,6 +398,7 @@
     <!-- Monaco Editor Loader from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
     <script>
+        const isEn = @(isEn ? "true" : "false");
         // Data Templates
         const templates = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Templates.ToDictionary(t => t.Id, t => t.Code)));
         const activeChallengeId = @(Model.ActiveChallenge != null ? Model.ActiveChallenge.Id : 0);
@@ -498,6 +507,44 @@
             // Keyboard shortcut Ctrl + S to auto-format document
             editorInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, function () {
                 editorInstance.getAction('editor.action.formatDocument')?.run();
+            });
+
+            // Keyboard shortcut Ctrl + I to ask AI Mentor
+            editorInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI, function () {
+                explainSelectedCode();
+            });
+
+            // Monaco Context Menu: AI Explain Selected Code
+            editorInstance.addAction({
+                id: 'ai-explain-selection',
+                label: isEn ? '🤖 AI Mentor: Explain Selection (Ctrl+I)' : '🤖 AI Mentor: Giải thích đoạn mã đã chọn (Ctrl+I)',
+                contextMenuGroupId: 'navigation',
+                contextMenuOrder: 1.5,
+                run: function () {
+                    explainSelectedCode();
+                }
+            });
+
+            // Monaco Context Menu: AI Big-O Complexity
+            editorInstance.addAction({
+                id: 'ai-analyze-complexity',
+                label: isEn ? '⚡ AI Mentor: Analyze Big-O Complexity' : '⚡ AI Mentor: Đo độ phức tạp Big-O',
+                contextMenuGroupId: 'navigation',
+                contextMenuOrder: 1.6,
+                run: function () {
+                    requestAiComplexity();
+                }
+            });
+
+            // Monaco Context Menu: AI Generate xUnit Tests
+            editorInstance.addAction({
+                id: 'ai-generate-xunit-tests',
+                label: isEn ? '🧪 AI Mentor: Generate xUnit Tests' : '🧪 AI Mentor: Tạo bộ kiểm thử xUnit',
+                contextMenuGroupId: 'navigation',
+                contextMenuOrder: 1.7,
+                run: function () {
+                    requestAiUnitTest();
+                }
             });
 
             // Watch for theme toggle button on page
@@ -693,8 +740,13 @@
                                         <td><code>${escapeHtml(item.expected)}</code></td>
                                         <td>
                                             ${item.passed 
-                                                ? '<span class="badge bg-success-subtle border border-success-subtle text-success rounded-pill">' + (isEn ? 'Pass' : 'Đạt') + '</span>' 
-                                                : '<span class="badge bg-danger-subtle border border-danger-subtle text-danger rounded-pill">' + (isEn ? 'Fail' : 'Sai') + '</span>'}
+                                                ? '<span class="badge bg-success-subtle border border-success-subtle text-success rounded-pill px-2.5 py-1">' + (isEn ? 'Pass' : 'Đạt') + '</span>' 
+                                                : `<div class="d-flex align-items-center gap-1.5">
+                                                     <span class="badge bg-danger-subtle border border-danger-subtle text-danger rounded-pill px-2 py-1">${isEn ? 'Fail' : 'Sai'}</span>
+                                                     <button type="button" class="btn btn-xs btn-outline-danger rounded-pill px-2 py-0.5 fw-semibold d-inline-flex align-items-center gap-1 shadow-xs" style="font-size: 0.72rem;" onclick="diagnoseSpecificFailure(${item.testIndex}, '${escapeAttr(item.input)}', '${escapeAttr(item.expected)}', '${escapeAttr(item.actual)}')">
+                                                         <i class="bi bi-robot"></i> <span>${isEn ? 'AI Fix' : 'AI Chẩn đoán'}</span>
+                                                     </button>
+                                                   </div>`}
                                         </td>
                                     `;
                                     evalTestCasesBody.appendChild(tr);
@@ -785,8 +837,15 @@
                             <h6 class="fw-bold text-success mb-2"><i class="bi bi-check2-circle me-1"></i>${isEn ? 'How to fix:' : 'Hướng dẫn khắc phục:'}</h6>
                             <div class="small lh-base mb-3">${escapeHtml(data.howToFix).replace(/\n/g, '<br/>')}</div>
                             ${data.suggestedFixCode ? `
-                                <div class="bg-dark text-light p-2.5 rounded-3 font-monospace small mb-2 position-relative" style="font-size: 0.8rem;">
-                                    <code>${escapeHtml(data.suggestedFixCode)}</code>
+                                <div class="card border bg-dark text-light p-2.5 rounded-3 font-monospace small mb-2 position-relative" style="font-size: 0.8rem;">
+                                    <div class="d-flex align-items-center justify-content-between pb-1 mb-1 border-bottom border-secondary">
+                                        <span class="text-secondary small fw-semibold">C# Solution Fix</span>
+                                        <div class="d-flex gap-1">
+                                            <button type="button" class="btn btn-xs btn-outline-light rounded-pill py-0 px-2" style="font-size: 0.7rem;" onclick="copyCodeToClipboard(decodeURIComponent('${encodeURIComponent(data.suggestedFixCode)}'), this)"><i class="bi bi-clipboard"></i> ${isEn ? 'Copy' : 'Chép'}</button>
+                                            <button type="button" class="btn btn-xs btn-success rounded-pill py-0 px-2" style="font-size: 0.7rem;" onclick="applyCodeToEditor(decodeURIComponent('${encodeURIComponent(data.suggestedFixCode)}'))"><i class="bi bi-magic"></i> ${isEn ? 'Apply' : 'Áp dụng'}</button>
+                                        </div>
+                                    </div>
+                                    <code class="text-light">${escapeHtml(data.suggestedFixCode)}</code>
                                 </div>
                             ` : ''}
                         </div>
@@ -939,6 +998,307 @@
                 document.getElementById(loadingId)?.remove();
                 box.innerHTML += `<div class="alert alert-danger small">${isEn ? 'Connection error.' : 'Lỗi kết nối.'}</div>`;
             }
+        }
+
+        async function requestAiComplexity() {
+            openAiOffcanvas();
+            const box = document.getElementById('aiTutorResponseBox');
+            box.innerHTML = `<div class="p-3 text-center text-muted small"><div class="spinner-border spinner-border-sm text-success mb-2"></div><div>${isEn ? 'Analyzing algorithmic time & space complexity (Big-O)...' : 'Đang phân tích độ phức tạp thời gian & không gian (Big-O)...'}</div></div>`;
+
+            const currentCode = editorInstance ? editorInstance.getValue() : '';
+
+            try {
+                const res = await fetch('/AiTutor/AnalyzeComplexity', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sourceCode: currentCode })
+                });
+
+                const data = await res.json();
+                if (data && data.success) {
+                    const timeClass = (data.timeComplexity.includes('O(1)') || data.timeComplexity.includes('O(log')) 
+                        ? 'bg-success' 
+                        : ((data.timeComplexity.includes('O(N^2)') || data.timeComplexity.includes('O(2^')) ? 'bg-danger' : 'bg-primary');
+                    const spaceClass = (data.spaceComplexity.includes('O(1)')) ? 'bg-success' : 'bg-info text-dark';
+
+                    let bottlenecksHtml = '';
+                    if (data.bottlenecks && data.bottlenecks.length > 0) {
+                        bottlenecksHtml = `
+                            <div class="mb-3">
+                                <h6 class="fw-bold small text-danger mb-1.5"><i class="bi bi-exclamation-triangle-fill me-1"></i>${isEn ? 'Performance Bottlenecks:' : 'Điểm nghẽn hiệu năng:'}</h6>
+                                <div class="d-flex flex-column gap-1">
+                                    ${data.bottlenecks.map(b => `<div class="p-2 rounded-2 bg-danger-subtle text-danger-emphasis small border border-danger-subtle"><i class="bi bi-arrow-right-short text-danger me-1"></i>${escapeHtml(b)}</div>`).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    let optsHtml = '';
+                    if (data.optimizations && data.optimizations.length > 0) {
+                        optsHtml = `
+                            <div class="mb-2">
+                                <h6 class="fw-bold small text-success mb-1.5"><i class="bi bi-lightning-charge-fill me-1"></i>${isEn ? 'Optimization Recommendations:' : 'Đề xuất tối ưu hóa:'}</h6>
+                                <div class="d-flex flex-column gap-1">
+                                    ${data.optimizations.map(o => `<div class="p-2 rounded-2 bg-success-subtle text-success-emphasis small border border-success-subtle"><i class="bi bi-check-circle-fill text-success me-1"></i>${escapeHtml(o)}</div>`).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    box.innerHTML = `
+                        <div class="card border-success-subtle bg-success-subtle p-3 rounded-3 mb-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                    <span class="badge ${timeClass} rounded-pill px-2.5 py-1 fw-bold fs-6 shadow-xs">Time: ${escapeHtml(data.timeComplexity)}</span>
+                                    <span class="badge ${spaceClass} rounded-pill px-2.5 py-1 fw-bold fs-6 shadow-xs">Space: ${escapeHtml(data.spaceComplexity)}</span>
+                                </div>
+                                <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-1">${isEn ? 'Efficiency Score' : 'Điểm'}: <strong>${data.efficiencyScore}/100</strong></span>
+                            </div>
+                            <p class="small text-body mb-0 lh-base">${escapeHtml(data.summary)}</p>
+                        </div>
+                        ${bottlenecksHtml}
+                        ${optsHtml}
+                    `;
+                } else {
+                    box.innerHTML = `<div class="alert alert-warning small">${isEn ? 'Unable to analyze algorithm complexity.' : 'Không thể phân tích độ phức tạp thuật toán lúc này.'}</div>`;
+                }
+            } catch (e) {
+                box.innerHTML = `<div class="alert alert-danger small">${isEn ? 'Error connecting to AI service.' : 'Lỗi khi kết nối đến dịch vụ AI.'}</div>`;
+            }
+        }
+
+        async function diagnoseSpecificFailure(testIndex, input, expected, actual) {
+            openAiOffcanvas();
+            const box = document.getElementById('aiTutorResponseBox');
+            box.innerHTML = `<div class="p-3 text-center text-muted small"><div class="spinner-border spinner-border-sm text-danger mb-2"></div><div>${isEn ? 'Diagnosing root cause of Test #' + testIndex + ' failure...' : 'Đang chẩn đoán nguyên nhân rớt Test #' + testIndex + '...'}</div></div>`;
+
+            const currentCode = editorInstance ? editorInstance.getValue() : '';
+
+            try {
+                const res = await fetch('/AiTutor/DiagnoseTestFailure', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        challengeId: activeChallengeId,
+                        sourceCode: currentCode,
+                        testIndex: testIndex,
+                        input: input,
+                        expected: expected,
+                        actual: actual
+                    })
+                });
+
+                const data = await res.json();
+                if (data && data.success) {
+                    box.innerHTML = `
+                        <div class="card border-danger-subtle bg-danger-subtle p-3 rounded-3 mb-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-danger text-white rounded-pill fw-bold">${isEn ? 'Test #' + testIndex + ' Failed' : 'Test #' + testIndex + ' Thất bại'}</span>
+                                <span class="badge bg-body text-danger border rounded-pill">${escapeHtml(data.rootCauseCategory)}</span>
+                            </div>
+                            <h6 class="fw-bold text-danger mb-1">${escapeHtml(data.rootCauseCategory)}</h6>
+                            <p class="small text-body mb-2 lh-base">${escapeHtml(data.explanation)}</p>
+                            
+                            <div class="p-2 rounded-2 bg-body border small mb-0 font-monospace" style="font-size: 0.8rem;">
+                                <div class="text-muted mb-0.5"><strong class="text-body">${isEn ? 'Input:' : 'Đầu vào:'}</strong> <code>${escapeHtml(input)}</code></div>
+                                <div class="text-danger mb-0.5"><strong class="text-body">${isEn ? 'Actual Output:' : 'Thực tế:'}</strong> <code>${escapeHtml(actual)}</code></div>
+                                <div class="text-success"><strong class="text-body">${isEn ? 'Expected Output:' : 'Kỳ vọng:'}</strong> <code>${escapeHtml(expected)}</code></div>
+                            </div>
+                        </div>
+
+                        ${data.whyActualHappened ? `
+                            <div class="card border p-3 rounded-3 mb-3 bg-body">
+                                <h6 class="fw-bold text-warning-emphasis mb-1 small"><i class="bi bi-question-diamond-fill text-warning me-1"></i>${isEn ? 'Why this occurred:' : 'Tại sao lại ra kết quả này?'}</h6>
+                                <p class="small text-muted mb-0 lh-base">${escapeHtml(data.whyActualHappened)}</p>
+                            </div>
+                        ` : ''}
+
+                        <div class="card border p-3 rounded-3 mb-3 bg-body">
+                            <h6 class="fw-bold text-success mb-2 small"><i class="bi bi-tools me-1"></i>${isEn ? 'Suggested Fix:' : 'Cách khắc phục:'}</h6>
+                            <div class="small lh-base mb-2.5">${escapeHtml(data.suggestedFix).replace(/\n/g, '<br/>')}</div>
+                            ${data.codeSnippetFix ? `
+                                <div class="card border bg-dark text-light p-2.5 rounded-3 font-monospace small mb-1 position-relative" style="font-size: 0.8rem;">
+                                    <div class="d-flex align-items-center justify-content-between pb-1 mb-1 border-bottom border-secondary">
+                                        <span class="text-secondary small fw-semibold">Suggested Snippet Fix</span>
+                                        <div class="d-flex gap-1">
+                                            <button type="button" class="btn btn-xs btn-outline-light rounded-pill py-0 px-2" style="font-size: 0.7rem;" onclick="copyCodeToClipboard(decodeURIComponent('${encodeURIComponent(data.codeSnippetFix)}'), this)"><i class="bi bi-clipboard"></i> ${isEn ? 'Copy' : 'Chép'}</button>
+                                            <button type="button" class="btn btn-xs btn-success rounded-pill py-0 px-2" style="font-size: 0.7rem;" onclick="applyCodeToEditor(decodeURIComponent('${encodeURIComponent(data.codeSnippetFix)}'))"><i class="bi bi-magic"></i> ${isEn ? 'Apply' : 'Áp dụng'}</button>
+                                        </div>
+                                    </div>
+                                    <code class="text-light" style="white-space: pre-wrap;">${escapeHtml(data.codeSnippetFix)}</code>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                } else {
+                    box.innerHTML = `<div class="alert alert-warning small">${isEn ? 'Could not diagnose this test case.' : 'Không thể chẩn đoán test case này lúc này.'}</div>`;
+                }
+            } catch (e) {
+                box.innerHTML = `<div class="alert alert-danger small">${isEn ? 'Error diagnosing test case.' : 'Lỗi khi kết nối dịch vụ chẩn đoán AI.'}</div>`;
+            }
+        }
+
+        async function requestAiUnitTest() {
+            openAiOffcanvas();
+            const box = document.getElementById('aiTutorResponseBox');
+            box.innerHTML = `<div class="p-3 text-center text-muted small"><div class="spinner-border spinner-border-sm text-primary mb-2"></div><div>${isEn ? 'Generating automated xUnit test suite (AAA pattern)...' : 'Đang tạo bộ kiểm thử xUnit tự động (AAA pattern)...'}</div></div>`;
+
+            const currentCode = editorInstance ? editorInstance.getValue() : '';
+
+            try {
+                const res = await fetch('/AiTutor/GenerateUnitTest', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        challengeId: activeChallengeId,
+                        sourceCode: currentCode
+                    })
+                });
+
+                const data = await res.json();
+                if (data && data.success) {
+                    let scenariosHtml = '';
+                    if (data.coveredScenarios && data.coveredScenarios.length > 0) {
+                        scenariosHtml = `
+                            <div class="mb-2.5">
+                                <span class="small fw-bold text-muted">${isEn ? 'Covered Scenarios:' : 'Các kịch bản kiểm thử:'}</span>
+                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                    ${data.coveredScenarios.map(s => `<span class="badge bg-body-tertiary text-body border rounded-pill small">${escapeHtml(s)}</span>`).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    box.innerHTML = `
+                        <div class="card border-primary-subtle bg-primary-subtle p-3 rounded-3 mb-3">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <h6 class="fw-bold text-primary mb-0"><i class="bi bi-patch-check-fill me-1"></i>${isEn ? 'Automated xUnit Test Suite' : 'Bộ Unit Test xUnit Tự Động'}</h6>
+                                <span class="badge bg-primary rounded-pill">${escapeHtml(data.framework || 'xUnit')}</span>
+                            </div>
+                            <p class="small text-body mb-0">${isEn ? 'Generated standard AAA (Arrange - Act - Assert) unit tests covering edge cases & normal flow.' : 'Được thiết kế theo cấu trúc chuẩn AAA (Arrange - Act - Assert) bao phủ luồng chuẩn và ngoại lệ.'}</p>
+                        </div>
+
+                        ${scenariosHtml}
+
+                        <div class="card border bg-dark text-light p-2.5 rounded-3 font-monospace small mb-3 position-relative" style="font-size: 0.8rem;">
+                            <div class="d-flex align-items-center justify-content-between pb-1.5 mb-1.5 border-bottom border-secondary">
+                                <span class="text-secondary small fw-semibold">Tests.cs</span>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill py-0 px-2" style="font-size: 0.7rem;" onclick="copyCodeToClipboard(decodeURIComponent('${encodeURIComponent(data.generatedTestCode)}'), this)"><i class="bi bi-clipboard"></i> ${isEn ? 'Copy' : 'Chép'}</button>
+                                    <button type="button" class="btn btn-xs btn-success rounded-pill py-0 px-2" style="font-size: 0.7rem;" onclick="applyCodeToEditor(decodeURIComponent('${encodeURIComponent(data.generatedTestCode)}'))"><i class="bi bi-magic"></i> ${isEn ? 'Apply' : 'Áp dụng'}</button>
+                                </div>
+                            </div>
+                            <pre class="m-0 text-light" style="white-space: pre-wrap; font-family: inherit;"><code>${escapeHtml(data.generatedTestCode)}</code></pre>
+                        </div>
+                    `;
+                } else {
+                    box.innerHTML = `<div class="alert alert-warning small">${isEn ? 'Unable to generate unit tests.' : 'Không thể tạo bộ kiểm thử lúc này.'}</div>`;
+                }
+            } catch (e) {
+                box.innerHTML = `<div class="alert alert-danger small">${isEn ? 'Error generating unit tests.' : 'Lỗi khi tạo bộ kiểm thử AI.'}</div>`;
+            }
+        }
+
+        async function explainSelectedCode() {
+            if (!editorInstance) return;
+            openAiOffcanvas();
+
+            const selection = editorInstance.getSelection();
+            const selectedText = (selection && !selection.isEmpty()) 
+                ? editorInstance.getModel().getValueInRange(selection).trim()
+                : '';
+
+            const codeToAnalyze = selectedText || editorInstance.getValue().trim();
+            if (!codeToAnalyze) {
+                showToastNotification(isEn ? 'Please write or select code to explain.' : 'Vui lòng viết hoặc bôi đen đoạn mã cần giải thích.');
+                return;
+            }
+
+            const prompt = isEn 
+                ? `Please explain in detail how this C# code works, including design rationale, potential bugs, or performance implications:\n\`\`\`csharp\n${codeToAnalyze}\n\`\`\``
+                : `Hãy giải thích chi tiết cách thức hoạt động của đoạn mã C# sau, bao gồm nguyên lý hoạt động, các bẫy tiềm ẩn hoặc lưu ý hiệu năng:\n\`\`\`csharp\n${codeToAnalyze}\n\`\`\``;
+
+            const box = document.getElementById('aiTutorResponseBox');
+            box.innerHTML = `<div class="p-3 text-center text-muted small"><div class="spinner-border spinner-border-sm text-primary mb-2"></div><div>${isEn ? 'Analyzing selected code with AI Mentor...' : 'Đang phân tích đoạn mã được chọn với AI Mentor...'}</div></div>`;
+
+            try {
+                const res = await fetch('/AiTutor/Chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: prompt })
+                });
+
+                const data = await res.json();
+                if (data && data.responseMarkdown) {
+                    box.innerHTML = `
+                        <div class="card border-primary-subtle bg-primary-subtle p-2.5 rounded-3 mb-2">
+                            <span class="badge bg-primary text-white rounded-pill align-self-start mb-1">${isEn ? 'Code Explanation (Ctrl+I)' : 'Giải thích mã nguồn (Ctrl+I)'}</span>
+                            <div class="small text-muted font-monospace text-truncate">${escapeHtml(codeToAnalyze.slice(0, 100))}...</div>
+                        </div>
+                        <div class="p-3 rounded-3 bg-body border text-body small mb-3">
+                            <div class="fw-bold text-primary mb-2"><i class="bi bi-robot me-1"></i>AI Mentor:</div>
+                            <div class="lh-base">${escapeHtml(data.responseMarkdown).replace(/\n/g, '<br/>')}</div>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                box.innerHTML = `<div class="alert alert-danger small">${isEn ? 'Error explaining code.' : 'Lỗi khi kết nối đến AI Mentor.'}</div>`;
+            }
+        }
+
+        function applyCodeToEditor(code) {
+            if (!editorInstance || !code) return;
+            const selection = editorInstance.getSelection();
+            if (selection && !selection.isEmpty()) {
+                editorInstance.executeEdits('ai-mentor', [{
+                    range: selection,
+                    text: code,
+                    forceMoveMarkers: true
+                }]);
+            } else {
+                editorInstance.setValue(code);
+            }
+            editorInstance.focus();
+            showToastNotification(isEn ? 'Code applied to editor!' : 'Đã áp dụng mã vào trình soạn thảo!');
+        }
+
+        async function copyCodeToClipboard(code, btn) {
+            if (!code) return;
+            try {
+                await navigator.clipboard.writeText(code);
+                if (btn) {
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = `<i class="bi bi-check2"></i> ${isEn ? 'Copied!' : 'Đã chép!'}`;
+                    btn.classList.add('btn-success');
+                    btn.classList.remove('btn-outline-light');
+                    setTimeout(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.classList.remove('btn-success');
+                        btn.classList.add('btn-outline-light');
+                    }, 2000);
+                }
+                showToastNotification(isEn ? 'Copied code snippet to clipboard!' : 'Đã sao chép đoạn mã vào bộ nhớ tạm!');
+            } catch (err) {
+                console.error('Copy failed: ', err);
+            }
+        }
+
+        function showToastNotification(msg) {
+            if (typeof showGenericNotificationToast === 'function') {
+                showGenericNotificationToast('AI Mentor', msg, 'success');
+            } else {
+                alert(msg);
+            }
+        }
+
+        function escapeAttr(text) {
+            if (!text) return '';
+            return text.toString()
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '&quot;')
+                .replace(/\r/g, '')
+                .replace(/\n/g, '\\n');
         }
     </script>
 }

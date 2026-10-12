@@ -73,3 +73,59 @@ public class AiReviewPoint
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
 }
+
+public class AiComplexityRequest
+{
+    public string SourceCode { get; set; } = string.Empty;
+    public string? ChallengeTitle { get; set; }
+}
+
+public class AiComplexityResponse
+{
+    public bool Success { get; set; } = true;
+    public string TimeComplexity { get; set; } = "O(N)";
+    public string SpaceComplexity { get; set; } = "O(1)";
+    public int EfficiencyScore { get; set; } = 85; // 1 - 100
+    public string Summary { get; set; } = string.Empty;
+    public string DetailedExplanation { get; set; } = string.Empty;
+    public string? OptimizationTip { get; set; }
+    public string? OptimalComparison { get; set; }
+}
+
+public class AiDiagnoseTestFailureRequest
+{
+    public int ChallengeId { get; set; }
+    public string ChallengeTitle { get; set; } = string.Empty;
+    public string SourceCode { get; set; } = string.Empty;
+    public string InputParameters { get; set; } = string.Empty;
+    public string ExpectedOutput { get; set; } = string.Empty;
+    public string ActualOutput { get; set; } = string.Empty;
+    public int TestIndex { get; set; } = 1;
+}
+
+public class AiDiagnoseTestFailureResponse
+{
+    public bool Success { get; set; } = true;
+    public string FailureCategory { get; set; } = "Logic Flaw"; // Edge Case, Off-by-one, Logic Flaw, Overflow, Type Mismatch
+    public string DiagnosticTitle { get; set; } = string.Empty;
+    public string Analysis { get; set; } = string.Empty;
+    public string? LikelyFaultyCodeSegment { get; set; }
+    public string GuidanceHint { get; set; } = string.Empty;
+    public string? SuggestedFixSnippet { get; set; }
+}
+
+public class AiGenerateUnitTestRequest
+{
+    public string SourceCode { get; set; } = string.Empty;
+    public string? MethodOrClassName { get; set; }
+}
+
+public class AiGenerateUnitTestResponse
+{
+    public bool Success { get; set; } = true;
+    public string TestFramework { get; set; } = "xUnit";
+    public string TestCode { get; set; } = string.Empty;
+    public string Explanation { get; set; } = string.Empty;
+    public List<string> CoveredScenarios { get; set; } = new();
+}
+

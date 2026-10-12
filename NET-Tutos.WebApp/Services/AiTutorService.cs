@@ -282,6 +282,139 @@ public class AiTutorService : IAiTutorService
             };
         }
 
+        if (error.Contains("CS1061"))
+        {
+            var methodMatch = Regex.Match(error, "'(?<type>[^']+)' does not contain a definition for '(?<name>[^']+)'");
+            var typeName = methodMatch.Success ? methodMatch.Groups["type"].Value : "kiểu dữ liệu";
+            var memberName = methodMatch.Success ? methodMatch.Groups["name"].Value : "phương thức";
+
+            return new AiExplainErrorResponse
+            {
+                ErrorCode = "CS1061",
+                LineNumber = lineNumber,
+                ErrorTitle = isEnglish ? $"'{typeName}' does not contain a definition for '{memberName}'" : $"'{typeName}' không chứa định nghĩa cho '{memberName}'",
+                Explanation = isEnglish
+                    ? $"Type `{typeName}` does not have a member named `{memberName}`. You may have mistyped the method name, called a method on an incorrect type, or missed a LINQ extension method that requires `using System.Linq;`."
+                    : $"Kiểu dữ liệu `{typeName}` không có thuộc tính hoặc phương thức mang tên `{memberName}`. Nguyên nhân thường gặp: gõ sai tên hàm, gọi hàm trên sai đối tượng, hoặc quên import `using System.Linq;` để dùng các hàm mở rộng LINQ.",
+                HowToFix = isEnglish
+                    ? $"1. Verify spelling of `{memberName}`.\n2. If using LINQ (e.g. `.Where()`, `.Select()`), add `using System.Linq;` at the top.\n3. Check if `{typeName}` exposes this member publicly."
+                    : $"1. Kiểm tra chính tả của `{memberName}` (viết hoa/thường).\n2. Nếu dùng hàm LINQ (như `.Where()`, `.Select()`, `.ToList()`), thêm `using System.Linq;` ở đầu file.\n3. Kiểm tra xem class `{typeName}` đã khai báo hàm này với phạm vi `public` chưa.",
+                SuggestedFixCode = "using System.Linq; // Bổ sung thư viện LINQ nếu gọi các hàm tập hợp",
+                ProTip = isEnglish ? "Extension methods require their defining namespace to be imported via 'using'." : "Các Extension Method (như LINQ) bắt buộc phải import namespace chứa nó thì mới hiển thị trong gợi ý mã!"
+            };
+        }
+
+        if (error.Contains("CS1503"))
+        {
+            return new AiExplainErrorResponse
+            {
+                ErrorCode = "CS1503",
+                LineNumber = lineNumber,
+                ErrorTitle = isEnglish ? "Argument Type Mismatch" : "Sai lệch kiểu dữ liệu tham số đầu vào (Argument Type Mismatch)",
+                Explanation = isEnglish
+                    ? "The parameter type expected by the method does not match the argument you supplied. C# does not implicitly convert incompatible types."
+                    : "Kiểu dữ liệu của đối số bạn truyền vào không khớp với kiểu dữ liệu mà phương thức yêu cầu. C# không tự động ép kiểu giữa các kiểu dữ liệu không tương thích.",
+                HowToFix = isEnglish
+                    ? "Check the method signature and convert your argument explicitly (e.g., `.ToString()`, `int.Parse()`, or `(TargetType)`)."
+                    : "Xem kỹ định nghĩa phương thức và thực hiện ép kiểu rõ ràng (ví dụ: dùng `.ToString()`, `int.Parse()`, hoặc `Convert.ToInt32()`).",
+                SuggestedFixCode = "// Ví dụ chuyển đổi kiểu dữ liệu tương thích:\nvar result = MyMethod(int.Parse(inputString));",
+                ProTip = isEnglish ? "Hover over the method name in the editor to inspect the required parameter types." : "Rê chuột vào tên phương thức trong editor để xem đúng kiểu dữ liệu của các tham số yêu cầu."
+            };
+        }
+
+        if (error.Contains("CS0161"))
+        {
+            return new AiExplainErrorResponse
+            {
+                ErrorCode = "CS0161",
+                LineNumber = lineNumber,
+                ErrorTitle = isEnglish ? "Not all code paths return a value" : "Không phải mọi nhánh rẽ đều trả về giá trị (Missing return)",
+                Explanation = isEnglish
+                    ? "Your method declares a non-void return type, but there is at least one execution path (such as an `if/else` branch or after a loop) that terminates without a `return` statement."
+                    : "Phương thức của bạn khai báo kiểu trả về (không phải `void`), nhưng có ít nhất một nhánh rẽ logic (như nhánh `if/else` hoặc sau khi kết thúc vòng lặp) kết thúc mà không có lệnh `return`.",
+                HowToFix = isEnglish
+                    ? "Ensure every possible logical path terminates with a `return` statement, or add a default fallback `return` at the bottom of the method."
+                    : "Đảm bảo mọi nhánh `if/else` đều có lệnh `return`, hoặc đặt một giá trị `return` mặc định ở cuối hàm.",
+                SuggestedFixCode = "// Đặt return mặc định ở cuối hàm phòng trường hợp không lọt vào if:\nreturn defaultValue;",
+                ProTip = isEnglish ? "If a path should never be reached, you can throw an exception: 'throw new InvalidOperationException();'" : "Nếu một nhánh logic không bao giờ xảy ra, bạn có thể ném ngoại lệ: 'throw new InvalidOperationException();'"
+            };
+        }
+
+        if (error.Contains("CS0246"))
+        {
+            var typeMatch = Regex.Match(error, "'(?<type>[^']+)'");
+            var missingType = typeMatch.Success ? typeMatch.Groups["type"].Value : "Type";
+
+            return new AiExplainErrorResponse
+            {
+                ErrorCode = "CS0246",
+                LineNumber = lineNumber,
+                ErrorTitle = isEnglish ? $"Type or namespace '{missingType}' could not be found" : $"Không tìm thấy kiểu hoặc namespace '{missingType}'",
+                Explanation = isEnglish
+                    ? $"The compiler cannot find the declaration for `{missingType}`. Are you missing a `using` directive or is there a spelling mistake?"
+                    : $"Trình biên dịch không tìm thấy định nghĩa cho `{missingType}`. Nguyên nhân thường do thiếu câu lệnh `using` hoặc viết sai chính tả tên Class/Interface.",
+                HowToFix = isEnglish
+                    ? $"1. Verify the spelling of `{missingType}`.\n2. Add the corresponding `using` directive (e.g., `using System.Collections.Generic;`)."
+                    : $"1. Kiểm tra chính tả `{missingType}`.\n2. Bổ sung `using` tương ứng (ví dụ: `using System.Collections.Generic;` cho List, Dictionary).",
+                SuggestedFixCode = $"using System.Collections.Generic;\nusing System.Text;",
+                ProTip = isEnglish ? "Check standard namespaces: System, System.Collections.Generic, System.Linq, System.Text." : "Các namespace chuẩn hay dùng nhất trong C#: System, System.Collections.Generic, System.Linq, System.Text."
+            };
+        }
+
+        if (error.Contains("IndexOutOfRangeException"))
+        {
+            return new AiExplainErrorResponse
+            {
+                ErrorCode = "Runtime: IndexOutOfRangeException",
+                LineNumber = lineNumber,
+                ErrorTitle = isEnglish ? "Index was outside the bounds of the array" : "Chỉ số mảng vượt ngoài phạm vi (IndexOutOfRangeException)",
+                Explanation = isEnglish
+                    ? "You tried to access an element of an array or list using an index that is negative or greater than or equal to `Length` / `Count`."
+                    : "Bạn đang cố gắng truy cập phần tử mảng hoặc danh sách bằng một chỉ số (index) âm hoặc lớn hơn hoặc bằng độ dài `Length` / `Count` của mảng.",
+                HowToFix = isEnglish
+                    ? "In C#, array indexing is 0-based (0 to Length - 1). Check loop bounds: use `i < array.Length` instead of `i <= array.Length`."
+                    : "Trong C#, mảng tính từ chỉ số 0 đến Length - 1. Kiểm tra điều kiện vòng lặp: dùng `i < array.Length` thay vì `i <= array.Length`.",
+                SuggestedFixCode = "// Sửa điều kiện vòng lặp duyệt mảng:\nfor (int i = 0; i < array.Length; i++) { ... }",
+                ProTip = isEnglish ? "Avoid manual index loops when possible: use 'foreach' or LINQ to completely prevent off-by-one errors." : "Ưu tiên dùng 'foreach' hoặc LINQ khi có thể để tránh hoàn toàn lỗi sai lệch chỉ số off-by-one."
+            };
+        }
+
+        if (error.Contains("DivideByZeroException"))
+        {
+            return new AiExplainErrorResponse
+            {
+                ErrorCode = "Runtime: DivideByZeroException",
+                LineNumber = lineNumber,
+                ErrorTitle = isEnglish ? "Attempted to divide by zero" : "Phép chia cho số 0 (DivideByZeroException)",
+                Explanation = isEnglish
+                    ? "Integer division by zero (`x / 0` or `x % 0`) throws a `DivideByZeroException` in C#."
+                    : "Trong C#, thực hiện phép chia lấy phần nguyên hoặc chia lấy dư cho số 0 (`x / 0` hoặc `x % 0`) với số nguyên sẽ gây lỗi nghiêm trọng.",
+                HowToFix = isEnglish
+                    ? "Validate that the denominator is not zero before performing the division: `if (denominator != 0)`."
+                    : "Kiểm tra mẫu số khác 0 trước khi thực hiện phép chia: `if (denominator != 0) { ... }`.",
+                SuggestedFixCode = "int result = denominator != 0 ? numerator / denominator : 0;",
+                ProTip = isEnglish ? "Floating point division (double/float) returns Infinity or NaN instead of throwing, but integer division always throws!" : "Phép chia với kiểu float/double sẽ trả về Infinity thay vì ném lỗi, nhưng với số nguyên int/long sẽ luôn crash chương trình!"
+            };
+        }
+
+        if (error.Contains("Timeout") || error.Contains("timed out") || error.Contains("quá thời gian"))
+        {
+            return new AiExplainErrorResponse
+            {
+                ErrorCode = "Runtime: Execution Timeout",
+                LineNumber = lineNumber,
+                ErrorTitle = isEnglish ? "Code Execution Timed Out (Possible Infinite Loop)" : "Quá thời gian thực thi (Nghi vấn Vòng lặp Vô tận)",
+                Explanation = isEnglish
+                    ? "Your code took longer than the maximum allowed execution threshold (3000ms). This almost always indicates an infinite `while` loop or un-terminating recursion."
+                    : "Chương trình của bạn chạy quá thời gian cho phép (3000ms). Điều này gần như chắc chắn do vòng lặp `while` không có điều kiện dừng hoặc hàm đệ quy không có điểm neo dừng (base case).",
+                HowToFix = isEnglish
+                    ? "1. Check your `while` loop condition to make sure the loop variable is incremented/decremented.\n2. Ensure recursive methods have a base case that is always reached."
+                    : "1. Kiểm tra vòng lặp `while`: đảm bảo biến điều kiện được tăng/giảm ở mỗi lượt lặp.\n2. Kiểm tra hàm đệ quy: đảm bảo có điều kiện dừng (base case) hợp lệ trước khi gọi đệ quy tiếp.",
+                SuggestedFixCode = "// Đảm bảo biến đếm được cập nhật trong while loop:\nwhile (left < right) {\n    left++; // Đừng quên cập nhật con trỏ!\n}",
+                ProTip = isEnglish ? "Always trace loop variables on small inputs with pencil and paper to ensure termination." : "Luôn nhẩm chạy thử vòng lặp với 1 ví dụ nhỏ (2-3 phần tử) để chắc chắn điều kiện dừng hoạt động chính xác."
+            };
+        }
+
         // Default explanation
         return new AiExplainErrorResponse
         {
@@ -414,4 +547,283 @@ public class AiTutorService : IAiTutorService
             RefactoredCode = "// Mã nguồn đã được tối ưu hóa theo chuẩn Modern .NET 10\n" + code
         };
     }
+
+    public async Task<AiComplexityResponse> AnalyzeComplexityAsync(AiComplexityRequest request, bool isEnglish)
+    {
+        await Task.CompletedTask;
+        var code = request.SourceCode ?? string.Empty;
+
+        // Detect loops, nesting, sorting, recursion
+        int loopCount = Regex.Matches(code, @"\b(for|while|foreach)\b").Count;
+        bool hasNestedLoop = Regex.IsMatch(code, @"(for|while|foreach)[^{]*\{[^{}]*(for|while|foreach)");
+        bool hasSorting = code.Contains(".OrderBy") || code.Contains(".Sort(") || code.Contains("Array.Sort");
+        bool hasRecursion = Regex.IsMatch(code, @"\b([a-zA-Z0-9_]+)\s*\([^)]*\)[^{]*\{[^{}]*\b\1\s*\(");
+        bool hasHashLookup = code.Contains("Dictionary<") || code.Contains("HashSet<");
+        bool hasArrayAllocation = code.Contains("new int[") || code.Contains("new string[") || code.Contains("new List<");
+
+        string timeComplexity;
+        string spaceComplexity;
+        int score = 85;
+        string summary;
+        string detailedExplanation;
+        string? optimizationTip = null;
+        string? optimalComparison = null;
+
+        if (hasNestedLoop)
+        {
+            timeComplexity = "O(N²)";
+            score = 65;
+            summary = isEnglish
+                ? "Quadratic Time Complexity detected due to nested iterations."
+                : "Phát hiện độ phức tạp thời gian bậc hai O(N²) do vòng lặp lồng nhau (nested loops).";
+            detailedExplanation = isEnglish
+                ? "The algorithm contains an outer loop that iterates over the collection and an inner loop for each element, leading to N * N operations in the worst case."
+                : "Thuật toán chứa một vòng lặp ngoài duyệt qua các phần tử và một vòng lặp trong quét lại tập dữ liệu, dẫn đến khoảng N * N phép tính trong trường hợp xấu nhất.";
+            optimizationTip = isEnglish
+                ? "Can you trade space for time? Using a `Dictionary<TKey, TValue>` or `HashSet<T>` allows you to reduce lookups from O(N) to O(1), bringing total time down to O(N)."
+                : "Bạn có thể đánh đổi bộ nhớ để lấy tốc độ: Sử dụng `Dictionary<TKey, TValue>` hoặc `HashSet<T>` để giảm thời gian tìm kiếm từ O(N) xuống O(1), đưa toàn bộ thuật toán về O(N).";
+            optimalComparison = isEnglish
+                ? "Optimal solution for this problem usually achieves O(N) time with O(N) hash-table space."
+                : "Giải pháp tối ưu cho dạng bài này thường đạt độ phức tạp O(N) thời gian kết hợp O(N) không gian bảng băm.";
+        }
+        else if (hasSorting)
+        {
+            timeComplexity = "O(N log N)";
+            score = 80;
+            summary = isEnglish
+                ? "Log-linear Time Complexity detected due to sorting operation."
+                : "Độ phức tạp thời gian O(N log N) do sử dụng thao tác sắp xếp (Sorting).";
+            detailedExplanation = isEnglish
+                ? "Sorting the collection requires O(N log N) time in .NET using QuickSort/IntroSort under the hood."
+                : "Thao tác sắp xếp mảng/danh sách trong .NET sử dụng thuật toán IntroSort/QuickSort có độ phức tạp trung bình là O(N log N).";
+            optimizationTip = isEnglish
+                ? "If the array is already sorted or if values are in a bounded range, a two-pointer technique or frequency map might avoid sorting."
+                : "Nếu mảng đã được sắp xếp trước hoặc miền giá trị nhỏ, kỹ thuật hai con trỏ (Two Pointers) hoặc mảng đếm tần suất có thể giúp giảm xuống O(N).";
+        }
+        else if (hasRecursion)
+        {
+            timeComplexity = "O(2ⁿ) hoặc O(N)";
+            score = 70;
+            summary = isEnglish
+                ? "Recursive Call Tree detected."
+                : "Phát hiện hàm đệ quy (Recursion).";
+            detailedExplanation = isEnglish
+                ? "Without memoization, tree-based recursion can grow exponentially O(2ⁿ). If using tail recursion or linear recursion, it is O(N)."
+                : "Nếu là đệ quy nhánh mà không dùng ghi nhớ (Memoization/Quy hoạch động), số phép tính có thể bùng nổ hàm mũ O(2ⁿ). Nếu đệ quy tuyến tính thì đạt O(N).";
+            optimizationTip = isEnglish
+                ? "Consider dynamic programming (tabulation or memoization) to store subproblem answers."
+                : "Cân nhắc áp dụng Quy hoạch động (Dynamic Programming - lưu mảng kết quả tạm thời) để tránh tính lặp các bài toán con.";
+        }
+        else if (loopCount > 0)
+        {
+            timeComplexity = "O(N)";
+            score = 92;
+            summary = isEnglish
+                ? "Linear Time Complexity — highly efficient single pass!"
+                : "Độ phức tạp thời gian tuyến tính O(N) — thuật toán duyệt 1 lần rất tối ưu!";
+            detailedExplanation = isEnglish
+                ? "The algorithm scans the collection in a single pass. For an input of size N, the number of operations scales linearly."
+                : "Thuật toán quét qua tập dữ liệu trong một lượt duyệt duy nhất. Khi kích thước dữ liệu tăng N lần, số phép tính chỉ tăng tương ứng N lần.";
+            optimalComparison = isEnglish
+                ? "This is already in the optimal time complexity tier for this problem class."
+                : "Đây đã là cấp độ thời gian tối ưu hàng đầu cho dạng bài toán này.";
+        }
+        else
+        {
+            timeComplexity = "O(1)";
+            score = 98;
+            summary = isEnglish
+                ? "Constant Time Complexity — instantaneous execution!"
+                : "Độ phức tạp thời gian hằng số O(1) — tốc độ tức thì!";
+            detailedExplanation = isEnglish
+                ? "The code performs a fixed set of mathematical or bitwise operations without dependent loops."
+                : "Đoạn code chỉ thực hiện các phép toán hoặc logic kiểm tra trực tiếp mà không phụ thuộc vào độ dài dữ liệu.";
+        }
+
+        // Space complexity calculation
+        if (hasHashLookup || hasArrayAllocation)
+        {
+            spaceComplexity = "O(N)";
+            if (hasNestedLoop) score = Math.Max(score, 60);
+        }
+        else
+        {
+            spaceComplexity = "O(1)";
+            score += 5;
+        }
+
+        score = Math.Clamp(score, 50, 100);
+
+        return new AiComplexityResponse
+        {
+            TimeComplexity = timeComplexity,
+            SpaceComplexity = spaceComplexity,
+            EfficiencyScore = score,
+            Summary = summary,
+            DetailedExplanation = detailedExplanation,
+            OptimizationTip = optimizationTip,
+            OptimalComparison = optimalComparison
+        };
+    }
+
+    public async Task<AiDiagnoseTestFailureResponse> DiagnoseTestFailureAsync(AiDiagnoseTestFailureRequest request, bool isEnglish)
+    {
+        await Task.CompletedTask;
+        var code = request.SourceCode ?? string.Empty;
+        var input = request.InputParameters ?? string.Empty;
+        var expected = request.ExpectedOutput ?? string.Empty;
+        var actual = request.ActualOutput ?? string.Empty;
+
+        string category = "Logic Flaw";
+        string title;
+        string analysis;
+        string hint;
+        string? snippet = null;
+
+        // Pattern 1: Empty or boundary input
+        if (input.Contains("[]") || input.Contains("\"\"") || input == "0" || input == "null")
+        {
+            category = "Edge Case";
+            title = isEnglish ? "Unhandled Boundary / Empty Input Edge Case" : "Chưa xử lý trường hợp biên (Mảng rỗng / Giá trị 0 / Chuỗi rỗng)";
+            analysis = isEnglish
+                ? $"The test case provides an edge case input `{input}`, but your code produced `{actual}` instead of `{expected}`. Boundary conditions often bypass loop bodies or cause unexpected default returns."
+                : $"Bộ test case đưa vào trường hợp biên `{input}`, nhưng code của bạn lại trả về `{actual}` thay vì kỳ vọng `{expected}`. Các trường hợp biên thường không đi vào vòng lặp hoặc trả về giá trị mặc định chưa đúng.";
+            hint = isEnglish
+                ? "Add guard clauses at the beginning of your method to handle empty collections, nulls, or zero values explicitly."
+                : "Hãy thêm câu lệnh bảo vệ (Guard Clause) ở ngay đầu phương thức để kiểm tra mảng rỗng, chuỗi rỗng hoặc số 0.";
+            snippet = isEnglish
+                ? "// Guard clause for edge case:\nif (input == null || input.Length == 0) return default;"
+                : "// Kiểm tra trường hợp biên ngay đầu hàm:\nif (input == null || input.Length == 0) return default;";
+        }
+        // Pattern 2: Off by one (Difference of 1 in count or indexing)
+        else if (int.TryParse(expected, out int expNum) && int.TryParse(actual, out int actNum) && Math.Abs(expNum - actNum) == 1)
+        {
+            category = "Off-by-one";
+            title = isEnglish ? "Off-by-one Loop Boundary Error" : "Lỗi sai lệch 1 đơn vị (Off-by-one Boundary Error)";
+            analysis = isEnglish
+                ? $"The actual output `{actual}` differs from expected `{expected}` by exactly 1. This is a classic off-by-one indexing or loop counter mistake (e.g., using `<=` instead of `<` or starting from `1` instead of `0`)."
+                : $"Kết quả thực tế `{actual}` chỉ chênh lệch đúng 1 đơn vị so với kỳ vọng `{expected}`. Đây là lỗi kinh điển 'Off-by-one' trong vòng lặp hoặc điều kiện đếm (ví dụ: dùng `<=` thay vì `<`, hoặc bắt đầu từ `1` thay vì `0`).";
+            hint = isEnglish
+                ? "Check your loop termination condition: `i < length` vs `i <= length`, and whether the counter should start at 0 or 1."
+                : "Kiểm tra lại điều kiện dừng của vòng lặp: `i < n` hay `i <= n`, cũng như biến đếm bắt đầu từ 0 hay 1.";
+            snippet = isEnglish
+                ? "// Check boundary operator:\nfor (int i = 0; i < n; i++) // Not i <= n"
+                : "// Kiểm tra toán tử biên vòng lặp:\nfor (int i = 0; i < n; i++) // Thay vì i <= n";
+        }
+        // Pattern 3: Case sensitivity in string operations
+        else if (expected.Equals(actual, StringComparison.OrdinalIgnoreCase) && !expected.Equals(actual))
+        {
+            category = "Case Sensitivity";
+            title = isEnglish ? "String Case Sensitivity Mismatch" : "Sai lệch chữ hoa / chữ thường trong chuỗi";
+            analysis = isEnglish
+                ? $"Your output matches the expected result except for letter casing. Expected: `{expected}`, but got `{actual}`."
+                : $"Kết quả của bạn khớp với kỳ vọng nhưng bị sai lệch về chữ hoa/chữ thường. Kỳ vọng: `{expected}`, nhưng thực tế ra: `{actual}`.";
+            hint = isEnglish
+                ? "Normalize strings using `.ToLowerInvariant()` or `.ToUpperInvariant()` before comparing or building the return value."
+                : "Hãy chuẩn hóa chuỗi bằng `.ToLowerInvariant()` hoặc dùng `StringComparison.OrdinalIgnoreCase` khi so sánh.";
+            snippet = "text.ToLowerInvariant();";
+        }
+        // Pattern 4: Duplicate element handling (e.g., Two Sum reusing same index)
+        else if (code.Contains("==") && (code.Contains("nums") || code.Contains("array")))
+        {
+            category = "Duplicate Elements";
+            title = isEnglish ? "Duplicate Elements or Index Reuse" : "Xử lý phần tử trùng lặp hoặc tái sử dụng cùng vị trí index";
+            analysis = isEnglish
+                ? $"With input `{input}`, expected output was `{expected}`, but received `{actual}`. Check if your logic accidentally pairs an element with itself or fails when duplicate numbers appear in the input."
+                : $"Với dữ liệu `{input}`, kết quả mong muốn là `{expected}` nhưng lại ra `{actual}`. Rất có thể thuật toán đang vô tình ghép đôi một phần tử với chính nó (`i == j`), hoặc chưa xử lý trường hợp 2 số trùng nhau trong mảng.";
+            hint = isEnglish
+                ? "Ensure `i != j` when searching for pairs, or when using a Dictionary, verify you don't return the same index as the current element."
+                : "Đảm bảo điều kiện `i != j` khi tìm kiếm cặp phần tử, hoặc khi dùng Dictionary, kiểm tra `map[complement] != i`.";
+            snippet = "if (map.ContainsKey(complement) && map[complement] != i) {\n    return [map[complement], i];\n}";
+        }
+        else
+        {
+            title = isEnglish ? $"Logic Discrepancy on Test #{request.TestIndex}" : $"Sai lệch logic xử lý tại Test Case #{request.TestIndex}";
+            analysis = isEnglish
+                ? $"For input `{input}`, the problem expects `{expected}`, but your code produced `{actual}`. This points to a mismatch in the core condition or state update inside your algorithm."
+                : $"Với đầu vào `{input}`, bài toán yêu cầu kết quả `{expected}`, nhưng code của bạn tính ra `{actual}`. Điều này chứng tỏ điều kiện rẽ nhánh hoặc biến cập nhật trạng thái trong thuật toán chưa bao quát hết kịch bản này.";
+            hint = isEnglish
+                ? "Trace your code step-by-step with this specific input. Write down variable values at each iteration to observe where the logic deviates."
+                : "Hãy chạy nhẩm từng dòng code với đúng bộ input này. Ghi lại giá trị các biến ở từng vòng lặp để xem biến bắt đầu lệch khỏi kỳ vọng ở dòng nào.";
+            snippet = null;
+        }
+
+        return new AiDiagnoseTestFailureResponse
+        {
+            FailureCategory = category,
+            DiagnosticTitle = title,
+            Analysis = analysis,
+            LikelyFaultyCodeSegment = null,
+            GuidanceHint = hint,
+            SuggestedFixSnippet = snippet
+        };
+    }
+
+    public async Task<AiGenerateUnitTestResponse> GenerateUnitTestAsync(AiGenerateUnitTestRequest request, bool isEnglish)
+    {
+        await Task.CompletedTask;
+        var code = request.SourceCode ?? string.Empty;
+
+        // Extract method name
+        var methodMatch = Regex.Match(code, @"(?:public|private|protected|internal|static|\s)+\s+([a-zA-Z0-9_<>]+)\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)");
+        string methodName = methodMatch.Success ? methodMatch.Groups[2].Value : "ExecuteSolution";
+        string returnType = methodMatch.Success ? methodMatch.Groups[1].Value : "var";
+
+        var scenarios = isEnglish
+            ? new List<string>
+            {
+                "Valid standard inputs (Happy Path)",
+                "Empty collection or boundary values (Edge Case)",
+                "Large numbers or negative values (Stress Test)"
+            }
+            : new List<string>
+            {
+                "Trường hợp dữ liệu chuẩn hợp lệ (Happy Path)",
+                "Trường hợp mảng rỗng hoặc giá trị biên (Edge Case)",
+                "Trường hợp số âm hoặc giá trị cực trị (Stress Test)"
+            };
+
+        var unitTestCode = $@"using Xunit;
+
+public class {methodName}Tests
+{{
+    [Fact]
+    public void {methodName}_StandardInput_ReturnsExpectedResult()
+    {{
+        // 1. Arrange (Chuẩn bị dữ liệu)
+        // TODO: Khai báo tham số đầu vào
+
+        // 2. Act (Thực thi hàm)
+        // {returnType} actual = Solution.{methodName}(...);
+
+        // 3. Assert (Kiểm tra kết quả)
+        // Assert.NotNull(actual);
+    }}
+
+    [Theory]
+    [InlineData(/* input1, expected1 */)]
+    [InlineData(/* input2, expected2 */)]
+    public void {methodName}_ParameterizedInputs_MatchesExpectedOutput()
+    {{
+        // Kiểm thử tham số hóa cho các kịch bản biên
+    }}
+
+    [Fact]
+    public void {methodName}_NullOrEmptyBoundary_HandlesGracefully()
+    {{
+        // Đảm bảo không ném ngoại lệ ngoài ý muốn khi input rỗng
+    }}
+}}";
+
+        return new AiGenerateUnitTestResponse
+        {
+            TestFramework = "xUnit (.NET 10)",
+            TestCode = unitTestCode,
+            Explanation = isEnglish
+                ? $"Generated clean xUnit test suite for `{methodName}` following the AAA (Arrange-Act-Assert) pattern and data-driven `[Theory]` attributes."
+                : $"Bộ kiểm thử xUnit được sinh tự động cho phương thức `{methodName}` tuân thủ mô hình AAA (Arrange-Act-Assert) và kiểm thử tham số hóa `[Theory]`.",
+            CoveredScenarios = scenarios
+        };
+    }
 }
+

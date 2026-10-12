@@ -75,4 +75,46 @@ public class AiTutorController : Controller
         var response = await _aiTutorService.ReviewCodeAsync(request, isEnglish);
         return Json(response);
     }
+
+    // POST: /AiTutor/AnalyzeComplexity
+    [HttpPost]
+    public async Task<IActionResult> AnalyzeComplexity([FromBody] AiComplexityRequest request)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.SourceCode))
+        {
+            return BadRequest(new { success = false, message = "Mã nguồn không được để trống để phân tích Big-O." });
+        }
+
+        bool isEnglish = HttpContext.IsEnglish();
+        var response = await _aiTutorService.AnalyzeComplexityAsync(request, isEnglish);
+        return Json(response);
+    }
+
+    // POST: /AiTutor/DiagnoseTestFailure
+    [HttpPost]
+    public async Task<IActionResult> DiagnoseTestFailure([FromBody] AiDiagnoseTestFailureRequest request)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.SourceCode))
+        {
+            return BadRequest(new { success = false, message = "Thiếu thông tin mã nguồn để chẩn đoán Test Case." });
+        }
+
+        bool isEnglish = HttpContext.IsEnglish();
+        var response = await _aiTutorService.DiagnoseTestFailureAsync(request, isEnglish);
+        return Json(response);
+    }
+
+    // POST: /AiTutor/GenerateUnitTest
+    [HttpPost]
+    public async Task<IActionResult> GenerateUnitTest([FromBody] AiGenerateUnitTestRequest request)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.SourceCode))
+        {
+            return BadRequest(new { success = false, message = "Mã nguồn không được để trống để sinh Unit Test." });
+        }
+
+        bool isEnglish = HttpContext.IsEnglish();
+        var response = await _aiTutorService.GenerateUnitTestAsync(request, isEnglish);
+        return Json(response);
+    }
 }
