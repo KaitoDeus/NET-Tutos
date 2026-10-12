@@ -1,103 +1,94 @@
-# 01. TỔNG QUAN KINH DOANH & ĐỀ XUẤT GIÁ TRỊ (BUSINESS OVERVIEW & VALUE PROPOSITION)
+# 01. Business Overview & Value Proposition
 
-> **Tài liệu đặc tả phân tích nghiệp vụ (Business Analysis Specification)**  
-> **Chức danh thực hiện:** Senior Business Analyst  
-> **Hệ thống:** Nền tảng Học tập & Đào tạo Lập trình .NET Toàn diện (.NET Tutos Platform)  
-> **Phiên bản:** 2.0 (Hợp nhất Web App, Mobile App & AI Assistant Engine)  
-> **Ngày phê duyệt:** Tháng 10/2026  
-
----
-
-## 1. Tóm tắt dự án (Executive Summary)
-
-**.NET Tutos** là hệ sinh thái đào tạo, thực hành và sát hạch lập trình chuyên sâu chuẩn Microsoft .NET hiện đại (.NET 10 / C# 14). Hệ thống giải quyết khoảng cách cố hữu giữa kiến thức lý thuyết trong trường lớp và kỹ năng thực chiến tại các doanh nghiệp phần mềm.
-
-Hệ thống bao gồm 3 trụ cột liên kết chặt chẽ:
-1. **Nền tảng Web App:** Cung cấp lộ trình 101 bài học chuẩn hóa, trình biên dịch trực tuyến Monaco Sandbox (Roslyn Engine), trợ lý AI Mentor phân tích thuật toán, phòng phỏng vấn kỹ thuật giả lập (AI Mock Interview) và cơ chế Gamification thúc đẩy động lực.
-2. **Ứng dụng Di động (Mobile App .NET MAUI):** Hỗ trợ học viên tra cứu giáo trình, ôn tập kiến thức, duy trì chuỗi Streak và đồng bộ dữ liệu hai chiều với Web App mọi lúc, mọi nơi.
-3. **Bộ não Trợ lý AI (AI Tutor & Interview Engine):** Đóng vai trò Senior Mentor phản biện trực tiếp, phân tích độ phức tạp Big-O, tự động tạo bộ kiểm thử xUnit và chấm điểm sát hạch phỏng vấn theo chuẩn tuyển dụng thực tế.
+Document Type: Business Requirements Specification  
+Role: Senior Business Analyst  
+System: .NET Tutos - Comprehensive .NET Learning & Assessment Platform  
+Version: 2.0 (Integrated Web App, Mobile App, and AI Engine)  
+Status: Approved  
 
 ---
 
-## 2. Bối cảnh thị trường & Vấn đề thực tế (Problem Statements)
+## 1. Executive Summary
+
+.NET Tutos is an enterprise-grade learning, hands-on practice, and technical assessment ecosystem built on modern Microsoft .NET technologies (.NET 10 / C# 14). The platform directly bridges the gap between academic theory and enterprise-level engineering standards.
+
+The ecosystem comprises three synchronized components:
+1. Web Application: Delivers a standardized 101-lesson curriculum, an in-browser Monaco Editor sandbox powered by the Roslyn Scripting API, an intelligent AI Mentor for algorithmic code review, an AI-driven technical interview simulator, and gamification mechanisms.
+2. Mobile Client (.NET MAUI): Allows learners to read course materials, review concepts, maintain study streaks, and synchronize progress bidirectionally with the Web Application.
+3. AI Assistance & Assessment Engine: Acts as a virtual Senior Tech Lead to analyze Big-O complexity, diagnose failing test cases, generate automated xUnit test suites, and assess candidates against industry hiring benchmarks.
+
+---
+
+## 2. Industry Context & Problem Statements
 
 ```mermaid
 graph TD
-    P1["1. Rào cản môi trường<br/>Cài đặt Visual Studio / SDK nặng nề, máy cấu hình thấp khó tiếp cận"] --> S1["Giải pháp: Trình thực hành Monaco Playground trực tuyến, biên dịch ngay trên trình duyệt"]
-    P2["2. Thiếu phản hồi ngay lập tức<br/>Tự học bị bí khi gặp lỗi Compiler hoặc thuật toán rớt Test Case"] --> S2["Giải pháp: AI Mentor chẩn đoán lỗi CS-Code, đo Big-O và gợi ý cách fix 1-click"]
-    P3["3. Nỗi sợ phỏng vấn kỹ thuật<br/>Học vẹt lý thuyết, lúng túng khi bị hỏi xoáy về CLR, Memory, Async, EF Core"] --> S3["Giải pháp: Phòng phỏng vấn giả lập AI Tech Lead với Speech-to-Text & radar năng lực"]
-    P4["4. Đứt gãy trải nghiệm học tập<br/>Chỉ học được khi ngồi máy tính, mất chuỗi khi di chuyển"] --> S4["Giải pháp: Mobile App .NET MAUI đồng bộ 100% tài khoản, bài học, XP và Streak"]
+    P1["1. Tooling & Environment Friction: Heavy IDE and SDK installation requirements hinder beginners."] --> S1["Solution: Zero-friction in-browser Monaco sandbox with server-side Roslyn compilation."]
+    P2["2. Absence of Immediate Technical Feedback: Learners struggle with compiler errors and failed algorithmic tests."] --> S2["Solution: Contextual AI diagnostics explaining root causes and providing one-click verified fixes."]
+    P3["3. Technical Interview Intimidation: Memorization without deep grasp of CLR internals, concurrency, and EF Core."] --> S3["Solution: Interactive AI Tech Lead mock interviews with Speech-to-Text and competency radar reports."]
+    P4["4. Fragmented Learning Experience: Inability to continue study sessions across desktop and mobile devices."] --> S4["Solution: Omnichannel .NET MAUI mobile client sharing a unified database, XP, and streak engine."]
 ```
 
-### Các khoảng trống thị trường (Market Gaps)
-1. **Rào cản thiết bị & thiết lập:** Người mới bắt đầu thường gặp khó khăn với việc cấu hình SDK, runtime, tooling phức tạp trước khi viết được dòng code C# đầu tiên.
-2. **Thiếu cơ chế phản biện có chiều sâu:** Các nền tảng học trực tuyến thông thường chỉ hiển thị video hoặc text tĩnh; khi gặp lỗi logic hoặc biên dịch, người học mất hàng giờ tìm kiếm mà không hiểu bản chất CLR hay nguyên lý hoạt động bên dưới.
-3. **Thiếu sự chuẩn bị cho tuyển dụng thực tế:** Học viên có thể giải được bài tập cú pháp nhưng thất bại tại vòng Technical Interview do không biết cách diễn đạt, thiếu kiến thức về bẫy hiệu năng (N+1 query, deadlocks, boxing/unboxing, LOH allocations).
-4. **Tỷ lệ bỏ dở cao (High Dropout Rate):** Thiếu cơ chế giữ chân (retention) bằng Gamification và thiếu sự đồng bộ liền mạch giữa các thiết bị di động.
+### Market Gaps Addressed
+1. Setup and Environmental Overhead: Novice engineers frequently face configuration hurdles when installing multi-gigabyte SDKs and IDEs before writing their first line of executable C# code.
+2. Passive Learning Limitations: Conventional educational portals offer static text or prerecorded videos without actionable feedback. When learners encounter runtime exceptions or algorithmic bottlenecks, they lack structured guidance on memory allocations, thread safety, or state mutations.
+3. Employment Readiness Gap: Candidates often memorize syntactical definitions but fail technical hiring interviews due to unfamiliarity with production edge cases (such as N+1 query overhead, deadlocks in synchronization contexts, boxing/unboxing costs, and Large Object Heap allocations).
+4. Low Retention and Completion Rates: Educational applications without gamified milestones or cross-platform continuity experience high drop-off rates.
 
 ---
 
-## 3. Mục tiêu chiến lược & Đề xuất giá trị (Value Propositions & Strategic Goals)
+## 3. Strategic Objectives & Value Propositions
 
-| Khía cạnh | Đề xuất giá trị cốt lõi (.NET Tutos Value Proposition) | Chỉ số đo lường thành công (KPIs) |
+| Dimension | Core Value Proposition | Key Performance Indicators (KPIs) |
 | :--- | :--- | :--- |
-| **Học tập không rào cản (Zero-friction Learning)** | Mở trình duyệt là code được ngay với Roslyn C# Sandbox (.NET 10), không cần cài đặt bất kỳ phần mềm nào. | Thời gian từ khi đăng ký đến dòng code chạy đầu tiên < 60 giây. |
-| **Phản hồi tức thì với AI (Instant Intelligent Feedback)** | Nhận chẩn đoán lỗi biên dịch, phân tích độ phức tạp Big-O ($O(1) \dots O(2^N)$), và tạo mã xUnit tự động. | Giảm 75% thời gian bế tắc khi giải Coding Challenges. |
-| **Sát hạch tuyển dụng chuẩn Senior (Recruitment Readiness)** | Phỏng vấn giả lập 1-1 với AI Lead Architect, hỗ trợ nói qua Micro, chấm điểm 3 tiêu chí và xuất báo cáo radar năng lực. | 90% học viên tự tin vượt qua vòng phỏng vấn kỹ thuật .NET. |
-| **Đồng bộ đa nền tảng xuyên suốt (Omnichannel Continuity)** | Học trên Web tại văn phòng/ở nhà, ôn flashcards và duy trì Streak trên Mobile App khi đang di chuyển. | Tăng tỷ lệ giữ chân 30 ngày (Day-30 Retention) lên trên 45%. |
-| **Động lực thông qua Gamification** | Hệ thống chuỗi học tập (Streak), điểm kinh nghiệm (XP), bảng vinh danh (Hall of Fame) và dự án Capstone thực tế. | Tăng thời gian tương tác trung bình mỗi phiên học lên > 25 phút. |
+| Zero-Friction Learning | Instant coding in modern C# 14 through an in-browser sandbox without requiring local runtime installations. | Time-to-first-execution < 60 seconds from initial registration. |
+| Intelligent Immediate Feedback | Automated compilation error analysis, algorithmic Big-O complexity scoring, and dynamic xUnit test generation. | 75% reduction in learner block time during coding challenges. |
+| Enterprise-Grade Interview Readiness | Interactive mock interviews conducted by an AI Tech Lead with verbal dictation, three-dimensional scoring, and targeted lesson recommendations. | 90% of active learners demonstrate passing scores on core .NET architectural topics. |
+| Omnichannel Data Continuity | Seamless synchronization across Web and Mobile (.NET MAUI) clients powered by a single relational database and authentication pipeline. | 30-day learner retention rate exceeding 45%. |
+| Gamified Engagement | Daily learning streaks, experience points (XP), leveled progressions, and a public Hall of Fame. | Average session duration > 25 minutes per active learner. |
 
 ---
 
-## 4. Chân dung người dùng mục tiêu (User Personas)
+## 4. Target User Personas
 
-### Persona 1: Nguyễn Văn An - Sinh viên CNTT / Fresher .NET
-- **Mục tiêu:** Nắm vững nền tảng C# và ASP.NET Core để xin việc thực tập hoặc vị trí Junior Developer.
-- **Nỗi đau (Pain Points):** Chưa có kinh nghiệm thực chiến; sợ phỏng vấn lý thuyết; dễ nản khi gặp lỗi compiler mà không có ai hướng dẫn.
-- **Giá trị nhận được từ hệ thống:**
-  - Lộ trình 101 bài học chuẩn hóa từng bước.
-  - Sát hạch code trong Playground có AI gợi ý Socratic hints.
-  - Ôn luyện bộ câu hỏi phỏng vấn flashcards trên điện thoại mỗi ngày.
+### Persona 1: University Student / Aspiring Junior .NET Developer
+- Primary Objective: Master C# fundamentals and ASP.NET Core architecture to secure an entry-level engineering role.
+- Pain Points: Overwhelmed by disparate online tutorials; lack of guided feedback when compiler diagnostics appear; anxiety regarding technical interview rounds.
+- Platform Value: Structured 7-module curriculum, step-by-step Socratic hints in the coding playground, and spaced-repetition interview flashcards on mobile.
 
-### Persona 2: Trần Thị Bích - Junior .NET Developer (1-2 năm kinh nghiệm)
-- **Mục tiêu:** Nâng cấp năng lực chuyên sâu, chinh phục mức lương Middle / Senior .NET Developer.
-- **Nỗi đau (Pain Points):** Chỉ biết làm CRUD thông thường; thiếu hiểu biết về bản chất CLR internals, tối ưu EF Core, xử lý Async/Concurrency và Clean Architecture.
-- **Giá trị nhận được từ hệ thống:**
-  - Thử thách Coding Challenge có đo đạc độ phức tạp thuật toán Big-O.
-  - Phòng phỏng vấn giả lập AI Lead Architect với các câu hỏi xoáy thực chiến.
-  - Đề xuất các bài học khắc phục chính xác điểm yếu kiến thức.
+### Persona 2: Junior Developer Seeking Mid-to-Senior Advancement
+- Primary Objective: Solidify knowledge of CLR internals, asynchronous concurrency patterns, and EF Core query tuning.
+- Pain Points: Daily work is restricted to basic CRUD tasks; insufficient exposure to production trade-offs, architecture patterns, and memory optimization.
+- Platform Value: In-depth Big-O complexity analysis, failure diagnostics on complex algorithmic challenges, and situational follow-up questioning from the AI Tech Lead.
 
-### Persona 3: Lê Hoàng Nam - Giảng viên / Quản trị viên đào tạo (Instructor / LMS Admin)
-- **Mục tiêu:** Quản trị nội dung đào tạo, theo dõi tiến độ của học viên, đánh giá bài nộp dự án Capstone.
-- **Nỗi đau (Pain Points):** Khó theo dõi tiến độ chi tiết của từng cá nhân; chấm bài tập thủ công tốn thời gian.
-- **Giá trị nhận được từ hệ thống:**
-  - Bảng điều khiển Quản trị LMS Admin trực quan.
-  - Hệ thống tự động chấm điểm bài tập code và trắc nghiệm.
-  - Quản lý quy trình duyệt dự án Capstone chuyên nghiệp.
+### Persona 3: LMS Training Instructor / Enterprise Lead
+- Primary Objective: Monitor learner cohorts, review capstone project submissions, and maintain high completion rates.
+- Pain Points: Manual grading is time-consuming; difficult to identify individual knowledge gaps across large cohorts.
+- Platform Value: Centralized administrative dashboard, automated challenge evaluation, and structured capstone submission workflows.
 
 ---
 
-## 5. Bản đồ hành trình người dùng (User Journey Map)
+## 5. User Journey Map
 
 ```mermaid
 journey
-    title Hành trình học tập và phát triển của học viên trên .NET Tutos
-    section Khám phá & Bắt đầu
-      Truy cập trang chủ & tra cứu Roadmap: 5: Học viên
-      Xem giáo trình & đọc thử bài học: 5: Học viên
-      Đăng ký tài khoản (Web hoặc Mobile): 5: Học viên
-    section Thực hành & Nâng cao
-      Thực hành code trên Playground Monaco: 5: Học viên
-      Làm Coding Challenge & rớt Test Case: 3: Học viên
-      Bấm "AI Chẩn đoán" & "Đo Big-O": 5: Học viên, AI Mentor
-      Hoàn thành bài & nhận điểm XP, duy trì Streak: 5: Học viên
-    section Sát hạch Tuyển dụng
-      Mở phòng phỏng vấn giả lập AI Mock Interview: 5: Học viên
-      Nói câu trả lời qua Micro (Speech-to-Text): 5: Học viên
-      AI Tech Lead chấm điểm, hỏi xoáy & xuất Báo cáo: 5: Học viên, AI Lead
-      Ôn các bài học được AI đề xuất bổ sung: 5: Học viên
-    section Duy trì & Đồng bộ
-      Mở Mobile App ôn Flashcards khi đang di chuyển: 5: Học viên
-      Đồng bộ tiến độ học tập và XP về Web: 5: Học viên
-      Đạt chứng chỉ hoàn thành lộ trình đào tạo: 5: Học viên
+    title End-to-End Learner Journey on the .NET Tutos Platform
+    section Discovery & Onboarding
+      Access landing portal and review curriculum roadmap: 5: Learner
+      Inspect interactive syllabus and read initial lesson: 5: Learner
+      Register unified account via Web or Mobile client: 5: Learner
+    section Hands-on Practice
+      Launch Monaco Playground and execute initial C# script: 5: Learner
+      Attempt coding challenge and encounter failing test case: 3: Learner
+      Trigger AI Diagnostics and Big-O Complexity analyzer: 5: Learner, AI Mentor
+      Apply verified fix, pass tests, and earn XP: 5: Learner
+    section Technical Assessment
+      Initiate AI Mock Technical Interview session: 5: Learner
+      Dictate response via Web Speech microphone: 5: Learner
+      Receive AI Tech Lead evaluation, tackle follow-up challenge: 5: Learner, AI Tech Lead
+      Review comprehensive competency report and recommended lessons: 5: Learner
+    section Continuity & Mastery
+      Open .NET MAUI mobile app while commuting: 5: Learner
+      Review daily flashcards and maintain learning streak: 5: Learner
+      Verify synced XP and milestones across devices: 5: Learner
 ```

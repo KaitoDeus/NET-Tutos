@@ -1,34 +1,35 @@
-# 03. TÀI LIỆU ĐẶC TẢ YÊU CẦU CHỨC NĂNG (BUSINESS REQUIREMENTS DOCUMENT - BRD)
+# 03. Functional Requirements Document (Business Requirements Document - BRD)
 
-> **Tài liệu đặc tả yêu cầu nghiệp vụ chi tiết (Functional Requirements Specification)**  
-> **Chức danh thực hiện:** Senior Business Analyst  
-> **Hệ thống:** Nền tảng Học tập & Đào tạo Lập trình .NET Toàn diện (.NET Tutos Platform)  
-> **Mã tài liệu:** BRD-NET-TUTOS-2026-V2  
+Document Type: Business Requirements Specification  
+Role: Senior Business Analyst  
+System: .NET Tutos - Comprehensive .NET Learning & Assessment Platform  
+Document Identifier: BRD-NET-TUTOS-2026-V2  
+Status: Approved  
 
 ---
 
-## 1. Ma trận phân loại yêu cầu (Requirement Classification Matrix)
+## 1. Requirement Classification Matrix
 
-Hệ thống được chuẩn hóa thành 7 phân hệ chức năng chính:
+The system capabilities are structured across seven business functional modules:
 
-| Mã phân hệ | Tên phân hệ nghiệp vụ | Phạm vi nền tảng | Mức độ ưu tiên |
+| Module Identifier | Functional Module Name | Target Platform Scope | Priority Tier |
 | :--- | :--- | :--- | :--- |
-| **MOD-LMS** | Quản trị Giáo trình & Bài học LMS | Web App & Mobile App | P0 (Must Have) |
-| **MOD-PLAY** | Trình Thực hành Code Trực tuyến (Monaco Playground) | Web App | P0 (Must Have) |
-| **MOD-AI** | Trợ lý AI & Lập trình Tương tác (AI Mentor) | Web App | P0 (Must Have) |
-| **MOD-INT** | Phòng Phỏng vấn Kỹ thuật Giả lập AI (AI Mock Interview) | Web App | P1 (High) |
-| **MOD-GAM** | Hệ thống Động lực Gamification, Streak & Xếp hạng | Web App & Mobile App | P1 (High) |
-| **MOD-MOB** | Ứng dụng Di động Client (.NET MAUI) | Mobile (Android/iOS) | P0 (Must Have) |
-| **MOD-ADM** | Bảng điều khiển Quản trị LMS Admin | Web App | P1 (High) |
+| **MOD-LMS** | Curriculum & Learning Management System | Web Application & Mobile App | P0 (Must Have) |
+| **MOD-PLAY** | Online Interactive Code Playground (Monaco & Sandbox) | Web Application | P0 (Must Have) |
+| **MOD-AI** | AI Mentor & Interactive Coding Assistant | Web Application | P0 (Must Have) |
+| **MOD-INT** | AI Mock Technical Interview Simulator | Web Application | P1 (High) |
+| **MOD-GAM** | Gamification, Learning Streaks & Community Engine | Web Application & Mobile App | P1 (High) |
+| **MOD-MOB** | Cross-Platform Mobile Client (.NET MAUI) | Mobile (Android / iOS / Windows) | P0 (Must Have) |
+| **MOD-ADM** | Administrative Back-Office & Cohort Oversight | Web Application | P1 (High) |
 
 ---
 
-## 2. Chi tiết yêu cầu chức năng (Detailed Functional Requirements)
+## 2. Detailed Functional Requirements
 
-### Phân hệ 1: Quản trị Giáo trình & Bài học LMS (MOD-LMS)
+### Module 1: Curriculum & Learning Management System (MOD-LMS)
 
-#### `REQ-LMS-01`: Cấu trúc giáo trình 7 Module chuẩn Microsoft .NET
-- **Mô tả:** Hệ thống cung cấp cấu trúc 101 bài học chuẩn hóa chia làm 7 module tuần tự:
+#### `REQ-LMS-01`: Standardized 7-Module Microsoft .NET Curriculum Structure
+- **Description:** The system provides a sequential 101-lesson curriculum categorized into seven learning modules:
   1. *C# Fundamentals & Object-Oriented Programming*
   2. *Advanced C# & Memory Management*
   3. *LINQ & Collections Deep Dive*
@@ -36,167 +37,179 @@ Hệ thống được chuẩn hóa thành 7 phân hệ chức năng chính:
   5. *Entity Framework Core & Database Performance*
   6. *ASP.NET Core Web API & Modern Architecture*
   7. *Clean Architecture, Microservices & Cloud Patterns*
-- **User Story:** Là một học viên, tôi muốn xem lộ trình từ Zero đến Senior có thứ tự logic để tôi biết rõ mình đang ở đâu và cần học gì tiếp theo.
-- **Tiêu chí chấp nhận (Acceptance Criteria):**
-  - **Given** người dùng truy cập trang Giáo trình (`/curriculum` hoặc `/roadmap`).
-  - **When** người dùng xem từng module.
-  - **Then** hệ thống hiển thị danh sách bài học, thời gian đọc ước tính, cấp độ khó (Beginner, Intermediate, Advanced) và trạng thái hoàn thành (Đã học / Chưa học).
+- **User Story:** As an aspiring .NET software engineer, I want a structured progression roadmap from introductory syntax to senior-level architectural design, so that I understand my current competencies and next learning milestones.
+- **Acceptance Criteria:**
+  - **Given** an authenticated or guest user navigating to the curriculum view (`/curriculum` or `/roadmap`).
+  - **When** the user inspects any curriculum module.
+  - **Then** the platform displays the ordered lesson list, estimated reading duration, difficulty tier (Beginner, Intermediate, Advanced), and completion state (Completed / Pending).
 
-#### `REQ-LMS-02`: Hiển thị nội dung bài học Markdown & Code Highlighting
-- **Mô tả:** Nội dung bài học được biên soạn dưới dạng Markdown giàu tính năng (Gutenberg/GitHub style), hỗ trợ syntax highlighting cho C#, ghi chú chú giải (Alert callouts), bảng biểu và sơ đồ.
-- **Tiêu chí chấp nhận:**
-  - Tự động đánh chỉ mục mục lục (Table of Contents) theo các thẻ `H2`, `H3`.
-  - Có nút "Lưu ngoại tuyến" (Save Offline) để đọc khi mất mạng qua Service Worker PWA.
-  - Có thanh điều hướng bài trước / bài sau (Next / Previous Navigation).
+#### `REQ-LMS-02`: Rich Markdown Content Rendering & Syntax Highlighting
+- **Description:** Lesson content is authored in extended Markdown, featuring syntax-highlighted C# code blocks, callout alert containers, diagrams, and tabular data.
+- **Acceptance Criteria:**
+  - Automatically generate an interactive Table of Contents indexed to `H2` and `H3` headings.
+  - Provide a "Save Offline" action leveraging the Progressive Web App (PWA) cache for disconnected study.
+  - Provide sequential navigation controls (Previous Lesson / Next Lesson).
 
-#### `REQ-LMS-03`: Hệ thống Quiz trắc nghiệm đánh giá kiến thức
-- **Mô tả:** Mỗi bài học có bộ câu hỏi trắc nghiệm tự đánh giá. Khi hoàn thành đúng trên 80%, bài học được tính điểm kinh nghiệm thưởng.
+#### `REQ-LMS-03`: Assessment Quizzes & Knowledge Verification
+- **Description:** Each curriculum lesson includes a multi-question self-assessment quiz to reinforce key concepts.
+- **Acceptance Criteria:**
+  - Achieving a score of $\ge 80\%$ marks the lesson assessment as passed and credits bonus experience points (XP).
 
 ---
 
-### Phân hệ 2: Trình Thực hành Code Trực tuyến (MOD-PLAY)
+### Module 2: Online Interactive Code Playground (MOD-PLAY)
 
-#### `REQ-PLAY-01`: Trình soạn thảo Monaco Editor chuyên nghiệp
-- **Mô tả:** Tích hợp bộ soạn thảo Monaco Editor phiên bản 0.45.0 trên trình duyệt Web.
-- **Tiêu chí chấp nhận:**
-  - Hỗ trợ Auto-completion, Syntax Highlighting cho C# 14.
-  - Hỗ trợ phím tắt chuẩn: `Ctrl + Enter` (Chạy mã), `Ctrl + S` (Tự động format code), `Ctrl + I` (Hỏi trợ lý AI).
-  - Tùy biến linh hoạt trong Menu Cài đặt: Đổi phông chữ (`Fira Code`, `JetBrains Mono`, `Cascadia Code`), cỡ chữ (12px - 20px), thụt đầu dòng (2/4 spaces), Ligatures (`=>`, `!=`, `==`), Minimap, Word Wrap.
-  - Đồng bộ màu sắc Dark/Light Theme tự động theo hệ thống hoặc tùy chọn thủ công (`vs-dark`, `vs`, `hc-black`).
+#### `REQ-PLAY-01`: Monaco Editor Integration
+- **Description:** Embed the Microsoft Monaco Editor (version 0.45.0) within the browser environment.
+- **Acceptance Criteria:**
+  - Provide full syntax highlighting and IntelliSense auto-completion for C# 14.
+  - Support standard keyboard shortcuts: `Ctrl + Enter` (Execute Script), `Ctrl + S` (Format Document), and `Ctrl + I` (Consult AI Mentor).
+  - Provide an in-editor Settings Modal allowing users to configure font family (`Fira Code`, `JetBrains Mono`, `Cascadia Code`), font size ($12\text{px} \dots 20\text{px}$), tab indentation ($2 / 4$ spaces), font ligatures, minimap display, and word wrapping.
+  - Support automatic Dark/Light theme synchronization with the web shell as well as manual theme selection (`vs-dark`, `vs`, `hc-black`).
 
 #### `REQ-PLAY-02`: Roslyn Scripting Execution Sandbox
-- **Mô tả:** Biên dịch và thực thi script C# trong môi trường sandbox an toàn trên máy chủ.
-- **Tiêu chí chấp nhận:**
-  - Bắt toàn bộ luồng xuất `Console.WriteLine()` và hiển thị lên cửa sổ Terminal Console giả lập.
-  - Đo đạc chính xác thời gian thực thi (Execution Time tính bằng millisecond `ms`).
-  - Nếu gặp lỗi biên dịch (Compile Error), trích xuất mã lỗi (`CSxxxx`), vị trí dòng bị lỗi và thông điệp lỗi trực quan.
-  - Tự động ngắt (Timeout) nếu mã lệnh chạy quá 3000ms nhằm phòng chống vòng lặp vô tận.
+- **Description:** Dynamically compile and execute C# scripts in an isolated server-side sandbox environment.
+- **Acceptance Criteria:**
+  - Intercept standard output (`Console.WriteLine`) and stream results directly to the simulated web terminal console.
+  - Measure and report execution duration in milliseconds.
+  - Capture compilation diagnostics and display structured error codes (`CSxxxx`), line numbers, and readable messages.
+  - Enforce an automated hard execution timeout of $3000\text{ms}$ to prevent denial of service from infinite loops.
 
-#### `REQ-PLAY-03`: Coding Challenges & Judge Engine tự động
-- **Mô tả:** Hệ thống thử thách lập trình thuật toán và tình huống thực tế.
-- **Tiêu chí chấp nhận:**
-  - Học viên viết mã hàm `Solution` và bấm "Nộp bài (Submit Solution)".
-  - Judge Engine chạy mã qua danh sách `CodeTestCase` (cả test công khai và test ẩn).
-  - Nếu đúng 100%: Ghi nhận trạng thái `Accepted`, hiển thị tổng thời gian thực thi, cộng điểm XP thưởng và cập nhật tiến độ.
-  - Nếu sai: Hiển thị bảng chi tiết các test case bị lỗi (Input, Actual Output, Expected Output) kèm nút **"AI Chẩn đoán"** trên từng dòng fail.
+#### `REQ-PLAY-03`: Algorithmic Coding Challenges & Automated Judge Engine
+- **Description:** Provide interactive programming challenges evaluated against standardized unit test suites.
+- **Acceptance Criteria:**
+  - The learner writes logic within a predefined `Solution` method template and triggers "Submit Solution".
+  - The judge engine executes the submission against a matrix of `CodeTestCase` records (including public and hidden evaluation cases).
+  - If 100% of test cases pass: Flag the attempt as `Accepted`, display aggregate execution time, grant XP points, and update challenge completion metrics.
+  - If any test case fails: Render a failure breakdown table (Input Parameters, Actual Output, Expected Output) with a dedicated "AI Diagnose" button on each failing row.
 
 ---
 
-### Phân hệ 3: Trợ lý AI & Lập trình Tương tác (MOD-AI)
+### Module 3: AI Mentor & Interactive Coding Assistant (MOD-AI)
 
-#### `REQ-AI-01`: Đo lường & Phân tích độ phức tạp thuật toán Big-O (`AnalyzeComplexity`)
-- **Mô tả:** Phân tích thuật toán C# trong editor để xác định độ phức tạp Big-O thời gian (Time Complexity: $O(1), O(\log N), O(N), O(N \log N), O(N^2), O(2^N)$) và không gian (Space Complexity: $O(1), O(N)$).
-- **Tiêu chí chấp nhận:**
-  - Hiển thị huy hiệu màu sắc trực quan (Xanh: $O(1), O(N)$; Đỏ: $O(N^2), O(2^N)$).
-  - Thang điểm hiệu năng (Efficiency Score từ 1 đến 100).
-  - Chỉ rõ các điểm nghẽn (Bottlenecks) như vòng lặp lồng nhau, cộng chuỗi không dùng `StringBuilder`.
-  - Đưa ra đề xuất cải tiến tối ưu (Optimizations) cụ thể.
+#### `REQ-AI-01`: Big-O Algorithmic Complexity Analysis (`AnalyzeComplexity`)
+- **Description:** Inspect the active C# snippet in the editor to evaluate algorithmic time complexity ($O(1), O(\log N), O(N), O(N \log N), O(N^2), O(2^N)$) and space complexity ($O(1), O(N)$).
+- **Acceptance Criteria:**
+  - Render color-coded complexity badges (Green for optimal $O(1)$ and $O(N)$; Red for sub-optimal $O(N^2)$ and $O(2^N)$).
+  - Compute a numerical efficiency score from 1 to 100.
+  - Enumerate identified computational bottlenecks (e.g., nested loops, unbuffered string concatenations).
+  - Recommend concrete architectural and data structure optimizations.
 
-#### `REQ-AI-02`: Chẩn đoán nguyên nhân rớt Test Case (`DiagnoseTestFailure`)
-- **Mô tả:** Khi nộp bài Coding Challenge mà bị kết quả sai (Wrong Answer), người học bấm nút **"AI Chẩn đoán"** ngay tại hàng test case bị sai.
-- **Tiêu chí chấp nhận:**
-  - Phân loại chính xác nguyên nhân gốc rễ (Root Cause Category):
+#### `REQ-AI-02`: Test Case Failure Diagnosis (`DiagnoseTestFailure`)
+- **Description:** Provide immediate diagnostic explanations when a coding challenge submission fails one or more test cases.
+- **Acceptance Criteria:**
+  - Accurately classify the root cause into standard engineering failure categories:
     - *Edge Case / Null Handling*
     - *Off-by-one Indexing*
     - *Case Sensitivity*
     - *Duplicate Element / Index Reuse*
     - *Logic Flaw / State Mutation*
-  - Giải thích rõ tại sao lại ra kết quả thực tế và hướng dẫn cách khắc phục.
-  - Cung cấp đoạn mã sửa mẫu kèm 2 nút 1-click: **"Sao chép (Copy)"** và **"Áp dụng vào Editor (Apply to Editor)"**.
+  - Explain the discrepancy between actual output and expected behavior.
+  - Provide a verified code fix snippet accompanied by two one-click actions: "Copy Code" and "Apply to Editor".
 
-#### `REQ-AI-03`: Tự động sinh bộ kiểm thử xUnit (`GenerateUnitTest`)
-- **Mô tả:** Tự động tạo bộ kiểm thử đơn vị chuẩn xUnit cho đoạn mã đang viết trong editor.
-- **Tiêu chí chấp nhận:**
-  - Tuân thủ nghiêm ngặt mô hình AAA (Arrange – Act – Assert).
-  - Sinh cả kiểm thử trường hợp chuẩn (`[Fact]`) và kiểm thử tham số hóa trường hợp biên (`[Theory]`, `[InlineData]`).
-  - Hỗ trợ nút sao chép và nút chèn trực tiếp vào trình soạn thảo.
+#### `REQ-AI-03`: Automated xUnit Test Suite Generation (`GenerateUnitTest`)
+- **Description:** Automatically synthesize an xUnit unit test suite for the current code in the editor.
+- **Acceptance Criteria:**
+  - Adhere strictly to the Arrange-Act-Assert (AAA) testing pattern.
+  - Produce both standard unit tests (`[Fact]`) and parameterized boundary tests (`[Theory]`, `[InlineData]`).
+  - Provide copy-to-clipboard and direct editor insertion actions.
 
-#### `REQ-AI-04`: Phím tắt `Ctrl+I` & Context Menu chuột phải trong Monaco
-- **Mô tả:** Cho phép bôi đen bất kỳ đoạn mã nào trong Monaco Editor và nhấn `Ctrl+I` hoặc click chuột phải chọn:
-  - 🤖 *AI Mentor: Giải thích đoạn mã đã chọn*
-  - ⚡ *AI Mentor: Đo độ phức tạp Big-O*
-  - 🧪 *AI Mentor: Tạo bộ kiểm thử xUnit*
-
----
-
-### Phân hệ 4: Phòng Phỏng vấn Kỹ thuật Giả lập AI (MOD-INT)
-
-#### `REQ-INT-01`: Đóng vai AI Tech Lead sát hạch trực tiếp
-- **Mô tả:** Mô phỏng phòng phỏng vấn trực tiếp với AI đóng vai Lead Architect / Senior Interviewer.
-- **Tiêu chí chấp nhận:**
-  - Tạo bộ đề 5 câu hỏi tình huống ngẫu nhiên theo trình độ (Junior, Middle, Senior) hoặc chủ đề chuyên sâu (C# Internals, Async, EF Core, ASP.NET Core, Architecture).
-  - Có đồng hồ đếm ngược thông minh (10 phút mặc định).
-  - Có thanh Stepper tròn số (1 đến 5) giúp người học nhảy nhanh hoặc theo dõi câu hỏi đang làm.
-
-#### `REQ-INT-02`: Chấm điểm câu trả lời thực tế theo 3 tiêu chuẩn tuyển dụng
-- **Mô tả:** AI phân tích câu trả lời văn bản thực tế của ứng viên và chấm điểm 3 tiêu chí:
-  1. **Technical Accuracy (Độ chính xác kỹ thuật - 0 đến 100):** Khái niệm, cơ chế CLR, bộ nhớ.
-  2. **Clarity & Structure (Diễn đạt & Cấu trúc - 0 đến 100):** Mạch lạc, đi thẳng vào trọng tâm.
-  3. **Practical Depth (Độ sâu thực chiến - 0 đến 100):** Nhận diện các bẫy thực tế (deadlock, N+1, unmanaged resource).
-- **Tiêu chí chấp nhận:**
-  - Phân loại trình độ: `Senior Level`, `Strong Mid`, `Junior Level`, `Needs Revision`.
-  - Trích xuất danh sách **Điểm sáng (Key Strengths)** trong câu trả lời.
-  - Trích xuất danh sách **Ý còn thiếu (Missing Points)** cần bổ sung để đạt chuẩn Senior.
-  - Cung cấp **Câu trả lời tham chiếu chuẩn Senior (Model Benchmark Answer)**.
-
-#### `REQ-INT-03`: Thử thách câu hỏi xoáy (Follow-Up Challenge) tương tác
-- **Mô tả:** AI Tech Lead tự động đặt ra một câu hỏi xoáy đào sâu tình huống thực tế cho từng câu hỏi.
-- **Tiêu chí chấp nhận:**
-  - Ứng viên có thể nhập câu trả lời phản hồi cho câu hỏi xoáy ngay tại chỗ.
-  - AI phản hồi đánh giá và cộng điểm thưởng **Bonus XP** vào kết quả.
-
-#### `REQ-INT-04`: Nhận diện giọng nói Web Speech API (Speech-to-Text)
-- **Mô tả:** Tích hợp nút Micro **"Nói câu trả lời"** bên cạnh ô nhập văn bản.
-- **Tiêu chí chấp nhận:**
-  - Hỗ trợ cả tiếng Việt (`vi-VN`) và tiếng Anh (`en-US`) tự động theo ngôn ngữ trang.
-  - Hiển thị hiệu ứng trạng thái đang ghi âm; chữ nói ra được tự động điền vào khung trả lời.
-
-#### `REQ-INT-05`: Báo cáo sát hạch toàn diện & Đề xuất lộ trình học tập
-- **Mô tả:** Sau khi hoàn thành buổi phỏng vấn, hệ thống xuất báo cáo năng lực chi tiết.
-- **Tiêu chí chấp nhận:**
-  - Xếp loại năng lực tổng thể: `Senior Ready`, `Middle Ready`, `Junior Ready`.
-  - Bảng đánh giá 5 kỹ năng cốt lõi .NET dưới dạng progress bars.
-  - Nhận xét tổng quan của Hội đồng phỏng vấn (Executive Assessment).
-  - Đề xuất danh sách các bài học (`Tutorials`) cần ôn tập kèm đường link truy cập trực tiếp.
-  - Tự động cộng điểm kinh nghiệm XP thưởng và ghi nhận chuỗi ngày học Streak.
+#### `REQ-AI-04`: Keyboard Shortcut `Ctrl+I` & Monaco Context Menu
+- **Description:** Enable learners to select any code segment in Monaco Editor and trigger AI assistance via `Ctrl+I` or right-click context menu options:
+  - *AI Mentor: Explain Selected Code*
+  - *AI Mentor: Analyze Big-O Complexity*
+  - *AI Mentor: Generate xUnit Test Suite*
 
 ---
 
-### Phân hệ 5: Gamification, Streak & Cộng đồng (MOD-GAM)
+### Module 4: AI Mock Technical Interview Simulator (MOD-INT)
 
-#### `REQ-GAM-01`: Chuỗi học tập liên tục (Daily Learning Streak)
-- **Mô tả:** Ghi nhận chuỗi ngày học liên tiếp khi học viên có ít nhất 1 hoạt động (đọc bài, nộp code challenge, làm quiz, phỏng vấn thử).
-- **Quy tắc nghiệp vụ:** Nếu quá 24h từ ngày hôm trước mà không có hoạt động, chuỗi Streak reset về 1.
+#### `REQ-INT-01`: AI Tech Lead Role-Playing Simulation
+- **Description:** Simulate a high-stakes technical interview led by an AI acting as a Principal Architect or Senior Interviewer.
+- **Acceptance Criteria:**
+  - Assemble a randomized 5-question interview session filtered by seniority tier (Junior, Middle, Senior) or specialized topic domain (C# Internals, Concurrency, EF Core, ASP.NET Core, Architecture).
+  - Maintain an active session countdown timer (default 10 minutes).
+  - Provide a circular numeric question stepper (1 to 5) allowing direct navigation and progress tracking.
 
-#### `REQ-GAM-02`: Hệ thống Điểm kinh nghiệm (XP) & Cấp bậc (Level)
-- **Quy tắc tính điểm XP:**
-  - Đọc xong bài học: `+15 XP`
-  - Hoàn thành Quiz: `+20 XP`
-  - Giải đúng Coding Challenge: `+30 XP`
-  - Hoàn thành phiên Mock Interview: `+50 XP` đến `+90 XP`
-  - Điểm danh hàng ngày: `+10 XP`
-- **Công thức tính cấp độ:** $\text{Level} = \lfloor \frac{\text{XP}}{100} \rfloor + 1$.
+#### `REQ-INT-02`: Three-Dimensional Candidate Response Assessment
+- **Description:** Evaluate candidate free-text answers across three recruitment dimensions:
+  1. **Technical Accuracy (0 to 100):** Grasp of CLR fundamentals, runtime mechanisms, memory allocation, and type safety.
+  2. **Clarity & Structure (0 to 100):** Communication precision, concise framing, and architectural terminology.
+  3. **Practical Depth (0 to 100):** Awareness of real-world pitfalls, production edge cases, and performance tradeoffs.
+- **Acceptance Criteria:**
+  - Classify candidate performance tier: `Senior Level`, `Strong Mid`, `Junior Level`, or `Needs Revision`.
+  - Extract specific **Key Strengths** present in the answer.
+  - Highlight critical **Missing Points** required to satisfy senior-level criteria.
+  - Provide a comprehensive **Model Benchmark Answer**.
 
-#### `REQ-GAM-03`: Bảng vinh danh (Hall of Fame / Leaderboard)
-- **Mô tả:** Bảng xếp hạng học viên xuất sắc theo Tuần, Tháng và Toàn thời gian dựa trên tổng số XP và chuỗi Streak.
+#### `REQ-INT-03`: Interactive Follow-Up Challenge
+- **Description:** The AI interviewer formulates an inquisitive follow-up probe targeting ambiguities or edge cases in the candidate's initial answer.
+- **Acceptance Criteria:**
+  - Candidates can submit an in-place response to the follow-up question.
+  - The AI reviews the follow-up response and grants bonus XP upon satisfactory justification.
 
-#### `REQ-GAM-04`: Diễn đàn thảo luận thời gian thực (SignalR Discussion)
-- **Mô tả:** Cho phép học viên đặt câu hỏi dưới từng bài học, bình luận, upvote câu trả lời hay và nhận thông báo realtime qua SignalR.
+#### `REQ-INT-04`: Speech Recognition via Web Speech API
+- **Description:** Provide a speech-to-text input capability via an integrated microphone toggle.
+- **Acceptance Criteria:**
+  - Support both English (`en-US`) and Vietnamese (`vi-VN`) speech models based on application locale.
+  - Provide an animated recording state indicator and stream transcribed text into the answer input area.
+
+#### `REQ-INT-05`: Comprehensive Assessment Report & Recommended Learning Roadmap
+- **Description:** Synthesize the completed interview session into a formal evaluation report.
+- **Acceptance Criteria:**
+  - Determine overall engineering readiness: `Senior Ready`, `Middle Ready`, or `Junior Ready`.
+  - Display a 5-dimension competency breakdown progress matrix.
+  - Present an Executive Assessment narrative from the interview board.
+  - List targeted curriculum tutorials with direct navigation links to remediate identified deficiencies.
+  - Credit session XP points and update the learner's daily streak.
 
 ---
 
-### Phân hệ 6: Khách hàng Di động .NET MAUI Client (MOD-MOB)
+### Module 5: Gamification, Learning Streaks & Community Engine (MOD-GAM)
 
-#### `REQ-MOB-01`: Đồng bộ tài khoản và đăng nhập thống nhất
-- **Mô tả:** Người dùng sử dụng cùng tài khoản Web để đăng nhập vào Mobile App qua API `/api/mobile/auth/login`.
-- **Tiêu chí chấp nhận:** Token JWT được lưu trữ an toàn trong `Preferences`; thông tin họ tên, avatar, XP, level và streak được đồng bộ tự động.
+#### `REQ-GAM-01`: Daily Learning Streak Engine
+- **Description:** Track consecutive daily learning engagement when a user performs at least one qualifying action (reading a lesson, submitting code, completing a quiz, or finishing an interview).
+- **Business Rule:** Inactivity exceeding 24 hours from the prior active date resets the streak counter to 1.
 
-#### `REQ-MOB-02`: Đọc bài học & Đánh dấu hoàn thành
-- **Mô tả:** Hiển thị danh mục giáo trình, danh sách bài học và chi tiết nội dung trên màn hình điện thoại mượt mà.
-- **Tiêu chí chấp nhận:** Bấm nút "Hoàn thành bài học" trên Mobile sẽ gọi API ghi nhận vào Database chung, tự động cộng XP và cập nhật tiến độ trên Web.
+#### `REQ-GAM-02`: Experience Points (XP) & Progression Levels
+- **XP Earning Rules:**
+  - Complete tutorial reading: `+15 XP`
+  - Pass lesson assessment quiz: `+20 XP`
+  - Solve coding challenge: `+30 XP`
+  - Complete AI mock interview session: `+50 XP` to `+90 XP`
+  - Daily login check-in: `+10 XP`
+- **Level Calculation Formula:** $\text{Level} = \lfloor \frac{\text{XP}}{100} \rfloor + 1$.
 
-#### `REQ-MOB-03`: Động cơ giao diện đa chế độ (Theme Engine)
-- **Mô tả:** Hỗ trợ 3 chế độ hiển thị: Tự động theo hệ điều hành điện thoại, Chế độ Sáng (Light) và Chế độ Tối (Dark).
+#### `REQ-GAM-03`: Hall of Fame & Community Leaderboard
+- **Description:** Display global leaderboards tracking top learners across Weekly, Monthly, and All-Time intervals based on XP and streak milestones.
 
-#### `REQ-MOB-04`: Cấu hình địa chỉ máy chủ API linh hoạt
-- **Mô tả:** Ngay tại màn hình Đăng nhập và Cài đặt, có ô cấu hình Server URL giúp học viên hoặc lập trình viên dễ dàng chuyển đổi IP máy chủ (ví dụ `10.0.2.2:5000` trên Emulator hoặc `192.168.1.x:5000` trên thiết bị thật).
+#### `REQ-GAM-04`: Real-Time Discussion Forum (SignalR)
+- **Description:** Provide contextual discussion threads beneath lessons with comment upvoting, answer marking, and real-time push updates via SignalR.
+
+---
+
+### Module 6: Cross-Platform Mobile Client (.NET MAUI) (MOD-MOB)
+
+#### `REQ-MOB-01`: Unified Authentication & Identity Synchronization
+- **Description:** Learners authenticate using unified web credentials against `/api/mobile/auth/login`.
+- **Acceptance Criteria:** Securely store issued JWT Bearer tokens in device storage (`Preferences`); automatically sync name, avatar, XP balance, level, and streak counter.
+
+#### `REQ-MOB-02`: Tutorial Consumption & Progress Check-in
+- **Description:** Provide a responsive mobile reading experience for all 101 curriculum lessons.
+- **Acceptance Criteria:** Tapping "Mark as Completed" on mobile invokes the shared API, records completion in the central database, awards XP, and synchronizes status with the Web Application.
+
+#### `REQ-MOB-03`: Adaptive Theme Engine
+- **Description:** Support three display modes: System Default, Light Mode, and Dark Mode.
+
+#### `REQ-MOB-04`: Dynamic API Server Configuration
+- **Description:** Provide a configuration input on the login and settings screens allowing users and testers to switch API host endpoints (e.g., `10.0.2.2:5000` for Android emulators or local LAN IP addresses for physical devices).
+
+---
+
+### Module 7: Administrative Back-Office & Cohort Oversight (MOD-ADM)
+
+#### `REQ-ADM-01`: Curriculum and Challenge Management
+- **Description:** Provide administrative controls for managing categories, tutorial content, coding challenges, and unit test cases.
+
+#### `REQ-ADM-02`: Learner Cohort Analytics & Activity Auditing
+- **Description:** Enable instructors to inspect aggregate completion rates, common failure patterns, and system engagement metrics.

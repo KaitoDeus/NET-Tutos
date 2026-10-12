@@ -1,71 +1,72 @@
-# 05. MÔ HÌNH DỮ LIỆU & ĐẶC TẢ GIAO TIẾP API (DATA MODELS & API SPECIFICATIONS)
+# 05. Data Models & API Specifications
 
-> **Tài liệu đặc tả cơ sở dữ liệu & giao diện lập trình ứng dụng (Data Schema & API Contracts)**  
-> **Chức danh thực hiện:** Senior Business Analyst / Data Architect  
-> **Hệ thống:** Nền tảng Học tập & Đào tạo Lập trình .NET Toàn diện (.NET Tutos Platform)  
-> **Mã tài liệu:** SPEC-API-DB-2026-V2  
+Document Type: Data Schema & API Contract Specification  
+Role: Senior Business Analyst / Data Architect  
+System: .NET Tutos - Comprehensive .NET Learning & Assessment Platform  
+Document Identifier: SPEC-API-DB-2026-V2  
+Status: Approved  
 
 ---
 
-## 1. Sơ đồ thực thể dữ liệu tổng thể (Entity Relationship Diagram - ERD)
+## 1. Entity Relationship Diagram (ERD)
 
 ```mermaid
 erDiagram
-    ApplicationUser ||--o{ UserLessonProgress : "tiến độ bài học"
-    ApplicationUser ||--o{ CodeSubmission : "nộp bài code"
-    ApplicationUser ||--o{ DailyCheckIn : "điểm danh hàng ngày"
-    ApplicationUser ||--o{ UserBadge : "huy hiệu đạt được"
-    ApplicationUser ||--o{ DiscussionComment : "bình luận"
-    ApplicationUser ||--o{ UserFlashcardProgress : "tiến độ flashcard"
+    ApplicationUser ||--o{ UserLessonProgress : "tracks lesson progress"
+    ApplicationUser ||--o{ CodeSubmission : "submits code"
+    ApplicationUser ||--o{ DailyCheckIn : "checks in daily"
+    ApplicationUser ||--o{ UserBadge : "earns badges"
+    ApplicationUser ||--o{ DiscussionComment : "authors comments"
+    ApplicationUser ||--o{ UserFlashcardProgress : "retains flashcard progress"
 
-    Category ||--o{ Tutorial : "chứa các bài học"
-    Tutorial ||--o{ QuizQuestion : "chứa câu hỏi trắc nghiệm"
-    Tutorial ||--o{ CodeSnippet : "chứa mã mẫu"
-    Tutorial ||--o{ UserLessonProgress : "được học bởi"
+    Category ||--o{ Tutorial : "contains lessons"
+    Tutorial ||--o{ QuizQuestion : "features assessment questions"
+    Tutorial ||--o{ CodeSnippet : "contains example snippets"
+    Tutorial ||--o{ UserLessonProgress : "is studied through"
 
-    CodingChallenge ||--o{ CodeTestCase : "bộ kiểm thử"
-    CodingChallenge ||--o{ CodeSubmission : "lịch sử nộp bài"
+    CodingChallenge ||--o{ CodeTestCase : "evaluated by test cases"
+    CodingChallenge ||--o{ CodeSubmission : "stores submissions"
 
-    InterviewFlashcard ||--o{ UserFlashcardProgress : "thẻ ôn tập"
+    InterviewFlashcard ||--o{ UserFlashcardProgress : "practiced via"
 ```
 
 ---
 
-## 2. Danh mục các bảng thực thể dữ liệu cốt lõi (Domain Entity Specifications)
+## 2. Domain Entity Specifications
 
-### 1. Thực thể `ApplicationUser` (Kế thừa từ `IdentityUser`)
-- `Id` (GUID / String): Khóa chính nhận diện người dùng.
-- `UserName`, `Email`: Tài khoản đăng nhập và liên hệ.
-- `FullName` (NVarChar 150): Tên đầy đủ hiển thị trên hệ thống và chứng chỉ.
-- `AvatarUrl` (NVarChar 500): Đường dẫn ảnh đại diện.
-- `ExperiencePoints` (Int): Tổng điểm kinh nghiệm (XP) tích lũy.
-- `CurrentStreak` (Int): Số ngày học liên tiếp hiện tại.
-- `LastActiveDate` (DateTime): Thời điểm hoạt động gần nhất để tính toán Streak.
+### 1. Entity `ApplicationUser` (Inherits from `IdentityUser`)
+- `Id` (GUID / String): Unique primary key.
+- `UserName`, `Email`: Login and communication identifiers.
+- `FullName` (NVarChar 150): Learner display name used across leaderboards and certificates.
+- `AvatarUrl` (NVarChar 500): Profile image location.
+- `ExperiencePoints` (Int): Cumulative experience points (XP) balance.
+- `CurrentStreak` (Int): Number of consecutive active learning days.
+- `LastActiveDate` (DateTime): Most recent timestamp of learning activity for streak determination.
 
-### 2. Thực thể `Tutorial` & `Category`
-- `Tutorial.Id` (Int, PK), `Title` (NVarChar 250), `Slug` (NVarChar 250, Unique).
-- `Summary` (NVarChar 600): Tóm tắt bài học.
-- `ContentMarkdown` (NVarChar MAX): Toàn văn nội dung bài giảng định dạng Markdown.
-- `EstimatedReadingMinutes` (Int): Thời lượng ước tính.
+### 2. Entities `Tutorial` & `Category`
+- `Tutorial.Id` (Int, PK), `Title` (NVarChar 250), `Slug` (NVarChar 250, Unique Index).
+- `Summary` (NVarChar 600): Brief overview of lesson objectives.
+- `ContentMarkdown` (NVarChar MAX): Full lesson content in extended Markdown format.
+- `EstimatedReadingMinutes` (Int): Estimated reading and practice duration.
 - `Difficulty` (Enum: Beginner, Intermediate, Advanced).
-- `CategoryId` (Int, FK): Khóa ngoại liên kết bảng `Category`.
+- `CategoryId` (Int, FK): Foreign key mapping to parent `Category`.
 
-### 3. Thực thể `CodingChallenge` & `CodeTestCase`
+### 3. Entities `CodingChallenge` & `CodeTestCase`
 - `CodingChallenge`: `Id`, `Title`, `Slug`, `DescriptionMarkdown`, `DifficultyLevel`, `InitialCode`, `SolutionTemplate`, `XpReward`.
-- `CodeTestCase`: `Id`, `ChallengeId` (FK), `InputParameters` (Json/String), `ExpectedOutput` (String), `IsHidden` (Boolean - dùng để chống gian lận nộp bài).
+- `CodeTestCase`: `Id`, `ChallengeId` (FK), `InputParameters` (Json / String), `ExpectedOutput` (String), `IsHidden` (Boolean - anti-cheat evaluation flag).
 
-### 4. Thực thể `InterviewFlashcard` & `UserFlashcardProgress`
+### 4. Entities `InterviewFlashcard` & `UserFlashcardProgress`
 - `InterviewFlashcard`: `Id`, `Slug`, `Topic` (Enum: CSharpCore, AsyncConcurrency, EfCoreDatabase, AspNetCoreWebAPI, ArchitectureCloud), `Difficulty`, `QuestionVi`, `QuestionEn`, `AnswerMarkdownVi`, `AnswerMarkdownEn`, `InterviewTipVi`, `InterviewTipEn`.
-- `UserFlashcardProgress`: `Id`, `UserId` (FK), `FlashcardId` (FK), `BoxLevel` (1 - 5 theo phương pháp lặp lại ngắt quãng Leitner), `ReviewCount`, `LastRating`, `NextReviewDate`, `IsMastered`.
+- `UserFlashcardProgress`: `Id`, `UserId` (FK), `FlashcardId` (FK), `BoxLevel` (1 - 5 in Leitner spaced repetition system), `ReviewCount`, `LastRating`, `NextReviewDate`, `IsMastered`.
 
 ---
 
-## 3. Quy chuẩn API RESTful Mobile & Web Integration (API Contracts)
+## 3. RESTful API Specifications & Web/Mobile Contracts
 
-### Nhóm 1: Xác thực & Quản lý Tài khoản Mobile (`/api/mobile/auth`)
+### Group 1: Mobile Authentication & Account Management (`/api/mobile/auth`)
 
 #### `POST /api/mobile/auth/login`
-- **Mô tả:** Đăng nhập từ ứng dụng di động bằng tài khoản Web, cấp phát JWT Bearer Token.
+- **Description:** Authenticate from mobile devices using web credentials; issues a JWT Bearer Token.
 - **Request Body (JSON):**
   ```json
   {
@@ -77,13 +78,13 @@ erDiagram
   ```json
   {
     "isSuccess": true,
-    "message": "Đăng nhập thành công!",
+    "message": "Authentication successful.",
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "user": {
       "id": "user-uuid",
       "username": "student",
       "email": "student@nettutos.com",
-      "fullName": "Nguyễn Văn An",
+      "fullName": "Alex Rivera",
       "avatarUrl": "/images/avatars/default.png",
       "totalXp": 450,
       "level": 5,
@@ -94,18 +95,19 @@ erDiagram
   ```
 
 #### `GET /api/mobile/auth/profile`
-- **Mô tả:** Lấy thông tin người dùng hiện tại (kèm theo Authorization: Bearer `<token>`).
+- **Description:** Retrieve current authenticated user profile.
+- **Headers:** `Authorization: Bearer <token>`
 
 ---
 
-### Nhóm 2: Bài học & Đồng bộ Tiến độ Mobile (`/api/mobile`)
+### Group 2: Curriculum & Mobile Progress Synchronization (`/api/mobile`)
 
 #### `GET /api/mobile/tutorials`
-- **Mô tả:** Lấy danh sách bài học có phân trang, lọc theo danh mục hoặc từ khóa tìm kiếm.
-- **Response (200 OK):** Mảng các đối tượng bài học tóm tắt kèm trạng thái `isCompleted` riêng cho từng người dùng đang đăng nhập.
+- **Description:** Retrieve paginated tutorial list with optional category and search filters.
+- **Response (200 OK):** Array of tutorial summary objects including personalized `isCompleted` flags for the caller.
 
 #### `POST /api/mobile/tutorials/complete`
-- **Mô tả:** Đánh dấu hoàn thành bài học từ điện thoại, ghi nhận tiến độ vào Database, tự động cộng XP và duy trì Streak.
+- **Description:** Record lesson completion from mobile, persist progress in the database, award XP, and update streak records.
 - **Headers:** `Authorization: Bearer <token>`
 - **Request Body:** `{ "tutorialId": 14 }`
 - **Response (200 OK):**
@@ -122,10 +124,10 @@ erDiagram
 
 ---
 
-### Nhóm 3: Trợ lý AI & Lập trình Tương tác (`/AiTutor`)
+### Group 3: AI Mentor & Algorithmic Analysis (`/AiTutor`)
 
 #### `POST /AiTutor/AnalyzeComplexity`
-- **Mô tả:** Đo độ phức tạp thuật toán Big-O thời gian và không gian cho đoạn mã trong Monaco Editor.
+- **Description:** Compute algorithmic Big-O time and space complexity for code in Monaco Editor.
 - **Request Body:** `{ "sourceCode": "for(int i=0; i<n; i++) { for(int j=0; j<n; j++) { ... } }" }`
 - **Response (200 OK):**
   ```json
@@ -134,14 +136,14 @@ erDiagram
     "timeComplexity": "O(N^2)",
     "spaceComplexity": "O(1)",
     "efficiencyScore": 60,
-    "summary": "Thuật toán sử dụng 2 vòng lặp lồng nhau duyệt qua n phần tử...",
-    "bottlenecks": ["Vòng lặp lồng nhau bậc hai khiến chi phí thời gian tăng vọt khi n lớn."],
-    "optimizations": ["Có thể sử dụng Dictionary hoặc HashSet để giảm độ phức tạp xuống O(N)."]
+    "summary": "The algorithm executes nested iterations over n elements, causing quadratic execution growth.",
+    "bottlenecks": ["Nested loop structure causes computational time to scale quadratically with input size."],
+    "optimizations": ["Consider using a Dictionary or HashSet lookup to reduce time complexity to O(N)."]
   }
   ```
 
 #### `POST /AiTutor/DiagnoseTestFailure`
-- **Mô tả:** Chẩn đoán nguyên nhân rớt Test Case trong Coding Challenge và đề xuất code sửa mẫu.
+- **Description:** Diagnose root causes of failed challenge test cases and provide verified code corrections.
 - **Request Body:**
   ```json
   {
@@ -158,25 +160,25 @@ erDiagram
   {
     "success": true,
     "failureCategory": "Duplicate Element / Index Reuse",
-    "diagnosticTitle": "Dùng trùng lặp cùng một phần tử tại vị trí index",
-    "analysis": "Thuật toán đã lấy phần tử nums[0] cộng với chính nó thay vì tìm một phần tử khác...",
-    "guidanceHint": "Hãy đảm bảo điều kiện kiểm tra chỉ số khác nhau: i != j khi tìm cặp.",
+    "diagnosticTitle": "Self-referencing duplicate element reuse",
+    "analysis": "The algorithm pairs element nums[0] with itself instead of searching for a distinct complementary index.",
+    "guidanceHint": "Ensure distinct index verification: i != j when evaluating pairs.",
     "suggestedFixSnippet": "if (map.ContainsKey(diff) && map[diff] != i) return new int[] { map[diff], i };"
   }
   ```
 
 ---
 
-### Nhóm 4: Phòng Phỏng vấn Kỹ thuật Giả lập AI (`/Interview`)
+### Group 4: AI Mock Technical Interview Simulator (`/Interview`)
 
 #### `POST /Interview/EvaluateAiAnswer`
-- **Mô tả:** AI Tech Lead chấm điểm câu trả lời thực tế của ứng viên theo 3 tiêu chuẩn tuyển dụng.
+- **Description:** Evaluate candidate free-text answer across three technical hiring dimensions.
 - **Request Body:**
   ```json
   {
     "flashcardId": 12,
-    "question": "Phân biệt sự khác nhau giữa value type và reference type trong C#?",
-    "candidateAnswer": "Value type lưu trên Stack còn Reference type lưu trên Heap. Khi gán thì value type copy giá trị, reference type copy địa chỉ con trỏ.",
+    "question": "What is the key difference between value types and reference types in C#?",
+    "candidateAnswer": "Value types reside on the stack and hold data directly, while reference types reside on the heap and store references.",
     "topic": "CSharpCore",
     "difficulty": "Intermediate"
   }
@@ -189,43 +191,43 @@ erDiagram
     "technicalAccuracyScore": 85,
     "clarityStructureScore": 80,
     "depthPracticalScore": 75,
-    "performanceRating": "Trình độ Middle .NET (Khá vững)",
-    "feedback": "Câu trả lời đúng trọng tâm và phân biệt chuẩn xác cơ chế lưu trữ bộ nhớ Stack vs Heap...",
+    "performanceRating": "Mid-Level Competency (Solid)",
+    "feedback": "Concise answer accurately distinguishing Stack versus Managed Heap allocations.",
     "strengths": [
-      "Phân biệt rành mạch giữa bộ nhớ Stack và Managed Heap.",
-      "Chỉ rõ sự khác biệt giữa copy giá trị và copy địa chỉ tham chiếu."
+      "Clear distinction between Stack and Managed Heap memory segments.",
+      "Accurate differentiation between value copying and reference pointer copying."
     ],
     "missingPoints": [
-      "Nên lưu ý thêm trường hợp struct nằm bên trong class thì vẫn được cấp phát trên Heap.",
-      "Cần nhắc tới hiện tượng boxing/unboxing gây hao tổn GC."
+      "Note that structs declared inside class instances are allocated on the Heap.",
+      "Address performance overhead from boxing and unboxing under garbage collection."
     ],
-    "followUpQuestion": "Câu hỏi xoáy từ Tech Lead: Trong trường hợp nào một struct (Value Type) lại được cấp phát trên bộ nhớ Heap?",
-    "modelAnswerSample": "### Đáp án chuẩn Senior\nValue types (struct, int, bool...) mặc định được phân bổ..."
+    "followUpQuestion": "Tech Lead Follow-up: Under what conditions is a struct (Value Type) allocated on the Managed Heap?",
+    "modelAnswerSample": "### Senior Benchmark Answer\nValue types (structs, primitives) are allocated inline within their enclosing storage context..."
   }
   ```
 
 #### `POST /Interview/SubmitAiMockReport`
-- **Mô tả:** Tổng hợp toàn bộ câu trả lời trong phiên phỏng vấn, xuất báo cáo năng lực 5 kỹ năng, đề xuất bài học bổ sung và cộng điểm thưởng XP.
+- **Description:** Aggregate answers across an interview session, generate a 5-dimension radar report, suggest remediation lessons, and credit XP.
 - **Response (200 OK):**
   ```json
   {
     "success": true,
     "averageScore": 78,
-    "readinessLevel": "Sẵn sàng Phỏng vấn Middle .NET Developer",
+    "readinessLevel": "Qualified for Mid-Level .NET Engineering Roles",
     "readinessBadgeClass": "primary",
-    "executiveAssessment": "Nền tảng vững vàng về Modern C# và ASP.NET Core...",
+    "executiveAssessment": "Demonstrates solid grasp of modern C# and ASP.NET Core fundamentals.",
     "skillBreakdowns": [
-      { "skillName": "Bản chất C# & Quản lý Bộ nhớ", "score": 80, "level": "Senior" },
-      { "skillName": "Lập trình Bất đồng bộ & Xử lý Đồng thời", "score": 75, "level": "Mid" },
-      { "skillName": "Entity Framework Core & Tối ưu Truy vấn", "score": 79, "level": "Mid" },
-      { "skillName": "Kiến trúc ASP.NET Core & Web API", "score": 82, "level": "Solid" },
-      { "skillName": "Clean Architecture & Mẫu Thiết kế SOLID", "score": 77, "level": "Proficient" }
+      { "skillName": "C# Internals & Memory Architecture", "score": 80, "level": "Senior" },
+      { "skillName": "Asynchronous Concurrency & Threading", "score": 75, "level": "Mid" },
+      { "skillName": "Entity Framework Core & Query Optimization", "score": 79, "level": "Mid" },
+      { "skillName": "ASP.NET Core Architecture & Web API", "score": 82, "level": "Solid" },
+      { "skillName": "Clean Architecture & Design Patterns", "score": 77, "level": "Proficient" }
     ],
     "recommendedLessons": [
       {
-        "title": "Lập trình Bất đồng bộ (Async/Await) nâng cao trong .NET",
-        "slug": "async-await-csharp-nang-cao",
-        "reason": "Kiến thức bắt buộc để làm chủ Web API chịu tải cao."
+        "title": "Advanced Asynchronous Programming (Async/Await) in .NET",
+        "slug": "advanced-async-await-csharp",
+        "reason": "Crucial requirement for architecting high-throughput Web APIs."
       }
     ],
     "xpAwarded": 70,

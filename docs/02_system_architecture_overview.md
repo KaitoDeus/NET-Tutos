@@ -1,44 +1,45 @@
-# 02. KIẾN TRÚC HỆ THỐNG TỔNG THỂ (SYSTEM ARCHITECTURE OVERVIEW)
+# 02. System Architecture Overview
 
-> **Tài liệu đặc tả kiến trúc kỹ thuật & giải pháp (Technical Solution Architecture)**  
-> **Chức danh thực hiện:** Senior Business Analyst / Solution Specialist  
-> **Hệ thống:** Nền tảng Học tập & Đào tạo Lập trình .NET Toàn diện (.NET Tutos Platform)  
-> **Phiên bản:** 2.0  
+Document Type: Technical Solution Architecture Specification  
+Role: Senior Business Analyst / Enterprise Solution Specialist  
+System: .NET Tutos - Comprehensive .NET Learning & Assessment Platform  
+Version: 2.0  
+Status: Approved  
 
 ---
 
-## 1. Cấu trúc hệ sinh thái tổng thể (System Ecosystem Topology)
+## 1. System Ecosystem Topology
 
-Hệ sinh thái **.NET Tutos** được thiết kế theo mô hình kiến trúc phân tầng (Multi-tier N-Layered Architecture) kết hợp kiến trúc dịch vụ kết nối (Service-Oriented Core) để phục vụ đồng thời Web App và Mobile App trên cùng một nền tảng dữ liệu thống nhất:
+The **.NET Tutos** ecosystem is architected as an N-tier layered system integrated with domain-driven application services. This topology concurrently serves both the responsive Web Application and cross-platform Mobile Clients over a unified relational data tier:
 
 ```mermaid
 graph TB
-    subgraph ClientLayer ["1. CLIENT PRESENTATION LAYER"]
-        WebBrowser["🌐 Web App Client<br/>(Bootstrap 5, Monaco Editor, Vanilla JS, SignalR Client, PWA)"]
-        MobileClient["📱 Mobile App Client<br/>(.NET MAUI 10 Multi-targeting: Android / iOS / Windows)"]
+    subgraph ClientLayer ["1. Client Presentation Layer"]
+        WebBrowser["Web Application Client<br/>(Bootstrap 5, Monaco Editor, Vanilla JS, SignalR Client, PWA)"]
+        MobileClient["Mobile Application Client<br/>(.NET MAUI 10 Multi-targeting: Android / iOS / Windows)"]
     end
 
-    subgraph GatewayAndApi ["2. CONTROLLER & API LAYER (ASP.NET Core 10)"]
+    subgraph GatewayAndApi ["2. Controller & API Layer (ASP.NET Core 10)"]
         WebControllers["Web MVC Controllers<br/>(Tutorials, Playground, Interview, Leaderboard, Admin)"]
         MobileApiControllers["RESTful Mobile APIs<br/>(/api/mobile/auth, /api/mobile/tutorials)"]
-        SignalRHubs["Realtime SignalR Hubs<br/>(DiscussionHub, NotificationHub)"]
+        SignalRHubs["Real-Time SignalR Hubs<br/>(DiscussionHub, NotificationHub)"]
     end
 
-    subgraph ServiceCore ["3. DOMAIN APPLICATION SERVICES LAYER"]
-        AiService["🧠 AI Tutor & Interview Service<br/>(AiTutorService)"]
-        RoslynSandbox["⚡ Roslyn Code Sandbox Engine<br/>(CodeExecutionService)"]
-        LmsService["📚 Curriculum & Learning Progress<br/>(CurriculumService, LearningProgressService)"]
-        GamificationService["🏆 Gamification Engine<br/>(StreakService, LeaderboardService)"]
-        FlashcardServiceCore["🗂️ Flashcard & Spaced Repetition<br/>(FlashcardService)"]
+    subgraph ServiceCore ["3. Domain Application Services Layer"]
+        AiService["AI Tutor & Assessment Service<br/>(AiTutorService)"]
+        RoslynSandbox["Roslyn Code Sandbox Engine<br/>(CodeExecutionService)"]
+        LmsService["Curriculum & Learning Progress<br/>(CurriculumService, LearningProgressService)"]
+        GamificationService["Gamification Engine<br/>(StreakService, LeaderboardService)"]
+        FlashcardServiceCore["Flashcard & Spaced Repetition<br/>(FlashcardService)"]
     end
 
-    subgraph DataAccessLayer ["4. DATA ACCESS LAYER & ORM"]
+    subgraph DataAccessLayer ["4. Data Access Layer & ORM"]
         EFCore["Entity Framework Core 10<br/>(AppDbContext with IdentityDbContext)"]
     end
 
-    subgraph DatabaseLayer ["5. PERSISTENCE STORAGE LAYER"]
-        SQLDb[("🗄️ Relational Database<br/>(SQL Server / SQLite)")]
-        LocalCache["📦 Client Preferences & Secure Storage<br/>(Mobile & Browser LocalStorage)"]
+    subgraph DatabaseLayer ["5. Persistence Storage Layer"]
+        SQLDb[("Relational Database<br/>(SQL Server / SQLite)")]
+        LocalCache["Client Preferences & Secure Storage<br/>(Mobile & Browser LocalStorage)"]
     end
 
     WebBrowser -->|HTTPS / HTML / WSS| WebControllers
@@ -56,31 +57,31 @@ graph TB
 
 ---
 
-## 2. Công nghệ cốt lõi & Tiêu chuẩn kỹ thuật (Tech Stack Specifications)
+## 2. Core Technologies & Technical Stack Specifications
 
-| Thành phần | Công nghệ / Framework | Phiên bản | Vai trò & Mục đích sử dụng |
+| Component | Technology / Framework | Version | Role & Strategic Purpose |
 | :--- | :--- | :--- | :--- |
-| **Backend Framework** | ASP.NET Core MVC | .NET 10 | Máy chủ ứng dụng trung tâm, xử lý rendering giao diện Web và cung cấp REST API cho Mobile. |
-| **Mobile Framework** | .NET MAUI (Multi-platform App UI) | .NET 10 | Ứng dụng di động đa nền tảng (Android, iOS, Windows) viết bằng C# và XAML. |
-| **Data Access / ORM** | Entity Framework Core | 10.0 | Thao tác cơ sở dữ liệu hướng đối tượng, quản lý Migration, tối ưu hóa truy vấn qua `IQueryable` và `AsNoTracking`. |
-| **Cơ sở dữ liệu** | Microsoft SQL Server / SQLite | 2022 / 3.x | Lưu trữ toàn bộ dữ liệu người dùng, bài học, quiz, tiến độ, coding challenge, điểm số và bài nộp. |
-| **Trình soạn thảo Code** | Microsoft Monaco Editor | 0.45.0 | Trình soạn thảo mã nguồn trực tuyến trong Web (tương đương lõi VS Code), hỗ trợ C# syntax, phím tắt `Ctrl+I`, formatting. |
-| **Biên dịch & Sandbox** | Roslyn Scripting API (`Microsoft.CodeAnalysis.CSharp.Scripting`) | 4.12+ | Trình biên dịch mã nguồn C# động trên bộ nhớ RAM, bắt lỗi compiler và thực thi sandbox có giới hạn an toàn. |
-| **Giao tiếp Realtime** | ASP.NET Core SignalR | .NET 10 | Truyền thông thời gian thực hai chiều cho bảng tin hoạt động (Activity Feed) và thảo luận trực tiếp (Discussion Hub). |
-| **Xác thực & Phân quyền** | ASP.NET Core Identity & JWT Bearer | .NET 10 | Quản lý người dùng, mật khẩu mã hóa, phân quyền Role (Learner, Admin), cấp phát JWT token an toàn cho Mobile. |
-| **Giao diện Web** | Bootstrap 5, Bootstrap Icons, CSS Modern Variables | 5.3.3 | Giao diện chuẩn Responsive hiện đại, hỗ trợ Dark / Light theme toàn diện. |
-| **Nhận diện giọng nói** | Web Speech API (`SpeechRecognition`) | W3C Standard | Chuyển giọng nói tiếng Việt và tiếng Anh thành văn bản trong phòng phỏng vấn kỹ thuật giả lập (AI Mock Interview). |
+| **Backend Framework** | ASP.NET Core MVC | .NET 10 | Central application server providing server-rendered HTML views and exposing RESTful APIs for mobile and background clients. |
+| **Mobile Framework** | .NET MAUI (Multi-platform App UI) | .NET 10 | Native cross-platform mobile application (Android, iOS, Windows) implemented with C# and XAML. |
+| **Data Access / ORM** | Entity Framework Core | 10.0 | Object-relational mapping, database migrations, and high-performance querying using compiled LINQ, `IQueryable`, and `AsNoTracking`. |
+| **Relational Database** | Microsoft SQL Server / SQLite | 2022 / 3.x | Persistent storage for users, curriculum, progress, coding challenges, test cases, and interview records. |
+| **Code Editor** | Microsoft Monaco Editor | 0.45.0 | In-browser code editing engine (VS Code core) providing C# syntax highlighting, shortcut handling (`Ctrl+I`, `Ctrl+Enter`), and code formatting. |
+| **Compiler & Sandbox** | Roslyn Scripting API (`Microsoft.CodeAnalysis.CSharp.Scripting`) | 4.12+ | In-memory dynamic compilation and isolated execution of C# code snippets with strict resource and security bounds. |
+| **Real-Time Communication** | ASP.NET Core SignalR | .NET 10 | Bidirectional WebSocket transport for activity feeds, discussion threads, and real-time community interactions. |
+| **Authentication & Identity** | ASP.NET Core Identity & JWT Bearer | .NET 10 | Secure user management, salted password hashing, role-based access control, and stateless JWT token issuance for mobile endpoints. |
+| **Web Presentation** | Bootstrap 5, Bootstrap Icons, CSS Modern Variables | 5.3.3 | Responsive frontend presentation layer with system-wide Dark and Light theme adaptation. |
+| **Speech Recognition** | Web Speech API (`SpeechRecognition`) | W3C Standard | Client-side speech-to-text dictation supporting English and Vietnamese during interactive AI mock technical interviews. |
 
 ---
 
-## 3. Kiến trúc luồng dữ liệu (Data Flow Diagrams)
+## 3. Data Flow Architecture
 
-### Luồng 1: Biên dịch và chấm điểm bài tập (Playground & Challenge Judge Engine)
+### Flow 1: Compilation and Automated Code Assessment (Playground & Challenge Judge Engine)
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor HọcViên as Học viên
+    actor Learner as Learner
     participant Editor as Monaco Editor (Browser)
     participant Controller as PlaygroundController
     participant Sandbox as CodeExecutionService
@@ -88,123 +89,123 @@ sequenceDiagram
     participant AI as AiTutorService
     participant DB as AppDbContext
 
-    HọcViên->>Editor: Viết mã nguồn C# và nhấn "Nộp bài (Submit)"
+    Learner->>Editor: Enter C# solution and click "Submit Solution"
     Editor->>Controller: POST /Playground/SubmitChallenge { challengeId, code }
-    Controller->>DB: Lấy danh sách CodeTestCase (Input, ExpectedOutput)
+    Controller->>DB: Query CodeTestCase collection (InputParameters, ExpectedOutput)
     Controller->>Sandbox: ExecuteWithTestCasesAsync(code, testCases)
     
-    alt Biên dịch thất bại (Compilation Error)
+    alt Compilation Failure
         Sandbox-->>Controller: CompileError (CS0103, CS1061, ...)
-        Controller-->>Editor: Trả về mã lỗi biên dịch
-        Editor->>HọcViên: Hiển thị banner đỏ kèm nút "Giải thích lỗi với AI"
-        HọcViên->>AI: Yêu cầu AI chẩn đoán nguyên nhân & cách khắc phục
-        AI-->>Editor: Phân tích lỗi, chỉ ra dòng code sai, hướng dẫn fix
-    else Biên dịch thành công (Runtime Evaluation)
-        loop Duyệt qua từng Test Case
-            Sandbox->>Roslyn: Nạp tham số và chạy hàm Solution
-            Roslyn-->>Sandbox: Trả về kết quả ActualOutput
-            Sandbox->>Sandbox: So khớp ActualOutput vs ExpectedOutput
+        Controller-->>Editor: Return compilation diagnostics
+        Editor->>Learner: Render diagnostic banner with "Explain Error with AI" button
+        Learner->>AI: Request error root cause analysis and resolution steps
+        AI-->>Editor: Return detailed diagnosis, line numbers, and correction guide
+    else Successful Compilation (Runtime Evaluation)
+        loop Iterate Through Each Test Case
+            Sandbox->>Roslyn: Pass test parameters and invoke Solution method
+            Roslyn-->>Sandbox: Return ActualOutput
+            Sandbox->>Sandbox: Compare ActualOutput with ExpectedOutput
         end
-        alt Vượt qua 100% Test Cases
+        alt 100% Test Cases Passed
             Sandbox-->>Controller: AllPassed = True, ExecutionTimeMs
-            Controller->>DB: Cộng XP, đánh dấu Challenge hoàn thành
-            Controller-->>Editor: Thông báo Chấp thuận (Accepted) + Thưởng XP
-        else Rớt một số Test Case
-            Sandbox-->>Controller: AllPassed = False, Chi tiết test fail
-            Controller-->>Editor: Hiển thị bảng kết quả + Nút "AI Chẩn đoán" trên từng dòng lỗi
-            HọcViên->>AI: Bấm "AI Chẩn đoán" cho Test Case #x
-            AI-->>Editor: Trả về phân loại lỗi (Off-by-one, Edge Case, ...) kèm Code Fix
+            Controller->>DB: Grant XP points and mark challenge as completed
+            Controller-->>Editor: Accepted notification with XP reward summary
+        else One or More Test Cases Failed
+            Sandbox-->>Controller: AllPassed = False, detailed failure report
+            Controller-->>Editor: Render test matrix with "AI Diagnose" button per failing case
+            Learner->>AI: Trigger "AI Diagnose" for failed test case
+            AI-->>Editor: Return root cause categorization (Off-by-one, Edge Case) with verified fix
         end
     end
 ```
 
-### Luồng 2: Phỏng vấn kỹ thuật giả lập tương tác với AI (AI Mock Technical Interview)
+### Flow 2: AI Mock Technical Interview
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor ỨngViên as Ứng viên
-    participant WebUI as Giao diện Phỏng Vấn (Mock.cshtml)
+    actor Candidate as Candidate
+    participant WebUI as Interview Interface (Mock.cshtml)
     participant Speech as Web Speech API (Microphone)
     participant InterviewCtrl as InterviewController
     participant AiTutor as AiTutorService
     participant DB as AppDbContext & Identity
 
-    ỨngViên->>WebUI: Bấm "Bắt đầu Phỏng vấn thử với AI"
+    Candidate->>WebUI: Click "Start AI Mock Interview"
     WebUI->>InterviewCtrl: GET /Interview/Mock?count=5
-    InterviewCtrl->>DB: Truy vấn ngẫu nhiên 5 câu hỏi Flashcard theo trình độ
-    InterviewCtrl-->>WebUI: Hiển thị phòng phỏng vấn, khởi động đồng hồ đếm ngược
+    InterviewCtrl->>DB: Fetch 5 randomized interview questions matching difficulty
+    InterviewCtrl-->>WebUI: Initialize interview room and start countdown timer
     
-    ỨngViên->>Speech: Bấm "Nói câu trả lời" và trình bày qua micro
-    Speech-->>WebUI: Chuyển đổi giọng nói thành văn bản vào TextArea
-    ỨngViên->>WebUI: Nhấn "Gửi cho AI Tech Lead chấm điểm"
+    Candidate->>Speech: Click "Speak Answer" and dictate response
+    Speech-->>WebUI: Stream transcribed text into answer textarea
+    Candidate->>WebUI: Click "Submit to AI Tech Lead"
     
     WebUI->>InterviewCtrl: POST /Interview/EvaluateAiAnswer { flashcardId, candidateAnswer }
     InterviewCtrl->>AiTutor: EvaluateInterviewAnswerAsync(request)
-    AiTutor->>AiTutor: Phân tích 3 tiêu chí: Kỹ thuật, Mạch lạc, Chiều sâu thực chiến
-    AiTutor->>AiTutor: Trích xuất Điểm sáng, Ý còn thiếu, Câu hỏi xoáy, Đáp án mẫu
+    AiTutor->>AiTutor: Score across 3 dimensions: Technical Accuracy, Clarity, Practical Depth
+    AiTutor->>AiTutor: Extract Strengths, Missing Points, Follow-up Challenge, and Benchmark Answer
     AiTutor-->>InterviewCtrl: AiInterviewEvaluationResponse
-    InterviewCtrl-->>WebUI: Trả về đánh giá chi tiết
-    WebUI->>ỨngViên: Hiển thị 3 thước đo %, card điểm mạnh/yếu & câu hỏi xoáy
+    InterviewCtrl-->>WebUI: Return structured evaluation
+    WebUI->>Candidate: Display scores, strengths/weaknesses, and follow-up prompt
     
-    opt Trả lời câu hỏi xoáy (Follow-up Challenge)
-        ỨngViên->>WebUI: Nhập phản hồi câu hỏi xoáy
+    opt Follow-Up Challenge Response
+        Candidate->>WebUI: Enter response to follow-up challenge
         WebUI->>InterviewCtrl: POST /Interview/AnswerAiFollowUp
         InterviewCtrl->>AiTutor: AnswerFollowUpAsync
-        AiTutor-->>WebUI: Phản hồi của Tech Lead + Điểm thưởng Bonus XP
+        AiTutor-->>WebUI: Tech Lead assessment and bonus XP allocation
     end
     
-    ỨngViên->>WebUI: Nhấn "Hoàn thành & Xuất Báo Cáo"
+    Candidate->>WebUI: Click "Complete & Generate Report"
     WebUI->>InterviewCtrl: POST /Interview/SubmitAiMockReport
     InterviewCtrl->>AiTutor: GenerateInterviewReportAsync(items)
-    AiTutor->>DB: Lọc bài học Tutorials đề xuất theo lỗ hổng kiến thức
-    AiTutor-->>InterviewCtrl: Báo cáo năng lực 5 kỹ năng cốt lõi
-    InterviewCtrl->>DB: Cộng XP vào tài khoản, cập nhật chuỗi Streak
-    InterviewCtrl-->>WebUI: Hiển thị Báo cáo sát hạch toàn diện
+    AiTutor->>DB: Filter recommended lessons based on identified skill gaps
+    AiTutor-->>InterviewCtrl: Five-dimension competency report
+    InterviewCtrl->>DB: Persist earned XP and update daily streak
+    InterviewCtrl-->>WebUI: Render comprehensive interview assessment report
 ```
 
-### Luồng 3: Đồng bộ dữ liệu giữa Mobile App và Web App
+### Flow 3: Cross-Platform Data Synchronization (Mobile App & Web App)
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor HọcViên as Học viên
+    actor Learner as Learner
     participant Mobile as Mobile App (.NET MAUI)
     participant MobileApi as MobileAuthController / MobileTutorialsController
-    participant DB as Database chung (AppDbContext)
-    participant Web as Web App (ASP.NET Core)
+    participant DB as Unified Database (AppDbContext)
+    participant Web as Web Application (ASP.NET Core)
 
-    HọcViên->>Mobile: Đăng nhập bằng Email/Password đã tạo trên Web
+    Learner->>Mobile: Log in with web credentials (email and password)
     Mobile->>MobileApi: POST /api/mobile/auth/login
-    MobileApi->>DB: Kiểm tra tài khoản trong bảng AspNetUsers
-    MobileApi-->>Mobile: Trả về JWT Bearer Token, Thông tin User (XP, Streak, Level)
-    Mobile->>Mobile: Lưu token vào Preferences an toàn
+    MobileApi->>DB: Verify credentials against AspNetUsers
+    MobileApi-->>Mobile: Return JWT Bearer Token and user state (XP, Streak, Level)
+    Mobile->>Mobile: Persist JWT securely in device storage
     
-    HọcViên->>Mobile: Đọc bài học và nhấn "Hoàn thành bài học"
+    Learner->>Mobile: Review tutorial and click "Mark as Completed"
     Mobile->>MobileApi: POST /api/mobile/tutorials/complete { tutorialId } (Bearer Token)
-    MobileApi->>DB: Lưu UserLessonProgress (IsCompleted = true)
-    MobileApi->>DB: Cộng +15 XP vào AspNetUsers
-    MobileApi->>DB: Cập nhật DailyCheckIn & Streak
-    MobileApi-->>Mobile: Trả về kết quả thành công + XP mới
+    MobileApi->>DB: Insert UserLessonProgress record (IsCompleted = true)
+    MobileApi->>DB: Increment +15 XP in AspNetUsers
+    MobileApi->>DB: Record DailyCheckIn and update streak counter
+    MobileApi-->>Mobile: Return success response with updated XP balance
     
-    HọcViên->>Web: Đăng nhập hoặc mở lại Web App trên trình duyệt
-    Web->>DB: Truy vấn thông tin người dùng & bài học
-    DB-->>Web: Trả về tổng XP mới, chuỗi Streak mới, bài học đã tích xanh
-    Web->>HọcViên: Dữ liệu hiển thị đồng bộ 100% với phiên học trên điện thoại
+    Learner->>Web: Access Web Application in browser
+    Web->>DB: Query current user profile and curriculum state
+    DB-->>Web: Return updated XP, refreshed streak, and completed lessons
+    Web->>Learner: Display state synchronized with mobile session
 ```
 
 ---
 
-## 4. Chiến lược bảo mật & kiểm soát rủi ro (Security & Isolation Strategy)
+## 4. Security, Isolation & Risk Mitigation Strategy
 
-1. **Cô lập môi trường chạy mã (Roslyn Sandbox Execution Isolation):**
-   - Không cho phép gọi các thư viện nguy hiểm (`System.IO`, `System.Diagnostics.Process`, `System.Reflection`, `System.Net.Sockets`).
-   - Giới hạn thời gian thực thi (Execution Timeout $\le 3000\text{ms}$) để triệt tiêu các vòng lặp vô hạn hoặc đệ quy tràn bộ nhớ StackOverflow.
-   - Bắt gọn `Console.SetOut()` vào luồng `StringWriter` để ngăn chặn rò rỉ dữ liệu hệ thống.
-2. **Bảo mật xác thực & phân quyền (Authentication Security):**
-   - Web App áp dụng Cookie Authentication kết hợp Token bảo vệ chống tấn công giả mạo yêu cầu chéo trang (CSRF Protection via AntiForgeryToken).
-   - Mobile API áp dụng chuẩn JWT Bearer Token với thuật toán ký bí mật HMAC-SHA256, thời hạn hợp lệ rõ ràng.
-3. **Bảo vệ toàn vẹn dữ liệu (Data Protection):**
-   - Mã hóa mật khẩu chuẩn PBKDF2 thông qua ASP.NET Core Identity.
-   - Chống tấn công SQL Injection bằng cách sử dụng 100% truy vấn tham số hóa (Parameterized Queries) trong Entity Framework Core.
-   - Xử lý làm sạch nội dung hiển thị (XSS Sanitization) trên toàn bộ bài viết Markdown và mã HTML đầu ra.
+1. **Roslyn Sandbox Execution Isolation:**
+   - **Namespace Blacklisting:** Strictly disallow loading dangerous or unrestricted namespaces, including `System.IO`, `System.Diagnostics.Process`, `System.Reflection.Emit`, and `System.Net.Sockets`.
+   - **Execution Timeouts:** Hard timeout capped at $3000\text{ms}$ per execution to prevent infinite loops, thread locks, and stack overflow crashes.
+   - **Standard Output Redirection:** Redirect `Console.SetOut()` to an isolated in-memory `StringWriter` with a $10,000$ character output ceiling to prevent memory bloating attacks.
+2. **Authentication and Authorization Security:**
+   - **Web Application:** Standard Cookie-based authentication paired with Anti-Forgery Tokens (`__RequestVerificationToken`) on all state-altering requests to protect against Cross-Site Request Forgery (CSRF).
+   - **Mobile API Endpoints:** Stateless JWT Bearer tokens signed via HMAC-SHA256 with cryptographically robust keys and explicit expiration windows.
+3. **Data Integrity and Protection:**
+   - **Password Security:** Password hashing using standard PBKDF2 with HMAC-SHA256 through ASP.NET Core Identity.
+   - **SQL Injection Defense:** Strict adherence to parameterized SQL queries via Entity Framework Core LINQ query translation.
+   - **Cross-Site Scripting (XSS) Mitigation:** Context-aware HTML sanitization and encoding across all user-generated markdown tutorials, comments, and interview responses.

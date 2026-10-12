@@ -1,96 +1,94 @@
-# BỘ HỒ SƠ ĐẶC TẢ YÊU CẦU & TỔNG QUAN HỆ THỐNG .NET TUTOS
-## (SYSTEM REQUIREMENTS SPECIFICATIONS & ARCHITECTURAL OVERVIEW)
+# System Requirements Specifications & Architectural Overview (.NET Tutos Platform)
 
-> **Tác giả:** Senior Business Analyst / Enterprise Solution Specialist  
-> **Dự án:** Hệ sinh thái Đào tạo & Thực hành Lập trình .NET (.NET Tutos Platform)  
-> **Phạm vi:** Web App (ASP.NET Core 10), Mobile App (.NET MAUI 10), AI Tutor Engine, Roslyn Sandbox  
-> **Phiên bản:** Release 2.0 (Tháng 10/2026)  
-> **Trạng thái:** Đã kiểm định & Sẵn sàng bàn giao (Verified & Ready for Production)  
-
----
-
-## 1. Giới thiệu bộ tài liệu (Document Suite Overview)
-
-Bộ hồ sơ đặc tả này được thiết lập bởi **Senior Business Analyst**, đóng vai trò là **Nguồn Sự Thật Duy Nhất (Single Source of Truth - SSOT)** cho toàn bộ đội ngũ phát triển sản phẩm (Product Owners, Solution Architects, Lead Developers, QA Engineers, DevOps và Stakeholders).
-
-Tài liệu chuẩn hóa toàn diện từ góc độ bài toán kinh doanh, chân dung học viên, kiến trúc hệ sinh thái đa nền tảng, yêu cầu chức năng (BRD), yêu cầu phi chức năng (NFR), cấu trúc cơ sở dữ liệu cho đến các giao thức API kết nối giữa Web App và Mobile App.
+Document Type: Master Index & Architecture Specification Suite  
+Author: Senior Business Analyst / Enterprise Solution Specialist  
+System: .NET Tutos - Comprehensive .NET Learning & Assessment Platform  
+Scope: Web Application (ASP.NET Core 10), Mobile Client (.NET MAUI 10), AI Tutor Engine, Roslyn Sandbox  
+Version: Release 2.0  
+Status: Verified & Approved for Production  
 
 ---
 
-## 2. Mục lục bộ hồ sơ đặc tả (Table of Contents)
+## 1. Document Suite Overview
 
-Các tài liệu chi tiết được cấu trúc theo chuẩn quốc tế trong thư mục này:
+This documentation suite serves as the **Single Source of Truth (SSOT)** for the .NET Tutos platform across engineering and product teams (Product Owners, Solution Architects, Lead Developers, QA Engineers, DevOps, and Stakeholders).
+
+The suite standardizes requirements across the entire software delivery lifecycle, encompassing market problem statements, target user personas, multi-tier system topology, functional requirements (BRD), non-functional requirements (NFR), relational schema models (ERD), and cross-platform RESTful API contracts.
+
+---
+
+## 2. Document Suite Structure
 
 ```
 d:\.ASPNET-Tutos\docs\
-├── README.md                           # Bản đồ tài liệu & Ma trận truy vết (Tài liệu này)
-├── 01_business_overview.md             # Tổng quan kinh doanh, Đề xuất giá trị & Chân dung người dùng
-├── 02_system_architecture_overview.md  # Kiến trúc hệ sinh thái, Sơ đồ tầng & Luồng dữ liệu (Data Flow)
-├── 03_functional_requirements_brd.md   # Đặc tả yêu cầu chức năng (BRD) 7 phân hệ cốt lõi
-├── 04_non_functional_requirements.md   # Đặc tả yêu cầu phi chức năng (NFR) về hiệu năng, bảo mật, PWA
-└── 05_data_models_and_api_specs.md     # Mô hình dữ liệu ERD & Đặc tả giao tiếp REST API Web/Mobile
+├── README.md                           # Master Index & Requirements Traceability Matrix (Current Document)
+├── 01_business_overview.md             # Business Vision, Strategic Value Proposition & Personas
+├── 02_system_architecture_overview.md  # Multi-Tier Ecosystem Topology, Tech Stack & Sequence Flows
+├── 03_functional_requirements_brd.md   # Functional Requirements Specification (BRD) for 7 Core Modules
+├── 04_non_functional_requirements.md   # Quality Attributes, Performance SLAs, Security & PWA Specs
+└── 05_data_models_and_api_specs.md     # Relational ERD Schemas & RESTful Integration API Contracts
 ```
 
-### Chi tiết nội dung từng văn bản:
+### Detailed Document Summaries:
 
-1. [**01. Tổng quan Kinh doanh & Đề xuất Giá trị (Business Overview & Value Proposition)**](file:///d:/.ASPNET-Tutos/docs/01_business_overview.md)
-   - Tóm tắt điều hành dự án (Executive Summary).
-   - Phân tích nỗi đau thị trường & 4 bài toán cốt lõi.
-   - Đề xuất giá trị độc nhất (USP) và mục tiêu chiến lược (KPIs).
-   - 3 Chân dung người dùng mục tiêu (Sinh viên/Fresher, Junior Developer, LMS Instructor).
-   - Bản đồ hành trình học viên (User Journey Map).
+1. [**01. Business Overview & Value Proposition**](file:///d:/.ASPNET-Tutos/docs/01_business_overview.md)
+   - Executive project summary and target outcomes.
+   - Market problem analysis across 4 foundational challenges.
+   - Strategic value propositions and Key Performance Indicators (KPIs).
+   - Target personas: University Student / Fresher, Junior Developer, and LMS Instructor.
+   - End-to-end Learner Journey Map.
 
-2. [**02. Kiến trúc Hệ thống Tổng thể (System Architecture Overview)**](file:///d:/.ASPNET-Tutos/docs/02_system_architecture_overview.md)
-   - Sơ đồ cấu trúc hệ sinh thái phân tầng (Presentation, API Gateway, Service Core, Data Access, Persistence).
-   - Bảng thông số kỹ thuật công nghệ (.NET 10, C# 14, .NET MAUI, EF Core, Roslyn, SignalR, Monaco Editor).
-   - Sơ đồ luồng dữ liệu tuần tự (Sequence Diagrams) cho:
-     - Biên dịch & Chấm điểm bài tập trong Monaco Playground Sandbox.
-     - Phỏng vấn kỹ thuật giả lập tương tác với AI Tech Lead.
-     - Đồng bộ dữ liệu hai chiều giữa Mobile App và Web App.
-   - Chiến lược bảo mật cách ly Sandbox và kiểm soát rủi ro an toàn thông tin.
+2. [**02. System Architecture Overview**](file:///d:/.ASPNET-Tutos/docs/02_system_architecture_overview.md)
+   - Multi-tier system topology diagram (Presentation, Gateway/API, Application Services, Data Access, Persistence).
+   - Core technology specifications (.NET 10, C# 14, .NET MAUI, EF Core 10, Roslyn Scripting API, SignalR, Monaco Editor).
+   - Detailed sequence data flow diagrams:
+     - Playground execution, compilation error diagnosis, and automated challenge evaluation.
+     - Interactive AI Mock Technical Interview with speech transcription and scoring.
+     - Bidirectional cross-platform synchronization between Mobile App and Web App.
+   - Security isolation model and Roslyn sandbox boundary controls.
 
-3. [**03. Đặc tả Yêu cầu Chức năng (Business Requirements Document - BRD)**](file:///d:/.ASPNET-Tutos/docs/03_functional_requirements_brd.md)
-   - Đặc tả chi tiết 7 phân hệ nghiệp vụ với User Stories và Acceptance Criteria:
-     - **MOD-LMS:** 101 bài học chuẩn Microsoft .NET, Markdown rendering, Quiz trắc nghiệm.
-     - **MOD-PLAY:** Monaco Editor trực tuyến, phím tắt `Ctrl+Enter`, `Ctrl+S`, `Ctrl+I`, Coding Challenges Judge Engine.
-     - **MOD-AI:** Đo độ phức tạp thuật toán Big-O ($O(1) \dots O(2^N)$), chẩn đoán rớt test case, sinh xUnit tests.
-     - **MOD-INT:** Sát hạch phỏng vấn AI Tech Lead, chấm điểm 3 tiêu chí, Speech-to-Text, xuất báo cáo radar năng lực.
-     - **MOD-GAM:** Chuỗi ngày học Streak, điểm kinh nghiệm XP, bảng vinh danh Hall of Fame, SignalR Discussion.
-     - **MOD-MOB:** Client di động .NET MAUI, đọc bài học, đồng bộ tiến độ, theme sáng/tối, cấu hình IP server.
-     - **MOD-ADM:** Bảng điều khiển quản trị LMS Admin.
+3. [**03. Functional Requirements Document (BRD)**](file:///d:/.ASPNET-Tutos/docs/03_functional_requirements_brd.md)
+   - Formal User Stories and Given/When/Then Acceptance Criteria across 7 functional modules:
+     - **MOD-LMS:** 101-lesson Microsoft .NET curriculum, rich Markdown rendering, assessment quizzes.
+     - **MOD-PLAY:** Monaco Editor, execution shortcuts (`Ctrl+Enter`, `Ctrl+S`, `Ctrl+I`), automated judge engine.
+     - **MOD-AI:** Algorithmic Big-O analysis ($O(1) \dots O(2^N)$), test failure diagnostics, automated xUnit generation.
+     - **MOD-INT:** AI Tech Lead interview simulation, 3-dimensional scoring, speech recognition, competency radar report.
+     - **MOD-GAM:** Daily streak tracking, XP points and leveling formula, Hall of Fame leaderboard, SignalR discussions.
+     - **MOD-MOB:** .NET MAUI cross-platform client, lesson reading, progress sync, light/dark themes, custom API host configuration.
+     - **MOD-ADM:** Administrative management and cohort oversight.
 
-4. [**04. Đặc tả Yêu cầu Phi Chức năng (Non-Functional Requirements - NFR)**](file:///d:/.ASPNET-Tutos/docs/04_non_functional_requirements.md)
-   - Chỉ số hiệu năng (SLAs/SLOs): Thời gian tải trang $< 1.2\text{s}$, phản hồi API $< 150\text{ms}$, Sandbox timeout $\le 3\text{s}$.
-   - Khả năng chịu tải đồng thời $\ge 1.000$ người dùng, tối ưu bộ nhớ qua `AsNoTracking()` và phân trang.
-   - Bảo mật OWASP: Chống XSS, CSRF Token, Parameterized Queries chống SQL Injection, mã hóa mật khẩu PBKDF2.
-   - Khả năng hoạt động ngoại tuyến với Service Worker PWA và độ tương thích đa nền tảng (Responsive, Dark/Light Mode).
+4. [**04. Non-Functional Requirements Document (NFR)**](file:///d:/.ASPNET-Tutos/docs/04_non_functional_requirements.md)
+   - Performance metrics and SLAs/SLOs: Page load $< 1.2\text{s}$, API latency $< 150\text{ms}$, sandbox timeout $\le 3\text{s}$.
+   - Scalability standards: $\ge 1,000$ concurrent active users, memory optimization via `AsNoTracking()` and database pagination.
+   - Information security: Roslyn sandbox isolation, PBKDF2 password hashing, JWT Bearer authentication, OWASP Top 10 defenses.
+   - Offline resilience via Progressive Web App (PWA) Service Workers and cross-platform responsive design (WCAG 2.1 AA).
 
-5. [**05. Mô hình Dữ liệu & Đặc tả Giao tiếp API (Data Models & API Specifications)**](file:///d:/.ASPNET-Tutos/docs/05_data_models_and_api_specs.md)
-   - Sơ đồ quan hệ thực thể dữ liệu (ERD Diagram).
-   - Đặc tả các bảng dữ liệu: `ApplicationUser`, `Tutorial`, `CodingChallenge`, `CodeTestCase`, `InterviewFlashcard`, `UserLessonProgress`.
-   - Đặc tả hợp đồng API RESTful (Request/Response JSON):
-     - Xác thực và đồng bộ tài khoản Mobile (`/api/mobile/auth/*`).
-     - Đánh dấu hoàn thành bài học và đồng bộ XP/Streak (`/api/mobile/tutorials/*`).
-     - Đo độ phức tạp Big-O, chẩn đoán lỗi và sinh xUnit (`/AiTutor/*`).
-     - Chấm điểm phỏng vấn, câu hỏi xoáy và báo cáo năng lực (`/Interview/*`).
+5. [**05. Data Models & API Specifications**](file:///d:/.ASPNET-Tutos/docs/05_data_models_and_api_specs.md)
+   - Relational Entity Relationship Diagram (ERD).
+   - Domain entity specifications: `ApplicationUser`, `Tutorial`, `Category`, `CodingChallenge`, `CodeTestCase`, `InterviewFlashcard`.
+   - Comprehensive RESTful API contracts with sample request and response payloads:
+     - Mobile authentication and profile retrieval (`/api/mobile/auth/*`).
+     - Curriculum retrieval and completion synchronization (`/api/mobile/tutorials/*`).
+     - Algorithmic Big-O analysis and failure diagnostics (`/AiTutor/*`).
+     - AI interview evaluation, follow-up challenges, and session reporting (`/Interview/*`).
 
 ---
 
-## 3. Ma trận truy vết yêu cầu (Requirements Traceability Matrix - RTM)
+## 3. Requirements Traceability Matrix (RTM)
 
-| Mục tiêu kinh doanh (Business Goal) | Phân hệ chức năng (Module ID) | Tệp mã nguồn thực thi chính (Implementation Components) | Kiểm chứng chất lượng (Verification) |
+| Business Goal | Functional Module | Implementation Components | Verification Strategy |
 | :--- | :--- | :--- | :--- |
-| **Code không rào cản trên Web** | `MOD-PLAY` | `PlaygroundController.cs`, `CodeExecutionService.cs`, `Index.cshtml` (Playground) | Unit tests, Roslyn Scripting sandbox, Monaco Editor |
-| **Trợ lý AI hướng dẫn trực tiếp** | `MOD-AI` | `AiTutorController.cs`, `AiTutorService.cs`, `AiTutorViewModels.cs` | Big-O analysis, Diagnose failure, Generate xUnit |
-| **Sát hạch tuyển dụng chuẩn Senior** | `MOD-INT` | `InterviewController.cs`, `AiTutorService.cs`, `Mock.cshtml` | 3-criteria evaluation, Speech-to-Text, Radar report |
-| **Học tập đa nền tảng liên tục** | `MOD-MOB` | `MobileAuthController.cs`, `ApiService.cs` (.NET MAUI), `LoginPage.xaml` | JWT Bearer, Preferences cache, Sync XP & Streak |
-| **Giữ chân học viên & thi đua** | `MOD-GAM` | `StreakService.cs`, `LeaderboardService.cs`, `ActivityFeedService.cs` | Daily check-in, Level formula, Hall of Fame |
+| **Zero-Friction In-Browser Coding** | `MOD-PLAY` | `PlaygroundController.cs`, `CodeExecutionService.cs`, `Index.cshtml` (Playground) | Unit tests, Roslyn Scripting sandbox, Monaco Editor integration |
+| **Contextual AI Engineering Feedback** | `MOD-AI` | `AiTutorController.cs`, `AiTutorService.cs`, `AiTutorViewModels.cs` | Big-O analysis, failure diagnostics, dynamic xUnit test generation |
+| **Senior Technical Hiring Readiness** | `MOD-INT` | `InterviewController.cs`, `AiTutorService.cs`, `Mock.cshtml` | 3-dimension rubric evaluation, Speech-to-Text, radar reports |
+| **Continuous Cross-Platform Study** | `MOD-MOB` | `MobileAuthController.cs`, `ApiService.cs` (.NET MAUI), `LoginPage.xaml` | JWT Bearer verification, device storage, progress sync |
+| **Learner Engagement & Retention** | `MOD-GAM` | `StreakService.cs`, `LeaderboardService.cs`, `ActivityFeedService.cs` | Daily check-in tests, Level formula calculation, Hall of Fame |
 
 ---
 
-## 4. Hướng dẫn khai thác tài liệu theo vai trò (Role-based Guide)
+## 4. Role-Based Navigation Guide
 
-- **Dành cho Product Owner / Stakeholder:** Xem [Tài liệu 01](file:///d:/.ASPNET-Tutos/docs/01_business_overview.md) và [Tài liệu 03](file:///d:/.ASPNET-Tutos/docs/03_functional_requirements_brd.md) để nắm lộ trình phát triển sản phẩm, tính năng và mục tiêu đo lường kinh doanh.
-- **Dành cho Solution Architect / Tech Lead:** Xem [Tài liệu 02](file:///d:/.ASPNET-Tutos/docs/02_system_architecture_overview.md) và [Tài liệu 05](file:///d:/.ASPNET-Tutos/docs/05_data_models_and_api_specs.md) để nắm cấu trúc tầng, sơ đồ luồng dữ liệu và thiết kế cơ sở dữ liệu.
-- **Dành cho Software Developers (Web & Mobile):** Xem [Tài liệu 03](file:///d:/.ASPNET-Tutos/docs/03_functional_requirements_brd.md) để nắm Acceptance Criteria và [Tài liệu 05](file:///d:/.ASPNET-Tutos/docs/05_data_models_and_api_specs.md) để tích hợp đúng các API Contracts.
-- **Dành cho QA / Test Engineers:** Dựa vào Acceptance Criteria trong [Tài liệu 03](file:///d:/.ASPNET-Tutos/docs/03_functional_requirements_brd.md) và các chỉ số SLAs/SLOs trong [Tài liệu 04](file:///d:/.ASPNET-Tutos/docs/04_non_functional_requirements.md) để viết Test Cases kiểm thử chức năng và kiểm thử tải.
+- **Product Owners & Business Stakeholders:** Review [01. Business Overview](file:///d:/.ASPNET-Tutos/docs/01_business_overview.md) and [03. Functional Requirements (BRD)](file:///d:/.ASPNET-Tutos/docs/03_functional_requirements_brd.md) to understand the product roadmap, functional scope, and strategic business goals.
+- **Solution Architects & Engineering Leads:** Review [02. System Architecture Overview](file:///d:/.ASPNET-Tutos/docs/02_system_architecture_overview.md) and [05. Data Models & API Specifications](file:///d:/.ASPNET-Tutos/docs/05_data_models_and_api_specs.md) to evaluate system topology, data flows, and schema structures.
+- **Software Developers (Web & Mobile):** Refer to [03. Functional Requirements (BRD)](file:///d:/.ASPNET-Tutos/docs/03_functional_requirements_brd.md) for acceptance criteria and [05. Data Models & API Specifications](file:///d:/.ASPNET-Tutos/docs/05_data_models_and_api_specs.md) for endpoint request/response contracts.
+- **QA & Test Automation Engineers:** Leverage acceptance criteria in [03. Functional Requirements (BRD)](file:///d:/.ASPNET-Tutos/docs/03_functional_requirements_brd.md) and performance benchmarks in [04. Non-Functional Requirements (NFR)](file:///d:/.ASPNET-Tutos/docs/04_non_functional_requirements.md) to create comprehensive test plans and load testing scripts.
