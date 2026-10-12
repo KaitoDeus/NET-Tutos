@@ -134,6 +134,41 @@
                         FontSize="13"
                         CornerRadius="14"
                         HeightRequest="46" />
+
+                <!-- Toggle Server Config Link -->
+                <Button Text="⚙ Cấu hình địa chỉ máy chủ API"
+                        Command="{Binding ToggleServerConfigCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="{AppThemeBinding Light=#6366F1, Dark=#818CF8}"
+                        FontSize="12"
+                        HeightRequest="36"
+                        Padding="0" />
+
+                <!-- Collapsible Server Config Box -->
+                <Border IsVisible="{Binding IsConfiguringServer}"
+                        StrokeShape="RoundRectangle 14"
+                        Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                        BackgroundColor="{AppThemeBinding Light=#F1F5F9, Dark=#0F172A}"
+                        Padding="14,12">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Địa chỉ máy chủ Web API:"
+                               FontSize="11"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}" />
+                        <Entry Text="{Binding ServerUrl}"
+                               FontSize="12"
+                               HeightRequest="40"
+                               TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                               BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E293B}" />
+                        <Button Text="Lưu địa chỉ máy chủ"
+                                Command="{Binding SaveServerUrlCommand}"
+                                BackgroundColor="#4F46E5"
+                                TextColor="White"
+                                FontSize="12"
+                                HeightRequest="38"
+                                CornerRadius="10" />
+                    </VerticalStackLayout>
+                </Border>
             </VerticalStackLayout>
 
             <ActivityIndicator IsRunning="{Binding IsBusy}"

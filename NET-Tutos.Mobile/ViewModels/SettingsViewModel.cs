@@ -132,10 +132,10 @@ public partial class SettingsViewModel : BaseViewModel
     [RelayCommand]
     private void ResetDefaultServerUrl()
     {
-        const string defaultUrl = "http://10.0.2.2:5242/api/mobile";
+        const string defaultUrl = "http://10.0.2.2:5000/api/mobile";
         ServerUrl = defaultUrl;
         _apiService.BaseUrl = defaultUrl;
-        ShowStatus("Đã khôi phục địa chỉ máy chủ mặc định (10.0.2.2:5242).");
+        ShowStatus("Đã khôi phục địa chỉ máy chủ mặc định (10.0.2.2:5000).");
     }
 
     [RelayCommand]
