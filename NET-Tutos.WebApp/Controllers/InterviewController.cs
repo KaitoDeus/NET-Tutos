@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
@@ -9,13 +10,22 @@ namespace NET_Tutos.Controllers;
 public class InterviewController : Controller
 {
     private readonly IFlashcardService _flashcardService;
+    private readonly IAiTutorService _aiTutorService;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IStreakService _streakService;
     private readonly ILogger<InterviewController> _logger;
 
     public InterviewController(
         IFlashcardService flashcardService,
+        IAiTutorService aiTutorService,
+        UserManager<ApplicationUser> userManager,
+        IStreakService streakService,
         ILogger<InterviewController> logger)
     {
         _flashcardService = flashcardService;
+        _aiTutorService = aiTutorService;
+        _userManager = userManager;
+        _streakService = streakService;
         _logger = logger;
     }
 
@@ -95,6 +105,59 @@ public class InterviewController : Controller
 
         var result = await _flashcardService.SubmitMockInterviewAsync(userId ?? "", request, isEn);
         return Json(result);
+    }
+
+    // POST: /Interview/EvaluateAiAnswer (AJAX)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EvaluateAiAnswer([FromBody] AiInterviewEvaluationRequest request)
+    {
+        bool isEn = HttpContext.IsEnglish();
+        var evaluation = await _aiTutorService.EvaluateInterviewAnswerAsync(request, isEn);
+        return Json(evaluation);
+    }
+
+    // POST: /Interview/AnswerAiFollowUp (AJAX)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AnswerAiFollowUp([FromBody] AiInterviewFollowUpRequest request)
+    {
+        bool isEn = HttpContext.IsEnglish();
+        var followUpResult = await _aiTutorService.AnswerFollowUpAsync(request, isEn);
+        return Json(followUpResult);
+    }
+
+    // POST: /Interview/SubmitAiMockReport (AJAX)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SubmitAiMockReport([FromBody] AiInterviewReportRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        bool isEn = HttpContext.IsEnglish();
+
+        var report = await _aiTutorService.GenerateInterviewReportAsync(request, isEn);
+
+        // Award XP and maintain streak if user is authenticated
+        if (!string.IsNullOrEmpty(userId))
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user != null)
+                {
+                    user.ExperiencePoints += report.XpAwarded;
+                    await _userManager.UpdateAsync(user);
+                }
+
+                await _streakService.RecordLearningActivityStreakAsync(userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Lỗi khi cập nhật XP và Streak sau khi hoàn thành AI Mock Interview.");
+            }
+        }
+
+        return Json(report);
     }
 
     // GET: /Interview/Question/{slug}

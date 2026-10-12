@@ -1,36 +1,69 @@
 @model NET_Tutos.Models.ViewModels.MockInterviewViewModel
 @{
     bool isEn = Context.IsEnglish();
-    ViewData["Title"] = isEn ? ".NET Mock Interview Simulator" : "Phỏng Vấn Thử .NET Kỹ Thuật";
+    ViewData["Title"] = isEn ? ".NET AI Mock Technical Interview Simulator" : "Phòng Phỏng Vấn Kỹ Thuật .NET Với AI";
 }
 
-<div class="container py-4 py-md-5" style="max-width: 950px;">
+@Html.AntiForgeryToken()
+
+<div class="container py-4 py-md-5" style="max-width: 980px;">
     <!-- Top Header & Timer Bar -->
     <div class="card border-0 rounded-4 shadow-sm bg-body p-4 mb-4">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <div>
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <span class="badge bg-danger bg-opacity-15 text-danger rounded-pill px-3 py-1 fw-bold">
-                        <i class="bi bi-broadcast me-1"></i> @(isEn ? "LIVE MOCK INTERVIEW" : "PHỎNG VẤN THỬ TRỰC TIẾP")
-                    </span>
-                    <span class="badge bg-secondary bg-opacity-15 text-body-secondary rounded-pill px-2.5 py-1 small">
-                        5 @(isEn ? "Questions" : "Câu hỏi")
-                    </span>
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3 d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" style="width: 58px; height: 58px;">
+                    <i class="bi bi-robot fs-2"></i>
                 </div>
-                <h3 class="fw-bold mb-0 text-body-emphasis">
-                    @(isEn ? ".NET Technical Mock Interview" : "Sát Hạch Phỏng Vấn Kỹ Thuật .NET")
-                </h3>
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge bg-danger bg-opacity-15 text-danger rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1.5">
+                            <span class="spinner-grow spinner-grow-sm text-danger" role="status" style="width: 0.55rem; height: 0.55rem;"></span>
+                            @(isEn ? "AI TECHNICAL INTERVIEW" : "PHỎNG VẤN TRỰC TIẾP VỚI AI")
+                        </span>
+                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1 small fw-semibold">
+                            @Model.Questions.Count @(isEn ? "Questions" : "Câu hỏi")
+                        </span>
+                    </div>
+                    <h3 class="fw-bold mb-0 text-body-emphasis">
+                        @(isEn ? ".NET Technical Mock Interview Simulator" : "Mô Phỏng Phỏng Vấn Kỹ Thuật .NET")
+                    </h3>
+                </div>
             </div>
 
-            <!-- Countdown Timer -->
+            <!-- Countdown Timer & Actions -->
             <div class="d-flex align-items-center gap-3">
                 <div class="text-end">
                     <div class="small text-muted">@(isEn ? "Time Remaining" : "Thời gian còn lại")</div>
                     <div id="mockCountdownTimer" class="fs-3 fw-bold font-monospace text-danger">10:00</div>
                 </div>
                 <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3 py-2 small" onclick="return confirm('@(isEn ? "Are you sure you want to quit this mock interview?" : "Bạn có chắc chắn muốn thoát phiên phỏng vấn thử?")');">
-                    @(isEn ? "Quit" : "Thoát")
+                    <i class="bi bi-box-arrow-left me-1"></i> @(isEn ? "Quit" : "Thoát")
                 </a>
+            </div>
+        </div>
+
+        <!-- Mode Toggle & Navigation Stepper -->
+        <div class="border-top mt-3 pt-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <!-- Mode switcher -->
+            <div class="btn-group btn-group-sm p-1 rounded-pill bg-body-tertiary border shadow-xs" role="group">
+                <button type="button" class="btn btn-sm rounded-pill active fw-semibold px-3" id="tabModeAi" onclick="switchMode('ai')">
+                    <i class="bi bi-robot me-1.5 text-primary"></i> @(isEn ? "AI Tech Lead Interviewer" : "Chấm Điểm Với AI Tech Lead")
+                </button>
+                <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 text-muted" id="tabModeClassic" onclick="switchMode('classic')">
+                    <i class="bi bi-pencil-square me-1.5"></i> @(isEn ? "Classic Self-Check" : "Tự Ôn Tập Nhanh")
+                </button>
+            </div>
+
+            <!-- Question Stepper Badges -->
+            <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                <span class="small text-muted fw-semibold me-1">@(isEn ? "Jump to:" : "Câu hỏi:")</span>
+                @for (int i = 0; i < Model.Questions.Count; i++)
+                {
+                    <button type="button" class="btn btn-sm rounded-circle p-0 fw-bold border question-stepper-btn @(i == 0 ? "btn-primary text-white" : "btn-outline-secondary")" 
+                            style="width: 32px; height: 32px;" id="stepperBtn-@i" onclick="scrollToQuestion(@i)">
+                        @(i + 1)
+                    </button>
+                }
             </div>
         </div>
     </div>
@@ -40,7 +73,8 @@
         @for (int i = 0; i < Model.Questions.Count; i++)
         {
             var q = Model.Questions[i];
-            <div class="card border rounded-4 shadow-sm p-4 mb-4 bg-body mock-question-block" data-question-id="@q.Id">
+            <div class="card border rounded-4 shadow-sm p-4 mb-4 bg-body mock-question-block" id="questionBlock-@i" data-question-id="@q.Id" data-question-index="@i" data-question-topic="@q.Topic" data-question-diff="@q.Difficulty">
+                <!-- Question Header -->
                 <div class="d-flex align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-primary text-white rounded-pill px-3 py-1 fw-bold">
@@ -50,28 +84,58 @@
                             @q.TopicName
                         </span>
                     </div>
-                    <span class="badge bg-@q.DifficultyBadgeClass bg-opacity-15 text-@q.DifficultyBadgeClass rounded-pill px-2.5 py-1 small">
-                        @q.DifficultyName
-                    </span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-@q.DifficultyBadgeClass bg-opacity-15 text-@q.DifficultyBadgeClass rounded-pill px-2.5 py-1 small">
+                            @q.DifficultyName
+                        </span>
+                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 small ai-status-badge d-none" id="aiStatusBadge-@q.Id">
+                            <i class="bi bi-check2"></i> @(isEn ? "AI Evaluated" : "Đã có nhận xét AI")
+                        </span>
+                    </div>
                 </div>
 
-                <h5 class="fw-bold text-body-emphasis mb-3" style="line-height: 1.5;">
+                <!-- Question Prompt -->
+                <h5 class="fw-bold text-body-emphasis mb-3" style="line-height: 1.5;" id="questionText-@q.Id">
                     @q.Question
                 </h5>
 
-                <!-- User Draft Notes Area -->
+                @if (!string.IsNullOrEmpty(q.QuickHint))
+                {
+                    <div class="small text-muted mb-3 d-flex align-items-center gap-1.5">
+                        <i class="bi bi-lightbulb text-warning"></i>
+                        <span><strong>@(isEn ? "Hint:" : "Gợi ý:")</strong> @q.QuickHint</span>
+                    </div>
+                }
+
+                <!-- Candidate Answer Input Area -->
                 <div class="mb-3">
-                    <label class="form-label small fw-semibold text-muted">
-                        <i class="bi bi-pencil-square me-1"></i> @(isEn ? "Your Draft Answer (Key Points you would say):" : "Nháp câu trả lời của bạn (Các ý chính bạn sẽ trình bày):")
-                    </label>
-                    <textarea class="form-control rounded-3 font-monospace small" rows="3" placeholder="@(isEn ? "Type your thought process or bullet points here..." : "Gõ nhanh dàn ý hoặc từ khóa bạn định trả lời...")"></textarea>
+                    <div class="d-flex align-items-center justify-content-between mb-1.5">
+                        <label class="form-label small fw-semibold text-muted mb-0">
+                            <i class="bi bi-chat-quote-fill text-primary me-1"></i> @(isEn ? "Your Technical Explanation (State concept, mechanism, & real-world caveats):" : "Câu trả lời của bạn (Trình bày khái niệm, cơ chế bên dưới, và ví dụ/lưu ý thực tế):")
+                        </label>
+                        <!-- Speech-to-text dictation button -->
+                        <button type="button" class="btn btn-xs btn-outline-danger rounded-pill px-2.5 py-1 small fw-semibold d-inline-flex align-items-center gap-1 voice-record-btn" id="voiceBtn-@q.Id" onclick="toggleVoiceRecording(@q.Id)">
+                            <i class="bi bi-mic-fill"></i> <span id="voiceBtnText-@q.Id">@(isEn ? "Speak Answer" : "Nói câu trả lời")</span>
+                        </button>
+                    </div>
+                    <textarea class="form-control rounded-3 font-monospace small candidate-answer-text" id="answerInput-@q.Id" rows="4" placeholder="@(isEn ? "Example: Explain the core definition, internal state machine / CLR execution, and production trade-offs..." : "Ví dụ: Trình bày khái niệm, cách CLR xử lý bên dưới, và các bẫy thực tế trong dự án lớn...")"></textarea>
                 </div>
 
-                <!-- Reveal Benchmark Answer Toggle -->
-                <div class="mb-3">
-                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold" onclick="toggleAnswer(@q.Id)">
-                        <i class="bi bi-eye-fill me-1"></i> @(isEn ? "Reveal Benchmark Answer & Self-Evaluate" : "Hiện Đáp Án Mẫu & Tự Chấm Điểm")
-                    </button>
+                <!-- AI Evaluation Action Bar (AI Mode) -->
+                <div class="ai-mode-panel mb-3">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs" id="btnEvaluateAi-@q.Id" onclick="evaluateAnswerWithAi(@q.Id)">
+                            <i class="bi bi-robot"></i> <span>@(isEn ? "Submit to AI Tech Lead for Assessment" : "Gửi Cho AI Tech Lead Chấm Điểm")</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 small fw-semibold" onclick="toggleBenchmarkAnswer(@q.Id)">
+                            <i class="bi bi-eye me-1"></i> @(isEn ? "View Benchmark Answer" : "Xem Đáp Án Chuẩn")
+                        </button>
+                    </div>
+                </div>
+
+                <!-- AI Live Assessment Result Card -->
+                <div id="aiEvaluationResult-@q.Id" class="border rounded-4 p-3.5 mb-3 d-none bg-body-tertiary">
+                    <!-- Dynamic AI Output will be injected here -->
                 </div>
 
                 <!-- Hidden Benchmark Answer Area -->
@@ -86,31 +150,31 @@
                     @if (!string.IsNullOrEmpty(q.InterviewTip))
                     {
                         <div class="alert alert-warning border-warning rounded-3 p-2.5 mb-3 small">
-                            <i class="bi bi-stars text-warning me-1"></i> <strong>@(isEn ? "Tip:" : "Mẹo:")</strong> @q.InterviewTip
+                            <i class="bi bi-stars text-warning me-1"></i> <strong>@(isEn ? "Pro Interview Tip:" : "Mẹo Phỏng Vấn Thực Chiến:")</strong> @q.InterviewTip
                         </div>
                     }
 
-                    <!-- Self Rating Radio Group -->
-                    <div class="border-top pt-2.5">
+                    <!-- Classic Self-Rating Radio Group (Visible in Classic Mode) -->
+                    <div class="classic-mode-panel border-top pt-2.5">
                         <label class="form-label small fw-bold text-body-emphasis mb-2">
                             @(isEn ? "Self-Evaluate Your Answer:" : "Tự đánh giá câu trả lời của bạn:")
                         </label>
                         <div class="d-flex gap-2 flex-wrap">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input score-radio" type="radio" name="score_@q.Id" id="score_@q.Id-0" value="0" />
-                                <label class="form-check-label small" for="score_@q.Id-0">0% (@(isEn ? "Completely blank" : "Chưa nhớ gì"))</label>
+                                <label class="form-check-label small" for="score_@q.Id-0">0% (@(isEn ? "Blank" : "Chưa nhớ gì"))</label>
                             </div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input score-radio" type="radio" name="score_@q.Id" id="score_@q.Id-50" value="50" />
-                                <label class="form-check-label small" for="score_@q.Id-50">50% (@(isEn ? "Partial idea" : "Được 1 phần ý"))</label>
+                                <label class="form-check-label small" for="score_@q.Id-50">50% (@(isEn ? "Partial" : "Được 1 phần ý"))</label>
                             </div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input score-radio" type="radio" name="score_@q.Id" id="score_@q.Id-80" value="80" checked />
-                                <label class="form-check-label small" for="score_@q.Id-80">80% (@(isEn ? "Good answer" : "Khá tốt / Đủ ý"))</label>
+                                <label class="form-check-label small" for="score_@q.Id-80">80% (@(isEn ? "Good" : "Khá tốt / Đủ ý"))</label>
                             </div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input score-radio" type="radio" name="score_@q.Id" id="score_@q.Id-100" value="100" />
-                                <label class="form-check-label small fw-bold text-success" for="score_@q.Id-100">100% (@(isEn ? "Excellent / Deep" : "Xuất sắc / Chuyên sâu"))</label>
+                                <label class="form-check-label small fw-bold text-success" for="score_@q.Id-100">100% (@(isEn ? "Senior" : "Xuất sắc / Chuyên sâu"))</label>
                             </div>
                         </div>
                     </div>
@@ -118,40 +182,71 @@
             </div>
         }
 
-        <!-- Submit Button -->
-        <div class="text-center py-3">
-            <button type="button" class="btn btn-primary rounded-pill px-5 py-3 fw-bold fs-6 shadow-sm" onclick="submitMockInterview()">
-                <i class="bi bi-send-check-fill me-2"></i> @(isEn ? "Finish & Get Readiness Score" : "Hoàn Thành & Đánh Giá Năng Lực")
-            </button>
+        <!-- Finish & Submit Interview Bar -->
+        <div class="card border-0 rounded-4 shadow-sm p-4 bg-body text-center">
+            <h5 class="fw-bold mb-1 text-body-emphasis">@(isEn ? "Completed All Interview Questions?" : "Đã Hoàn Thành Toàn Bộ Câu Hỏi?")</h5>
+            <p class="small text-muted mb-3">@(isEn ? "Submit your responses to receive a comprehensive Technical Readiness Report and earn XP!" : "Nộp bài để AI Lead tổng hợp Báo cáo Năng lực Kỹ thuật toàn diện và nhận thưởng điểm XP!")</p>
+            <div class="d-flex justify-content-center gap-2">
+                <button type="button" class="btn btn-primary rounded-pill px-5 py-2.5 fw-bold fs-6 shadow-sm d-inline-flex align-items-center gap-2" id="btnFinishMock" onclick="submitFullMockInterview()">
+                    <i class="bi bi-send-check-fill"></i>
+                    <span>@(isEn ? "Finish & Get AI Evaluation Report" : "Hoàn Thành & Xuất Báo Cáo Năng Lực AI")</span>
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- Results View (Hidden until submit) -->
-    <div id="mockResultsView" class="card border-0 rounded-4 shadow-sm p-4 p-md-5 text-center bg-body d-none">
-        <div id="resultIconBox" class="rounded-circle bg-success bg-opacity-15 text-success mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-            <i class="bi bi-award-fill display-5"></i>
-        </div>
-        <h2 id="resultReadinessTitle" class="display-6 fw-bold text-body-emphasis mb-2"></h2>
-        <div class="fs-1 fw-bold text-primary mb-2">
-            <span id="resultAvgScore">0</span>%
-        </div>
-        <p id="resultFeedbackText" class="text-body-secondary lead fs-6 mb-4" style="max-width: 650px; margin: 0 auto;"></p>
+    <div id="mockResultsView" class="card border-0 rounded-4 shadow-sm p-4 p-md-5 bg-body d-none">
+        <div class="text-center mb-4">
+            <div id="resultIconBox" class="rounded-circle bg-success bg-opacity-15 text-success mx-auto mb-3 d-flex align-items-center justify-content-center shadow-xs" style="width: 84px; height: 84px;">
+                <i class="bi bi-award-fill display-5"></i>
+            </div>
+            <span class="badge rounded-pill px-3 py-1.5 fw-bold mb-2 fs-6" id="resultReadinessBadge"></span>
+            <h2 id="resultReadinessTitle" class="display-6 fw-bold text-body-emphasis mb-1"></h2>
+            <div class="fs-1 fw-bold text-primary mb-2">
+                <span id="resultAvgScore">0</span><small class="fs-4 text-muted">/100</small>
+            </div>
+            <p id="resultFeedbackText" class="text-body-secondary lead fs-6 mx-auto mb-3" style="max-width: 720px;"></p>
 
-        <div class="d-inline-flex align-items-center gap-2 mb-4 mx-auto">
-            <span class="badge bg-warning bg-opacity-20 text-dark border border-warning border-opacity-50 rounded-pill px-3 py-2 fw-bold">
-                <i class="bi bi-lightning-charge-fill text-danger me-1"></i> +<span id="resultXpAwarded">0</span> XP
-            </span>
-            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-2 fw-bold">
-                <i class="bi bi-stopwatch me-1"></i> <span id="resultTimeSpent">0s</span>
-            </span>
+            <div class="d-inline-flex align-items-center gap-2 mb-3">
+                <span class="badge bg-warning bg-opacity-20 text-dark border border-warning border-opacity-50 rounded-pill px-3 py-2 fw-bold">
+                    <i class="bi bi-lightning-charge-fill text-danger me-1"></i> +<span id="resultXpAwarded">0</span> XP
+                </span>
+                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-2 fw-bold">
+                    <i class="bi bi-stopwatch me-1"></i> <span id="resultTimeSpent">0s</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- 5-Core .NET Skill Breakdown Radar / Bars -->
+        <div class="border rounded-4 p-4 mb-4 bg-body-tertiary">
+            <h6 class="fw-bold mb-3 d-flex align-items-center gap-2 text-body">
+                <i class="bi bi-bar-chart-line-fill text-primary"></i>
+                @(isEn ? "Candidate Technical Skill Assessment:" : "Đánh Giá Năng Lực 5 Kỹ Năng Cốt Lõi .NET:")
+            </h6>
+            <div id="skillBreakdownContainer" class="d-flex flex-column gap-3">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <!-- Actionable Learning Recommendations -->
+        <div class="border rounded-4 p-4 mb-4 bg-body" id="recommendedLessonsBox">
+            <h6 class="fw-bold mb-2 d-flex align-items-center gap-2 text-success">
+                <i class="bi bi-mortarboard-fill"></i>
+                @(isEn ? "Actionable Next Steps - Tailored Lesson Recommendations:" : "Lộ Trình Cải Thiện - Bài Học Đề Xuất Cho Bạn:")
+            </h6>
+            <p class="small text-muted mb-3">@(isEn ? "Based on your mock performance, study these tutorials to bridge your technical gaps:" : "Dựa trên điểm số phỏng vấn, hãy ôn luyện thêm các bài học sau để bứt phá lên bậc tiếp theo:")</p>
+            <div id="recommendedLessonsList" class="row g-2.5">
+                <!-- Injected via JS -->
+            </div>
         </div>
 
         <div class="d-flex justify-content-center gap-2 flex-wrap">
-            <a asp-action="Mock" class="btn btn-primary rounded-pill px-4 py-2.5 fw-bold">
+            <a asp-action="Mock" class="btn btn-primary rounded-pill px-4 py-2.5 fw-bold shadow-xs">
                 <i class="bi bi-arrow-repeat me-1"></i> @(isEn ? "Take Another Mock" : "Thử Bộ Đề Khác")
             </a>
             <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 py-2.5 fw-bold">
-                <i class="bi bi-house-door-fill me-1"></i> @(isEn ? "Back to Flashcards" : "Về Bảng Tin")
+                <i class="bi bi-house-door-fill me-1"></i> @(isEn ? "Back to Flashcards Hub" : "Về Trung Tâm Flashcards")
             </a>
         </div>
     </div>
@@ -159,17 +254,21 @@
 
 @section Scripts {
     <script>
-        let totalSecondsRemaining = 600; // 10 minutes
+        const isEn = @(isEn ? "true" : "false");
+        let totalSecondsRemaining = @Model.TimeLimitSeconds;
         let timeSpent = 0;
         let timerInterval = null;
+        let currentMode = 'ai'; // 'ai' or 'classic'
+        const evaluatedScores = {}; // flashcardId -> score
 
+        // Countdown Timer
         function startTimer() {
             const timerEl = document.getElementById('mockCountdownTimer');
             timerInterval = setInterval(() => {
                 if (totalSecondsRemaining <= 0) {
                     clearInterval(timerInterval);
-                    alert('@(isEn ? "Time is up! Your interview will be submitted." : "Hết giờ làm bài! Hệ thống sẽ tự động tổng kết kết quả.")');
-                    submitMockInterview();
+                    alert(isEn ? "Time is up! Your interview will be submitted." : "Hết giờ làm bài! Hệ thống sẽ tự động tổng kết kết quả.");
+                    submitFullMockInterview();
                     return;
                 }
                 totalSecondsRemaining--;
@@ -180,65 +279,487 @@
             }, 1000);
         }
 
-        function toggleAnswer(qId) {
-            const box = document.getElementById(`benchmarkAnswer-${qId}`);
-            if (box) {
-                box.classList.toggle('d-none');
+        function scrollToQuestion(index) {
+            const el = document.getElementById(`questionBlock-${index}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Update stepper active
+                document.querySelectorAll('.question-stepper-btn').forEach((b, i) => {
+                    if (i === index) {
+                        b.className = 'btn btn-sm rounded-circle p-0 fw-bold border question-stepper-btn btn-primary text-white';
+                    } else {
+                        b.className = 'btn btn-sm rounded-circle p-0 fw-bold border question-stepper-btn btn-outline-secondary';
+                    }
+                });
             }
         }
 
-        async function submitMockInterview() {
-            if (timerInterval) clearInterval(timerInterval);
+        function switchMode(mode) {
+            currentMode = mode;
+            const btnAi = document.getElementById('tabModeAi');
+            const btnClassic = document.getElementById('tabModeClassic');
 
-            const blocks = document.querySelectorAll('.mock-question-block');
-            const answers = [];
+            if (mode === 'ai') {
+                btnAi.className = 'btn btn-sm rounded-pill active fw-semibold px-3';
+                btnClassic.className = 'btn btn-sm rounded-pill fw-semibold px-3 text-muted';
+                document.querySelectorAll('.ai-mode-panel').forEach(p => p.classList.remove('d-none'));
+                document.querySelectorAll('.classic-mode-panel').forEach(p => p.classList.add('d-none'));
+            } else {
+                btnClassic.className = 'btn btn-sm rounded-pill active fw-semibold px-3';
+                btnAi.className = 'btn btn-sm rounded-pill fw-semibold px-3 text-muted';
+                document.querySelectorAll('.ai-mode-panel').forEach(p => p.classList.add('d-none'));
+                document.querySelectorAll('.classic-mode-panel').forEach(p => p.classList.remove('d-none'));
+                // Reveal all benchmark answers in classic mode
+                document.querySelectorAll('[id^="benchmarkAnswer-"]').forEach(b => b.classList.remove('d-none'));
+            }
+        }
 
-            blocks.forEach(b => {
-                const qId = parseInt(b.getAttribute('data-question-id'), 10);
-                const selectedRadio = b.querySelector(`input[name="score_${qId}"]:checked`);
-                const score = selectedRadio ? parseInt(selectedRadio.value, 10) : 50;
-                answers.push({ FlashcardId: qId, Score: score });
-            });
+        function toggleBenchmarkAnswer(qId) {
+            const box = document.getElementById(`benchmarkAnswer-${qId}`);
+            if (box) box.classList.toggle('d-none');
+        }
+
+        // Web Speech API Voice Recognition
+        let activeRecognition = null;
+        let recordingQuestionId = null;
+
+        function toggleVoiceRecording(qId) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert(isEn ? 'Your browser does not support Speech Recognition. Please use Chrome, Edge, or Safari.' : 'Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng sử dụng Google Chrome, Edge hoặc Safari.');
+                return;
+            }
+
+            const btn = document.getElementById(`voiceBtn-${qId}`);
+            const btnText = document.getElementById(`voiceBtnText-${qId}`);
+            const textarea = document.getElementById(`answerInput-${qId}`);
+
+            if (activeRecognition && recordingQuestionId === qId) {
+                // Stop recording
+                activeRecognition.stop();
+                return;
+            }
+
+            if (activeRecognition) {
+                activeRecognition.stop();
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = isEn ? 'en-US' : 'vi-VN';
+            recognition.continuous = true;
+            recognition.interimResults = false;
+
+            recognition.onstart = function () {
+                activeRecognition = recognition;
+                recordingQuestionId = qId;
+                btn.className = 'btn btn-xs btn-danger rounded-pill px-2.5 py-1 small fw-semibold d-inline-flex align-items-center gap-1 voice-record-btn shadow-xs';
+                btnText.innerText = isEn ? 'Listening... (Click to stop)' : 'Đang lắng nghe... (Bấm để dừng)';
+            };
+
+            recognition.onresult = function (event) {
+                let speechTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        speechTranscript += event.results[i][0].transcript + ' ';
+                    }
+                }
+                if (speechTranscript) {
+                    textarea.value = (textarea.value + ' ' + speechTranscript).trim();
+                }
+            };
+
+            recognition.onerror = function (event) {
+                console.warn('Speech recognition error:', event.error);
+                stopVoiceRecordingUI(qId);
+            };
+
+            recognition.onend = function () {
+                stopVoiceRecordingUI(qId);
+            };
+
+            recognition.start();
+        }
+
+        function stopVoiceRecordingUI(qId) {
+            activeRecognition = null;
+            recordingQuestionId = null;
+            const btn = document.getElementById(`voiceBtn-${qId}`);
+            const btnText = document.getElementById(`voiceBtnText-${qId}`);
+            if (btn && btnText) {
+                btn.className = 'btn btn-xs btn-outline-danger rounded-pill px-2.5 py-1 small fw-semibold d-inline-flex align-items-center gap-1 voice-record-btn';
+                btnText.innerText = isEn ? 'Speak Answer' : 'Nói câu trả lời';
+            }
+        }
+
+        // Evaluate Answer with AI Tech Lead
+        async function evaluateAnswerWithAi(qId) {
+            const textarea = document.getElementById(`answerInput-${qId}`);
+            const answer = textarea ? textarea.value.trim() : '';
+            const block = document.querySelector(`.mock-question-block[data-question-id="${qId}"]`);
+            const qTopic = block?.getAttribute('data-question-topic') || '';
+            const qDiff = block?.getAttribute('data-question-diff') || '';
+            const qText = document.getElementById(`questionText-${qId}`)?.innerText || '';
+
+            if (!answer) {
+                alert(isEn ? 'Please type or speak your answer before submitting for AI assessment.' : 'Vui lòng nhập hoặc nói câu trả lời trước khi gửi cho AI Tech Lead.');
+                textarea?.focus();
+                return;
+            }
+
+            const btn = document.getElementById(`btnEvaluateAi-${qId}`);
+            const resultBox = document.getElementById(`aiEvaluationResult-${qId}`);
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> ${isEn ? 'AI Lead is analyzing...' : 'AI Lead đang lắng nghe & phân tích...'}`;
+
+            resultBox.classList.remove('d-none');
+            resultBox.innerHTML = `
+                <div class="text-center p-3 text-muted small">
+                    <div class="spinner-border spinner-border-sm text-primary mb-2"></div>
+                    <div>${isEn ? 'Analyzing technical accuracy, clarity, and architectural depth...' : 'Đang phân tích độ chính xác kỹ thuật, tính rõ ràng và chiều sâu kiến trúc...'}</div>
+                </div>
+            `;
 
             try {
                 const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
-                const res = await fetch('/Interview/SubmitMock', {
+                const res = await fetch('/Interview/EvaluateAiAnswer', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'RequestVerificationToken': token
                     },
                     body: JSON.stringify({
-                        Answers: answers,
+                        FlashcardId: qId,
+                        Question: qText,
+                        CandidateAnswer: answer,
+                        Topic: qTopic,
+                        Difficulty: qDiff
+                    })
+                });
+
+                const data = await res.json();
+                if (data && data.success) {
+                    evaluatedScores[qId] = data.overallScore;
+
+                    // Update question badge
+                    const statusBadge = document.getElementById(`aiStatusBadge-${qId}`);
+                    if (statusBadge) {
+                        statusBadge.className = 'badge bg-success-subtle text-success rounded-pill px-2.5 py-1 small fw-semibold';
+                        statusBadge.innerHTML = `<i class="bi bi-check2-circle me-1"></i> ${data.overallScore}/100`;
+                        statusBadge.classList.remove('d-none');
+                    }
+
+                    renderAiEvaluationCard(qId, data);
+                } else {
+                    resultBox.innerHTML = `<div class="alert alert-warning small mb-0">${isEn ? 'Unable to evaluate answer at this time.' : 'Không thể đánh giá câu trả lời lúc này.'}</div>`;
+                }
+            } catch (err) {
+                console.error(err);
+                resultBox.innerHTML = `<div class="alert alert-danger small mb-0">${isEn ? 'Error connecting to AI Interviewer.' : 'Lỗi kết nối với AI Interviewer.'}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="bi bi-robot"></i> <span>${isEn ? 'Re-evaluate with AI' : 'Gửi Lại Cho AI Đánh Giá'}</span>`;
+            }
+        }
+
+        function renderAiEvaluationCard(qId, data) {
+            const resultBox = document.getElementById(`aiEvaluationResult-${qId}`);
+            if (!resultBox) return;
+
+            const ratingBadgeClass = data.overallScore >= 85 ? 'bg-success' : (data.overallScore >= 70 ? 'bg-primary' : (data.overallScore >= 50 ? 'bg-info text-dark' : 'bg-warning text-dark'));
+
+            let strengthsHtml = '';
+            if (data.strengths && data.strengths.length > 0) {
+                strengthsHtml = `
+                    <div class="mb-3">
+                        <span class="small fw-bold text-success"><i class="bi bi-check-circle-fill me-1"></i>${isEn ? 'Key Strengths in Your Answer:' : 'Điểm sáng trong câu trả lời:'}</span>
+                        <ul class="mb-0 small text-body mt-1 ps-3">
+                            ${data.strengths.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            let missingHtml = '';
+            if (data.missingPoints && data.missingPoints.length > 0) {
+                missingHtml = `
+                    <div class="mb-3">
+                        <span class="small fw-bold text-warning-emphasis"><i class="bi bi-exclamation-diamond-fill me-1"></i>${isEn ? 'Missing Points to Add for Senior Level:' : 'Điểm cần bổ sung để đạt chuẩn Senior:'}</span>
+                        <ul class="mb-0 small text-body mt-1 ps-3">
+                            ${data.missingPoints.map(m => `<li>${escapeHtml(m)}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            let followUpHtml = '';
+            if (data.followUpQuestion) {
+                followUpHtml = `
+                    <div class="card border-primary-subtle bg-primary-subtle p-3 rounded-3 mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-1.5">
+                            <span class="fw-bold small text-primary"><i class="bi bi-question-circle-fill me-1"></i>${isEn ? 'Follow-Up Challenge Question from Tech Lead:' : 'Câu hỏi xoáy từ Tech Lead:'}</span>
+                            <span class="badge bg-primary rounded-pill">+Bonus XP</span>
+                        </div>
+                        <p class="small text-body mb-2 lh-base"><strong>${escapeHtml(data.followUpQuestion)}</strong></p>
+                        
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" id="followUpInput-${qId}" placeholder="${isEn ? 'Type quick response to this follow-up...' : 'Nhập nhanh phản hồi cho câu hỏi xoáy này...'}">
+                            <button class="btn btn-primary fw-semibold" type="button" id="btnSubmitFollowUp-${qId}" onclick="submitFollowUpReply(${qId}, '${escapeAttr(data.followUpQuestion)}')">
+                                <i class="bi bi-send-fill me-1"></i> ${isEn ? 'Reply' : 'Trả lời'}
+                            </button>
+                        </div>
+                        <div id="followUpFeedbackBox-${qId}" class="mt-2 d-none"></div>
+                    </div>
+                `;
+            }
+
+            resultBox.innerHTML = `
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge ${ratingBadgeClass} rounded-pill px-3 py-1 fw-bold fs-6">${escapeHtml(data.performanceRating)}</span>
+                        <span class="fw-bold fs-5 text-primary">${data.overallScore}<small class="fs-6 text-muted">/100</small></span>
+                    </div>
+                    <div class="small text-muted">
+                        <i class="bi bi-robot text-primary me-1"></i> ${isEn ? 'AI Lead Assessment' : 'Nhận xét từ AI Lead'}
+                    </div>
+                </div>
+
+                <!-- 3 Metrics Meters -->
+                <div class="row g-2 mb-3">
+                    <div class="col-4">
+                        <div class="p-2 rounded-3 bg-body border text-center">
+                            <div class="text-muted" style="font-size: 0.72rem;">${isEn ? 'Technical Accuracy' : 'Độ chính xác KT'}</div>
+                            <div class="fw-bold text-success fs-6">${data.technicalAccuracyScore}%</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 rounded-3 bg-body border text-center">
+                            <div class="text-muted" style="font-size: 0.72rem;">${isEn ? 'Clarity & Structure' : 'Diễn đạt & Mạch lạc'}</div>
+                            <div class="fw-bold text-info fs-6">${data.clarityStructureScore}%</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 rounded-3 bg-body border text-center">
+                            <div class="text-muted" style="font-size: 0.72rem;">${isEn ? 'Practical Depth' : 'Độ sâu thực chiến'}</div>
+                            <div class="fw-bold text-primary fs-6">${data.depthPracticalScore}%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overall Feedback -->
+                <div class="p-2.5 rounded-3 bg-body border text-body small mb-3 lh-base">
+                    <strong>${isEn ? 'Tech Lead Feedback:' : 'Lời khuyên của Lead:'}</strong> ${escapeHtml(data.feedback)}
+                </div>
+
+                ${strengthsHtml}
+                ${missingHtml}
+                ${followUpHtml}
+
+                <div class="text-end">
+                    <button type="button" class="btn btn-xs btn-link text-decoration-none text-muted small p-0" onclick="toggleBenchmarkAnswer(${qId})">
+                        <i class="bi bi-mortarboard me-1"></i> ${isEn ? 'Review Senior Reference Answer' : 'Xem Lời Giải Chuẩn Senior'}
+                    </button>
+                </div>
+            `;
+        }
+
+        async function submitFollowUpReply(qId, originalFollowUp) {
+            const input = document.getElementById(`followUpInput-${qId}`);
+            const val = input ? input.value.trim() : '';
+            if (!val) return;
+
+            const btn = document.getElementById(`btnSubmitFollowUp-${qId}`);
+            const feedbackBox = document.getElementById(`followUpFeedbackBox-${qId}`);
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                const res = await fetch('/Interview/AnswerAiFollowUp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({
+                        FlashcardId: qId,
+                        FollowUpQuestion: originalFollowUp,
+                        CandidateAnswer: val
+                    })
+                });
+
+                const data = await res.json();
+                if (data && data.success) {
+                    feedbackBox.classList.remove('d-none');
+                    feedbackBox.innerHTML = `
+                        <div class="p-2.5 rounded-3 bg-body border small mt-2">
+                            <div class="fw-bold ${data.isSatisfactory ? 'text-success' : 'text-primary'} mb-1">
+                                <i class="bi ${data.isSatisfactory ? 'bi-patch-check-fill' : 'bi-info-circle-fill'} me-1"></i>
+                                ${data.isSatisfactory ? (isEn ? `+${data.bonusScore} Bonus XP Awarded!` : `+${data.bonusScore} Điểm Thưởng!`) : ''}
+                            </div>
+                            <p class="mb-1 text-body">${escapeHtml(data.feedback)}</p>
+                            <div class="text-muted small border-top pt-1 mt-1"><em>${escapeHtml(data.deepDiveInsight)}</em></div>
+                        </div>
+                    `;
+                    input.disabled = true;
+                    btn.classList.add('d-none');
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="bi bi-send-fill me-1"></i> ${isEn ? 'Reply' : 'Trả lời'}`;
+            }
+        }
+
+        // Full Mock Interview Submission
+        async function submitFullMockInterview() {
+            if (timerInterval) clearInterval(timerInterval);
+
+            const btnFinish = document.getElementById('btnFinishMock');
+            btnFinish.disabled = true;
+            btnFinish.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> ${isEn ? 'Generating Comprehensive AI Report...' : 'Đang Tổng Hợp Báo Cáo Năng Lực AI...'}`;
+
+            const blocks = document.querySelectorAll('.mock-question-block');
+            const items = [];
+
+            blocks.forEach(b => {
+                const qId = parseInt(b.getAttribute('data-question-id'), 10);
+                const qTopic = b.getAttribute('data-question-topic') || '';
+                const qText = document.getElementById(`questionText-${qId}`)?.innerText || '';
+                const textarea = document.getElementById(`answerInput-${qId}`);
+                const answer = textarea ? textarea.value.trim() : '';
+
+                let score = 70;
+                if (evaluatedScores[qId] !== undefined) {
+                    score = evaluatedScores[qId];
+                } else {
+                    const selectedRadio = b.querySelector(`input[name="score_${qId}"]:checked`);
+                    score = selectedRadio ? parseInt(selectedRadio.value, 10) : (answer ? 65 : 40);
+                }
+
+                items.push({
+                    FlashcardId: qId,
+                    Question: qText,
+                    Topic: qTopic,
+                    CandidateAnswer: answer,
+                    Score: score
+                });
+            });
+
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                const res = await fetch('/Interview/SubmitAiMockReport', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({
+                        Items: items,
                         TimeSpentSeconds: timeSpent
                     })
                 });
 
                 if (res.ok) {
                     const data = await res.json();
-                    showResults(data);
+                    showComprehensiveResults(data);
                 } else {
-                    alert('@(isEn ? "Error submitting mock interview." : "Lỗi khi nộp bài phỏng vấn thử.")');
+                    alert(isEn ? "Error submitting mock interview." : "Lỗi khi nộp bài phỏng vấn thử.");
+                    btnFinish.disabled = false;
+                    btnFinish.innerHTML = `<i class="bi bi-send-check-fill me-2"></i> ${isEn ? 'Finish & Get AI Evaluation Report' : 'Hoàn Thành & Xuất Báo Cáo Năng Lực AI'}`;
                 }
             } catch (err) {
                 console.error(err);
-                alert('@(isEn ? "Network error. Please try again." : "Lỗi kết nối mạng.")');
+                alert(isEn ? "Network error. Please try again." : "Lỗi kết nối mạng.");
+                btnFinish.disabled = false;
+                btnFinish.innerHTML = `<i class="bi bi-send-check-fill me-2"></i> ${isEn ? 'Finish & Get AI Evaluation Report' : 'Hoàn Thành & Xuất Báo Cáo Năng Lực AI'}`;
             }
         }
 
-        function showResults(data) {
+        function showComprehensiveResults(data) {
             document.getElementById('mockInterviewFormContainer').classList.add('d-none');
+
+            const badge = document.getElementById('resultReadinessBadge');
+            badge.className = `badge rounded-pill px-3 py-1.5 fw-bold mb-2 fs-6 bg-${data.readinessBadgeClass}`;
+            badge.innerText = data.readinessLevel;
+
             document.getElementById('resultReadinessTitle').innerText = data.readinessLevel;
             document.getElementById('resultAvgScore').innerText = data.averageScore;
-            document.getElementById('resultFeedbackText').innerText = data.feedbackSummary;
+            document.getElementById('resultFeedbackText').innerText = data.executiveAssessment;
             document.getElementById('resultXpAwarded').innerText = data.xpAwarded;
-            
+
             const mins = Math.floor(data.timeSpentSeconds / 60);
             const secs = data.timeSpentSeconds % 60;
             document.getElementById('resultTimeSpent').innerText = `${mins}m ${secs}s`;
 
+            // Render Skill Breakdowns
+            const breakdownContainer = document.getElementById('skillBreakdownContainer');
+            breakdownContainer.innerHTML = '';
+            if (data.skillBreakdowns && data.skillBreakdowns.length > 0) {
+                data.skillBreakdowns.forEach(item => {
+                    const barColor = item.Score >= 80 ? 'bg-success' : (item.Score >= 65 ? 'bg-primary' : 'bg-warning');
+                    const div = document.createElement('div');
+                    div.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-semibold text-body">${escapeHtml(item.skillName)}</span>
+                            <span class="small fw-bold text-primary">${item.Score}%</span>
+                        </div>
+                        <div class="progress rounded-pill" style="height: 8px;">
+                            <div class="progress-bar ${barColor} rounded-pill" role="progressbar" style="width: ${item.Score}%" aria-valuenow="${item.Score}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    `;
+                    breakdownContainer.appendChild(div);
+                });
+            }
+
+            // Render Recommended Lessons
+            const lessonsContainer = document.getElementById('recommendedLessonsList');
+            lessonsContainer.innerHTML = '';
+            if (data.recommendedLessons && data.recommendedLessons.length > 0) {
+                data.recommendedLessons.forEach(lesson => {
+                    const col = document.createElement('div');
+                    col.className = 'col-md-4';
+                    col.innerHTML = `
+                        <div class="card border h-100 rounded-3 p-3 bg-body shadow-xs">
+                            <div class="small fw-bold text-primary mb-1"><i class="bi bi-book-half me-1"></i>${escapeHtml(lesson.title)}</div>
+                            <div class="text-muted small mb-3 flex-grow-1" style="font-size: 0.78rem;">${escapeHtml(lesson.reason)}</div>
+                            <a href="/tutorials/${encodeURIComponent(lesson.slug)}" class="btn btn-xs btn-outline-primary rounded-pill py-1 small fw-semibold text-center">
+                                ${isEn ? 'Study Lesson' : 'Ôn tập bài này'} <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    `;
+                    lessonsContainer.appendChild(col);
+                });
+            } else {
+                document.getElementById('recommendedLessonsBox')?.classList.add('d-none');
+            }
+
             document.getElementById('mockResultsView').classList.remove('d-none');
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.toString().replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function escapeAttr(text) {
+            if (!text) return '';
+            return text.toString()
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '&quot;')
+                .replace(/\r/g, '')
+                .replace(/\n/g, '\\n');
         }
 
         startTimer();

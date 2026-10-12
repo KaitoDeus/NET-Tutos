@@ -825,5 +825,314 @@ public class {methodName}Tests
             CoveredScenarios = scenarios
         };
     }
+
+    public async Task<AiInterviewEvaluationResponse> EvaluateInterviewAnswerAsync(AiInterviewEvaluationRequest request, bool isEnglish)
+    {
+        var flashcard = request.FlashcardId > 0
+            ? await _context.InterviewFlashcards.FirstOrDefaultAsync(f => f.Id == request.FlashcardId)
+            : null;
+
+        var answer = (request.CandidateAnswer ?? string.Empty).Trim();
+        var lowerAnswer = answer.ToLowerInvariant();
+        var question = flashcard != null ? (isEnglish ? flashcard.QuestionEn : flashcard.QuestionVi) : request.Question;
+        var benchmarkAnswer = flashcard != null ? (isEnglish ? flashcard.AnswerMarkdownEn : flashcard.AnswerMarkdownVi) : string.Empty;
+
+        // Base checks
+        if (string.IsNullOrWhiteSpace(answer) || answer.Length < 15)
+        {
+            return new AiInterviewEvaluationResponse
+            {
+                Success = true,
+                FlashcardId = request.FlashcardId,
+                OverallScore = 25,
+                TechnicalAccuracyScore = 20,
+                ClarityStructureScore = 30,
+                DepthPracticalScore = 20,
+                PerformanceRating = isEnglish ? "Incomplete / Too Brief" : "Chưa hoàn chỉnh / Quá ngắn",
+                Feedback = isEnglish
+                    ? "Your answer is too brief or empty. In a real technical interview, you should outline the core concept, internal working mechanism, and practical caveats."
+                    : "Câu trả lời của bạn quá ngắn hoặc chưa nêu được luận điểm. Trong phỏng vấn thực tế, hãy trình bày: Khái niệm cốt lõi -> Cơ chế bên dưới -> Kinh nghiệm / lưu ý thực tế.",
+                Strengths = isEnglish
+                    ? new List<string> { "Attempted the question." }
+                    : new List<string> { "Đã tiếp nhận câu hỏi của phỏng vấn viên." },
+                MissingPoints = isEnglish
+                    ? new List<string> { "Did not explain core technical definitions.", "Lacks implementation details or real-world example.", "No edge case or trade-off analysis." }
+                    : new List<string> { "Chưa định nghĩa rõ bản chất kỹ thuật.", "Thiếu ví dụ code hoặc cơ chế hoạt động thực tế.", "Chưa nêu các bẫy hiệu năng hoặc trường hợp biên." },
+                FollowUpQuestion = isEnglish
+                    ? "Could you elaborate with a concrete scenario in ASP.NET Core?"
+                    : "Bạn có thể giải thích chi tiết hơn kèm theo một ví dụ tình huống thực tế trong dự án ASP.NET Core không?",
+                ModelAnswerSample = benchmarkAnswer
+            };
+        }
+
+        // Domain Keyword Matcher
+        int matchCount = 0;
+        var detectedStrengths = new List<string>();
+        var missingAspects = new List<string>();
+
+        // Domain-specific concept checks
+        var topic = flashcard?.Topic.ToString() ?? request.Topic;
+        if (topic.Contains("Async", StringComparison.OrdinalIgnoreCase) || lowerAnswer.Contains("task") || lowerAnswer.Contains("async"))
+        {
+            if (lowerAnswer.Contains("non-blocking") || lowerAnswer.Contains("không chặn") || lowerAnswer.Contains("không block"))
+            { matchCount++; detectedStrengths.Add(isEnglish ? "Accurately noted that async/await is non-blocking." : "Nhận định chính xác async/await là cơ chế non-blocking (không chặn thread UI/Request)."); }
+            else { missingAspects.Add(isEnglish ? "Should emphasize non-blocking nature for thread pool scalability." : "Nên nhấn mạnh cơ chế giải phóng thread về ThreadPool để tăng khả năng chịu tải."); }
+
+            if (lowerAnswer.Contains("state machine") || lowerAnswer.Contains("máy trạng thái") || lowerAnswer.Contains("statemachine"))
+            { matchCount += 2; detectedStrengths.Add(isEnglish ? "Demonstrated deep internals knowledge: compiler generates an async StateMachine struct." : "Hiểu sâu kiến trúc nội tại: Compiler sinh struct State Machine để điều phối các await continuation."); }
+            else { missingAspects.Add(isEnglish ? "Mentioning compiler State Machine generation demonstrates Senior depth." : "Nên đề cập đến việc Roslyn Compiler dịch async thành một struct State Machine."); }
+
+            if (lowerAnswer.Contains("cancellationtoken") || lowerAnswer.Contains("configureawait") || lowerAnswer.Contains("deadlock") || lowerAnswer.Contains("result"))
+            { matchCount += 2; detectedStrengths.Add(isEnglish ? "Highlighted real-world caveats (CancellationToken / deadlock prevention / ConfigureAwait)." : "Chỉ ra được kinh nghiệm thực chiến: xử lý CancellationToken hoặc phòng chống Deadlock khi dùng .Result."); }
+            else { missingAspects.Add(isEnglish ? "Consider discussing CancellationToken propagation and why `.Result` / `.Wait()` causes deadlocks." : "Cần lưu ý thêm việc truyền CancellationToken và lý do tại sao không bao giờ nên dùng `.Result` / `.Wait()`."); }
+        }
+        else if (topic.Contains("EfCore", StringComparison.OrdinalIgnoreCase) || lowerAnswer.Contains("query") || lowerAnswer.Contains("ef") || lowerAnswer.Contains("database"))
+        {
+            if (lowerAnswer.Contains("asnotracking") || lowerAnswer.Contains("tracking") || lowerAnswer.Contains("theo dõi"))
+            { matchCount += 2; detectedStrengths.Add(isEnglish ? "Correctly explained EF Core Change Tracker and AsNoTracking performance gains." : "Nắm rõ cơ chế Change Tracker và lợi ích giảm cấp phát bộ nhớ khi dùng AsNoTracking."); }
+            else { missingAspects.Add(isEnglish ? "Highlight AsNoTracking for read-only queries to prevent memory overhead." : "Cần nhấn mạnh việc dùng AsNoTracking cho các truy vấn chỉ đọc (read-only) để tránh overhead."); }
+
+            if (lowerAnswer.Contains("n+1") || lowerAnswer.Contains("include") || lowerAnswer.Contains("eager") || lowerAnswer.Contains("lazy"))
+            { matchCount += 2; detectedStrengths.Add(isEnglish ? "Addressed relational loading strategies (Eager vs Lazy vs Explicit) and N+1 pitfall." : "Phân tích sắc sảo chiến lược nạp dữ liệu (Eager Loading với Include) và cách tránh bẫy N+1."); }
+            else { missingAspects.Add(isEnglish ? "Explain how to prevent the N+1 query problem using `.Include()` or projection." : "Nên giải thích cách phòng tránh lỗi N+1 Query bằng `.Include()` hoặc Projection (`.Select()`)."); }
+
+            if (lowerAnswer.Contains("iqueryable") || lowerAnswer.Contains("sql") || lowerAnswer.Contains("server"))
+            { matchCount++; detectedStrengths.Add(isEnglish ? "Clear distinction between IQueryable (server-side evaluation) and IEnumerable." : "Phân biệt rõ IQueryable thực thi phía SQL Server vs IEnumerable xử lý in-memory."); }
+        }
+        else if (topic.Contains("CSharp", StringComparison.OrdinalIgnoreCase) || lowerAnswer.Contains("memory") || lowerAnswer.Contains("heap") || lowerAnswer.Contains("stack"))
+        {
+            if (lowerAnswer.Contains("heap") && lowerAnswer.Contains("stack"))
+            { matchCount += 2; detectedStrengths.Add(isEnglish ? "Clearly distinguished Stack (short-lived, LIFO) and Heap (managed memory, GC)." : "Phân biệt rành mạch giữa bộ nhớ Stack (vòng đời ngắn, LIFO) và Heap (bộ nhớ được GC quản lý)."); }
+            else { missingAspects.Add(isEnglish ? "Elaborate on Stack vs Heap allocation differences." : "Cần làm rõ sự khác biệt giữa Stack (Value Types) và Managed Heap (Reference Types)."); }
+
+            if (lowerAnswer.Contains("gc") || lowerAnswer.Contains("garbage collection") || lowerAnswer.Contains("thu gom"))
+            { matchCount++; detectedStrengths.Add(isEnglish ? "Correctly referenced .NET Garbage Collection lifecycle." : "Liên hệ đúng với vòng đời dọn rác của .NET Garbage Collector (Gen 0, 1, 2)."); }
+
+            if (lowerAnswer.Contains("idisposable") || lowerAnswer.Contains("using") || lowerAnswer.Contains("unmanaged"))
+            { matchCount += 2; detectedStrengths.Add(isEnglish ? "Strong handling of unmanaged resources via IDisposable and `using` pattern." : "Nhấn mạnh xử lý tài nguyên unmanaged với IDisposable và cú pháp using / IAsyncDisposable."); }
+            else { missingAspects.Add(isEnglish ? "Mention IDisposable pattern for deterministic resource cleanup." : "Nên nhắc tới pattern IDisposable để dọn dẹp tài nguyên unmanaged tức thì."); }
+        }
+        else
+        {
+            // General .NET & Architecture
+            if (lowerAnswer.Contains("interface") || lowerAnswer.Contains("dependency injection") || lowerAnswer.Contains("di") || lowerAnswer.Contains("loosely"))
+            { matchCount += 2; detectedStrengths.Add(isEnglish ? "Expressed good grasp of Inversion of Control and Dependency Injection." : "Nắm vững nguyên lý Dependency Injection và Loose Coupling."); }
+
+            if (lowerAnswer.Contains("solid") || lowerAnswer.Contains("single responsibility") || lowerAnswer.Contains("clean"))
+            { matchCount++; detectedStrengths.Add(isEnglish ? "Applied SOLID software design principles in rationale." : "Vận dụng đúng các nguyên lý thiết kế SOLID."); }
+        }
+
+        // Word count and elaboration bonus
+        int wordCount = answer.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+        int lengthBonus = Math.Clamp(wordCount / 5, 0, 20);
+
+        int techScore = Math.Clamp(40 + (matchCount * 12) + (lengthBonus / 2), 45, 98);
+        int clarityScore = Math.Clamp(45 + (wordCount >= 30 ? 25 : wordCount / 2) + (answer.Contains('.') ? 15 : 5), 50, 96);
+        int depthScore = Math.Clamp(35 + (matchCount * 14) + (lengthBonus / 2), 40, 95);
+
+        // Weighted Overall
+        int overallScore = (int)Math.Round((techScore * 0.5) + (clarityScore * 0.25) + (depthScore * 0.25));
+
+        string rating;
+        if (overallScore >= 85) rating = isEnglish ? "Senior .NET Specialist (Outstanding)" : "Trình độ Senior .NET (Xuất sắc)";
+        else if (overallScore >= 72) rating = isEnglish ? "Strong Middle Developer (Confident)" : "Trình độ Middle .NET (Khá vững)";
+        else if (overallScore >= 55) rating = isEnglish ? "Junior / Developing Knowledge" : "Trình độ Junior (Đang phát triển)";
+        else rating = isEnglish ? "Fundamental Gaps Detected" : "Cần củng cố kiến thức nền tảng";
+
+        // Fallback default strengths / missing if empty
+        if (!detectedStrengths.Any())
+        {
+            detectedStrengths.Add(isEnglish ? "Addressed the core intent of the question." : "Nêu được khái niệm sơ bộ của chủ đề.");
+            detectedStrengths.Add(isEnglish ? "Good conversational tone for interview setting." : "Diễn đạt tự nhiên, phù hợp với phong thái phỏng vấn.");
+        }
+        if (!missingAspects.Any())
+        {
+            missingAspects.Add(isEnglish ? "Add a concrete code snippet or benchmark comparison to stand out as a Lead/Senior." : "Nêu thêm số liệu đo lường Benchmark hoặc ví dụ code trực quan để gây ấn tượng mạnh với Lead.");
+        }
+
+        // Tailored Follow-up Question
+        string followUp;
+        if (topic.Contains("Async", StringComparison.OrdinalIgnoreCase))
+        {
+            followUp = isEnglish
+                ? "Follow-up Challenge: What occurs if an unhandled exception is thrown inside `async void` versus `async Task`, and how does ASP.NET Core process it?"
+                : "Câu hỏi xoáy từ Tech Lead: Điều gì sẽ xảy ra khi một ngoại lệ (exception) bị ném ra bên trong `async void` so với `async Task`, và ASP.NET Core xử lý ngoại lệ này như thế nào?";
+        }
+        else if (topic.Contains("EfCore", StringComparison.OrdinalIgnoreCase))
+        {
+            followUp = isEnglish
+                ? "Follow-up Challenge: In a high-traffic endpoint, how would you handle optimistic concurrency conflicts when multiple users update the same record simultaneously?"
+                : "Câu hỏi xoáy từ Tech Lead: Trong một API chịu tải cao, bạn sẽ xử lý xung đột đồng thời lạc quan (Optimistic Concurrency) như thế nào khi hai người dùng cùng cập nhật 1 bản ghi?";
+        }
+        else
+        {
+            followUp = isEnglish
+                ? "Follow-up Challenge: Can you discuss the performance and memory allocation trade-offs of this approach under high-throughput conditions?"
+                : "Câu hỏi xoáy từ Tech Lead: Trong hệ thống chịu tải cao hàng triệu request/ngày, giải pháp này có đánh đổi gì về mặt cấp phát bộ nhớ (Memory Allocation) và CPU overhead?";
+        }
+
+        string feedback = isEnglish
+            ? $"Solid response! You demonstrated good technical competence ({techScore}/100). Focus on detailing edge cases and runtime trade-offs to firmly establish Senior-level mastery."
+            : $"Câu trả lời rất triển vọng! Bạn thể hiện sự hiểu biết tốt về khái niệm ({techScore}/100 điểm kỹ thuật). Nếu đào sâu thêm các bẫy runtime và xử lý biên thì câu trả lời sẽ đạt chuẩn Senior tuyệt đối.";
+
+        return new AiInterviewEvaluationResponse
+        {
+            Success = true,
+            FlashcardId = request.FlashcardId,
+            OverallScore = overallScore,
+            TechnicalAccuracyScore = techScore,
+            ClarityStructureScore = clarityScore,
+            DepthPracticalScore = depthScore,
+            PerformanceRating = rating,
+            Feedback = feedback,
+            Strengths = detectedStrengths,
+            MissingPoints = missingAspects,
+            FollowUpQuestion = followUp,
+            ModelAnswerSample = benchmarkAnswer
+        };
+    }
+
+    public Task<AiInterviewFollowUpResponse> AnswerFollowUpAsync(AiInterviewFollowUpRequest request, bool isEnglish)
+    {
+        var answer = (request.CandidateAnswer ?? string.Empty).Trim().ToLowerInvariant();
+        bool isGood = answer.Length > 20 && (
+            answer.Contains("exception") || answer.Contains("crash") || answer.Contains("deadlock") ||
+            answer.Contains("task") || answer.Contains("token") || answer.Contains("rowversion") ||
+            answer.Contains("concurrency") || answer.Contains("catch") || answer.Contains("context") ||
+            answer.Contains("bộ nhớ") || answer.Contains("bảo vệ") || answer.Contains("xung đột")
+        );
+
+        int bonus = isGood ? 12 : 6;
+        string feedback = isGood
+            ? (isEnglish
+                ? "🎯 Excellent response to the follow-up! You demonstrated solid architectural insight and handled the edge case precisely as expected by Senior Interviewers."
+                : "🎯 Phản hồi câu hỏi xoáy rất sắc bén! Bạn đã xử lý chính xác tình huống biên và thể hiện bản lĩnh của một kỹ sư giàu kinh nghiệm thực tế.")
+            : (isEnglish
+                ? "Good attempt! While on the right track, remember to also account for process termination or synchronization context handling in this scenario."
+                : "Định hướng của bạn đúng, nhưng cần chú ý thêm cơ chế ngắt tiến trình hoặc xung đột SynchronizationContext để câu trả lời hoàn thiện hơn.");
+
+        string deepDive = isEnglish
+            ? "Senior Takeaway: In production .NET applications, always prefer structured error boundaries, pass CancellationToken throughout async pipelines, and use explicit optimistic locking tokens (`RowVersion`)."
+            : "Lời khuyên từ Tech Lead: Trong hệ thống thực tế, luôn luôn truyền CancellationToken xuyên suốt pipeline, tránh async void và sử dụng Token khóa lạc quan (`RowVersion`) để bảo toàn tính toàn vẹn dữ liệu.";
+
+        return Task.FromResult(new AiInterviewFollowUpResponse
+        {
+            Success = true,
+            IsSatisfactory = isGood,
+            Feedback = feedback,
+            BonusScore = bonus,
+            DeepDiveInsight = deepDive
+        });
+    }
+
+    public async Task<AiInterviewReportResponse> GenerateInterviewReportAsync(AiInterviewReportRequest request, bool isEnglish)
+    {
+        var items = request.Items ?? new List<AiInterviewReportItem>();
+        int totalQuestions = items.Count;
+        double avg = totalQuestions > 0 ? items.Average(i => i.Score) : 70;
+        int avgScore = (int)Math.Round(avg);
+
+        string readiness;
+        string badgeClass;
+        string assessment;
+        int xp = 50;
+
+        if (avgScore >= 85)
+        {
+            readiness = isEnglish ? "Senior .NET Specialist - Fully Ready" : "Sẵn sàng Phỏng vấn Senior .NET Developer";
+            badgeClass = "success";
+            assessment = isEnglish
+                ? "Exceptional technical depth across runtime internals, asynchronous patterns, and high-performance design. You possess clear communication and architectural maturity."
+                : "Năng lực chuyên môn xuất sắc! Bạn nắm rất vững bản chất runtime .NET, cơ chế async và tối ưu hiệu năng. Phong thái tự tin và lập luận sắc sảo chuẩn Senior Architect.";
+            xp = 90;
+        }
+        else if (avgScore >= 70)
+        {
+            readiness = isEnglish ? "Confident Middle Developer - Interview Ready" : "Sẵn sàng Phỏng vấn Middle .NET Developer";
+            badgeClass = "primary";
+            assessment = isEnglish
+                ? "Solid grasp of modern C# and ASP.NET Core principles. With a few refinements on memory allocations and edge case concurrency, you will easily pass Senior rounds."
+                : "Nền tảng vững vàng về Modern C# và ASP.NET Core. Chỉ cần đào sâu thêm một chút về quản lý bộ nhớ Heap/Stack và xử lý đồng thời, bạn sẽ tự tin vượt qua mọi vòng kỹ thuật.";
+            xp = 70;
+        }
+        else if (avgScore >= 50)
+        {
+            readiness = isEnglish ? "Junior Ready - Good Foundation" : "Đạt chuẩn Phỏng vấn Junior .NET Developer";
+            badgeClass = "info";
+            assessment = isEnglish
+                ? "Good familiarity with standard syntax and web basics. We recommend practicing more real-world problem scenarios in EF Core and Async programming."
+                : "Nắm tốt cú pháp cơ bản và luồng xử lý Web API. Cần rèn luyện thêm các kịch bản thực chiến về tối ưu truy vấn EF Core và xử lý bất đồng bộ.";
+            xp = 50;
+        }
+        else
+        {
+            readiness = isEnglish ? "Foundational Study Needed" : "Cần Ôn Luyện Thêm Kiến Thức";
+            badgeClass = "warning";
+            assessment = isEnglish
+                ? "Some fundamental concepts were unclear. Review our interactive tutorials and flashcards to build robust theoretical and practical grounding."
+                : "Một số khái niệm nền tảng còn chưa rõ. Hãy xem lại các bài học trọng điểm và ôn luyện flashcard hàng ngày để củng cố gốc rễ.";
+            xp = 30;
+        }
+
+        // Skill Breakdown
+        var breakdowns = new List<AiInterviewSkillBreakdown>
+        {
+            new() { SkillName = isEnglish ? "C# Internals & Memory Architecture" : "Bản chất C# & Quản lý Bộ nhớ", Score = Math.Clamp(avgScore + 2, 45, 96), Level = avgScore >= 80 ? "Senior" : "Mid" },
+            new() { SkillName = isEnglish ? "Async & High-Throughput Concurrency" : "Lập trình Bất đồng bộ & Xử lý Đồng thời", Score = Math.Clamp(avgScore - 3, 40, 95), Level = avgScore >= 75 ? "Mid-Senior" : "Junior" },
+            new() { SkillName = isEnglish ? "Entity Framework Core & SQL Optimization" : "Entity Framework Core & Tối ưu Truy vấn", Score = Math.Clamp(avgScore + 1, 45, 98), Level = avgScore >= 80 ? "Senior" : "Mid" },
+            new() { SkillName = isEnglish ? "ASP.NET Core & Web API Architecture" : "Kiến trúc ASP.NET Core & Web API", Score = Math.Clamp(avgScore + 4, 50, 99), Level = "Solid" },
+            new() { SkillName = isEnglish ? "Clean Architecture & Design Patterns" : "Clean Architecture & Mẫu Thiết kế SOLID", Score = Math.Clamp(avgScore - 1, 45, 95), Level = avgScore >= 75 ? "Proficient" : "Foundational" }
+        };
+
+        // Query tutorials for actionable study recommendations
+        var recommended = new List<AiInterviewRecommendedLesson>();
+        try
+        {
+            var tutorials = await _context.Tutorials
+                .OrderByDescending(t => t.ViewCount)
+                .Take(3)
+                .ToListAsync();
+
+            foreach (var t in tutorials)
+            {
+                recommended.Add(new AiInterviewRecommendedLesson
+                {
+                    Title = t.Title,
+                    Slug = t.Slug,
+                    Reason = isEnglish ? "Core syllabus tutorial to strengthen foundational and practical depth." : "Bài học trọng tâm giúp củng cố kiến thức thực chiến chuyên sâu."
+                });
+            }
+        }
+        catch
+        {
+            // Fallback safe recommendations
+            recommended.Add(new AiInterviewRecommendedLesson
+            {
+                Title = "Lập trình Bất đồng bộ (Async/Await) nâng cao trong .NET",
+                Slug = "async-await-csharp-nang-cao",
+                Reason = isEnglish ? "Essential for scalable Web API development." : "Kiến thức bắt buộc để làm chủ Web API chịu tải cao."
+            });
+            recommended.Add(new AiInterviewRecommendedLesson
+            {
+                Title = "Tối ưu hiệu năng Entity Framework Core trong dự án lớn",
+                Slug = "entity-framework-core-toi-uu-truy-van",
+                Reason = isEnglish ? "Eliminate N+1 queries and avoid memory bloat." : "Loại bỏ triệt để lỗi N+1 và giảm thiểu hao tổn RAM."
+            });
+        }
+
+        return new AiInterviewReportResponse
+        {
+            Success = true,
+            AverageScore = avgScore,
+            ReadinessLevel = readiness,
+            ReadinessBadgeClass = badgeClass,
+            ExecutiveAssessment = assessment,
+            SkillBreakdowns = breakdowns,
+            RecommendedLessons = recommended,
+            XpAwarded = xp,
+            TimeSpentSeconds = request.TimeSpentSeconds
+        };
+    }
 }
+
 

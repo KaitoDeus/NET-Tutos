@@ -129,3 +129,87 @@ public class AiGenerateUnitTestResponse
     public List<string> CoveredScenarios { get; set; } = new();
 }
 
+public class AiInterviewEvaluationRequest
+{
+    public int FlashcardId { get; set; }
+    public string Question { get; set; } = string.Empty;
+    public string CandidateAnswer { get; set; } = string.Empty;
+    public string Topic { get; set; } = string.Empty;
+    public string Difficulty { get; set; } = string.Empty;
+}
+
+public class AiInterviewEvaluationResponse
+{
+    public bool Success { get; set; } = true;
+    public int FlashcardId { get; set; }
+    public int OverallScore { get; set; } // 0 - 100
+    public int TechnicalAccuracyScore { get; set; } // 0 - 100
+    public int ClarityStructureScore { get; set; } // 0 - 100
+    public int DepthPracticalScore { get; set; } // 0 - 100
+    public string PerformanceRating { get; set; } = "Solid Candidate";
+    public string Feedback { get; set; } = string.Empty;
+    public List<string> Strengths { get; set; } = new();
+    public List<string> MissingPoints { get; set; } = new();
+    public string FollowUpQuestion { get; set; } = string.Empty;
+    public string ModelAnswerSample { get; set; } = string.Empty;
+}
+
+public class AiInterviewFollowUpRequest
+{
+    public int FlashcardId { get; set; }
+    public string FollowUpQuestion { get; set; } = string.Empty;
+    public string CandidateAnswer { get; set; } = string.Empty;
+    public string OriginalQuestion { get; set; } = string.Empty;
+}
+
+public class AiInterviewFollowUpResponse
+{
+    public bool Success { get; set; } = true;
+    public bool IsSatisfactory { get; set; } = true;
+    public string Feedback { get; set; } = string.Empty;
+    public int BonusScore { get; set; } = 10;
+    public string DeepDiveInsight { get; set; } = string.Empty;
+}
+
+public class AiInterviewReportItem
+{
+    public int FlashcardId { get; set; }
+    public string Question { get; set; } = string.Empty;
+    public string Topic { get; set; } = string.Empty;
+    public string CandidateAnswer { get; set; } = string.Empty;
+    public int Score { get; set; }
+}
+
+public class AiInterviewReportRequest
+{
+    public List<AiInterviewReportItem> Items { get; set; } = new();
+    public int TimeSpentSeconds { get; set; }
+}
+
+public class AiInterviewSkillBreakdown
+{
+    public string SkillName { get; set; } = string.Empty;
+    public int Score { get; set; }
+    public string Level { get; set; } = "Good";
+}
+
+public class AiInterviewRecommendedLesson
+{
+    public string Title { get; set; } = string.Empty;
+    public string Slug { get; set; } = string.Empty;
+    public string Reason { get; set; } = string.Empty;
+}
+
+public class AiInterviewReportResponse
+{
+    public bool Success { get; set; } = true;
+    public int AverageScore { get; set; }
+    public string ReadinessLevel { get; set; } = string.Empty;
+    public string ReadinessBadgeClass { get; set; } = "success";
+    public string ExecutiveAssessment { get; set; } = string.Empty;
+    public List<AiInterviewSkillBreakdown> SkillBreakdowns { get; set; } = new();
+    public List<AiInterviewRecommendedLesson> RecommendedLessons { get; set; } = new();
+    public int XpAwarded { get; set; }
+    public int TimeSpentSeconds { get; set; }
+}
+
