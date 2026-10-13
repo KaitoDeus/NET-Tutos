@@ -281,3 +281,145 @@ public class StreakInfo
     public DateTime? LastActivityDate { get; set; }
     public List<bool> Last7DaysActive { get; set; } = new();
 }
+
+public partial class FlashcardItem : ObservableObject
+{
+    public int Id { get; set; }
+    public string Slug { get; set; } = string.Empty;
+    public string Topic { get; set; } = string.Empty;
+    public string TopicName { get; set; } = string.Empty;
+    public string Difficulty { get; set; } = string.Empty;
+    public string QuestionVi { get; set; } = string.Empty;
+    public string QuestionEn { get; set; } = string.Empty;
+    public string AnswerMarkdownVi { get; set; } = string.Empty;
+    public string AnswerMarkdownEn { get; set; } = string.Empty;
+    public string InterviewTipVi { get; set; } = string.Empty;
+    public string InterviewTipEn { get; set; } = string.Empty;
+    public int OrderIndex { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BoxLevelText))]
+    [NotifyPropertyChangedFor(nameof(BoxBadgeBgColor))]
+    [NotifyPropertyChangedFor(nameof(BoxBadgeTextColor))]
+    private int boxLevel = 1;
+
+    [ObservableProperty]
+    private bool isMastered;
+
+    [ObservableProperty]
+    private int reviewCount;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsQuestionSide))]
+    private bool isAnswerRevealed;
+
+    public bool IsQuestionSide => !IsAnswerRevealed;
+
+    public string BoxLevelText => BoxLevel switch
+    {
+        1 => "Hộp 1 (Mới học)",
+        2 => "Hộp 2 (Ôn 3 ngày)",
+        3 => "Hộp 3 (Ôn 7 ngày)",
+        4 => "Hộp 4 (Ôn 16 ngày)",
+        5 => "Hộp 5 (Thành thạo)",
+        _ => $"Hộp {BoxLevel}"
+    };
+
+    public Color BoxBadgeBgColor => BoxLevel switch
+    {
+        1 => Color.FromArgb("#450A0A"),
+        2 => Color.FromArgb("#451A03"),
+        3 => Color.FromArgb("#422006"),
+        4 => Color.FromArgb("#064E3B"),
+        5 => Color.FromArgb("#14532D"),
+        _ => Color.FromArgb("#1E1B4B")
+    };
+
+    public Color BoxBadgeTextColor => BoxLevel switch
+    {
+        1 => Color.FromArgb("#FCA5A5"),
+        2 => Color.FromArgb("#FDBA74"),
+        3 => Color.FromArgb("#FCD34D"),
+        4 => Color.FromArgb("#6EE7B7"),
+        5 => Color.FromArgb("#86EFAC"),
+        _ => Color.FromArgb("#A5B4FC")
+    };
+
+    public Color TopicAccentColor => Topic switch
+    {
+        "CSharpCore" => Color.FromArgb("#38BDF8"),
+        "OopDesignPatterns" => Color.FromArgb("#A78BFA"),
+        "AsyncConcurrency" => Color.FromArgb("#FBBF24"),
+        "EfCoreDatabase" => Color.FromArgb("#34D399"),
+        "AspNetCoreWebAPI" => Color.FromArgb("#FB7185"),
+        "ArchitectureCloud" => Color.FromArgb("#818CF8"),
+        _ => Color.FromArgb("#6366F1")
+    };
+
+    public Color TopicBgColor => Topic switch
+    {
+        "CSharpCore" => Color.FromArgb("#0C4A6E"),
+        "OopDesignPatterns" => Color.FromArgb("#3B0764"),
+        "AsyncConcurrency" => Color.FromArgb("#451A03"),
+        "EfCoreDatabase" => Color.FromArgb("#064E3B"),
+        "AspNetCoreWebAPI" => Color.FromArgb("#4C0519"),
+        "ArchitectureCloud" => Color.FromArgb("#1E1B4B"),
+        _ => Color.FromArgb("#1E1B4B")
+    };
+
+    public string DifficultyText => Difficulty?.ToLower() switch
+    {
+        "beginner" => "Cơ bản",
+        "intermediate" => "Trung cấp",
+        "advanced" => "Nâng cao",
+        _ => Difficulty ?? "Cơ bản"
+    };
+
+    public Color DifficultyColor => Difficulty?.ToLower() switch
+    {
+        "beginner" => Color.FromArgb("#34D399"),
+        "intermediate" => Color.FromArgb("#FBBF24"),
+        "advanced" => Color.FromArgb("#FB7185"),
+        _ => Color.FromArgb("#38BDF8")
+    };
+
+    public Color DifficultyBgColor => Difficulty?.ToLower() switch
+    {
+        "beginner" => Color.FromArgb("#064E3B"),
+        "intermediate" => Color.FromArgb("#451A03"),
+        "advanced" => Color.FromArgb("#4C0519"),
+        _ => Color.FromArgb("#082F49")
+    };
+}
+
+public partial class FlashcardTopicItem : ObservableObject
+{
+    public string Topic { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string ColorClass { get; set; } = string.Empty;
+    public int TotalCards { get; set; }
+    public int MasteredCards { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ChipBgColor))]
+    [NotifyPropertyChangedFor(nameof(ChipBorderColor))]
+    [NotifyPropertyChangedFor(nameof(ChipTextColor))]
+    private bool isSelected;
+
+    public Color TopicColor => Color.FromArgb(!string.IsNullOrEmpty(ColorClass) ? ColorClass : "#6366F1");
+    public Color ChipBgColor => IsSelected ? Color.FromArgb("#4F46E5") : Color.FromArgb("#1E293B");
+    public Color ChipBorderColor => IsSelected ? Color.FromArgb("#818CF8") : Color.FromArgb("#334155");
+    public Color ChipTextColor => IsSelected ? Colors.White : Color.FromArgb("#CBD5E1");
+}
+
+public class FlashcardReviewResult
+{
+    public bool IsSuccess { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public int NewBoxLevel { get; set; }
+    public int XpEarned { get; set; }
+    public int TotalXp { get; set; }
+    public int StreakDays { get; set; }
+    public bool IsMastered { get; set; }
+}

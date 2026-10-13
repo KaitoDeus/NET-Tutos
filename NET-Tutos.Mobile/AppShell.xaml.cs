@@ -10,5 +10,6 @@ public partial class AppShell : Shell
 
 		Routing.RegisterRoute("tutorialdetail", typeof(TutorialDetailPage));
 		Routing.RegisterRoute("settings", typeof(SettingsPage));
+		Routing.RegisterRoute("flashcards", typeof(FlashcardsPage));
 	}
 }

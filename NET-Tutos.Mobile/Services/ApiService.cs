@@ -21,6 +21,9 @@ public interface IApiService
     Task<CompleteLessonResult> ToggleCompleteTutorialAsync(int tutorialId);
     Task<List<RoadmapModule>> GetRoadmapAsync();
     Task<StreakInfo?> GetStreakAsync();
+    Task<List<FlashcardTopicItem>> GetFlashcardTopicsAsync();
+    Task<List<FlashcardItem>> GetFlashcardsAsync(string? topic = null, string? difficulty = null, int limit = 50);
+    Task<FlashcardReviewResult> ReviewFlashcardAsync(int flashcardId, int rating);
     void Logout();
 }
 
@@ -248,6 +251,72 @@ public class ApiService : IApiService
         catch
         {
             return null;
+        }
+    }
+
+    public async Task<List<FlashcardTopicItem>> GetFlashcardTopicsAsync()
+    {
+        try
+        {
+            var topics = await _httpClient.GetFromJsonAsync<List<FlashcardTopicItem>>("flashcards/topics");
+            return topics ?? new List<FlashcardTopicItem>();
+        }
+        catch
+        {
+            return new List<FlashcardTopicItem>();
+        }
+    }
+
+    public async Task<List<FlashcardItem>> GetFlashcardsAsync(string? topic = null, string? difficulty = null, int limit = 50)
+    {
+        try
+        {
+            var query = new List<string>();
+            if (!string.IsNullOrWhiteSpace(topic)) query.Add($"topic={Uri.EscapeDataString(topic)}");
+            if (!string.IsNullOrWhiteSpace(difficulty)) query.Add($"difficulty={Uri.EscapeDataString(difficulty)}");
+            if (limit != 50) query.Add($"limit={limit}");
+
+            var url = "flashcards" + (query.Count > 0 ? "?" + string.Join("&", query) : "");
+            var items = await _httpClient.GetFromJsonAsync<List<FlashcardItem>>(url);
+            return items ?? new List<FlashcardItem>();
+        }
+        catch
+        {
+            return new List<FlashcardItem>();
+        }
+    }
+
+    public async Task<FlashcardReviewResult> ReviewFlashcardAsync(int flashcardId, int rating)
+    {
+        if (!IsAuthenticated)
+        {
+            return new FlashcardReviewResult
+            {
+                IsSuccess = false,
+                Message = "Vui lòng đăng nhập để lưu kết quả ôn tập."
+            };
+        }
+
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync("flashcards/review", new
+            {
+                flashcardId,
+                rating
+            });
+
+            var result = await response.Content.ReadFromJsonAsync<FlashcardReviewResult>();
+            if (result != null && result.IsSuccess && CurrentUser != null)
+            {
+                CurrentUser.TotalXp = result.TotalXp;
+                CurrentUser.StreakDays = result.StreakDays;
+            }
+
+            return result ?? new FlashcardReviewResult { IsSuccess = false, Message = "Không thể ghi nhận đánh giá." };
+        }
+        catch (Exception ex)
+        {
+            return new FlashcardReviewResult { IsSuccess = false, Message = $"Lỗi kết nối: {ex.Message}" };
         }
     }
 

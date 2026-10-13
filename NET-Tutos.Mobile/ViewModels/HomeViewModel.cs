@@ -102,4 +102,10 @@ public partial class HomeViewModel : BaseViewModel
     {
         await Shell.Current.GoToAsync("settings");
     }
+
+    [RelayCommand]
+    public async Task OpenFlashcardsAsync()
+    {
+        await Shell.Current.GoToAsync("flashcards");
+    }
 }

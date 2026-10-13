@@ -133,3 +133,51 @@ public class MobileStreakSummaryDto
     public List<bool> Last7DaysActive { get; set; } = new();
 }
 #endregion
+
+#region Flashcard DTOs
+public class MobileFlashcardDto
+{
+    public int Id { get; set; }
+    public string Slug { get; set; } = string.Empty;
+    public string Topic { get; set; } = string.Empty;
+    public string TopicName { get; set; } = string.Empty;
+    public string Difficulty { get; set; } = string.Empty;
+    public string QuestionVi { get; set; } = string.Empty;
+    public string QuestionEn { get; set; } = string.Empty;
+    public string AnswerMarkdownVi { get; set; } = string.Empty;
+    public string AnswerMarkdownEn { get; set; } = string.Empty;
+    public string InterviewTipVi { get; set; } = string.Empty;
+    public string InterviewTipEn { get; set; } = string.Empty;
+    public int OrderIndex { get; set; }
+    public int BoxLevel { get; set; } = 1;
+    public bool IsMastered { get; set; }
+    public int ReviewCount { get; set; }
+}
+
+public class MobileFlashcardTopicDto
+{
+    public string Topic { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string ColorClass { get; set; } = string.Empty;
+    public int TotalCards { get; set; }
+    public int MasteredCards { get; set; }
+}
+
+public class MobileFlashcardReviewRequest
+{
+    public int FlashcardId { get; set; }
+    public int Rating { get; set; } // 1: Again, 2: Hard, 3: Good, 4: Mastered
+}
+
+public class MobileFlashcardReviewResponse
+{
+    public bool IsSuccess { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public int NewBoxLevel { get; set; }
+    public int XpEarned { get; set; }
+    public int TotalXp { get; set; }
+    public int StreakDays { get; set; }
+    public bool IsMastered { get; set; }
+}
+#endregion

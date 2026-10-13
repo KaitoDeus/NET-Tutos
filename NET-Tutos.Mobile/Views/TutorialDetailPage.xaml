@@ -140,7 +140,7 @@
                                             BackgroundColor="#064E3B"
                                             Padding="12,8">
                                         <VerticalStackLayout Spacing="4">
-                                            <Label Text="{Binding CorrectAnswer, StringFormat='Đáp án đúng: {0}'}"
+                                            <Label Text="{Binding CorrectOption, StringFormat='Đáp án đúng: {0}'}"
                                                    TextColor="#6EE7B7"
                                                    FontSize="12"
                                                    FontAttributes="Bold" />

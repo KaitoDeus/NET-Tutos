@@ -33,6 +33,7 @@ public static class MauiProgram
 		builder.Services.AddTransient<RoadmapViewModel>();
 		builder.Services.AddTransient<LoginViewModel>();
 		builder.Services.AddTransient<SettingsViewModel>();
+		builder.Services.AddTransient<FlashcardsViewModel>();
 
 		// Views
 		builder.Services.AddTransient<HomePage>();
@@ -41,6 +42,7 @@ public static class MauiProgram
 		builder.Services.AddTransient<RoadmapPage>();
 		builder.Services.AddTransient<LoginPage>();
 		builder.Services.AddTransient<SettingsPage>();
+		builder.Services.AddTransient<FlashcardsPage>();
 
 		return builder.Build();
 	}

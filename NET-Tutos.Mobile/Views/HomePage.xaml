@@ -163,6 +163,73 @@
                     </VerticalStackLayout>
                 </Border>
 
+                <!-- Quick Practice: Interview Flashcards Banner -->
+                <Border StrokeShape="RoundRectangle 20"
+                        Stroke="{AppThemeBinding Light=#C7D2FE, Dark=#4338CA}"
+                        StrokeThickness="1.5"
+                        Padding="18">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}" Offset="0.0" />
+                            <GradientStop Color="{AppThemeBinding Light=#FFFFFF, Dark=#0F172A}" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding OpenFlashcardsCommand}" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14" VerticalOptions="Center">
+                        <Border Grid.Column="0"
+                                StrokeShape="RoundRectangle 14"
+                                Stroke="#6366F1"
+                                WidthRequest="46"
+                                HeightRequest="46"
+                                VerticalOptions="Center">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#4F46E5" Offset="0.0" />
+                                    <GradientStop Color="#7C3AED" Offset="1.0" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Label Text="Q&amp;A"
+                                   TextColor="White"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+                        </Border>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                <Label Text="Thẻ Ôn Tập Phỏng Vấn"
+                                       TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                                       FontSize="15"
+                                       FontAttributes="Bold" />
+                                <Border StrokeShape="RoundRectangle 8"
+                                        BackgroundColor="#064E3B"
+                                        Padding="6,2">
+                                    <Label Text="MỚI" TextColor="#6EE7B7" FontSize="9" FontAttributes="Bold" />
+                                </Border>
+                            </HorizontalStackLayout>
+                            <Label Text="Ôn 50+ câu hỏi phỏng vấn C# &amp; .NET theo phương pháp Spaced Repetition"
+                                   TextColor="{AppThemeBinding Light=#475569, Dark=#A5B4FC}"
+                                   FontSize="11"
+                                   LineHeight="1.3" />
+                        </VerticalStackLayout>
+
+                        <Border Grid.Column="2"
+                                StrokeShape="RoundRectangle 12"
+                                BackgroundColor="#4F46E5"
+                                Padding="12,8"
+                                VerticalOptions="Center">
+                            <Label Text="Luyện ngay →"
+                                   TextColor="White"
+                                   FontSize="11"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center" />
+                        </Border>
+                    </Grid>
+                </Border>
+
                 <!-- Featured Categories Section -->
                 <VerticalStackLayout Spacing="14">
                     <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
