@@ -44,13 +44,20 @@
 
         <!-- Mode Toggle & Navigation Stepper -->
         <div class="border-top mt-3 pt-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <!-- Mode switcher -->
-            <div class="btn-group btn-group-sm p-1 rounded-pill bg-body-tertiary border shadow-xs" role="group">
-                <button type="button" class="btn btn-sm rounded-pill active fw-semibold px-3" id="tabModeAi" onclick="switchMode('ai')">
-                    <i class="bi bi-robot me-1.5 text-primary"></i> @(isEn ? "AI Tech Lead Interviewer" : "Chấm Điểm Với AI Tech Lead")
-                </button>
-                <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 text-muted" id="tabModeClassic" onclick="switchMode('classic')">
-                    <i class="bi bi-pencil-square me-1.5"></i> @(isEn ? "Classic Self-Check" : "Tự Ôn Tập Nhanh")
+            <!-- Mode switcher & Voice Call Button -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="btn-group btn-group-sm p-1 rounded-pill bg-body-tertiary border shadow-xs" role="group">
+                    <button type="button" class="btn btn-sm rounded-pill active fw-semibold px-3" id="tabModeAi" onclick="switchMode('ai')">
+                        <i class="bi bi-robot me-1.5 text-primary"></i> @(isEn ? "AI Tech Lead Interviewer" : "Chấm Điểm Với AI Tech Lead")
+                    </button>
+                    <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 text-muted" id="tabModeClassic" onclick="switchMode('classic')">
+                        <i class="bi bi-pencil-square me-1.5"></i> @(isEn ? "Classic Self-Check" : "Tự Ôn Tập Nhanh")
+                    </button>
+                </div>
+
+                <button type="button" class="btn btn-sm btn-call-gradient text-white rounded-pill px-3.5 py-1.5 fw-bold shadow-sm d-inline-flex align-items-center gap-1.5" onclick="launchVoiceCall()">
+                    <span class="pulse-call-dot"></span>
+                    <i class="bi bi-telephone-fill"></i> @(isEn ? "Live Voice Call Mode" : "Cuộc Gọi Thoại 1-1")
                 </button>
             </div>
 
@@ -113,10 +120,16 @@
                         <label class="form-label small fw-semibold text-muted mb-0">
                             <i class="bi bi-chat-quote-fill text-primary me-1"></i> @(isEn ? "Your Technical Explanation (State concept, mechanism, & real-world caveats):" : "Câu trả lời của bạn (Trình bày khái niệm, cơ chế bên dưới, và ví dụ/lưu ý thực tế):")
                         </label>
-                        <!-- Speech-to-text dictation button -->
-                        <button type="button" class="btn btn-xs btn-outline-danger rounded-pill px-2.5 py-1 small fw-semibold d-inline-flex align-items-center gap-1 voice-record-btn" id="voiceBtn-@q.Id" onclick="toggleVoiceRecording(@q.Id)">
-                            <i class="bi bi-mic-fill"></i> <span id="voiceBtnText-@q.Id">@(isEn ? "Speak Answer" : "Nói câu trả lời")</span>
-                        </button>
+                        <div class="d-flex align-items-center gap-1.5">
+                            <!-- AI Read Question button (TTS) -->
+                            <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 small fw-semibold d-inline-flex align-items-center gap-1" id="ttsBtn-@q.Id" onclick="toggleReadQuestion(@q.Id)">
+                                <i class="bi bi-volume-up-fill" id="ttsIcon-@q.Id"></i> <span id="ttsBtnText-@q.Id">@(isEn ? "Read Question" : "Tech Lead Đọc")</span>
+                            </button>
+                            <!-- Speech-to-text dictation button -->
+                            <button type="button" class="btn btn-xs btn-outline-danger rounded-pill px-2.5 py-1 small fw-semibold d-inline-flex align-items-center gap-1 voice-record-btn" id="voiceBtn-@q.Id" onclick="toggleVoiceRecording(@q.Id)">
+                                <i class="bi bi-mic-fill"></i> <span id="voiceBtnText-@q.Id">@(isEn ? "Speak Answer" : "Nói câu trả lời")</span>
+                            </button>
+                        </div>
                     </div>
                     <textarea class="form-control rounded-3 font-monospace small candidate-answer-text" id="answerInput-@q.Id" rows="4" placeholder="@(isEn ? "Example: Explain the core definition, internal state machine / CLR execution, and production trade-offs..." : "Ví dụ: Trình bày khái niệm, cách CLR xử lý bên dưới, và các bẫy thực tế trong dự án lớn...")"></textarea>
                 </div>
@@ -252,9 +265,331 @@
     </div>
 </div>
 
+<!-- Virtual AI Technical Interview Meeting Modal (Voice Call Mode) -->
+<div class="modal fade" id="voiceCallModal" tabindex="-1" aria-labelledby="voiceCallModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden" style="background: #0a0f1d; color: #f8fafc; min-height: 620px;">
+            
+            <!-- Modal Header (Meeting Bar) -->
+            <div class="modal-header border-bottom border-secondary border-opacity-25 px-4 py-3" style="background: #0e1629;">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-danger rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5">
+                        <span class="spinner-grow spinner-grow-sm text-white" role="status" style="width: 0.5rem; height: 0.5rem;"></span>
+                        LIVE MEETING
+                    </span>
+                    <div>
+                        <h6 class="modal-title fw-bold mb-0 text-white" id="voiceCallModalLabel">
+                            <i class="bi bi-camera-video-fill text-primary me-1.5"></i>
+                            @(isEn ? "1-on-1 Technical Screen: .NET Senior Competency" : "Phỏng Vấn Sát Hạch Kỹ Thuật 1-1 (.NET Senior)")
+                        </h6>
+                        <small class="text-secondary" id="callStatusIndicator">Đang kết nối với AI Tech Lead...</small>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2.5 flex-wrap">
+                    <!-- Call Timer -->
+                    <div class="badge bg-dark border border-secondary border-opacity-25 text-white font-monospace px-3 py-2 fs-6">
+                        <i class="bi bi-clock me-1 text-warning"></i> <span id="callDurationTimer">00:00</span>
+                    </div>
+
+                    <!-- Persona Switcher -->
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill text-white" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btnCurrentPersona">
+                            <i class="bi bi-person-badge me-1 text-info"></i> Alex Nguyen (Architect)
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-sm">
+                            <li><h6 class="dropdown-header">Chọn Phỏng Vấn Viên:</h6></li>
+                            <li><a class="dropdown-item active" href="javascript:void(0)" onclick="selectCallPersona('alex')"><strong>Alex Nguyen</strong> - Senior Principal Architect (Sát hạch sâu CLR)</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="selectCallPersona('sarah')"><strong>Sarah Pham</strong> - Engineering Manager (Kiến trúc & Clean Code)</a></li>
+                        </ul>
+                    </div>
+
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeVoiceCall()"></button>
+                </div>
+            </div>
+
+            <!-- Modal Body (Meeting Stage) -->
+            <div class="modal-body p-4 p-md-5 d-flex flex-column justify-content-between" style="background: radial-gradient(circle at 50% 20%, rgba(99, 102, 241, 0.12) 0%, rgba(10, 15, 29, 0.98) 70%);">
+                
+                <!-- Main Interviewer Virtual Presence -->
+                <div class="text-center my-auto">
+                    <!-- Glow Avatar -->
+                    <div class="interviewer-avatar-glow mb-3" id="interviewerAvatarGlow">
+                        <div class="interviewer-avatar-img" id="interviewerAvatarIcon">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                    </div>
+
+                    <h4 class="fw-bold text-white mb-1" id="interviewerName">Alex Nguyen</h4>
+                    <p class="text-secondary small mb-3" id="interviewerRole">Senior Principal .NET Architect • Lead Interviewer</p>
+
+                    <!-- Animated Voice Sound Wave -->
+                    <div class="voice-wave mb-3" id="voiceWaveVisualizer">
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                    </div>
+
+                    <div class="badge bg-primary bg-opacity-20 text-primary-emphasis border border-primary border-opacity-25 rounded-pill px-3 py-1 mb-3" id="callInterviewerStatus">
+                        Tech Lead đang chuẩn bị câu hỏi...
+                    </div>
+                </div>
+
+                <!-- Live Subtitles & Conversation Stage -->
+                <div class="card border border-secondary border-opacity-25 rounded-4 p-3.5 mb-3 mx-auto w-100" style="max-width: 860px; background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(8px);">
+                    <!-- Question Header & Badges -->
+                    <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary rounded-pill px-2.5 py-1 fw-bold" id="callQuestionBadge">Câu 1 / 5</span>
+                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1" id="callTopicBadge">C# Core</span>
+                        </div>
+                        <button type="button" class="btn btn-xs btn-outline-info rounded-pill px-2.5 py-1" onclick="replayCallQuestion()">
+                            <i class="bi bi-arrow-repeat me-1"></i> Nghe lại câu hỏi
+                        </button>
+                    </div>
+
+                    <!-- Question Text -->
+                    <h5 class="fw-bold text-white mb-3" id="callQuestionText" style="line-height: 1.45;">...</h5>
+
+                    <!-- Live Candidate Transcript / Input -->
+                    <div class="p-3 rounded-3 border border-secondary border-opacity-25 mb-2" style="background: rgba(0, 0, 0, 0.35);">
+                        <div class="d-flex align-items-center justify-content-between mb-1.5">
+                            <span class="small fw-semibold text-info d-flex align-items-center gap-1.5">
+                                <i class="bi bi-mic-fill" id="callCandidateMicIcon"></i>
+                                <span id="callCandidateStatus">Đang lắng nghe câu trả lời của bạn...</span>
+                            </span>
+                            <span class="small text-secondary" id="callWordCount">0 từ</span>
+                        </div>
+                        <p class="mb-0 text-white font-monospace small" id="callLiveTranscript" style="min-height: 48px; max-height: 120px; overflow-y: auto;">
+                            <em>Bấm bật micro hoặc nói câu trả lời của bạn vào mic máy tính...</em>
+                        </p>
+                    </div>
+
+                    <!-- AI Instant Spoken Feedback Box (Visible after answer submission) -->
+                    <div class="p-3 rounded-3 border border-success border-opacity-25 d-none" id="callFeedbackBox" style="background: rgba(6, 78, 59, 0.3);">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-success rounded-pill px-2.5 py-1 fw-bold" id="callScoreBadge">85/100</span>
+                                <span class="fw-semibold text-success small" id="callRatingBadge">Trình độ Middle/Senior</span>
+                            </div>
+                            <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5" onclick="replayAiFeedback()">
+                                <i class="bi bi-volume-up-fill me-1"></i> Nghe lại nhận xét
+                            </button>
+                        </div>
+                        <p class="small text-white-50 mb-2" id="callFeedbackText">...</p>
+                        
+                        <!-- Follow-up Question Alert -->
+                        <div class="card border-warning-subtle bg-warning bg-opacity-10 p-2.5 rounded-3 mb-0" id="callFollowUpCard">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span class="small fw-bold text-warning"><i class="bi bi-question-circle-fill me-1"></i> Câu hỏi xoáy từ Tech Lead:</span>
+                                <span class="badge bg-warning text-dark rounded-pill">+Bonus XP</span>
+                            </div>
+                            <p class="small text-warning-emphasis fw-semibold mb-0" id="callFollowUpText">...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Meeting Control Dock -->
+                <div class="text-center mt-2">
+                    <div class="call-dock">
+                        <!-- Mic Toggle -->
+                        <button type="button" class="call-dock-btn btn-mic-active" id="btnCallToggleMic" onclick="toggleCallMic()" title="Bật/Tắt Micro">
+                            <i class="bi bi-mic-fill" id="callMicIcon"></i>
+                        </button>
+
+                        <!-- AI Voice Audio Toggle -->
+                        <button type="button" class="call-dock-btn bg-dark text-white border border-secondary" id="btnCallToggleSpeaker" onclick="toggleCallSpeaker()" title="Bật/Tắt Loa AI">
+                            <i class="bi bi-volume-up-fill" id="callSpeakerIcon"></i>
+                        </button>
+
+                        <!-- Voice Speed Switcher -->
+                        <button type="button" class="btn btn-sm btn-dark border border-secondary rounded-pill px-3 py-2 text-white small fw-bold" id="btnCallSpeed" onclick="cycleCallSpeed()">
+                            1.0x
+                        </button>
+
+                        <div class="vr bg-secondary opacity-50 my-1"></div>
+
+                        <!-- Submit Current Answer -->
+                        <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm" id="btnCallSubmitAnswer" onclick="submitCallAnswer()">
+                            <i class="bi bi-send-fill"></i> <span>Gửi Trả Lời</span>
+                        </button>
+
+                        <!-- Next Question Button -->
+                        <button type="button" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1" id="btnCallNextQuestion" onclick="nextCallQuestion()">
+                            <span>Câu tiếp</span> <i class="bi bi-chevron-right"></i>
+                        </button>
+
+                        <!-- Hangup / End Meeting -->
+                        <button type="button" class="call-dock-btn btn-hangup" onclick="endVoiceCall()" title="Kết thúc buổi phỏng vấn & Xuất báo cáo">
+                            <i class="bi bi-telephone-x-fill"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .btn-call-gradient {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);
+            border: none;
+            transition: all 0.25s ease;
+        }
+        .btn-call-gradient:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.45);
+            filter: brightness(1.1);
+        }
+        .pulse-call-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #22c55e;
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+            animation: callDotPulse 1.5s infinite;
+        }
+        @@keyframes callDotPulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+            }
+        }
+        .interviewer-avatar-glow {
+            position: relative;
+            width: 104px;
+            height: 104px;
+            margin: 0 auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.35);
+            transition: all 0.3s ease;
+        }
+        .interviewer-avatar-glow.speaking {
+            animation: avatarPulse 1.2s infinite ease-in-out;
+            box-shadow: 0 0 35px rgba(168, 85, 247, 0.75), 0 0 60px rgba(99, 102, 241, 0.45);
+        }
+        @@keyframes avatarPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+            100% { transform: scale(1); }
+        }
+        .interviewer-avatar-img {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.6rem;
+            color: #fff;
+        }
+        .voice-wave {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: 28px;
+        }
+        .voice-wave .bar {
+            width: 4px;
+            height: 6px;
+            background: #6366f1;
+            border-radius: 999px;
+            transition: height 0.15s ease, background-color 0.2s ease;
+        }
+        .voice-wave.speaking .bar {
+            background: linear-gradient(180deg, #38bdf8, #818cf8);
+            animation: waveBounce 0.8s ease-in-out infinite alternate;
+        }
+        .voice-wave.speaking .bar:nth-child(1) { animation-delay: 0.1s; }
+        .voice-wave.speaking .bar:nth-child(2) { animation-delay: 0.3s; }
+        .voice-wave.speaking .bar:nth-child(3) { animation-delay: 0.15s; }
+        .voice-wave.speaking .bar:nth-child(4) { animation-delay: 0.4s; }
+        .voice-wave.speaking .bar:nth-child(5) { animation-delay: 0.25s; }
+        .voice-wave.speaking .bar:nth-child(6) { animation-delay: 0.35s; }
+        .voice-wave.speaking .bar:nth-child(7) { animation-delay: 0.05s; }
+
+        @@keyframes waveBounce {
+            0% { height: 6px; }
+            100% { height: 26px; }
+        }
+        .call-dock {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 999px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .call-dock-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            border: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .call-dock-btn:hover {
+            transform: scale(1.08);
+        }
+        .call-dock-btn.btn-mic-active {
+            background-color: #22c55e;
+            color: #fff;
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
+        }
+        .call-dock-btn.btn-mic-muted {
+            background-color: #ef4444;
+            color: #fff;
+        }
+        .call-dock-btn.btn-hangup {
+            background-color: #ef4444;
+            color: #fff;
+        }
+        .call-dock-btn.btn-hangup:hover {
+            background-color: #dc2626;
+            box-shadow: 0 0 16px rgba(239, 68, 68, 0.6);
+        }
+    </style>
+}
+
 @section Scripts {
     <script>
         const isEn = @(isEn ? "true" : "false");
+        const mockQuestions = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Questions.Select(q => new {
+            id = q.Id,
+            topic = q.TopicName,
+            difficulty = q.DifficultyName,
+            question = q.Question,
+            quickHint = q.QuickHint ?? "",
+            interviewTip = q.InterviewTip ?? ""
+        })));
         let totalSecondsRemaining = @Model.TimeLimitSeconds;
         let timeSpent = 0;
         let timerInterval = null;
@@ -761,6 +1096,625 @@
                 .replace(/\r/g, '')
                 .replace(/\n/g, '\\n');
         }
+
+        // ==========================================
+        // Web Audio API Meeting Sound Effects
+        // ==========================================
+        const CallAudio = {
+            ctx: null,
+            getCtx: function () {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) this.ctx = new AudioContext();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+                return this.ctx;
+            },
+            playJoin: function () {
+                const ctx = this.getCtx();
+                if (!ctx) return;
+                try {
+                    const now = ctx.currentTime;
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.18); // E5
+                    gain.gain.setValueAtTime(0.01, now);
+                    gain.gain.linearRampToValueAtTime(0.18, now + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } catch (e) { console.warn(e); }
+            },
+            playMicBeep: function (isOn) {
+                const ctx = this.getCtx();
+                if (!ctx) return;
+                try {
+                    const now = ctx.currentTime;
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    const freq = isOn ? 784 : 440;
+                    osc.frequency.setValueAtTime(freq, now);
+                    gain.gain.setValueAtTime(0.01, now);
+                    gain.gain.linearRampToValueAtTime(0.12, now + 0.03);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+                    osc.start(now);
+                    osc.stop(now + 0.18);
+                } catch (e) { console.warn(e); }
+            },
+            playSubmitChime: function () {
+                const ctx = this.getCtx();
+                if (!ctx) return;
+                try {
+                    const notes = [523.25, 659.25, 783.99]; // C - E - G chord
+                    notes.forEach((freq, i) => {
+                        const now = ctx.currentTime + i * 0.08;
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.frequency.setValueAtTime(freq, now);
+                        gain.gain.setValueAtTime(0.01, now);
+                        gain.gain.linearRampToValueAtTime(0.16, now + 0.02);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+                        osc.start(now);
+                        osc.stop(now + 0.28);
+                    });
+                } catch (e) { console.warn(e); }
+            },
+            playHangup: function () {
+                const ctx = this.getCtx();
+                if (!ctx) return;
+                try {
+                    const now = ctx.currentTime;
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.exponentialRampToValueAtTime(261.63, now + 0.25);
+                    gain.gain.setValueAtTime(0.14, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } catch (e) { console.warn(e); }
+            }
+        };
+
+        // ==========================================
+        // AI Voice Synthesis (Web Speech API TTS)
+        // ==========================================
+        const AiVoice = {
+            synth: window.speechSynthesis,
+            isMuted: false,
+            rate: 1.0,
+            currentUtterance: null,
+
+            cleanMarkdown: function (text) {
+                if (!text) return '';
+                return text
+                    .replace(/```[\s\S]*?```/g, ' ')
+                    .replace(/`([^`]+)`/g, '$1')
+                    .replace(/#{1,6}\s+/g, '')
+                    .replace(/(\*\*|__)(.*?)\1/g, '$2')
+                    .replace(/(\*|_)(.*?)\1/g, '$2')
+                    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+                    .replace(/<[^>]*>/g, '')
+                    .replace(/&nbsp;/g, ' ')
+                    .replace(/&amp;/g, '&')
+                    .trim();
+            },
+
+            speak: function (text, onStart, onEnd) {
+                if (!this.synth) {
+                    console.warn('SpeechSynthesis is not supported by this browser.');
+                    if (onEnd) onEnd();
+                    return;
+                }
+
+                this.stop();
+                if (this.isMuted) {
+                    if (onEnd) onEnd();
+                    return;
+                }
+
+                const clean = this.cleanMarkdown(text);
+                if (!clean) {
+                    if (onEnd) onEnd();
+                    return;
+                }
+
+                const utterance = new SpeechSynthesisUtterance(clean);
+                utterance.rate = this.rate;
+                utterance.pitch = (VoiceCallManager.persona === 'sarah') ? 1.15 : 0.95;
+
+                const voices = this.synth.getVoices();
+                const targetLang = isEn ? 'en' : 'vi';
+                let matchedVoice = null;
+
+                if (VoiceCallManager.persona === 'sarah') {
+                    matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(targetLang) &&
+                        (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('linh') || v.name.toLowerCase().includes('samantha')));
+                } else {
+                    matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(targetLang) &&
+                        (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('an') || v.name.toLowerCase().includes('nam')));
+                }
+
+                if (!matchedVoice) {
+                    matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(targetLang));
+                }
+
+                if (matchedVoice) {
+                    utterance.voice = matchedVoice;
+                } else {
+                    utterance.lang = isEn ? 'en-US' : 'vi-VN';
+                }
+
+                utterance.onstart = () => {
+                    this.currentUtterance = utterance;
+                    document.getElementById('voiceWaveVisualizer')?.classList.add('speaking');
+                    document.getElementById('interviewerAvatarGlow')?.classList.add('speaking');
+                    if (onStart) onStart();
+                };
+
+                utterance.onend = () => {
+                    this.currentUtterance = null;
+                    document.getElementById('voiceWaveVisualizer')?.classList.remove('speaking');
+                    document.getElementById('interviewerAvatarGlow')?.classList.remove('speaking');
+                    if (onEnd) onEnd();
+                };
+
+                utterance.onerror = (e) => {
+                    console.warn('TTS playback error:', e);
+                    this.currentUtterance = null;
+                    document.getElementById('voiceWaveVisualizer')?.classList.remove('speaking');
+                    document.getElementById('interviewerAvatarGlow')?.classList.remove('speaking');
+                    if (onEnd) onEnd();
+                };
+
+                this.synth.speak(utterance);
+            },
+
+            stop: function () {
+                if (this.synth) {
+                    this.synth.cancel();
+                }
+                this.currentUtterance = null;
+                document.getElementById('voiceWaveVisualizer')?.classList.remove('speaking');
+                document.getElementById('interviewerAvatarGlow')?.classList.remove('speaking');
+            }
+        };
+
+        // In-card TTS player for individual questions
+        let activeReadingQuestionId = null;
+        function toggleReadQuestion(qId) {
+            const btnText = document.getElementById(`ttsBtnText-${qId}`);
+            const icon = document.getElementById(`ttsIcon-${qId}`);
+            const qText = document.getElementById(`questionText-${qId}`)?.innerText || '';
+
+            if (activeReadingQuestionId === qId) {
+                AiVoice.stop();
+                activeReadingQuestionId = null;
+                if (btnText) btnText.innerText = isEn ? "Read Question" : "Tech Lead Đọc";
+                if (icon) icon.className = "bi bi-volume-up-fill";
+                return;
+            }
+
+            if (activeReadingQuestionId !== null) {
+                const prevBtnText = document.getElementById(`ttsBtnText-${activeReadingQuestionId}`);
+                const prevIcon = document.getElementById(`ttsIcon-${activeReadingQuestionId}`);
+                if (prevBtnText) prevBtnText.innerText = isEn ? "Read Question" : "Tech Lead Đọc";
+                if (prevIcon) prevIcon.className = "bi bi-volume-up-fill";
+                AiVoice.stop();
+            }
+
+            activeReadingQuestionId = qId;
+            if (btnText) btnText.innerText = isEn ? "Stop Audio" : "Dừng Đọc";
+            if (icon) icon.className = "bi bi-stop-circle-fill text-danger";
+
+            AiVoice.speak(qText, null, () => {
+                activeReadingQuestionId = null;
+                if (btnText) btnText.innerText = isEn ? "Read Question" : "Tech Lead Đọc";
+                if (icon) icon.className = "bi bi-volume-up-fill";
+            });
+        }
+
+        // ==========================================
+        // Live Voice Call Mode Meeting Manager
+        // ==========================================
+        const VoiceCallManager = {
+            modalInstance: null,
+            currentIndex: 0,
+            persona: 'alex',
+            isActive: false,
+            timerSeconds: 0,
+            timerInterval: null,
+            recognition: null,
+            isMicListening: false,
+            currentTranscript: '',
+            evaluations: {},
+
+            init: function () {
+                if (this.recognition) return;
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (SpeechRecognition) {
+                    this.recognition = new SpeechRecognition();
+                    this.recognition.lang = isEn ? 'en-US' : 'vi-VN';
+                    this.recognition.continuous = true;
+                    this.recognition.interimResults = true;
+
+                    this.recognition.onstart = () => {
+                        this.isMicListening = true;
+                        this.updateMicUI(true);
+                    };
+
+                    this.recognition.onresult = (event) => {
+                        let interim = '';
+                        for (let i = event.resultIndex; i < event.results.length; ++i) {
+                            if (event.results[i].isFinal) {
+                                this.currentTranscript += ' ' + event.results[i][0].transcript;
+                            } else {
+                                interim += event.results[i][0].transcript;
+                            }
+                        }
+                        const display = (this.currentTranscript + ' ' + interim).trim();
+                        const transcriptEl = document.getElementById('callLiveTranscript');
+                        if (transcriptEl) {
+                            transcriptEl.innerText = display || (isEn ? 'Listening to your voice...' : 'Đang lắng nghe câu trả lời...');
+                        }
+                        const words = display ? display.split(/\s+/).filter(w => w.length > 0).length : 0;
+                        const wordEl = document.getElementById('callWordCount');
+                        if (wordEl) wordEl.innerText = `${words} ${isEn ? 'words' : 'từ'}`;
+                    };
+
+                    this.recognition.onerror = (e) => {
+                        console.warn('Call mic recognition error:', e.error);
+                        if (e.error === 'not-allowed') {
+                            alert(isEn ? 'Microphone permission was denied. Please allow microphone access in your browser.' : 'Quyền truy cập Microphone bị từ chối. Vui lòng cấp quyền micro để đàm thoại.');
+                        }
+                        this.isMicListening = false;
+                        this.updateMicUI(false);
+                    };
+
+                    this.recognition.onend = () => {
+                        this.isMicListening = false;
+                        this.updateMicUI(false);
+                    };
+                }
+            },
+
+            updateMicUI: function (listening) {
+                const btn = document.getElementById('btnCallToggleMic');
+                const icon = document.getElementById('callMicIcon');
+                const candMicIcon = document.getElementById('callCandidateMicIcon');
+                const candStatus = document.getElementById('callCandidateStatus');
+
+                if (listening) {
+                    if (btn) btn.className = 'call-dock-btn btn-mic-active';
+                    if (icon) icon.className = 'bi bi-mic-fill';
+                    if (candMicIcon) candMicIcon.className = 'bi bi-mic-fill text-success';
+                    if (candStatus) candStatus.innerText = isEn ? 'AI Lead is listening to your answer...' : 'AI Lead đang lắng nghe câu trả lời của bạn...';
+                } else {
+                    if (btn) btn.className = 'call-dock-btn btn-mic-muted';
+                    if (icon) icon.className = 'bi bi-mic-mute-fill';
+                    if (candMicIcon) candMicIcon.className = 'bi bi-mic-mute-fill text-danger';
+                    if (candStatus) candStatus.innerText = isEn ? 'Microphone is muted (Click mic button to speak)' : 'Micro đang tắt (Bấm biểu tượng micro bên dưới để nói)';
+                }
+            },
+
+            startListening: function () {
+                if (!this.recognition) return;
+                if (this.isMicListening) return;
+                try {
+                    CallAudio.playMicBeep(true);
+                    this.recognition.start();
+                } catch (e) {
+                    console.warn(e);
+                }
+            },
+
+            stopListening: function () {
+                if (!this.recognition) return;
+                if (!this.isMicListening) return;
+                try {
+                    CallAudio.playMicBeep(false);
+                    this.recognition.stop();
+                } catch (e) {
+                    console.warn(e);
+                }
+            },
+
+            toggleMic: function () {
+                if (this.isMicListening) {
+                    this.stopListening();
+                } else {
+                    this.startListening();
+                }
+            },
+
+            toggleSpeaker: function () {
+                AiVoice.isMuted = !AiVoice.isMuted;
+                const icon = document.getElementById('callSpeakerIcon');
+                const btn = document.getElementById('btnCallToggleSpeaker');
+                if (AiVoice.isMuted) {
+                    AiVoice.stop();
+                    if (icon) icon.className = 'bi bi-volume-mute-fill text-danger';
+                    if (btn) btn.className = 'call-dock-btn bg-danger text-white border-0';
+                } else {
+                    if (icon) icon.className = 'bi bi-volume-up-fill text-white';
+                    if (btn) btn.className = 'call-dock-btn bg-dark text-white border border-secondary';
+                }
+            },
+
+            cycleSpeed: function () {
+                if (AiVoice.rate === 1.0) AiVoice.rate = 1.25;
+                else if (AiVoice.rate === 1.25) AiVoice.rate = 0.85;
+                else AiVoice.rate = 1.0;
+
+                const btn = document.getElementById('btnCallSpeed');
+                if (btn) btn.innerText = `${AiVoice.rate}x`;
+            },
+
+            setPersona: function (type) {
+                this.persona = type;
+                const btn = document.getElementById('btnCurrentPersona');
+                const avatarIcon = document.getElementById('interviewerAvatarIcon');
+                const nameEl = document.getElementById('interviewerName');
+                const roleEl = document.getElementById('interviewerRole');
+
+                if (type === 'sarah') {
+                    if (btn) btn.innerHTML = `<i class="bi bi-person-badge me-1 text-warning"></i> Sarah Pham (EM)`;
+                    if (avatarIcon) avatarIcon.innerHTML = `<i class="bi bi-person-heart"></i>`;
+                    if (nameEl) nameEl.innerText = 'Sarah Pham';
+                    if (roleEl) roleEl.innerText = isEn ? 'Engineering Manager • Software Architect' : 'Engineering Manager • Chuyên gia Kiến trúc & Clean Code';
+                } else {
+                    if (btn) btn.innerHTML = `<i class="bi bi-person-badge me-1 text-info"></i> Alex Nguyen (Architect)`;
+                    if (avatarIcon) avatarIcon.innerHTML = `<i class="bi bi-person-fill"></i>`;
+                    if (nameEl) nameEl.innerText = 'Alex Nguyen';
+                    if (roleEl) roleEl.innerText = isEn ? 'Senior Principal .NET Architect • Lead Interviewer' : 'Senior Principal .NET Architect • Giám khảo Sát hạch CLR';
+                }
+            },
+
+            startCall: function () {
+                const modalEl = document.getElementById('voiceCallModal');
+                if (!modalEl) return;
+
+                this.init();
+                this.isActive = true;
+                this.currentIndex = 0;
+                this.timerSeconds = 0;
+
+                CallAudio.playJoin();
+
+                if (!this.modalInstance) {
+                    this.modalInstance = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: false });
+                }
+                this.modalInstance.show();
+
+                if (this.timerInterval) clearInterval(this.timerInterval);
+                this.timerInterval = setInterval(() => {
+                    this.timerSeconds++;
+                    const mins = Math.floor(this.timerSeconds / 60);
+                    const secs = this.timerSeconds % 60;
+                    const timerEl = document.getElementById('callDurationTimer');
+                    if (timerEl) timerEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                }, 1000);
+
+                this.loadQuestion(0);
+            },
+
+            loadQuestion: function (index) {
+                if (!mockQuestions || mockQuestions.length === 0) return;
+                if (index < 0 || index >= mockQuestions.length) return;
+
+                this.currentIndex = index;
+                const q = mockQuestions[index];
+
+                this.currentTranscript = '';
+                const transcriptEl = document.getElementById('callLiveTranscript');
+                if (transcriptEl) transcriptEl.innerHTML = `<em>${isEn ? 'Interviewer is speaking the question. Speak after they finish...' : 'AI Lead đang đọc câu hỏi. Bạn hãy trả lời sau khi Lead dứt lời...'}</em>`;
+                const wordEl = document.getElementById('callWordCount');
+                if (wordEl) wordEl.innerText = `0 ${isEn ? 'words' : 'từ'}`;
+
+                document.getElementById('callFeedbackBox')?.classList.add('d-none');
+                document.getElementById('callQuestionBadge').innerText = `${isEn ? 'Question' : 'Câu'} ${index + 1} / ${mockQuestions.length}`;
+                document.getElementById('callTopicBadge').innerText = q.topic || '.NET Core';
+                document.getElementById('callQuestionText').innerText = q.question;
+
+                const nextBtn = document.getElementById('btnCallNextQuestion');
+                if (nextBtn) {
+                    nextBtn.innerHTML = (index === mockQuestions.length - 1)
+                        ? `<span>${isEn ? 'Finish Call' : 'Hoàn Tất & Nộp Bài'}</span> <i class="bi bi-award-fill ms-1"></i>`
+                        : `<span>${isEn ? 'Next Question' : 'Câu tiếp'}</span> <i class="bi bi-chevron-right"></i>`;
+                }
+
+                const statusEl = document.getElementById('callInterviewerStatus');
+                if (statusEl) statusEl.innerText = `${this.persona === 'sarah' ? 'Sarah' : 'Alex'} ${isEn ? 'is reading question...' : 'đang đọc câu hỏi sát hạch...'}`;
+
+                this.stopListening();
+
+                const greeting = index === 0
+                    ? (isEn ? `Welcome to your technical screen. Let's begin with question one: ${q.question}` : `Chào bạn, chúng ta bắt đầu buổi phỏng vấn nhé. Câu hỏi đầu tiên dành cho bạn: ${q.question}`)
+                    : (isEn ? `Question number ${index + 1}: ${q.question}` : `Câu hỏi số ${index + 1}: ${q.question}`);
+
+                AiVoice.speak(greeting, null, () => {
+                    if (statusEl) statusEl.innerText = `${this.persona === 'sarah' ? 'Sarah' : 'Alex'} ${isEn ? 'is listening to your response.' : 'đang lắng nghe bạn trả lời.'}`;
+                    if (transcriptEl) transcriptEl.innerHTML = `<em>${isEn ? 'Start speaking your answer into the microphone...' : 'Mời bạn bắt đầu nói câu trả lời vào micro...'}</em>`;
+                    this.startListening();
+                });
+            },
+
+            replayQuestion: function () {
+                if (!mockQuestions || !mockQuestions[this.currentIndex]) return;
+                const q = mockQuestions[this.currentIndex];
+                this.stopListening();
+                AiVoice.speak(q.question, null, () => {
+                    this.startListening();
+                });
+            },
+
+            submitAnswer: async function () {
+                if (!mockQuestions || !mockQuestions[this.currentIndex]) return;
+                const q = mockQuestions[this.currentIndex];
+                const answer = this.currentTranscript.trim();
+
+                if (!answer) {
+                    alert(isEn ? 'Please speak your answer into the microphone before submitting.' : 'Vui lòng nói câu trả lời vào micro trước khi gửi đánh giá.');
+                    return;
+                }
+
+                this.stopListening();
+                CallAudio.playSubmitChime();
+
+                const submitBtn = document.getElementById('btnCallSubmitAnswer');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> ${isEn ? 'Evaluating...' : 'Đang chấm điểm...'}`;
+
+                const statusEl = document.getElementById('callInterviewerStatus');
+                if (statusEl) statusEl.innerText = `${this.persona === 'sarah' ? 'Sarah' : 'Alex'} ${isEn ? 'is analyzing your response...' : 'đang phân tích câu trả lời của bạn...'}`;
+
+                const mainInput = document.getElementById(`answerInput-${q.id}`);
+                if (mainInput) mainInput.value = answer;
+
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                    const res = await fetch('/Interview/EvaluateAiAnswer', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify({
+                            FlashcardId: q.id,
+                            Question: q.question,
+                            CandidateAnswer: answer,
+                            Topic: q.topic,
+                            Difficulty: q.difficulty
+                        })
+                    });
+
+                    const data = await res.json();
+                    if (data && data.success) {
+                        evaluatedScores[q.id] = data.overallScore;
+                        this.evaluations[this.currentIndex] = data;
+
+                        renderAiEvaluationCard(q.id, data);
+                        const statusBadge = document.getElementById(`aiStatusBadge-${q.id}`);
+                        if (statusBadge) {
+                            statusBadge.className = 'badge bg-success-subtle text-success rounded-pill px-2.5 py-1 small fw-semibold';
+                            statusBadge.innerHTML = `<i class="bi bi-check2-circle me-1"></i> ${data.overallScore}/100`;
+                            statusBadge.classList.remove('d-none');
+                        }
+
+                        const fBox = document.getElementById('callFeedbackBox');
+                        fBox.classList.remove('d-none');
+                        document.getElementById('callScoreBadge').innerText = `${data.overallScore}/100`;
+                        document.getElementById('callRatingBadge').innerText = data.performanceRating || 'Đạt yêu cầu';
+                        document.getElementById('callFeedbackText').innerText = data.feedback || '';
+
+                        const followUpCard = document.getElementById('callFollowUpCard');
+                        if (data.followUpQuestion) {
+                            followUpCard.classList.remove('d-none');
+                            document.getElementById('callFollowUpText').innerText = data.followUpQuestion;
+                        } else {
+                            followUpCard.classList.add('d-none');
+                        }
+
+                        let spokenSummary = `${isEn ? 'I evaluated your answer at' : 'Tôi chấm câu trả lời của bạn đạt'} ${data.overallScore} ${isEn ? 'points' : 'điểm'}. ${data.feedback}`;
+                        if (data.followUpQuestion) {
+                            spokenSummary += ` ${isEn ? 'Here is a follow-up challenge for you:' : 'Tôi có thêm một câu hỏi xoáy cho bạn:'} ${data.followUpQuestion}`;
+                        }
+
+                        AiVoice.speak(spokenSummary, null, () => {
+                            if (statusEl) statusEl.innerText = `${this.persona === 'sarah' ? 'Sarah' : 'Alex'} ${isEn ? 'is ready for the next question.' : 'sẵn sàng cho câu hỏi tiếp theo.'}`;
+                            if (data.followUpQuestion) {
+                                this.startListening();
+                            }
+                        });
+                    } else {
+                        alert(isEn ? 'Unable to evaluate answer.' : 'Không thể đánh giá câu trả lời.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert(isEn ? 'Error connecting to AI Interviewer.' : 'Lỗi kết nối với AI Interviewer.');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = `<i class="bi bi-send-fill"></i> <span>${isEn ? 'Submit' : 'Gửi Trả Lời'}</span>`;
+                }
+            },
+
+            replayFeedback: function () {
+                const evalData = this.evaluations[this.currentIndex];
+                if (!evalData) return;
+                this.stopListening();
+                let spoken = `${evalData.feedback}`;
+                if (evalData.followUpQuestion) {
+                    spoken += `. ${evalData.followUpQuestion}`;
+                }
+                AiVoice.speak(spoken);
+            },
+
+            nextQuestion: function () {
+                if (this.currentIndex < mockQuestions.length - 1) {
+                    this.loadQuestion(this.currentIndex + 1);
+                } else {
+                    this.endCall();
+                }
+            },
+
+            endCall: function () {
+                CallAudio.playHangup();
+                AiVoice.stop();
+                this.stopListening();
+                if (this.timerInterval) clearInterval(this.timerInterval);
+                this.isActive = false;
+
+                if (this.modalInstance) {
+                    this.modalInstance.hide();
+                }
+
+                setTimeout(() => {
+                    submitFullMockInterview();
+                }, 500);
+            },
+
+            close: function () {
+                AiVoice.stop();
+                this.stopListening();
+                if (this.timerInterval) clearInterval(this.timerInterval);
+                this.isActive = false;
+                CallAudio.playHangup();
+            }
+        };
+
+        // Window-scoped wrapper functions for button events
+        function launchVoiceCall() { VoiceCallManager.startCall(); }
+        function closeVoiceCall() { VoiceCallManager.close(); }
+        function selectCallPersona(personaKey) { VoiceCallManager.setPersona(personaKey); }
+        function toggleCallMic() { VoiceCallManager.toggleMic(); }
+        function toggleCallSpeaker() { VoiceCallManager.toggleSpeaker(); }
+        function cycleCallSpeed() { VoiceCallManager.cycleSpeed(); }
+        function submitCallAnswer() { VoiceCallManager.submitAnswer(); }
+        function nextCallQuestion() { VoiceCallManager.nextQuestion(); }
+        function endVoiceCall() { VoiceCallManager.endCall(); }
+        function replayCallQuestion() { VoiceCallManager.replayQuestion(); }
+        function replayAiFeedback() { VoiceCallManager.replayFeedback(); }
 
         startTimer();
     </script>
