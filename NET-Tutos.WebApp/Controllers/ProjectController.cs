@@ -23,8 +23,9 @@ public class ProjectController : Controller
     [HttpGet]
     public async Task<IActionResult> Index(int? categoryId, DifficultyLevel? level)
     {
+        bool isEn = HttpContext.IsEnglish();
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var viewModel = await _projectService.GetProjectsListAsync(categoryId, level, userId);
+        var viewModel = await _projectService.GetProjectsListAsync(categoryId, level, userId, isEn);
         return View(viewModel);
     }
 
@@ -37,10 +38,11 @@ public class ProjectController : Controller
             return NotFound();
         }
 
+        bool isEn = HttpContext.IsEnglish();
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var canonicalSlug = LocalizationHelper.GetCanonicalSlug(slug);
-        var viewModel = await _projectService.GetProjectDetailsAsync(canonicalSlug, userId)
-                     ?? await _projectService.GetProjectDetailsAsync(slug, userId);
+        var viewModel = await _projectService.GetProjectDetailsAsync(canonicalSlug, userId, isEn)
+                     ?? await _projectService.GetProjectDetailsAsync(slug, userId, isEn);
 
         if (viewModel == null)
         {

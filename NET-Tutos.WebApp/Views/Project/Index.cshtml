@@ -80,7 +80,7 @@
                 <li class="nav-item">
                     <a class="nav-link rounded-pill px-3 py-1.5 small fw-semibold @(Model.SelectedCategoryId == cat.Id ? "active" : "text-body-secondary")"
                        asp-action="Index" asp-route-categoryId="@cat.Id" asp-route-level="@Model.SelectedLevel">
-                        @cat.Name
+                        @cat.GetTitle(isEn)
                     </a>
                 </li>
             }

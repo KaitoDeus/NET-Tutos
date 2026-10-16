@@ -34,7 +34,7 @@ public class CapstoneProjectService : ICapstoneProjectService
         _logger = logger;
     }
 
-    public async Task<ProjectListViewModel> GetProjectsListAsync(int? categoryId = null, DifficultyLevel? level = null, string? userId = null)
+    public async Task<ProjectListViewModel> GetProjectsListAsync(int? categoryId = null, DifficultyLevel? level = null, string? userId = null, bool isEn = false)
     {
         var query = _context.CapstoneProjects
             .Include(p => p.Category)
@@ -82,7 +82,7 @@ public class CapstoneProjectService : ICapstoneProjectService
                 EstimatedHours = p.EstimatedHours,
                 RewardXp = p.RewardXp,
                 CategoryId = p.CategoryId,
-                CategoryName = p.Category?.Name ?? "Chung",
+                CategoryName = p.Category?.GetTitle(isEn) ?? (isEn ? "General" : "Chung"),
                 CategoryBadgeColor = p.Category?.BadgeColor ?? "primary",
                 TotalSubmissions = p.Submissions.Count,
                 UserSubmissionStatus = userSub?.Status,
@@ -107,7 +107,7 @@ public class CapstoneProjectService : ICapstoneProjectService
         };
     }
 
-    public async Task<ProjectDetailsViewModel?> GetProjectDetailsAsync(string slug, string? userId = null)
+    public async Task<ProjectDetailsViewModel?> GetProjectDetailsAsync(string slug, string? userId = null, bool isEn = false)
     {
         var project = await _context.CapstoneProjects
             .Include(p => p.Category)
@@ -124,8 +124,11 @@ public class CapstoneProjectService : ICapstoneProjectService
                 .FirstOrDefaultAsync(s => s.ProjectId == project.Id && s.UserId == userId);
         }
 
-        var reqHtml = _markdownService.ToHtml(project.RequirementsMarkdown);
-        var contentHtml = _markdownService.ToHtml(project.FullContentMarkdown);
+        var reqMarkdown = project.GetRequirementsMarkdown(isEn);
+        var contentMarkdown = project.GetFullContentMarkdown(isEn);
+
+        var reqHtml = _markdownService.ToHtml(reqMarkdown);
+        var contentHtml = _markdownService.ToHtml(contentMarkdown);
 
         return new ProjectDetailsViewModel
         {

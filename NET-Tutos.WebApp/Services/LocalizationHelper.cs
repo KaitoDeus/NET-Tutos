@@ -657,6 +657,38 @@ public static class LocalizationHelper
         return project.ShortDescription ?? string.Empty;
     }
 
+    public static string GetRequirementsMarkdown(this CapstoneProject? project, bool isEn)
+    {
+        if (project == null) return string.Empty;
+        if (isEn && !string.IsNullOrEmpty(project.Slug))
+        {
+            var canonical = GetCanonicalSlug(project.Slug);
+            var en = CapstoneProjectContentTranslations.GetRequirementsMarkdownEn(canonical)
+                  ?? CapstoneProjectContentTranslations.GetRequirementsMarkdownEn(project.Slug);
+            if (!string.IsNullOrEmpty(en))
+            {
+                return en;
+            }
+        }
+        return project.RequirementsMarkdown ?? string.Empty;
+    }
+
+    public static string GetFullContentMarkdown(this CapstoneProject? project, bool isEn)
+    {
+        if (project == null) return string.Empty;
+        if (isEn && !string.IsNullOrEmpty(project.Slug))
+        {
+            var canonical = GetCanonicalSlug(project.Slug);
+            var en = CapstoneProjectContentTranslations.GetFullContentMarkdownEn(canonical)
+                  ?? CapstoneProjectContentTranslations.GetFullContentMarkdownEn(project.Slug);
+            if (!string.IsNullOrEmpty(en))
+            {
+                return en;
+            }
+        }
+        return project.FullContentMarkdown ?? string.Empty;
+    }
+
     private static readonly Dictionary<string, (string TitleEn, string DescEn, string CondEn)> BadgeTranslations = new(StringComparer.OrdinalIgnoreCase)
     {
         ["NEWBIE"] = ("NET Rookie", "Begin your journey and complete your first theoretical lesson", "Complete any 1 lesson"),

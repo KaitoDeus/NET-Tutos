@@ -5,8 +5,8 @@ namespace NET_Tutos.Services;
 
 public interface ICapstoneProjectService
 {
-    Task<ProjectListViewModel> GetProjectsListAsync(int? categoryId = null, DifficultyLevel? level = null, string? userId = null);
-    Task<ProjectDetailsViewModel?> GetProjectDetailsAsync(string slug, string? userId = null);
+    Task<ProjectListViewModel> GetProjectsListAsync(int? categoryId = null, DifficultyLevel? level = null, string? userId = null, bool isEn = false);
+    Task<ProjectDetailsViewModel?> GetProjectDetailsAsync(string slug, string? userId = null, bool isEn = false);
     Task<CapstoneProject?> GetProjectByIdAsync(int id);
     Task<ProjectSubmission?> GetUserSubmissionAsync(int projectId, string userId);
     Task<MyProjectsViewModel> GetUserProjectsAsync(string userId);
