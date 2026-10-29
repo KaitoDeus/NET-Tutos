@@ -27,7 +27,8 @@ d:\.ASPNET-Tutos\docs\
 ├── 03_functional_requirements_brd.md   # Functional Requirements Specification (BRD) for 7 Core Modules
 ├── 04_non_functional_requirements.md   # Quality Attributes, Performance SLAs, Security & PWA Specs
 ├── 05_data_models_and_api_specs.md     # Relational ERD Schemas & RESTful Integration API Contracts
-└── 06_architecture_and_design_blueprint.md # Architecture Blueprint, Folder Breakdown, ERD & UI/UX Wireframes
+├── 06_architecture_and_design_blueprint.md # Architecture Blueprint, Folder Breakdown, ERD & UI/UX Wireframes
+└── 07_decoupling_backend_frontend_plan.md  # Backend (.NET 10 API) & Frontend (Next.js TS) Decoupling Plan
 ```
 
 ### Detailed Document Summaries:
@@ -78,6 +79,12 @@ d:\.ASPNET-Tutos\docs\
    - 5-Tier system topology and real-time data flows (Playground judge & Voice AI mock interview).
    - Complete 23-table Entity Relationship Diagram (ERD).
    - Wireframe layout architecture (Playground Monaco IDE, Markdown reader, MAUI mobile tab navigation).
+
+7. [**07. Backend & Frontend Decoupling Plan**](file:///d:/NET-Tutos/docs/07_decoupling_backend_frontend_plan.md)
+   - Decoupled architecture target: ASP.NET Core 10 Web API + Next.js 15 React TypeScript + .NET MAUI.
+   - Complete Solution structure and migration phases.
+   - Standardized RESTful API contracts matrix covering Auth, Tutorials, Roslyn Playground, AI Tutor, and SignalR Realtime.
+   - CORS, JWT authentication, and zero-downtime transition strategy.
 
 ---
 
