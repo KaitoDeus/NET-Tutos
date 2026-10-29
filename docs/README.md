@@ -26,7 +26,8 @@ d:\.ASPNET-Tutos\docs\
 ├── 02_system_architecture_overview.md  # Multi-Tier Ecosystem Topology, Tech Stack & Sequence Flows
 ├── 03_functional_requirements_brd.md   # Functional Requirements Specification (BRD) for 7 Core Modules
 ├── 04_non_functional_requirements.md   # Quality Attributes, Performance SLAs, Security & PWA Specs
-└── 05_data_models_and_api_specs.md     # Relational ERD Schemas & RESTful Integration API Contracts
+├── 05_data_models_and_api_specs.md     # Relational ERD Schemas & RESTful Integration API Contracts
+└── 06_architecture_and_design_blueprint.md # Architecture Blueprint, Folder Breakdown, ERD & UI/UX Wireframes
 ```
 
 ### Detailed Document Summaries:
@@ -71,6 +72,12 @@ d:\.ASPNET-Tutos\docs\
      - Curriculum retrieval and completion synchronization (`/api/mobile/tutorials/*`).
      - Algorithmic Big-O analysis and failure diagnostics (`/AiTutor/*`).
      - AI interview evaluation, follow-up challenges, and session reporting (`/Interview/*`).
+
+6. [**06. System Architecture, Clean Code Blueprint & UI/UX Design**](file:///d:/NET-Tutos/docs/06_architecture_and_design_blueprint.md)
+   - Clean Code folder directory breakdown across WebApp, Mobile, and documentation.
+   - 5-Tier system topology and real-time data flows (Playground judge & Voice AI mock interview).
+   - Complete 23-table Entity Relationship Diagram (ERD).
+   - Wireframe layout architecture (Playground Monaco IDE, Markdown reader, MAUI mobile tab navigation).
 
 ---
 

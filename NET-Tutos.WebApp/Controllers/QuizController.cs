@@ -1,4 +1,4 @@
-﻿using NET_Tutos.Models.Entities;
+using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
 using NET_Tutos.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -78,17 +78,20 @@ public class QuizController : Controller
     public IActionResult Submit(QuizSubmissionViewModel model)
     {
         int score = 0;
-        foreach (var q in model.Questions)
+        if (model.Questions != null)
         {
-            if (!string.IsNullOrEmpty(q.SelectedOption) &&
-                q.SelectedOption.Trim().Equals(q.CorrectOption.Trim(), StringComparison.OrdinalIgnoreCase))
+            foreach (var q in model.Questions)
             {
-                score++;
+                if (!string.IsNullOrWhiteSpace(q.SelectedOption) &&
+                    string.Equals(q.SelectedOption.Trim(), q.CorrectOption?.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    score++;
+                }
             }
         }
 
         model.Score = score;
-        model.TotalQuestions = model.Questions.Count;
+        model.TotalQuestions = model.Questions?.Count ?? 0;
         model.IsSubmitted = true;
 
         return View("Take", model);

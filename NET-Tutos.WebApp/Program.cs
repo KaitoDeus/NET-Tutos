@@ -14,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
+builder.Services.AddMemoryCache();
 
 // Localization configuration (Supports Vietnamese and English)
 var supportedCultures = new[]
@@ -58,6 +59,7 @@ builder.Services.AddScoped<IStudyPlannerService, StudyPlannerService>();
 builder.Services.AddScoped<IAiTutorService, AiTutorService>();
 builder.Services.AddScoped<IDeveloperPortfolioService, DeveloperPortfolioService>();
 builder.Services.AddScoped<IMobileAuthService, MobileAuthService>();
+builder.Services.AddSingleton<INavMenuService, NavMenuService>();
 
 // Determine Database Provider
 var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";

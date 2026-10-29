@@ -81,6 +81,7 @@ public class PlaygroundController : Controller
     public async Task<IActionResult> Challenges(DifficultyLevel? difficulty, int? categoryId)
     {
         var query = _context.CodingChallenges
+            .AsNoTracking()
             .Include(c => c.Category)
             .Include(c => c.TestCases)
             .AsQueryable();
@@ -99,7 +100,7 @@ public class PlaygroundController : Controller
             .OrderBy(c => c.OrderIndex)
             .ToListAsync();
 
-        ViewBag.Categories = await _context.Categories.OrderBy(c => c.OrderIndex).ToListAsync();
+        ViewBag.Categories = await _context.Categories.AsNoTracking().OrderBy(c => c.OrderIndex).ToListAsync();
         ViewBag.SelectedDifficulty = difficulty;
         ViewBag.SelectedCategory = categoryId;
 

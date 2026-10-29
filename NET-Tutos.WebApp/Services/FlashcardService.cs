@@ -44,6 +44,7 @@ public class FlashcardService : IFlashcardService
         bool isEn = false)
     {
         var allCards = await _context.InterviewFlashcards
+            .AsNoTracking()
             .OrderBy(f => f.Topic)
             .ThenBy(f => f.OrderIndex)
             .ToListAsync();
@@ -64,6 +65,7 @@ public class FlashcardService : IFlashcardService
             currentStreak = streakStatus.CurrentStreak;
 
             var progresses = await _context.UserFlashcardProgresses
+                .AsNoTracking()
                 .Where(p => p.UserId == userId)
                 .ToListAsync();
 
@@ -179,6 +181,7 @@ public class FlashcardService : IFlashcardService
         if (!string.IsNullOrEmpty(userId))
         {
             var progresses = await _context.UserFlashcardProgresses
+                .AsNoTracking()
                 .Where(p => p.UserId == userId)
                 .ToListAsync();
             userProgressMap = progresses.ToDictionary(p => p.FlashcardId);

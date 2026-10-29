@@ -33,18 +33,34 @@ public class AdminUsersController : Controller
     public async Task<IActionResult> Index()
     {
         var users = await _userManager.Users
+            .AsNoTracking()
             .OrderByDescending(u => u.ExperiencePoints)
+            .Take(100)
             .ToListAsync();
+
+        var userIds = users.Select(u => u.Id).ToList();
+
+        var completedMap = await _context.UserLessonProgresses
+            .AsNoTracking()
+            .Where(p => userIds.Contains(p.UserId) && p.IsCompleted)
+            .GroupBy(p => p.UserId)
+            .Select(g => new { UserId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.UserId, x => x.Count);
+
+        var certMap = await _context.Certificates
+            .AsNoTracking()
+            .Where(c => userIds.Contains(c.UserId))
+            .GroupBy(c => c.UserId)
+            .Select(g => new { UserId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.UserId, x => x.Count);
 
         var userItems = new List<UserManagementItem>();
 
         foreach (var user in users)
         {
             var roles = await _userManager.GetRolesAsync(user);
-            var completedLessons = await _context.UserLessonProgresses
-                .CountAsync(p => p.UserId == user.Id && p.IsCompleted);
-            var certCount = await _context.Certificates
-                .CountAsync(c => c.UserId == user.Id);
+            completedMap.TryGetValue(user.Id, out int completedLessons);
+            certMap.TryGetValue(user.Id, out int certCount);
 
             userItems.Add(new UserManagementItem
             {

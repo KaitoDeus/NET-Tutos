@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using NET_Tutos.Data;
 using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
+using NET_Tutos.Services;
 
 namespace NET_Tutos.Controllers;
 
@@ -11,10 +12,12 @@ namespace NET_Tutos.Controllers;
 public class AdminTutorialsController : Controller
 {
     private readonly AppDbContext _context;
+    private readonly INavMenuService _navMenuService;
 
-    public AdminTutorialsController(AppDbContext context)
+    public AdminTutorialsController(AppDbContext context, INavMenuService navMenuService)
     {
         _context = context;
+        _navMenuService = navMenuService;
     }
 
     // GET: /AdminTutorials
@@ -91,6 +94,7 @@ public class AdminTutorialsController : Controller
 
         _context.Tutorials.Add(tutorial);
         await _context.SaveChangesAsync();
+        _navMenuService.InvalidateCache();
 
         TempData["SuccessMessage"] = $"Bài học '{tutorial.Title}' đã được tạo thành công!";
         return RedirectToAction(nameof(Index));
@@ -154,6 +158,7 @@ public class AdminTutorialsController : Controller
         tutorial.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
+        _navMenuService.InvalidateCache();
 
         TempData["SuccessMessage"] = $"Bài học '{tutorial.Title}' đã được cập nhật thành công!";
         return RedirectToAction(nameof(Index));
@@ -169,6 +174,7 @@ public class AdminTutorialsController : Controller
 
         _context.Tutorials.Remove(tutorial);
         await _context.SaveChangesAsync();
+        _navMenuService.InvalidateCache();
 
         TempData["SuccessMessage"] = $"Đã xóa bài học '{tutorial.Title}'.";
         return RedirectToAction(nameof(Index));

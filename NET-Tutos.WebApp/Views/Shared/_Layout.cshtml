@@ -1,6 +1,5 @@
-@inject NET_Tutos.Data.AppDbContext DbContext
+@inject NET_Tutos.Services.INavMenuService NavMenuService
 @using Microsoft.AspNetCore.Localization
-@using Microsoft.EntityFrameworkCore
 @using NET_Tutos.Services
 @{
     bool isEn = Context.IsEnglish();
@@ -8,26 +7,8 @@
     var currentLangText = isEn ? "English" : "Tiếng Việt";
     var returnUrl = Context.Request.Path + Context.Request.QueryString;
 
-    List<NET_Tutos.Models.Entities.Category> navCategories = new();
-    List<NET_Tutos.Models.Entities.Tutorial> searchTutorials = new();
-    try
-    {
-        navCategories = DbContext.Categories.OrderBy(c => c.OrderIndex).ToList();
-        searchTutorials = DbContext.Tutorials.Include(t => t.Category).OrderBy(t => t.OrderIndex).Take(150).ToList();
-    }
-    catch
-    {
-        // Safe fallback
-    }
-
-    var searchDataJson = System.Text.Json.JsonSerializer.Serialize(searchTutorials.Select(t => new {
-        id = t.Id,
-        title = t.GetTitle(isEn),
-        slug = t.GetSlug(isEn),
-        category = t.Category != null ? t.Category.GetTitle(isEn) : "",
-        readingMinutes = t.EstimatedReadingMinutes,
-        difficulty = LocalizationHelper.GetDifficultyName(t.Difficulty, isEn)
-    }));
+    var navCategories = NavMenuService.GetNavCategories();
+    var searchDataJson = NavMenuService.GetSearchDataJson(isEn);
 
     var currentController = ViewContext.RouteData.Values["Controller"]?.ToString() ?? "";
     var currentAction = ViewContext.RouteData.Values["Action"]?.ToString() ?? "";

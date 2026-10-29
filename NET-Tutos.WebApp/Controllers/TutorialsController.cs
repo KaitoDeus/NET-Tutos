@@ -66,8 +66,15 @@ public class TutorialsController : Controller
             return NotFound();
         }
 
-        // Increment view count asynchronously in background
-        _ = _tutorialService.IncrementViewCountAsync(tutorial.Id);
+        // Increment view count safely
+        try
+        {
+            await _tutorialService.IncrementViewCountAsync(tutorial.Id);
+        }
+        catch
+        {
+            // Non-critical tracking fallback
+        }
 
         var previous = await _tutorialService.GetPreviousTutorialAsync(tutorial.Id);
         var next = await _tutorialService.GetNextTutorialAsync(tutorial.Id);
@@ -92,7 +99,14 @@ public class TutorialsController : Controller
                 viewModel.IsCompletedByCurrentUser = await _progressService.IsLessonCompletedAsync(currentUserId, tutorial.Id);
                 var completedIds = await _progressService.GetCompletedLessonIdsAsync(currentUserId);
                 viewModel.CompletedTutorialIds = new HashSet<int>(completedIds);
-                _ = _progressService.RecordLessonAccessAsync(currentUserId, tutorial.Id);
+                try
+                {
+                    await _progressService.RecordLessonAccessAsync(currentUserId, tutorial.Id);
+                }
+                catch
+                {
+                    // Non-critical tracking fallback
+                }
             }
         }
 

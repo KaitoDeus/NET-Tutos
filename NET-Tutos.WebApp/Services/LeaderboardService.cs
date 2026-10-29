@@ -114,6 +114,7 @@ public class LeaderboardService : ILeaderboardService
     public async Task<LeaderboardViewModel> GetLeaderboardAsync(string? currentUserId, int count = 25)
     {
         var users = await _context.Users
+            .AsNoTracking()
             .Include(u => u.LessonProgresses)
             .Include(u => u.Submissions)
             .Include(u => u.Certificates)
@@ -170,6 +171,7 @@ public class LeaderboardService : ILeaderboardService
             else
             {
                 var currentUser = await _context.Users
+                    .AsNoTracking()
                     .Include(u => u.LessonProgresses)
                     .Include(u => u.Submissions)
                     .Include(u => u.Certificates)

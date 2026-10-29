@@ -30,6 +30,7 @@ public class AdminProjectsController : Controller
     public async Task<IActionResult> Index()
     {
         var projects = await _context.CapstoneProjects
+            .AsNoTracking()
             .Include(p => p.Category)
             .Include(p => p.Submissions)
             .OrderBy(p => p.OrderIndex)

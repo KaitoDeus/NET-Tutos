@@ -55,7 +55,7 @@ public class ExamController : Controller
     [Authorize]
     public async Task<IActionResult> Submit([FromBody] ExamSubmissionViewModel model)
     {
-        if (model == null || !model.Answers.Any())
+        if (model == null || model.Answers == null || !model.Answers.Any())
         {
             return BadRequest(new { success = false, message = "Dữ liệu bài nộp không hợp lệ." });
         }

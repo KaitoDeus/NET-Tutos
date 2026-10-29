@@ -66,20 +66,40 @@ public class CodeExecutionService : ICodeExecutionService
         }
 
         var stopwatch = Stopwatch.StartNew();
-        using var cts = new CancellationTokenSource(timeoutMs);
-
-        await _executionLock.WaitAsync(cts.Token);
         var originalOut = Console.Out;
         var originalError = Console.Error;
         using var stringWriter = new StringWriter();
+        bool lockAcquired = false;
 
         try
         {
+            // Allow waiting for the execution lock with a reasonable queue timeout
+            using var queueCts = new CancellationTokenSource(5000);
+            try
+            {
+                await _executionLock.WaitAsync(queueCts.Token);
+                lockAcquired = true;
+            }
+            catch (OperationCanceledException)
+            {
+                stopwatch.Stop();
+                return new CodeExecutionResponse
+                {
+                    IsSuccess = false,
+                    IsTimeout = true,
+                    Error = "Hệ thống biên dịch đang bận xử lý tác vụ khác, vui lòng thử lại sau vài giây.",
+                    Output = string.Empty,
+                    ExecutionTimeMs = stopwatch.ElapsedMilliseconds
+                };
+            }
+
+            using var executionCts = new CancellationTokenSource(timeoutMs);
+
             Console.SetOut(stringWriter);
             Console.SetError(stringWriter);
 
             var script = CSharpScript.Create(code, _defaultOptions);
-            var diagnostics = script.Compile(cts.Token);
+            var diagnostics = script.Compile(executionCts.Token);
             var errors = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
 
             if (errors.Count > 0)
@@ -102,7 +122,7 @@ public class CodeExecutionService : ICodeExecutionService
                 };
             }
 
-            var state = await script.RunAsync(cancellationToken: cts.Token);
+            var state = await script.RunAsync(cancellationToken: executionCts.Token);
             stopwatch.Stop();
 
             var output = stringWriter.ToString();
@@ -154,9 +174,12 @@ public class CodeExecutionService : ICodeExecutionService
         }
         finally
         {
-            Console.SetOut(originalOut);
-            Console.SetError(originalError);
-            _executionLock.Release();
+            if (lockAcquired)
+            {
+                Console.SetOut(originalOut);
+                Console.SetError(originalError);
+                _executionLock.Release();
+            }
         }
     }
 
@@ -243,16 +266,18 @@ public class CodeExecutionService : ICodeExecutionService
 
     private static string BuildTestHarness(string userCode, string inputParameters)
     {
-        // Check method name from class Solution
-        // e.g. public static ... MethodName(...)
-        var match = Regex.Match(userCode, @"public\s+static\s+[\w<>\[\]\?]+\s+(\w+)\s*\(");
+        // Check method name from class Solution: e.g. public static ... MethodName(...) or public ... MethodName(...)
+        var match = Regex.Match(userCode, @"public\s+(?<static>static\s+)?[\w<>\[\]\?]+\s+(?<name>\w+)\s*\(");
         if (match.Success)
         {
-            var methodName = match.Groups[1].Value;
+            var methodName = match.Groups["name"].Value;
+            bool isStatic = match.Groups["static"].Success;
+            string invocation = isStatic ? $"Solution.{methodName}({inputParameters})" : $"new Solution().{methodName}({inputParameters})";
+
             return $@"{userCode}
 
 // Evaluation Test Harness
-var __result = Solution.{methodName}({inputParameters});
+var __result = {invocation};
 if (__result is System.Collections.IEnumerable __enumerable && !(__result is string))
 {{
     var __items = new System.Collections.Generic.List<string>();
