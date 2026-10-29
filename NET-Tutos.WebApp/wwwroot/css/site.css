@@ -1498,3 +1498,51 @@ i.bi.ms-2 { margin-left: 0.55rem !important; }
 .editor-settings-dropdown .form-select-sm {
     font-size: 0.82rem;
 }
+
+/* ==========================================================================
+   Dark Mode Contrast Fixes & AI Tutor Preset Buttons
+   ========================================================================== */
+[data-bs-theme="dark"] .btn-light {
+    background-color: #212631 !important;
+    border-color: #333a48 !important;
+    color: #f1f5f9 !important;
+}
+
+[data-bs-theme="dark"] .btn-light:hover,
+[data-bs-theme="dark"] .btn-light:focus,
+[data-bs-theme="dark"] .btn-light:active {
+    background-color: #2b3240 !important;
+    border-color: #4b5568 !important;
+    color: #ffffff !important;
+}
+
+/* AI Tutor Topic Preset Buttons */
+.preset-topic-btn {
+    background-color: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+    color: var(--bs-body-color);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    text-align: left;
+}
+
+.preset-topic-btn:hover {
+    background-color: var(--bs-secondary-bg);
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+[data-bs-theme="dark"] .preset-topic-btn {
+    background-color: #1a1e28 !important;
+    border-color: #2c3444 !important;
+    color: #f1f5f9 !important;
+}
+
+[data-bs-theme="dark"] .preset-topic-btn:hover {
+    background-color: #242b3a !important;
+    border-color: #6366f1 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}

@@ -46,23 +46,23 @@
                 </h6>
 
                 <div class="d-flex flex-column gap-2">
-                    <button type="button" class="btn btn-sm btn-light border text-start rounded-3 p-2.5 d-flex align-items-center gap-2 transition-hover text-body" onclick="sendPresetPrompt('linq')">
+                    <button type="button" class="preset-topic-btn btn btn-sm rounded-3 p-2.5 d-flex align-items-center gap-2 w-100" onclick="sendPresetPrompt('linq')">
                         <i class="bi bi-funnel text-primary fs-6"></i>
                         <span class="small fw-semibold">@(isEn ? "Explain LINQ & Deferred Exec" : "Làm chủ LINQ & Deferred Exec")</span>
                     </button>
-                    <button type="button" class="btn btn-sm btn-light border text-start rounded-3 p-2.5 d-flex align-items-center gap-2 transition-hover text-body" onclick="sendPresetPrompt('async')">
+                    <button type="button" class="preset-topic-btn btn btn-sm rounded-3 p-2.5 d-flex align-items-center gap-2 w-100" onclick="sendPresetPrompt('async')">
                         <i class="bi bi-cpu text-success fs-6"></i>
                         <span class="small fw-semibold">@(isEn ? "Async/Await & Deadlocks" : "Bất đồng bộ Async/Await & Task")</span>
                     </button>
-                    <button type="button" class="btn btn-sm btn-light border text-start rounded-3 p-2.5 d-flex align-items-center gap-2 transition-hover text-body" onclick="sendPresetPrompt('di')">
+                    <button type="button" class="preset-topic-btn btn btn-sm rounded-3 p-2.5 d-flex align-items-center gap-2 w-100" onclick="sendPresetPrompt('di')">
                         <i class="bi bi-diagram-3 text-info fs-6"></i>
                         <span class="small fw-semibold">@(isEn ? "Scoped vs Transient vs Singleton" : "3 Vòng đời Dependency Injection")</span>
                     </button>
-                    <button type="button" class="btn btn-sm btn-light border text-start rounded-3 p-2.5 d-flex align-items-center gap-2 transition-hover text-body" onclick="sendPresetPrompt('record')">
+                    <button type="button" class="preset-topic-btn btn btn-sm rounded-3 p-2.5 d-flex align-items-center gap-2 w-100" onclick="sendPresetPrompt('record')">
                         <i class="bi bi-box-seam text-warning fs-6"></i>
                         <span class="small fw-semibold">@(isEn ? "Record vs Class vs Struct" : "Phân biệt Record, Class, Struct")</span>
                     </button>
-                    <button type="button" class="btn btn-sm btn-light border text-start rounded-3 p-2.5 d-flex align-items-center gap-2 transition-hover text-body" onclick="sendPresetPrompt('null')">
+                    <button type="button" class="preset-topic-btn btn btn-sm rounded-3 p-2.5 d-flex align-items-center gap-2 w-100" onclick="sendPresetPrompt('null')">
                         <i class="bi bi-shield-check text-danger fs-6"></i>
                         <span class="small fw-semibold">@(isEn ? "Fix NullReferenceException" : "Khắc phục lỗi NullReference")</span>
                     </button>
