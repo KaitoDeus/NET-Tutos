@@ -17,27 +17,27 @@ public class AiTutorApiController : ControllerBase
     }
 
     [HttpPost("chat")]
-    public async Task<IActionResult> Chat([FromBody] AiTutorChatRequest request, [FromHeader(Name = "Accept-Language")] string? language)
+    public async Task<IActionResult> Chat([FromBody] AiTutorChatRequest request)
     {
         if (request == null || string.IsNullOrWhiteSpace(request.Message))
         {
             return BadRequest(new { success = false, message = "Vui lòng nhập câu hỏi hoặc yêu cầu cho AI Tutor." });
         }
 
-        bool isEnglish = !string.IsNullOrEmpty(language) && language.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+        bool isEnglish = Request.Headers.AcceptLanguage.ToString().StartsWith("en", StringComparison.OrdinalIgnoreCase);
         var response = await _aiTutorService.ChatAsync(request, isEnglish);
         return Ok(response);
     }
 
     [HttpPost("explain-error")]
-    public async Task<IActionResult> ExplainError([FromBody] AiExplainErrorRequest request, [FromHeader(Name = "Accept-Language")] string? language)
+    public async Task<IActionResult> ExplainError([FromBody] AiExplainErrorRequest request)
     {
         if (request == null || string.IsNullOrWhiteSpace(request.ErrorMessage))
         {
             return BadRequest(new { success = false, message = "Không tìm thấy thông tin lỗi để giải thích." });
         }
 
-        bool isEnglish = !string.IsNullOrEmpty(language) && language.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+        bool isEnglish = Request.Headers.AcceptLanguage.ToString().StartsWith("en", StringComparison.OrdinalIgnoreCase);
         var response = await _aiTutorService.ExplainErrorAsync(request, isEnglish);
         return Ok(response);
     }
