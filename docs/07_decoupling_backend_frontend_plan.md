@@ -1,5 +1,10 @@
 # 🏛️ KẾ HOẠCH TÁCH RỜI BACKEND & FRONTEND (DECOUPLING BLUEPRINT)
 
+> [!NOTE]
+> **Trạng thái Tài liệu (Archived / Reference Specification)**:  
+> Quá trình thử nghiệm tách rời Frontend (Next.js 15) và Backend (.NET 10 Web API) đã được thực thi và xác minh thành công. Sau đánh giá thực tế về tối ưu hóa tài nguyên và quy trình triển khai, dự án đã chính thức hợp nhất lại thành phân hệ duy nhất **`web/`** (ASP.NET Core 10 MVC phục vụ Web kết hợp RESTful Web APIs phục vụ Mobile) sử dụng cơ sở dữ liệu **PostgreSQL 17 điều phối bởi Docker Compose**.  
+> Tài liệu này được lưu trữ để làm tham khảo kiến trúc tiêu chuẩn (Standard Blueprint) nếu cần mở rộng Frontend Next.js độc lập trong tương lai.
+
 Dự án: **NET-Tutos**  
 Mô hình đích: **ASP.NET Core 10 Web API (`backend/`) + Next.js 15 React TypeScript (`frontend/`) + .NET MAUI (`mobile/`)**  
 Nguyên tắc cốt lõi: **Giữ nguyên 100% logic ứng dụng Mobile (`mobile/`), kế thừa toàn bộ Database/Services hiện có, đặt tên thư mục tinh gọn không tiền tố.**

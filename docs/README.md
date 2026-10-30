@@ -4,8 +4,8 @@ Document Type: Master Index & Architecture Specification Suite
 Author: Senior Business Analyst / Enterprise Solution Specialist  
 System: .NET Tutos - Comprehensive .NET Learning & Assessment Platform  
 Scope: Web Application (ASP.NET Core 10), Mobile Client (.NET MAUI 10), AI Tutor Engine, Roslyn Sandbox  
-Version: Release 2.0  
-Status: Verified & Approved for Production  
+Version: Release 2.5  
+Status: Verified & Approved for Production (PostgreSQL & Docker Orchestrated)  
 
 ---
 
@@ -20,7 +20,7 @@ The suite standardizes requirements across the entire software delivery lifecycl
 ## 2. Document Suite Structure
 
 ```
-d:\.ASPNET-Tutos\docs\
+d:\NET-Tutos\docs\
 ├── README.md                           # Master Index & Requirements Traceability Matrix (Current Document)
 ├── 01_business_overview.md             # Business Vision, Strategic Value Proposition & Personas
 ├── 02_system_architecture_overview.md  # Multi-Tier Ecosystem Topology, Tech Stack & Sequence Flows
@@ -28,19 +28,20 @@ d:\.ASPNET-Tutos\docs\
 ├── 04_non_functional_requirements.md   # Quality Attributes, Performance SLAs, Security & PWA Specs
 ├── 05_data_models_and_api_specs.md     # Relational ERD Schemas & RESTful Integration API Contracts
 ├── 06_architecture_and_design_blueprint.md # Architecture Blueprint, Folder Breakdown, ERD & UI/UX Wireframes
-└── 07_decoupling_backend_frontend_plan.md  # Backend (.NET 10 API) & Frontend (Next.js TS) Decoupling Plan
+├── 07_decoupling_backend_frontend_plan.md  # Backend (.NET 10 API) & Frontend (Next.js TS) Decoupling Plan (Archived)
+└── 08_docker_and_database_setup.md         # PostgreSQL 17, Npgsql EF Core 10 & Docker Compose Architecture
 ```
 
 ### Detailed Document Summaries:
 
-1. [**01. Business Overview & Value Proposition**](file:///d:/.ASPNET-Tutos/docs/01_business_overview.md)
+1. [**01. Business Overview & Value Proposition**](file:///d:/NET-Tutos/docs/01_business_overview.md)
    - Executive project summary and target outcomes.
    - Market problem analysis across 4 foundational challenges.
    - Strategic value propositions and Key Performance Indicators (KPIs).
    - Target personas: University Student / Fresher, Junior Developer, and LMS Instructor.
    - End-to-end Learner Journey Map.
 
-2. [**02. System Architecture Overview**](file:///d:/.ASPNET-Tutos/docs/02_system_architecture_overview.md)
+2. [**02. System Architecture Overview**](file:///d:/NET-Tutos/docs/02_system_architecture_overview.md)
    - Multi-tier system topology diagram (Presentation, Gateway/API, Application Services, Data Access, Persistence).
    - Core technology specifications (.NET 10, C# 14, .NET MAUI, EF Core 10, Roslyn Scripting API, SignalR, Monaco Editor).
    - Detailed sequence data flow diagrams:
@@ -49,7 +50,7 @@ d:\.ASPNET-Tutos\docs\
      - Bidirectional cross-platform synchronization between Mobile App and Web App.
    - Security isolation model and Roslyn sandbox boundary controls.
 
-3. [**03. Functional Requirements Document (BRD)**](file:///d:/.ASPNET-Tutos/docs/03_functional_requirements_brd.md)
+3. [**03. Functional Requirements Document (BRD)**](file:///d:/NET-Tutos/docs/03_functional_requirements_brd.md)
    - Formal User Stories and Given/When/Then Acceptance Criteria across 7 functional modules:
      - **MOD-LMS:** 101-lesson Microsoft .NET curriculum, rich Markdown rendering, assessment quizzes.
      - **MOD-PLAY:** Monaco Editor, execution shortcuts (`Ctrl+Enter`, `Ctrl+S`, `Ctrl+I`), automated judge engine.
@@ -59,13 +60,13 @@ d:\.ASPNET-Tutos\docs\
      - **MOD-MOB:** .NET MAUI cross-platform client, lesson reading, progress sync, light/dark themes, custom API host configuration.
      - **MOD-ADM:** Administrative management and cohort oversight.
 
-4. [**04. Non-Functional Requirements Document (NFR)**](file:///d:/.ASPNET-Tutos/docs/04_non_functional_requirements.md)
+4. [**04. Non-Functional Requirements Document (NFR)**](file:///d:/NET-Tutos/docs/04_non_functional_requirements.md)
    - Performance metrics and SLAs/SLOs: Page load $< 1.2\text{s}$, API latency $< 150\text{ms}$, sandbox timeout $\le 3\text{s}$.
    - Scalability standards: $\ge 1,000$ concurrent active users, memory optimization via `AsNoTracking()` and database pagination.
    - Information security: Roslyn sandbox isolation, PBKDF2 password hashing, JWT Bearer authentication, OWASP Top 10 defenses.
    - Offline resilience via Progressive Web App (PWA) Service Workers and cross-platform responsive design (WCAG 2.1 AA).
 
-5. [**05. Data Models & API Specifications**](file:///d:/.ASPNET-Tutos/docs/05_data_models_and_api_specs.md)
+5. [**05. Data Models & API Specifications**](file:///d:/NET-Tutos/docs/05_data_models_and_api_specs.md)
    - Relational Entity Relationship Diagram (ERD).
    - Domain entity specifications: `ApplicationUser`, `Tutorial`, `Category`, `CodingChallenge`, `CodeTestCase`, `InterviewFlashcard`.
    - Comprehensive RESTful API contracts with sample request and response payloads:
@@ -85,6 +86,13 @@ d:\.ASPNET-Tutos\docs\
    - Complete Solution structure and migration phases.
    - Standardized RESTful API contracts matrix covering Auth, Tutorials, Roslyn Playground, AI Tutor, and SignalR Realtime.
    - CORS, JWT authentication, and zero-downtime transition strategy.
+   - Archival note: Architectural review concluded to maintain unified Web App (`web/`) with PostgreSQL 17.
+
+8. [**08. PostgreSQL 17 & Docker Compose Infrastructure**](file:///d:/NET-Tutos/docs/08_docker_and_database_setup.md)
+   - Multi-container topology (PostgreSQL 17 Alpine, ASP.NET Core 10 Web App, pgAdmin 4).
+   - `Npgsql.EntityFrameworkCore.PostgreSQL` 10 configuration, connection strings, and resilient SQLite fallback.
+   - 31 database tables specification and seed data initialization.
+   - Operations guide (`docker compose up -d`) and VS Code Database Client / SQLTools configuration.
 
 ---
 
@@ -102,7 +110,7 @@ d:\.ASPNET-Tutos\docs\
 
 ## 4. Role-Based Navigation Guide
 
-- **Product Owners & Business Stakeholders:** Review [01. Business Overview](file:///d:/.ASPNET-Tutos/docs/01_business_overview.md) and [03. Functional Requirements (BRD)](file:///d:/.ASPNET-Tutos/docs/03_functional_requirements_brd.md) to understand the product roadmap, functional scope, and strategic business goals.
-- **Solution Architects & Engineering Leads:** Review [02. System Architecture Overview](file:///d:/.ASPNET-Tutos/docs/02_system_architecture_overview.md) and [05. Data Models & API Specifications](file:///d:/.ASPNET-Tutos/docs/05_data_models_and_api_specs.md) to evaluate system topology, data flows, and schema structures.
-- **Software Developers (Web & Mobile):** Refer to [03. Functional Requirements (BRD)](file:///d:/.ASPNET-Tutos/docs/03_functional_requirements_brd.md) for acceptance criteria and [05. Data Models & API Specifications](file:///d:/.ASPNET-Tutos/docs/05_data_models_and_api_specs.md) for endpoint request/response contracts.
-- **QA & Test Automation Engineers:** Leverage acceptance criteria in [03. Functional Requirements (BRD)](file:///d:/.ASPNET-Tutos/docs/03_functional_requirements_brd.md) and performance benchmarks in [04. Non-Functional Requirements (NFR)](file:///d:/.ASPNET-Tutos/docs/04_non_functional_requirements.md) to create comprehensive test plans and load testing scripts.
+- **Product Owners & Business Stakeholders:** Review [01. Business Overview](file:///d:/NET-Tutos/docs/01_business_overview.md) and [03. Functional Requirements (BRD)](file:///d:/NET-Tutos/docs/03_functional_requirements_brd.md) to understand the product roadmap, functional scope, and strategic business goals.
+- **Solution Architects & Engineering Leads:** Review [02. System Architecture Overview](file:///d:/NET-Tutos/docs/02_system_architecture_overview.md) and [05. Data Models & API Specifications](file:///d:/NET-Tutos/docs/05_data_models_and_api_specs.md) to evaluate system topology, data flows, and schema structures.
+- **Software Developers (Web & Mobile):** Refer to [03. Functional Requirements (BRD)](file:///d:/NET-Tutos/docs/03_functional_requirements_brd.md) for acceptance criteria and [05. Data Models & API Specifications](file:///d:/NET-Tutos/docs/05_data_models_and_api_specs.md) for endpoint request/response contracts.
+- **QA & Test Automation Engineers:** Leverage acceptance criteria in [03. Functional Requirements (BRD)](file:///d:/NET-Tutos/docs/03_functional_requirements_brd.md) and performance benchmarks in [04. Non-Functional Requirements (NFR)](file:///d:/NET-Tutos/docs/04_non_functional_requirements.md) to create comprehensive test plans and load testing scripts.

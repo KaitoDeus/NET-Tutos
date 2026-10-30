@@ -18,25 +18,27 @@ Dự án được tổ chức theo giải pháp hiện đại `.NET 10 Solution`
 ```text
 d:\NET-Tutos\
 ├── 📄 NET-Tutos.slnx                  # Solution File định dạng mới của .NET 10 (XML nhẹ, sạch)
+├── 📄 docker-compose.yml              # Điều phối đa container (PostgreSQL 17, Web App, pgAdmin 4)
+├── 📄 Dockerfile                      # Multi-stage Docker build cho ASP.NET Core 10 Web App
 ├── 📄 README.md                       # Tài liệu định hướng tổng quan dự án và hướng dẫn khởi chạy
-├── 📄 .gitignore / .gitattributes     # Bộ lọc Git chuẩn hóa cho C# / .NET / Visual Studio
+├── 📄 .gitignore                      # Bộ lọc Git chuẩn hóa cho C# / .NET / Visual Studio
 │
 ├── 📂 docs/                           # [Đặc tả Hệ thống] Tài liệu Single Source of Truth (SSOT)
-├── 📂 NET-Tutos.WebApp/               # [Web & Backend] ASP.NET Core 10 MVC + RESTful API + SignalR
-└── 📂 NET-Tutos.Mobile/               # [Mobile Client] Ứng dụng di động .NET MAUI 10 đa nền tảng
+├── 📂 web/                            # [Web & REST API] ASP.NET Core 10 MVC + RESTful API + SignalR
+└── 📂 mobile/                         # [Mobile Client] Ứng dụng di động .NET MAUI 10 đa nền tảng
 ```
 
 ---
 
-### 1.2. Phân rã Chi tiết Phân hệ Web & Backend (`NET-Tutos.WebApp`)
+### 1.2. Phân rã Chi tiết Phân hệ Web & REST API (`web/`)
 
 Dự án Web tuân thủ kiến trúc phân tầng rõ ràng (Separation of Concerns), phân tách giữa Presentation (Controllers/Views), Business Logic (Services), Data Access (EF Core / DbContext), và Real-Time Communication (Hubs).
 
 ```text
-NET-Tutos.WebApp/
-├── 📄 Program.cs                      # Cấu hình DI, Middleware, Localization, Auth & Dual DB Fallback
-├── 📄 appsettings.json                # Chuỗi kết nối SQL Server, SQLite, JWT Keys, Logging levels
-├── 📄 NET-Tutos.WebApp.csproj         # Khai báo NuGet: EF Core 10, Roslyn, QuestPDF, QRCoder, Markdig
+web/
+├── 📄 Program.cs                      # Cấu hình DI, Middleware, Localization, Auth & PostgreSQL / Fallback DB
+├── 📄 appsettings.json                # Chuỗi kết nối PostgreSQL (Docker), SQLite, JWT Keys, Logging levels
+├── 📄 web.csproj                      # Khai báo NuGet: Npgsql EF Core 10, Roslyn, QuestPDF, QRCoder, Markdig
 │
 ├── 📂 Controllers/                    # [Tầng Điều khiển] Tiếp nhận Request, xác thực và điều phối dữ liệu
 │   │
@@ -136,12 +138,12 @@ NET-Tutos.WebApp/
 
 ---
 
-### 1.3. Phân rã Chi tiết Phân hệ Mobile (`NET-Tutos.Mobile`)
+### 1.3. Phân rã Chi tiết Phân hệ Mobile (`mobile/`)
 
 Ứng dụng Mobile áp dụng kiến trúc **MVVM (Model-View-ViewModel)** thuần túy thông qua `CommunityToolkit.Mvvm`, giúp tách biệt tuyệt đối giữa giao diện hiển thị XAML và luồng xử lý logic.
 
 ```text
-NET-Tutos.Mobile/
+mobile/
 ├── 📄 MauiProgram.cs                  # Khởi tạo MAUI Builder, đăng ký Dependency Injection
 ├── 📄 App.xaml / App.xaml.cs          # Vòng đời ứng dụng & Resource Dictionary màu sắc
 ├── 📄 AppShell.xaml / AppShell.xaml.cs# Điều hướng Flyout/Tab Menu (Home, Tutorials, Roadmap, Flashcards)
@@ -216,9 +218,10 @@ flowchart TD
         EF["Entity Framework Core 10<br/>AppDbContext (IdentityDbContext)"]
     end
 
-    subgraph StorageTier ["5. Persistence Storage Tier (Resilient Dual-Provider)"]
-        SQLServer[("Primary: Microsoft SQL Server<br/>(LocalDB / Production Db)")]
-        SQLite[("Resilient Fallback: SQLite<br/>(dotnet_tutorials.db)")]
+    subgraph StorageTier ["5. Persistence Storage Tier (PostgreSQL 17 & Multi-Provider Fallback)"]
+        Postgres[("Primary: PostgreSQL 17 (Docker)<br/>nettutos_db")]
+        SQLite[("Resilient Fallback: SQLite<br/>dotnet_tutorials.db")]
+        SQLServer[("Optional: Microsoft SQL Server<br/>LocalDB")]
         SecureStore["Client Storage<br/>(MAUI Preferences / Browser LocalStorage)"]
     end
 
@@ -232,8 +235,8 @@ flowchart TD
     SignalR --> ServiceTier
 
     ServiceTier --> EF
-    EF -->|Auto Check Connection| SQLServer
-    EF -.->|Fallback if Unavailable| SQLite
+    EF -->|Primary| Postgres
+    EF -.->|Fallback if Offline| SQLite
 ```
 
 ---
@@ -543,4 +546,4 @@ Trang Playground được thiết kế theo tỷ lệ **Split-Screen chuẩn IDE
 3. **Bảo mật Sandbox (Security Boundaries)**:
    - Roslyn Scripting API chạy hoàn toàn trong AppDomain có kiểm soát từ khóa nguy hiểm và giới hạn `timeout` để triệt tiêu mã độc hoặc vòng lặp vô tận.
 4. **Resilient Fallback**:
-   - Hệ thống tự chủ động kiểm tra SQL Server và tự giáng cấp sang SQLite khi chưa có LocalDB, đảm bảo người mới tải source code về luôn chạy được ngay sau lệnh `dotnet run`.
+   - Hệ thống ưu tiên kết nối PostgreSQL 17 (chạy qua Docker Compose) và tự động giáng cấp sang SQLite khi Docker chưa khởi động, đảm bảo bất kỳ ai tải source code về luôn chạy được ngay sau lệnh `dotnet run` mà không bao giờ gặp lỗi gián đoạn.

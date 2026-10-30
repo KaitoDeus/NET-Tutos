@@ -38,7 +38,7 @@ graph TB
     end
 
     subgraph DatabaseLayer ["5. Persistence Storage Layer"]
-        SQLDb[("Relational Database<br/>(SQL Server / SQLite)")]
+        SQLDb[("Relational Database<br/>(PostgreSQL 17 Primary via Docker / SQLite / SQL Server)")]
         LocalCache["Client Preferences & Secure Storage<br/>(Mobile & Browser LocalStorage)"]
     end
 
@@ -64,7 +64,8 @@ graph TB
 | **Backend Framework** | ASP.NET Core MVC | .NET 10 | Central application server providing server-rendered HTML views and exposing RESTful APIs for mobile and background clients. |
 | **Mobile Framework** | .NET MAUI (Multi-platform App UI) | .NET 10 | Native cross-platform mobile application (Android, iOS, Windows) implemented with C# and XAML. |
 | **Data Access / ORM** | Entity Framework Core | 10.0 | Object-relational mapping, database migrations, and high-performance querying using compiled LINQ, `IQueryable`, and `AsNoTracking`. |
-| **Relational Database** | Microsoft SQL Server / SQLite | 2022 / 3.x | Persistent storage for users, curriculum, progress, coding challenges, test cases, and interview records. |
+| **Relational Database** | PostgreSQL 17 (Chính qua Docker Compose) / SQLite / SQL Server | 17.x / 3.x / 2022 | Persistent storage for users, curriculum, progress, coding challenges, test cases, and interview records via Npgsql EF Core. |
+| **Containerization** | Docker & Docker Compose | 29.x / 5.x | Orchestration trọn gói cho PostgreSQL 17 Alpine, ASP.NET Core 10 Web App và pgAdmin 4 GUI. |
 | **Code Editor** | Microsoft Monaco Editor | 0.45.0 | In-browser code editing engine (VS Code core) providing C# syntax highlighting, shortcut handling (`Ctrl+I`, `Ctrl+Enter`), and code formatting. |
 | **Compiler & Sandbox** | Roslyn Scripting API (`Microsoft.CodeAnalysis.CSharp.Scripting`) | 4.12+ | In-memory dynamic compilation and isolated execution of C# code snippets with strict resource and security bounds. |
 | **Real-Time Communication** | ASP.NET Core SignalR | .NET 10 | Bidirectional WebSocket transport for activity feeds, discussion threads, and real-time community interactions. |
