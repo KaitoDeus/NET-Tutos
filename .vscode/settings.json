@@ -1,0 +1,14 @@
+{
+  "sqltools.connections": [
+    {
+      "name": "NET-Tutos PostgreSQL (Docker)",
+      "dialect": "PostgreSQL",
+      "server": "localhost",
+      "port": 5432,
+      "database": "nettutos_db",
+      "username": "postgres",
+      "password": "postgres",
+      "connectionTimeout": 15
+    }
+  ]
+}
