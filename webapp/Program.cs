@@ -56,6 +56,13 @@ builder.Services.AddSwaggerGen(c =>
     {
         [new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", null)] = new List<string>()
     });
+
+    // Only document RESTful API endpoints in Swagger, skipping MVC View controllers
+    c.DocInclusionPredicate((docName, apiDesc) =>
+    {
+        return (apiDesc.RelativePath != null && apiDesc.RelativePath.StartsWith("api", StringComparison.OrdinalIgnoreCase))
+            || apiDesc.ActionDescriptor.EndpointMetadata.OfType<Microsoft.AspNetCore.Mvc.ApiControllerAttribute>().Any();
+    });
 });
 
 // Localization configuration (Supports Vietnamese and English)
