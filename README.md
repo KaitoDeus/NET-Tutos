@@ -46,7 +46,7 @@
 NET-Tutos delivers an end-to-end learning environment for developers transitioning from C# fundamentals to cloud-scale enterprise architectures. It combines self-paced reading with active coding challenges, real-time peer collaboration, structured practice quizzes, and formal certification.
 
 The system is organized into a clean .NET 10 solution (`NET-Tutos.slnx`) containing:
-- **`webapp`**: The flagship web application featuring MVC presentation, CMS authoring tools, Roslyn code compilation, SignalR hubs, and Mobile REST APIs.
+- **`web`**: The flagship web application featuring MVC presentation, CMS authoring tools, Roslyn code compilation, SignalR hubs, and Mobile REST APIs.
 - **`mobile`**: The cross-platform .NET MAUI mobile application for Android.
 - **`mobile`**: A native Android client built with .NET MAUI and the MVVM architecture pattern, providing seamless offline/online learning on the go.
 
@@ -124,8 +124,8 @@ d:\NET-Tutos\
 ├── .gitignore                          # Standard .NET gitignore with local script exclusions
 ├── README.md                           # Platform documentation
 │
-├── webapp/                             # ASP.NET Core 10 MVC & Mobile Web API
-│   ├── webapp.csproj                   # Web project dependencies & SDK targets
+├── web/                                # ASP.NET Core 10 MVC & Mobile Web API
+│   ├── web.csproj                      # Web project dependencies & SDK targets
 │   ├── Controllers/                    # MVC Controllers
 │   │   ├── AccountController.cs        # Identity, student dashboard & progress
 │   │   ├── Admin*.cs                   # LMS administrative CMS, quizzes, projects & users
@@ -233,7 +233,7 @@ The WebApp exposes dedicated JSON endpoints under `/api/mobile/` consumed by the
 
 3. **Launch the Web Application:**
    ```powershell
-   dotnet run --project webapp/webapp.csproj
+   dotnet run --project web/web.csproj
    ```
 
 4. **Access the application:**
