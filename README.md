@@ -46,8 +46,9 @@
 NET-Tutos delivers an end-to-end learning environment for developers transitioning from C# fundamentals to cloud-scale enterprise architectures. It combines self-paced reading with active coding challenges, real-time peer collaboration, structured practice quizzes, and formal certification.
 
 The system is organized into a clean .NET 10 solution (`NET-Tutos.slnx`) containing:
-- **`NET-Tutos.WebApp`**: The flagship web application featuring MVC presentation, CMS authoring tools, Roslyn code compilation, SignalR hubs, and Mobile REST APIs.
-- **`NET-Tutos.Mobile`**: A native Android client built with .NET MAUI and the MVVM architecture pattern, providing seamless offline/online learning on the go.
+- **`webapp`**: The flagship web application featuring MVC presentation, CMS authoring tools, Roslyn code compilation, SignalR hubs, and Mobile REST APIs.
+- **`mobile`**: The cross-platform .NET MAUI mobile application for Android.
+- **`mobile`**: A native Android client built with .NET MAUI and the MVVM architecture pattern, providing seamless offline/online learning on the go.
 
 ---
 
@@ -118,13 +119,13 @@ The system is organized into a clean .NET 10 solution (`NET-Tutos.slnx`) contain
 The project follows clean architecture principles with distinct separation of concerns:
 
 ```text
-d:\.ASPNET-Tutos\
+d:\NET-Tutos\
 ├── NET-Tutos.slnx                      # Modern .NET 10 solution definition
 ├── .gitignore                          # Standard .NET gitignore with local script exclusions
 ├── README.md                           # Platform documentation
 │
-├── NET-Tutos.WebApp/                   # ASP.NET Core 10 MVC & Mobile Web API
-│   ├── NET-Tutos.WebApp.csproj         # Web project dependencies & SDK targets
+├── webapp/                             # ASP.NET Core 10 MVC & Mobile Web API
+│   ├── webapp.csproj                   # Web project dependencies & SDK targets
 │   ├── Controllers/                    # MVC Controllers
 │   │   ├── AccountController.cs        # Identity, student dashboard & progress
 │   │   ├── Admin*.cs                   # LMS administrative CMS, quizzes, projects & users
@@ -158,7 +159,7 @@ d:\.ASPNET-Tutos\
 │   ├── wwwroot/                        # Static assets, PWA Service Worker & manifest
 │   └── Program.cs                      # Application pipeline, DI configuration & middleware
 │
-└── NET-Tutos.Mobile/                   # Cross-Platform .NET MAUI 10 Mobile App
+└── mobile/                             # Cross-Platform .NET MAUI 10 Mobile App
     ├── NET_Tutos.Mobile.csproj         # MAUI Android project configuration
     ├── AppShell.xaml                   # Flyout/Tab navigation shell
     ├── MauiProgram.cs                  # MAUI dependency injection builder
@@ -232,7 +233,7 @@ The WebApp exposes dedicated JSON endpoints under `/api/mobile/` consumed by the
 
 3. **Launch the Web Application:**
    ```powershell
-   dotnet run --project NET-Tutos.WebApp/NET-Tutos.WebApp.csproj
+   dotnet run --project webapp/webapp.csproj
    ```
 
 4. **Access the application:**
@@ -249,7 +250,7 @@ To run the .NET MAUI mobile app on an Android emulator:
 2. **Start your Android emulator** (e.g. via Android Studio Device Manager or `emulator -avd Pixel_9a`).
 3. **Build and deploy the app:**
    ```powershell
-   dotnet build NET-Tutos.Mobile/NET_Tutos.Mobile.csproj -t:Run -f net10.0-android
+   dotnet build mobile/NET_Tutos.Mobile.csproj -t:Run -f net10.0-android
    ```
 
 ---
