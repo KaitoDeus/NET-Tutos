@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
-import { Play, RotateCcw, Terminal, CheckCircle2, XCircle, Clock, Zap, FileCode, Trophy } from 'lucide-react';
 import apiClient from '@/lib/api';
 import { CodeTemplate, CodeExecutionResponse, CodingChallenge, ChallengeSubmissionResponse } from '@/types/api';
 
@@ -23,16 +22,14 @@ foreach (var item in evenSquares)
 
 export default function PlaygroundPage() {
   const [code, setCode] = useState(DEFAULT_CODE);
-  const [output, setOutput] = useState<string>('Sẵn sàng thực thi mã nguồn C#.\nNhấn "Chạy mã C#" hoặc phím tắt Ctrl + Enter để biên dịch.');
+  const [output, setOutput] = useState<string>('Sẵn sàng thực thi mã nguồn C#.\nNhấn "Chạy code (Ctrl+Enter)" để biên dịch.');
   const [isRunning, setIsRunning] = useState(false);
-  const [executionStats, setExecutionStats] = useState<{ timeMs?: number; success?: boolean }>({});
+  const [executionTime, setExecutionTime] = useState<number | null>(null);
   const [templates, setTemplates] = useState<CodeTemplate[]>([]);
   const [challenges, setChallenges] = useState<CodingChallenge[]>([]);
   const [activeTab, setActiveTab] = useState<'editor' | 'challenges'>('editor');
   const [selectedChallenge, setSelectedChallenge] = useState<CodingChallenge | null>(null);
-  const [submissionResult, setSubmissionResult] = useState<ChallengeSubmissionResponse | null>(null);
 
-  // Load templates & challenges on mount
   useEffect(() => {
     apiClient.get<CodeTemplate[]>('/api/playground/templates')
       .then(res => setTemplates(res.data))
@@ -46,22 +43,20 @@ export default function PlaygroundPage() {
   const handleRunCode = async () => {
     setIsRunning(true);
     setOutput('Đang biên dịch và thực thi mã qua Roslyn Engine...');
-    setExecutionStats({});
+    setExecutionTime(null);
 
     try {
       const res = await apiClient.post<CodeExecutionResponse>('/api/playground/run', { code });
       const data = res.data;
       if (data.isSuccess) {
         setOutput(data.output || '(Chương trình thực thi thành công nhưng không có dữ liệu xuất ra Console)');
-        setExecutionStats({ timeMs: data.executionTimeMs, success: true });
+        setExecutionTime(data.executionTimeMs);
       } else {
         setOutput(data.error || 'Lỗi biên dịch hoặc thực thi.');
-        setExecutionStats({ timeMs: data.executionTimeMs, success: false });
+        setExecutionTime(data.executionTimeMs);
       }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Lỗi kết nối tới Backend API.';
-      setOutput(`Lỗi kết nối: ${message}`);
-      setExecutionStats({ success: false });
+    } catch {
+      setOutput('Lỗi kết nối tới Backend API.');
     } finally {
       setIsRunning(false);
     }
@@ -80,8 +75,7 @@ export default function PlaygroundPage() {
     setSelectedChallenge(c);
     setCode(c.initialCode || `// Giải thử thách: ${c.title}\n`);
     setActiveTab('editor');
-    setOutput(`🎯 THỬ THÁCH: ${c.title} (${c.difficulty} - +${c.xpReward} XP)\n\n${c.shortDescription}\n\nHãy hoàn thành mã nguồn và nhấn "Nộp bài chấm điểm"!`);
-    setSubmissionResult(null);
+    setOutput(`🎯 THỬ THÁCH: ${c.title} (+${c.xpReward} XP)\n\n${c.shortDescription}\n\nHãy hoàn thành mã nguồn và nhấn "Nộp bài chấm điểm"!`);
   };
 
   const handleSubmitChallenge = async () => {
@@ -95,7 +89,6 @@ export default function PlaygroundPage() {
         code
       });
       const data = res.data;
-      setSubmissionResult(data);
       if (data.allPassed) {
         setOutput(`🎉 CHÚC MỪNG BẠN ĐÃ VƯỢT QUA TẤT CẢ TESTCASES!\nThời gian chạy: ${data.executionTimeMs}ms\nSố test đúng: ${data.passedTestsCount}/${data.totalTestsCount}\nBạn nhận được: +${data.xpEarned || selectedChallenge.xpReward} XP!`);
       } else {
@@ -109,190 +102,179 @@ export default function PlaygroundPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-slate-950 text-slate-100">
-      {/* Top Toolbar */}
-      <div className="flex flex-wrap items-center justify-between border-b border-slate-800 bg-slate-900/70 px-4 py-2.5 gap-3">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 rounded-lg bg-slate-800 p-1 border border-slate-700/60 text-xs">
-            <button
-              onClick={() => setActiveTab('editor')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-all ${
-                activeTab === 'editor' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <FileCode className="h-3.5 w-3.5" />
-              <span>Trình soạn thảo</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('challenges')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-all ${
-                activeTab === 'challenges' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Trophy className="h-3.5 w-3.5" />
-              <span>Thử thách ({challenges.length})</span>
-            </button>
-          </div>
-
-          {activeTab === 'editor' && templates.length > 0 && (
-            <select
-              onChange={(e) => handleSelectTemplate(e.target.value)}
-              className="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-purple-500"
-              defaultValue=""
-            >
-              <option value="" disabled>-- Chọn mẫu code C# --</option>
-              {templates.map(t => (
-                <option key={t.id} value={t.id}>{t.title}</option>
-              ))}
-            </select>
-          )}
-
-          {selectedChallenge && (
-            <span className="hidden sm:inline-flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-300 px-2.5 py-1 rounded-full text-xs font-semibold">
-              <Zap className="h-3 w-3 text-amber-400" />
-              {selectedChallenge.title} (+{selectedChallenge.xpReward} XP)
+    <div className="container-fluid px-3 px-xl-4 py-4">
+      {/* Header Title & Mode Switcher */}
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+          <div className="d-flex align-items-center gap-2 mb-1">
+            <span className="badge bg-primary-subtle border border-primary-subtle rounded-pill px-3 py-1 fw-bold text-primary">
+              <i className="bi bi-terminal-fill me-1"></i> Interactive C# Runner (.NET 10)
             </span>
-          )}
+            {selectedChallenge && (
+              <span className="badge bg-warning-subtle border border-warning-subtle rounded-pill px-3 py-1 fw-bold text-warning">
+                ⚡ Thử thách (+{selectedChallenge.xpReward} XP)
+              </span>
+            )}
+          </div>
+          <h3 className="fw-bold mb-0 text-body-emphasis">
+            {selectedChallenge ? selectedChallenge.title : "Trình Thực Hành Code C# Trực Tuyến"}
+          </h3>
         </div>
 
-        <div className="flex items-center gap-2">
-          {selectedChallenge ? (
+        <div className="d-flex flex-wrap align-items-center gap-2">
+          <button
+            onClick={() => setActiveTab(activeTab === 'editor' ? 'challenges' : 'editor')}
+            className={`btn rounded-pill px-3 py-2 fw-semibold ${activeTab === 'challenges' ? 'btn-primary' : 'btn-outline-primary'}`}
+          >
+            <i className="bi bi-list-task me-1"></i> Kho thử thách ({challenges.length} bài)
+          </button>
+          {selectedChallenge && (
             <button
-              onClick={handleSubmitChallenge}
-              disabled={isRunning}
-              className="flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 px-4 py-1.5 text-xs font-semibold text-white shadow-md shadow-emerald-600/20 transition-all"
+              onClick={() => {
+                setSelectedChallenge(null);
+                setCode(DEFAULT_CODE);
+                setActiveTab('editor');
+                setOutput('Đã trở về chế độ Playground tự do.');
+              }}
+              className="btn btn-outline-secondary rounded-pill px-3 py-2"
             >
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              <span>{isRunning ? 'Đang chấm...' : 'Nộp bài chấm điểm'}</span>
-            </button>
-          ) : (
-            <button
-              onClick={handleRunCode}
-              disabled={isRunning}
-              className="flex items-center gap-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:opacity-50 px-4 py-1.5 text-xs font-semibold text-white shadow-md shadow-purple-600/20 transition-all"
-            >
-              <Play className="h-3.5 w-3.5 fill-current" />
-              <span>{isRunning ? 'Đang chạy...' : 'Chạy mã C#'}</span>
+              <i className="bi bi-code-slash me-1"></i> Playground tự do
             </button>
           )}
-
-          <button
-            onClick={() => {
-              setCode(selectedChallenge ? selectedChallenge.initialCode : DEFAULT_CODE);
-              setOutput('Đã hoàn tác mã nguồn.');
-            }}
-            title="Khôi phục mã ban đầu"
-            className="p-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-          </button>
         </div>
       </div>
 
-      {/* Main Workspace */}
       {activeTab === 'challenges' ? (
-        <div className="flex-1 overflow-y-auto p-6 max-w-5xl mx-auto w-full">
-          <div className="mb-6">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-amber-400" />
-              Danh sách Thử thách Thuật toán C#
-            </h2>
-            <p className="text-xs text-slate-400 mt-1">Luyện tập tư duy giải quyết bài toán và nhận thưởng XP trực tiếp</p>
-          </div>
+        <div className="card border-0 shadow-sm rounded-4 bg-body p-4">
+          <h4 className="fw-bold mb-3 d-flex align-items-center gap-2 text-body-emphasis">
+            <i className="bi bi-trophy-fill text-warning"></i>
+            <span>Kho Thử Thách Thuật Toán C#</span>
+          </h4>
+          <p className="text-body-secondary small mb-4">Luyện tập tư duy giải quyết vấn đề và nhận thưởng XP trực tiếp vào hồ sơ cá nhân.</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="row g-3">
             {challenges.map((c) => (
-              <div
-                key={c.id}
-                className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 hover:border-purple-500/40 transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-purple-400">{c.categoryName}</span>
-                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-300">
-                      {c.difficulty}
-                    </span>
+              <div key={c.id} className="col-md-6 col-lg-4">
+                <div className="card h-100 border rounded-4 bg-body p-3 shadow-xs d-flex flex-column justify-content-between">
+                  <div>
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                      <span className="badge bg-primary-subtle text-primary rounded-pill">{c.categoryName}</span>
+                      <span className="badge bg-secondary-subtle text-secondary rounded-pill">{c.difficulty}</span>
+                    </div>
+                    <h6 className="fw-bold text-body-emphasis mb-2">{c.title}</h6>
+                    <p className="text-body-secondary small mb-3 line-clamp-2">{c.shortDescription}</p>
                   </div>
-                  <h3 className="text-base font-bold text-white">{c.title}</h3>
-                  <p className="text-xs text-slate-400 mt-2 line-clamp-2">{c.shortDescription}</p>
-                </div>
 
-                <div className="mt-5 flex items-center justify-between pt-4 border-t border-slate-800/80">
-                  <span className="text-xs font-semibold text-amber-400 flex items-center gap-1">
-                    <Zap className="h-3.5 w-3.5" /> +{c.xpReward} XP
-                  </span>
-                  <button
-                    onClick={() => handleSelectChallenge(c)}
-                    className="rounded-lg bg-purple-600/20 hover:bg-purple-600 hover:text-white text-purple-300 border border-purple-500/30 px-3 py-1.5 text-xs font-semibold transition-all"
-                  >
-                    Bắt đầu làm bài →
-                  </button>
+                  <div className="d-flex align-items-center justify-content-between pt-2 border-top">
+                    <span className="badge bg-warning-subtle text-warning fw-bold">+{c.xpReward} XP</span>
+                    <button
+                      onClick={() => handleSelectChallenge(c)}
+                      className="btn btn-sm btn-primary rounded-pill px-3 py-1"
+                    >
+                      Bắt đầu làm →
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-          {/* Monaco Editor Pane */}
-          <div className="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-slate-800">
-            <div className="flex items-center justify-between px-4 py-2 border-b border-slate-800/70 bg-slate-900/40 text-xs text-slate-400 font-mono">
-              <span className="flex items-center gap-1.5">
-                <FileCode className="h-3.5 w-3.5 text-purple-400" />
-                Program.cs
-              </span>
-              <span>C# 14 (.NET 10)</span>
-            </div>
+        <div className="row g-4">
+          {/* Left Column: Monaco Code Editor */}
+          <div className="col-lg-7 col-xl-8">
+            <div className="card border-0 shadow-sm rounded-4 bg-body overflow-hidden">
+              <div className="card-header bg-body border-bottom p-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div className="d-flex align-items-center gap-2">
+                  <select
+                    className="form-select form-select-sm rounded-pill border-secondary-subtle"
+                    style={{ width: '220px' }}
+                    onChange={(e) => handleSelectTemplate(e.target.value)}
+                    defaultValue=""
+                  >
+                    <option value="" disabled>-- Chọn mẫu code C# --</option>
+                    {templates.map(t => (
+                      <option key={t.id} value={t.id}>{t.title}</option>
+                    ))}
+                  </select>
+                </div>
 
-            <div className="flex-1 relative">
-              <Editor
-                height="100%"
-                language="csharp"
-                theme="vs-dark"
-                value={code}
-                onChange={(val) => setCode(val || '')}
-                options={{
-                  fontSize: 14,
-                  fontFamily: 'var(--font-mono), Consolas, "Courier New", monospace',
-                  minimap: { enabled: false },
-                  scrollBeyondLastLine: false,
-                  automaticLayout: true,
-                  tabSize: 4,
-                  padding: { top: 12 },
-                  lineNumbersMinChars: 3,
-                }}
-              />
+                <div className="d-flex align-items-center gap-2">
+                  <button
+                    onClick={() => setCode(selectedChallenge ? selectedChallenge.initialCode : DEFAULT_CODE)}
+                    className="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1"
+                    title="Khôi phục code ban đầu"
+                  >
+                    <i className="bi bi-arrow-counterclockwise"></i>
+                  </button>
+
+                  {selectedChallenge ? (
+                    <button
+                      onClick={handleSubmitChallenge}
+                      disabled={isRunning}
+                      className="btn btn-sm btn-success rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm"
+                    >
+                      <i className="bi bi-check-circle-fill"></i>
+                      <span>{isRunning ? "Đang chấm..." : "Nộp bài chấm điểm"}</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleRunCode}
+                      disabled={isRunning}
+                      className="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm"
+                    >
+                      <i className="bi bi-play-fill fs-6"></i>
+                      <span>{isRunning ? "Đang chạy..." : "Chạy code (Ctrl+Enter)"}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="monaco-container" style={{ height: '520px' }}>
+                <Editor
+                  height="100%"
+                  language="csharp"
+                  theme="vs-dark"
+                  value={code}
+                  onChange={(val) => setCode(val || '')}
+                  options={{
+                    fontSize: 14,
+                    fontFamily: 'var(--font-mono), Consolas, "Courier New", monospace',
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    tabSize: 4,
+                  }}
+                />
+              </div>
             </div>
           </div>
 
-          {/* Terminal Output Pane */}
-          <div className="h-64 lg:h-full lg:w-[420px] flex flex-col bg-slate-950">
-            <div className="flex items-center justify-between px-4 py-2 border-b border-slate-800 bg-slate-900/80 text-xs font-medium text-slate-300">
-              <span className="flex items-center gap-1.5">
-                <Terminal className="h-3.5 w-3.5 text-slate-400" />
-                Kết quả thực thi (Console Output)
-              </span>
+          {/* Right Column: Console Terminal Output */}
+          <div className="col-lg-5 col-xl-4">
+            <div className="card border-0 shadow-sm rounded-4 bg-body overflow-hidden h-100 d-flex flex-column">
+              <div className="card-header bg-body border-bottom p-3 d-flex align-items-center justify-content-between">
+                <div className="d-flex align-items-center gap-2 fw-bold small text-body-emphasis">
+                  <i className="bi bi-terminal me-1 text-primary"></i>
+                  <span>Kết quả thực thi (Console Output)</span>
+                </div>
+                {executionTime !== null && (
+                  <span className="badge bg-secondary-subtle text-secondary small">
+                    <i className="bi bi-clock me-1"></i>{executionTime}ms
+                  </span>
+                )}
+              </div>
 
-              {executionStats.timeMs !== undefined && (
-                <span className="flex items-center gap-1 text-[11px] text-slate-400">
-                  <Clock className="h-3 w-3" />
-                  {executionStats.timeMs}ms
-                </span>
-              )}
-            </div>
+              <div className="card-body p-3 flex-grow-1 d-flex flex-column">
+                <div className="console-terminal flex-grow-1" id="consoleOutput" style={{ minHeight: '440px' }}>
+                  {output}
+                </div>
 
-            <div className="flex-1 overflow-auto p-4 font-mono text-xs text-slate-200 whitespace-pre-wrap leading-relaxed select-text">
-              {output}
-            </div>
-
-            {/* Status bar */}
-            <div className="border-t border-slate-900 px-4 py-2 text-[11px] text-slate-500 flex items-center justify-between bg-slate-900/30">
-              <span className="flex items-center gap-1.5">
-                {executionStats.success === true && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />}
-                {executionStats.success === false && <XCircle className="h-3.5 w-3.5 text-rose-400" />}
-                {executionStats.success === undefined ? 'Trạng thái: Chưa thực thi' : executionStats.success ? 'Thành công (Exit 0)' : 'Có lỗi'}
-              </span>
-              <span>Roslyn Host: Local Sandbox</span>
+                <div className="d-flex align-items-center justify-content-between mt-3 text-muted small" style={{ fontSize: '0.75rem' }}>
+                  <span><i className="bi bi-cpu me-1"></i>Roslyn C# Sandbox</span>
+                  <span>Exit Code: 0</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

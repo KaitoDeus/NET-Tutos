@@ -1,9 +1,6 @@
 import Link from 'next/link';
-import { BookOpen, Clock, BarChart, ArrowRight, CheckCircle2 } from 'lucide-react';
 import apiClient from '@/lib/api';
 import { TutorialSummary, Category } from '@/types/api';
-
-export const dynamic = 'force-dynamic';
 
 interface PageProps {
   searchParams: Promise<{ category?: string; search?: string }>;
@@ -33,40 +30,42 @@ async function getCategories(): Promise<Category[]> {
 
 export default async function TutorialsPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const { items: tutorials } = await getTutorials(params.category, params.search);
+  const { items: tutorials, total } = await getTutorials(params.category, params.search);
   const categories = await getCategories();
 
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-10 flex flex-col gap-8">
+    <div className="container py-4">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">Thư viện Bài giảng .NET & C#</h1>
-        <p className="text-sm text-slate-400 mt-1">
-          Hệ thống bài học biên soạn bài bản từ cơ bản đến nâng cao, bám sát tài liệu chính thức từ Microsoft.
-        </p>
+      <div className="row align-items-center mb-4">
+        <div className="col-md-8">
+          <h1 className="fw-bold mb-1 text-body-emphasis">Tất Cả Bài Học .NET</h1>
+          <p className="text-muted mb-0">
+            Tìm thấy <strong>{total}</strong> bài hướng dẫn chi tiết từ cơ bản đến nâng cao
+          </p>
+        </div>
+        <div className="col-md-4 text-md-end mt-3 mt-md-0">
+          <Link href="/playground" className="btn btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold">
+            <i className="bi bi-terminal-fill me-1"></i> Thực hành C# Sandbox
+          </Link>
+        </div>
       </div>
 
-      {/* Category Tabs */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-4">
+      {/* Filter Tabs */}
+      <div className="d-flex flex-wrap gap-2 mb-4 pb-3 border-bottom">
         <Link
           href="/tutorials"
-          className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
-            !params.category
-              ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
-              : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
+          className={`btn btn-sm rounded-pill px-3 py-1.5 fw-semibold ${
+            !params.category ? 'btn-primary' : 'btn-outline-secondary'
           }`}
         >
-          Tất cả bài học
+          Tất cả chuyên đề
         </Link>
-
         {categories.map((c) => (
           <Link
             key={c.id}
             href={`/tutorials?category=${c.slug}`}
-            className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
-              params.category === c.slug
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
-                : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
+            className={`btn btn-sm rounded-pill px-3 py-1.5 fw-semibold ${
+              params.category === c.slug ? 'btn-primary' : 'btn-outline-secondary'
             }`}
           >
             {c.name} ({c.tutorialCount})
@@ -76,59 +75,48 @@ export default async function TutorialsPage({ searchParams }: PageProps) {
 
       {/* Tutorials Grid */}
       {tutorials.length === 0 ? (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-12 text-center text-slate-400">
-          <BookOpen className="h-10 w-10 text-slate-600 mx-auto mb-3" />
-          <p className="text-sm font-medium">Không tìm thấy bài học nào phù hợp với bộ lọc.</p>
+        <div className="card border-0 rounded-4 bg-body p-5 text-center shadow-sm">
+          <i className="bi bi-book fs-1 text-muted mb-2"></i>
+          <p className="text-muted mb-0">Không tìm thấy bài học nào phù hợp với bộ lọc.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="row g-4">
           {tutorials.map((t) => (
-            <Link
-              key={t.id}
-              href={`/tutorials/${t.slug}`}
-              className="group flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-6 hover:border-purple-500/50 hover:bg-slate-900 transition-all hover:-translate-y-1 shadow-sm"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[11px] font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2.5 py-1 rounded-full">
-                    {t.categoryName}
-                  </span>
+            <div key={t.id} className="col-md-6 col-lg-4">
+              <Link
+                href={`/tutorials/${t.slug}`}
+                className="card h-100 border rounded-4 text-decoration-none shadow-sm hover-shadow bg-body p-3 transition-all"
+              >
+                <div className="card-body d-flex flex-column justify-content-between p-2">
+                  <div>
+                    <div className="d-flex align-items-center justify-content-between mb-2.5">
+                      <span className="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1">
+                        {t.categoryName}
+                      </span>
+                      <span className="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5" style={{ fontSize: '0.7rem' }}>
+                        {t.difficulty}
+                      </span>
+                    </div>
 
-                  <span className="flex items-center gap-1 text-[11px] text-slate-400">
-                    <BarChart className="h-3 w-3" />
-                    {t.difficulty}
-                  </span>
-                </div>
+                    <h5 className="fw-bold text-body-emphasis mb-2 line-clamp-2">{t.title}</h5>
+                    <p className="text-body-secondary small mb-3 line-clamp-3">{t.summary}</p>
+                  </div>
 
-                <h3 className="text-base font-bold text-white group-hover:text-purple-300 transition-colors leading-snug">
-                  {t.title}
-                </h3>
-
-                <p className="mt-2.5 text-xs text-slate-400 line-clamp-3 leading-relaxed">
-                  {t.summary}
-                </p>
-              </div>
-
-              <div className="mt-6 flex items-center justify-between pt-4 border-t border-slate-800/80 text-xs">
-                <span className="flex items-center gap-1 text-slate-400">
-                  <Clock className="h-3.5 w-3.5" />
-                  {t.estimatedReadingMinutes} phút đọc
-                </span>
-
-                <span className="flex items-center gap-1 font-semibold text-purple-400 group-hover:translate-x-1 transition-transform">
-                  {t.isCompleted ? (
-                    <span className="flex items-center gap-1 text-emerald-400 font-medium">
-                      <CheckCircle2 className="h-3.5 w-3.5" /> Đã hoàn thành
+                  <div className="d-flex align-items-center justify-content-between pt-3 border-top text-muted small">
+                    <span>
+                      <i className="bi bi-clock me-1"></i>{t.estimatedReadingMinutes} phút đọc
                     </span>
-                  ) : (
-                    <>
-                      <span>Học bài</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </>
-                  )}
-                </span>
-              </div>
-            </Link>
+                    <span className="text-primary fw-bold">
+                      {t.isCompleted ? (
+                        <span className="text-success"><i className="bi bi-check-circle-fill me-1"></i>Đã xong</span>
+                      ) : (
+                        <span>Học bài <i className="bi bi-arrow-right"></i></span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            </div>
           ))}
         </div>
       )}

@@ -1,9 +1,6 @@
 import Link from 'next/link';
-import { Terminal, BookOpen, Bot, Layers, Sparkles, ArrowRight, ShieldCheck, Cpu } from 'lucide-react';
 import apiClient from '@/lib/api';
 import { Category } from '@/types/api';
-
-export const dynamic = 'force-dynamic';
 
 async function getCategories(): Promise<Category[]> {
   try {
@@ -23,116 +20,225 @@ export default async function HomePage() {
   const categories = await getCategories();
 
   return (
-    <div className="flex flex-col gap-16 py-10 px-4 sm:px-6 max-w-7xl mx-auto">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-b from-purple-950/30 via-slate-900/40 to-slate-950 p-8 sm:p-14 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-1.5 text-xs font-semibold text-purple-300 mb-6 backdrop-blur-sm">
-          <Sparkles className="h-3.5 w-3.5 text-purple-400" />
-          <span>Hệ sinh thái .NET 10 & C# 14 Hiện Đại Nhất</span>
+    <div className="container py-4">
+      {/* Hero Section (Inspired by Microsoft Learn .NET) */}
+      <section className="hero-learn-dotnet mb-5">
+        <div className="text-center mb-4 mb-md-5">
+          <div className="d-inline-flex align-items-center gap-2 rounded-pill px-3 py-1 bg-primary-subtle border border-primary-subtle text-primary small fw-bold mb-3">
+            <i className="bi bi-stars text-warning"></i>
+            <span>Hệ sinh thái .NET 10 & C# 14 Hiện Đại Nhất</span>
+          </div>
+
+          <h1 className="hero-title fw-extrabold text-gradient-purple mb-2 mb-md-3 display-4">
+            Học Lập Trình .NET
+          </h1>
+          <p className="hero-lead text-body-secondary mx-auto fs-5" style={{ maxWidth: '820px' }}>
+            Kho khóa học, video, bài hướng dẫn và lộ trình học tập miễn phí từ cơ bản đến nâng cao dành cho mọi lập trình viên .NET.
+          </p>
         </div>
 
-        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-3xl mx-auto leading-tight">
-          Làm chủ lập trình <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-300 to-sky-400">.NET & C#</span> từ Zero đến Architect
-        </h1>
+        {/* Spotlight Showcase Card */}
+        <div className="row justify-content-center">
+          <div className="col-xl-11">
+            <div className="card spotlight-card rounded-4 overflow-hidden border shadow-sm">
+              <div className="card-body p-3 p-md-4 p-lg-5">
+                <div className="row g-4 g-lg-5 align-items-center">
+                  {/* Left: Vector Graphic representing What is .NET */}
+                  <div className="col-lg-6">
+                    <div className="video-preview-wrapper rounded-3 overflow-hidden shadow-sm border" style={{ aspectRatio: '16/9' }}>
+                      <svg viewBox="0 0 640 380" className="w-100 h-100" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="640" height="380" fill="#1e1e2d" />
+                        <defs>
+                          <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+                            <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#2d2d3f" strokeWidth="0.8" />
+                          </pattern>
+                        </defs>
+                        <rect width="640" height="380" fill="url(#grid)" />
 
-        <p className="mt-6 text-base sm:text-lg text-slate-300 max-w-2xl mx-auto">
-          Hệ thống đào tạo toàn diện: Thực hành chấm mã tức thì với Roslyn Sandbox, giải thích lỗi với AI Tutor và ôn tập phỏng vấn với thuật toán ngắt quãng.
-        </p>
+                        <rect x="36" y="32" width="60" height="24" rx="4" fill="#0d6efd" />
+                        <text x="66" y="48" fontFamily="'Plus Jakarta Sans', sans-serif" fontSize="12" fontWeight="bold" fill="#ffffff" textAnchor="middle">.NET</text>
+                        <text x="108" y="48" fontFamily="'Plus Jakarta Sans', sans-serif" fontSize="12" fontWeight="600" fill="#a0aec0">Video giới thiệu .NET</text>
 
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <Link
-            href="/tutorials"
-            className="flex items-center gap-2 rounded-xl bg-purple-600 hover:bg-purple-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-purple-600/30 transition-all hover:scale-105"
-          >
-            <BookOpen className="h-4 w-4" />
-            <span>Bắt đầu Học Bài Giảng</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+                        <rect x="36" y="62" width="135" height="20" rx="4" fill="#512bd4" />
+                        <text x="103" y="76" fontFamily="'Plus Jakarta Sans', sans-serif" fontSize="10" fontWeight="bold" fill="#ffffff" textAnchor="middle">CHO NGƯỜI MỚI</text>
 
-          <Link
-            href="/playground"
-            className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/80 hover:bg-slate-800 px-6 py-3.5 text-sm font-semibold text-slate-200 transition-all hover:scale-105"
-          >
-            <Terminal className="h-4 w-4 text-purple-400" />
-            <span>Mở C# Sandbox</span>
-          </Link>
-        </div>
+                        <text x="36" y="160" fontFamily="'Plus Jakarta Sans', sans-serif" fontSize="44" fontWeight="800" fill="#ffffff" letterSpacing="-1">.NET là gì?</text>
 
-        {/* Feature Badges */}
-        <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-800/80 pt-8 max-w-3xl mx-auto text-left">
-          <div className="flex items-center gap-3">
-            <Cpu className="h-5 w-5 text-purple-400 flex-shrink-0" />
-            <div>
-              <p className="text-xs font-semibold text-white">Roslyn Compiler</p>
-              <p className="text-[11px] text-slate-400">Sandbox cách ly an toàn</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Bot className="h-5 w-5 text-sky-400 flex-shrink-0" />
-            <div>
-              <p className="text-xs font-semibold text-white">AI Mentor 24/7</p>
-              <p className="text-[11px] text-slate-400">Chẩn đoán lỗi biên dịch</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Layers className="h-5 w-5 text-emerald-400 flex-shrink-0" />
-            <div>
-              <p className="text-xs font-semibold text-white">Spaced Repetition</p>
-              <p className="text-[11px] text-slate-400">Hộp nhớ Leitner Box</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <ShieldCheck className="h-5 w-5 text-amber-400 flex-shrink-0" />
-            <div>
-              <p className="text-xs font-semibold text-white">Chứng chỉ Xác thực</p>
-              <p className="text-[11px] text-slate-400">Mã QR tra cứu công khai</p>
+                        <g transform="translate(460, 40)">
+                          <polygon points="40,25 75,5 110,25 75,45" fill="#fde68a" />
+                          <polygon points="40,25 75,45 75,85 40,65" fill="#f59e0b" />
+                          <polygon points="75,45 110,25 110,65 75,85" fill="#d97706" />
+                        </g>
+
+                        <g transform="translate(410, 110)">
+                          <polygon points="40,25 75,5 110,25 75,45" fill="#a7f3d0" />
+                          <polygon points="40,25 75,45 75,85 40,65" fill="#10b981" />
+                          <polygon points="75,45 110,25 110,65 75,85" fill="#059669" />
+                        </g>
+
+                        <g transform="translate(480, 180)">
+                          <polygon points="40,25 75,5 110,25 75,45" fill="#c4b5fd" />
+                          <polygon points="40,25 75,45 75,85 40,65" fill="#8b5cf6" />
+                          <polygon points="75,45 110,25 110,65 75,85" fill="#6d28d9" />
+                        </g>
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Right: Getting Started Action Steps */}
+                  <div className="col-lg-6">
+                    <div className="d-flex align-items-center gap-2 mb-2">
+                      <span className="badge bg-primary text-white rounded-pill px-2.5 py-1 small fw-bold">
+                        Bắt đầu
+                      </span>
+                      <span className="text-body-secondary small">Lộ trình học tập tương tác</span>
+                    </div>
+
+                    <h2 className="fw-extrabold text-body-emphasis mb-3">
+                      Bắt đầu với .NET hoàn toàn miễn phí
+                    </h2>
+
+                    <p className="text-body-secondary mb-4 leading-relaxed">
+                      Nền tảng giúp bạn làm chủ hệ sinh thái .NET qua các bài học cô đọng, ví dụ thực chiến và khả năng chạy mã C# trực tiếp trên trình duyệt.
+                    </p>
+
+                    <div className="d-flex flex-column gap-3 mb-4">
+                      <div className="d-flex align-items-center gap-3">
+                        <div className="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '36px', height: '36px' }}>
+                          <i className="bi bi-download"></i>
+                        </div>
+                        <div className="small"><strong>Bước 1:</strong> Cài đặt .NET 10 SDK và công cụ lập trình VS Code.</div>
+                      </div>
+
+                      <div className="d-flex align-items-center gap-3">
+                        <div className="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '36px', height: '36px' }}>
+                          <i className="bi bi-code-slash"></i>
+                        </div>
+                        <div className="small"><strong>Bước 2:</strong> Viết chương trình C# 14 đầu tiên với Top-Level Statements.</div>
+                      </div>
+
+                      <div className="d-flex align-items-center gap-3">
+                        <div className="rounded-circle bg-warning-subtle text-warning p-2 d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '36px', height: '36px' }}>
+                          <i className="bi bi-play-circle"></i>
+                        </div>
+                        <div className="small"><strong>Bước 3:</strong> Chạy code trực tuyến và giải câu đố LeetCode-style.</div>
+                      </div>
+                    </div>
+
+                    <div className="d-flex flex-wrap gap-2.5">
+                      <Link href="/tutorials" className="btn btn-primary rounded-pill px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
+                        <i className="bi bi-book"></i>
+                        <span>Bắt đầu học ngay</span>
+                      </Link>
+
+                      <Link href="/playground" className="btn btn-outline-primary rounded-pill px-4 py-2.5 fw-bold d-inline-flex align-items-center gap-2">
+                        <i className="bi bi-terminal-fill"></i>
+                        <span>Thực hành Sandbox</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Curriculum Categories Section */}
-      <section className="flex flex-col gap-6">
-        <div className="flex items-end justify-between">
+      <section className="mb-5">
+        <div className="d-flex align-items-end justify-content-between mb-4">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-white">Lộ trình bài giảng chuẩn hóa</h2>
-            <p className="text-sm text-slate-400 mt-1">Học theo chuỗi module từ cơ bản đến xây dựng hệ thống phân tán</p>
+            <h3 className="fw-extrabold text-body-emphasis mb-1">
+              <i className="bi bi-collection-play-fill text-primary me-2"></i>
+              Lộ trình Chuyên đề Toàn diện
+            </h3>
+            <p className="text-body-secondary small mb-0">Học theo chuỗi chuyên đề từ cú pháp cơ sở đến kiến trúc ứng dụng phân tán</p>
           </div>
-          <Link href="/tutorials" className="text-sm font-semibold text-purple-400 hover:text-purple-300 flex items-center gap-1">
-            Xem tất cả bài học <ArrowRight className="h-3.5 w-3.5" />
+          <Link href="/tutorials" className="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold d-none d-md-inline-flex align-items-center gap-1">
+            <span>Xem tất cả bài học</span>
+            <i className="bi bi-arrow-right"></i>
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="row g-4">
           {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/tutorials?category=${cat.slug}`}
-              className="group relative flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-6 hover:border-purple-500/50 hover:bg-slate-900 transition-all hover:-translate-y-1 shadow-sm"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 group-hover:scale-110 transition-transform">
-                    <BookOpen className="h-5 w-5" />
-                  </span>
-                  <span className="text-xs font-medium text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700/50">
-                    {cat.tutorialCount} bài học
-                  </span>
-                </div>
-                <h3 className="text-base font-bold text-white group-hover:text-purple-300 transition-colors">
-                  {cat.name}
-                </h3>
-                <p className="mt-2 text-xs text-slate-400 line-clamp-3 leading-relaxed">
-                  {cat.description}
-                </p>
-              </div>
+            <div key={cat.id} className="col-md-6 col-lg-3">
+              <Link href={`/tutorials?category=${cat.slug}`} className="card h-100 border rounded-4 text-decoration-none shadow-sm hover-shadow transition-all bg-body p-3">
+                <div className="card-body d-flex flex-column justify-content-between p-2">
+                  <div>
+                    <div className="d-flex align-items-center justify-content-between mb-3">
+                      <div className={`rounded-3 bg-${cat.badgeColor}-subtle text-${cat.badgeColor} p-2.5 d-flex align-items-center justify-content-center`} style={{ width: '44px', height: '44px' }}>
+                        <i className={`bi ${cat.iconClass} fs-5`}></i>
+                      </div>
+                      <span className={`badge bg-${cat.badgeColor}-subtle text-${cat.badgeColor} rounded-pill px-2.5 py-1`}>
+                        {cat.tutorialCount} bài học
+                      </span>
+                    </div>
 
-              <div className="mt-6 flex items-center gap-1 text-xs font-semibold text-purple-400 group-hover:translate-x-1 transition-transform">
-                <span>Khám phá bài học</span>
-                <ArrowRight className="h-3 w-3" />
-              </div>
-            </Link>
+                    <h5 className="fw-bold text-body-emphasis mb-2">{cat.name}</h5>
+                    <p className="text-body-secondary small mb-0 line-clamp-3">{cat.description}</p>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-top d-flex align-items-center justify-content-between text-primary small fw-bold">
+                    <span>Khám phá ngay</span>
+                    <i className="bi bi-arrow-right"></i>
+                  </div>
+                </div>
+              </Link>
+            </div>
           ))}
+        </div>
+      </section>
+
+      {/* Feature Highlights Grid */}
+      <section className="mb-5 py-4 border-top">
+        <div className="text-center mb-5">
+          <h3 className="fw-extrabold text-body-emphasis mb-2">Tại sao nên học .NET tại NET-Tutos?</h3>
+          <p className="text-body-secondary small mx-auto" style={{ maxWidth: '640px' }}>
+            Môi trường học tập thông minh kết hợp trình biên dịch Roslyn, trợ lý AI và thuật toán Spaced Repetition.
+          </p>
+        </div>
+
+        <div className="row g-4">
+          <div className="col-md-6 col-lg-3">
+            <div className="card border rounded-4 bg-body p-4 text-center h-100 shadow-xs">
+              <div className="rounded-circle bg-primary-subtle text-primary mx-auto mb-3 p-3 d-flex align-items-center justify-content-center" style={{ width: '56px', height: '56px' }}>
+                <i className="bi bi-cpu fs-3"></i>
+              </div>
+              <h5 className="fw-bold mb-2">Roslyn Compiler</h5>
+              <p className="text-body-secondary small mb-0">Biên dịch mã C# 14 thực thi an toàn trong Sandbox cách ly với độ trễ dưới 150ms.</p>
+            </div>
+          </div>
+
+          <div className="col-md-6 col-lg-3">
+            <div className="card border rounded-4 bg-body p-4 text-center h-100 shadow-xs">
+              <div className="rounded-circle bg-warning-subtle text-warning mx-auto mb-3 p-3 d-flex align-items-center justify-content-center" style={{ width: '56px', height: '56px' }}>
+                <i className="bi bi-robot fs-3"></i>
+              </div>
+              <h5 className="fw-bold mb-2">AI Mentor 24/7</h5>
+              <p className="text-body-secondary small mb-0">Chẩn đoán lỗi biên dịch, phân tích độ phức tạp thuật toán và giải thích chuyên sâu.</p>
+            </div>
+          </div>
+
+          <div className="col-md-6 col-lg-3">
+            <div className="card border rounded-4 bg-body p-4 text-center h-100 shadow-xs">
+              <div className="rounded-circle bg-success-subtle text-success mx-auto mb-3 p-3 d-flex align-items-center justify-content-center" style={{ width: '56px', height: '56px' }}>
+                <i className="bi bi-card-checklist fs-3"></i>
+              </div>
+              <h5 className="fw-bold mb-2">Spaced Repetition</h5>
+              <p className="text-body-secondary small mb-0">Hộp nhớ Leitner 5 cấp giúp ghi nhớ lâu bền các khái niệm phỏng vấn kỹ thuật quan trọng.</p>
+            </div>
+          </div>
+
+          <div className="col-md-6 col-lg-3">
+            <div className="card border rounded-4 bg-body p-4 text-center h-100 shadow-xs">
+              <div className="rounded-circle bg-info-subtle text-info mx-auto mb-3 p-3 d-flex align-items-center justify-content-center" style={{ width: '56px', height: '56px' }}>
+                <i className="bi bi-award fs-3"></i>
+              </div>
+              <h5 className="fw-bold mb-2">Chứng chỉ Số hóa</h5>
+              <p className="text-body-secondary small mb-0">Cấp chứng nhận hoàn thành khóa học kèm mã xác thực QR tra cứu công khai trực tuyến.</p>
+            </div>
+          </div>
         </div>
       </section>
     </div>
