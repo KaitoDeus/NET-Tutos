@@ -5,7 +5,7 @@ Author: Senior Business Analyst / Enterprise Solution Specialist
 System: .NET Tutos - Comprehensive .NET Learning & Assessment Platform  
 Scope: Web Application (ASP.NET Core 10), Mobile Client (.NET MAUI 10), AI Tutor Engine, Roslyn Sandbox  
 Version: Release 2.5  
-Status: Verified & Approved for Production (PostgreSQL & Docker Orchestrated)  
+Status: Verified & Approved for Production (PostgreSQL 17 & Docker Orchestrated)  
 
 ---
 
@@ -28,8 +28,7 @@ d:\NET-Tutos\docs\
 ├── 04_non_functional_requirements.md   # Quality Attributes, Performance SLAs, Security & PWA Specs
 ├── 05_data_models_and_api_specs.md     # Relational ERD Schemas & RESTful Integration API Contracts
 ├── 06_architecture_and_design_blueprint.md # Architecture Blueprint, Folder Breakdown, ERD & UI/UX Wireframes
-├── 07_decoupling_backend_frontend_plan.md  # Backend (.NET 10 API) & Frontend (Next.js TS) Decoupling Plan (Archived)
-└── 08_docker_and_database_setup.md         # PostgreSQL 17, Npgsql EF Core 10 & Docker Compose Architecture
+└── 07_docker_and_database_setup.md     # PostgreSQL 17, Npgsql EF Core 10 & Docker Compose Architecture
 ```
 
 ### Detailed Document Summaries:
@@ -81,14 +80,7 @@ d:\NET-Tutos\docs\
    - Complete 23-table Entity Relationship Diagram (ERD).
    - Wireframe layout architecture (Playground Monaco IDE, Markdown reader, MAUI mobile tab navigation).
 
-7. [**07. Backend & Frontend Decoupling Plan**](file:///d:/NET-Tutos/docs/07_decoupling_backend_frontend_plan.md)
-   - Decoupled architecture target: ASP.NET Core 10 Web API + Next.js 15 React TypeScript + .NET MAUI.
-   - Complete Solution structure and migration phases.
-   - Standardized RESTful API contracts matrix covering Auth, Tutorials, Roslyn Playground, AI Tutor, and SignalR Realtime.
-   - CORS, JWT authentication, and zero-downtime transition strategy.
-   - Archival note: Architectural review concluded to maintain unified Web App (`web/`) with PostgreSQL 17.
-
-8. [**08. PostgreSQL 17 & Docker Compose Infrastructure**](file:///d:/NET-Tutos/docs/08_docker_and_database_setup.md)
+7. [**07. PostgreSQL 17 & Docker Compose Infrastructure**](file:///d:/NET-Tutos/docs/07_docker_and_database_setup.md)
    - Multi-container topology (PostgreSQL 17 Alpine, ASP.NET Core 10 Web App, pgAdmin 4).
    - `Npgsql.EntityFrameworkCore.PostgreSQL` 10 configuration, connection strings, and resilient SQLite fallback.
    - 31 database tables specification and seed data initialization.

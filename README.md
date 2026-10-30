@@ -27,7 +27,7 @@
   - [8. Capstone Project Studio & Public Developer Portfolios](#8-capstone-project-studio--public-developer-portfolios)
   - [9. Offline-First PWA & Universal Command Palette (Ctrl+K)](#9-offline-first-pwa--universal-command-palette-ctrlk)
   - [10. Administrative LMS Control Center & CMS Studio](#10-administrative-lms-control-center--cms-studio)
-  - [11. Bilingual Localization (English & Tiếng Việt)](#11-bilingual-localization-english--tiếng-việt)
+  - [11. Bilingual Localization (English & Vietnamese)](#11-bilingual-localization-english--vietnamese)
 - [Architecture & Solution Structure](#architecture--solution-structure)
 - [Mobile REST API Endpoints](#mobile-rest-api-endpoints)
 - [Technology Stack](#technology-stack)
@@ -108,7 +108,7 @@ The system is organized into a clean .NET 10 solution (`NET-Tutos.slnx`) contain
 - **Split-Screen WYSIWYG Studio**: Real-time live Markdown editor for publishing and editing course content with image and syntax preview.
 - **Question & User Management**: Full CRUD over question banks, quiz sets, student roles, and XP moderation.
 
-### 11. Bilingual Localization (English & Tiếng Việt)
+### 11. Bilingual Localization (English & Vietnamese)
 - **Native Dual-Language Support**: Complete UI, navigation, roadmap, lesson content, quizzes, and certificate templates localized in both English and Vietnamese.
 - **One-Click Flag Switcher**: Cookie-backed language preference toggling instantly without page loss.
 
@@ -198,7 +198,7 @@ The WebApp exposes dedicated JSON endpoints under `/api/mobile/` consumed by the
 | **Mobile Platform** | .NET MAUI 10.0 (Targeting Android 5.0+ / API 21-36) |
 | **MVVM Framework** | `CommunityToolkit.Mvvm` 8.4 |
 | **ORM / Data Access** | Entity Framework Core 10.0 |
-| **Database Engines** | PostgreSQL 17 (Chính qua Docker Compose) / SQLite / SQL Server (LocalDB) |
+| **Database Engines** | PostgreSQL 17 (Primary via Docker Compose) / SQLite / SQL Server (LocalDB) |
 | **Code Scripting** | `Microsoft.CodeAnalysis.CSharp.Scripting` 5.0 (Roslyn Engine) |
 | **Real-Time Web** | ASP.NET Core SignalR |
 | **PDF Generation** | QuestPDF 2026.9 |
@@ -220,19 +220,19 @@ The WebApp exposes dedicated JSON endpoints under `/api/mobile/` consumed by the
 
 ### Running with Docker Compose (Recommended)
 
-Khởi chạy trọn gói Web Application cùng PostgreSQL 17 và pgAdmin 4:
+Launch the full-stack ecosystem including ASP.NET Core 10 Web App, PostgreSQL 17, and pgAdmin 4:
 
-1. **Khởi chạy tất cả dịch vụ trong background:**
+1. **Start all services in background:**
    ```bash
    docker compose up -d
    ```
 
-2. **Truy cập ứng dụng:**
+2. **Access applications:**
    - **Web Application & Swagger UI**: [http://localhost:5000](http://localhost:5000)
    - **PostgreSQL Database**: `localhost:5432` (`Database: nettutos_db`, `User: postgres`, `Pass: postgres`)
    - **pgAdmin 4 Web GUI**: [http://localhost:5050](http://localhost:5050) (`admin@nettutos.com` / `admin`)
 
-3. **Chỉ chạy PostgreSQL database phục vụ lập trình cục bộ (.NET SDK):**
+3. **Run only PostgreSQL database for local .NET development:**
    ```powershell
    docker compose up -d postgres
    dotnet run --project web/web.csproj

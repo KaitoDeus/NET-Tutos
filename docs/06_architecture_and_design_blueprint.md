@@ -4,194 +4,194 @@ Document Type: Technical Solution Architecture & UI/UX Specification Suite
 Author: Senior Solution Architect & Lead Software Engineer  
 System: .NET Tutos - Comprehensive .NET Learning & Assessment Platform  
 Scope: Web Application (ASP.NET Core 10), Mobile Client (.NET MAUI 10), Database ERD, UI/UX Wireframes  
-Version: Release 2.0  
-Status: Verified & Approved for Production  
+Version: Release 2.5  
+Status: Verified & Approved for Production (PostgreSQL 17 & Docker Orchestrated)  
 
 ---
 
-## 1. Bản đồ Cấu trúc Thư mục Phân lớp (Clean Code Directory Tree)
+## 1. Tiered Clean Code Directory Architecture
 
-Dự án được tổ chức theo giải pháp hiện đại `.NET 10 Solution` (`NET-Tutos.slnx`) với sự phân tách độc lập giữa **Web/Backend API**, **Mobile Client** và **Đặc tả Kỹ thuật**.
+The project is structured according to the modern `.NET 10 Solution` specification (`NET-Tutos.slnx`), establishing clean architectural separation of concerns between **Web Application & REST API (`web/`)**, **Mobile Client (`mobile/`)**, and **System Specifications (`docs/`)**.
 
-### 1.1. Cấu trúc Tổng thể Dự án
+### 1.1. Overall Solution Root Structure
 
 ```text
 d:\NET-Tutos\
-├── 📄 NET-Tutos.slnx                  # Solution File định dạng mới của .NET 10 (XML nhẹ, sạch)
-├── 📄 docker-compose.yml              # Điều phối đa container (PostgreSQL 17, Web App, pgAdmin 4)
-├── 📄 Dockerfile                      # Multi-stage Docker build cho ASP.NET Core 10 Web App
-├── 📄 README.md                       # Tài liệu định hướng tổng quan dự án và hướng dẫn khởi chạy
-├── 📄 .gitignore                      # Bộ lọc Git chuẩn hóa cho C# / .NET / Visual Studio
+├── 📄 NET-Tutos.slnx                  # Modern .NET 10 XML solution file (clean, lightweight)
+├── 📄 docker-compose.yml              # Multi-container orchestration (PostgreSQL 17, Web App, pgAdmin 4)
+├── 📄 Dockerfile                      # Multi-stage production build for ASP.NET Core 10 Web App
+├── 📄 README.md                       # Comprehensive repository guide and quickstart manual
+├── 📄 .gitignore                      # Standardized Git exclusion rules for .NET / C# / Visual Studio
 │
-├── 📂 docs/                           # [Đặc tả Hệ thống] Tài liệu Single Source of Truth (SSOT)
-├── 📂 web/                            # [Web & REST API] ASP.NET Core 10 MVC + RESTful API + SignalR
-└── 📂 mobile/                         # [Mobile Client] Ứng dụng di động .NET MAUI 10 đa nền tảng
+├── 📂 docs/                           # [System Specifications] Single Source of Truth (SSOT) documentation
+├── 📂 web/                            # [Web & REST API] ASP.NET Core 10 MVC + RESTful API + SignalR Hubs
+└── 📂 mobile/                         # [Mobile Client] Cross-platform .NET MAUI 10 native client application
 ```
 
 ---
 
-### 1.2. Phân rã Chi tiết Phân hệ Web & REST API (`web/`)
+### 1.2. Web Subsystem & RESTful API Architecture (`web/`)
 
-Dự án Web tuân thủ kiến trúc phân tầng rõ ràng (Separation of Concerns), phân tách giữa Presentation (Controllers/Views), Business Logic (Services), Data Access (EF Core / DbContext), và Real-Time Communication (Hubs).
+The web application follows an N-Tier Clean Architecture pattern, isolating presentation (Controllers and Razor Views), business domain logic (Application Services), data persistence (EF Core `DbContext`), and real-time networking (SignalR Hubs).
 
 ```text
 web/
-├── 📄 Program.cs                      # Cấu hình DI, Middleware, Localization, Auth & PostgreSQL / Fallback DB
-├── 📄 appsettings.json                # Chuỗi kết nối PostgreSQL (Docker), SQLite, JWT Keys, Logging levels
-├── 📄 web.csproj                      # Khai báo NuGet: Npgsql EF Core 10, Roslyn, QuestPDF, QRCoder, Markdig
+├── 📄 Program.cs                      # Dependency Injection, Middleware pipeline, Auth, and Resilient DB wiring
+├── 📄 appsettings.json                # Connection strings (PostgreSQL Docker, SQLite fallback), JWT keys, Logging
+├── 📄 web.csproj                      # NuGet packages: Npgsql EF Core 10, Roslyn, QuestPDF, QRCoder, Markdig
 │
-├── 📂 Controllers/                    # [Tầng Điều khiển] Tiếp nhận Request, xác thực và điều phối dữ liệu
+├── 📂 Controllers/                    # [Controller Tier] HTTP Request handling, validation, and dispatching
 │   │
-│   ├── 📂 Api/                        # RESTful API Endpoints phục vụ Mobile Client & Third-party
-│   │   ├── 📄 MobileAuthController.cs        # Xác thực JWT, đăng ký, đăng nhập & lấy hồ sơ cá nhân
-│   │   ├── 📄 MobileTutorialsController.cs   # Lấy bài học, danh mục, lộ trình, cập nhật tiến độ
-│   │   └── 📄 MobileFlashcardsController.cs  # API ôn tập Flashcards thuật toán Spaced Repetition
+│   ├── 📂 Api/                        # RESTful API Endpoints for Mobile Client and third-party integrations
+│   │   ├── 📄 MobileAuthController.cs        # JWT authentication, user registration, login, and profile fetching
+│   │   ├── 📄 MobileTutorialsController.cs   # Curriculum endpoints, categories, roadmaps, and progress sync
+│   │   └── 📄 MobileFlashcardsController.cs  # Spaced repetition flashcard retrieval and review submissions
 │   │
-│   ├── 📂 Admin/                      # Bộ điều khiển dành cho Quản trị viên LMS (Role: Admin)
-│   │   ├── 📄 AdminController.cs             # Dashboard tổng quan, KPI thống kê học viên
-│   │   ├── 📄 AdminTutorialsController.cs    # Quản lý bài giảng Markdown (WYSIWYG split-screen)
-│   │   ├── 📄 AdminQuizzesController.cs      # Soạn thảo ngân hàng câu hỏi trắc nghiệm
-│   │   ├── 📄 AdminProjectsController.cs     # Chấm điểm & nhận xét đồ án tốt nghiệp Capstone
-│   │   └── 📄 AdminUsersController.cs        # Quản lý phân quyền, điều chỉnh điểm XP học viên
+│   ├── 📂 Admin/                      # LMS Administration Controllers (Role: Admin)
+│   │   ├── 📄 AdminController.cs             # Administrative overview dashboard and cohort analytics
+│   │   ├── 📄 AdminTutorialsController.cs    # Markdown CMS authoring studio with split-screen live preview
+│   │   ├── 📄 AdminQuizzesController.cs      # Assessment quiz authoring and question bank curation
+│   │   ├── 📄 AdminProjectsController.cs     # Capstone project review, scoring, and feedback evaluation
+│   │   └── 📄 AdminUsersController.cs        # User account management, role elevation, and XP moderation
 │   │
-│   ├── 📂 Learning & Practice/        # Phân hệ Học tập & Rèn luyện kỹ năng
-│   │   ├── 📄 TutorialsController.cs         # Đọc bài giảng Markdown, theo dõi tiến độ
-│   │   ├── 📄 RoadmapController.cs           # Lộ trình học 4 chặng từ cơ bản đến Enterprise
-│   │   ├── 📄 CurriculumController.cs        # Mục lục chi tiết 101 bài học chuẩn hóa
-│   │   ├── 📄 CheatSheetController.cs        # Sổ tay tra cứu nhanh cú pháp Modern C# 14
-│   │   ├── 📄 PlaygroundController.cs        # Sân chơi Monaco Editor, chấm code Roslyn online
-│   │   ├── 📄 QuizController.cs              # Làm bài trắc nghiệm kiến thức theo bài học
-│   │   └── 📄 ExamController.cs              # Thi sát hạch tính giờ & cấp chứng chỉ
+│   ├── 📂 Learning & Practice/        # Student Learning & Assessment Controllers
+│   │   ├── 📄 TutorialsController.cs         # Markdown lesson viewer, reading progress tracking (+20 XP)
+│   │   ├── 📄 RoadmapController.cs           # 4-stage learning path from fundamentals to enterprise architectures
+│   │   ├── 📄 CurriculumController.cs        # Catalog of 101 structured, standards-compliant lessons
+│   │   ├── 📄 CheatSheetController.cs        # Modern C# 14 syntax quick reference manual
+│   │   ├── 📄 PlaygroundController.cs        # Monaco Editor sandbox, Roslyn compilation, algorithm test runner
+│   │   ├── 📄 QuizController.cs              # Lesson knowledge quizzes with instant feedback
+│   │   └── 📄 ExamController.cs              # Timed final examinations and certificate issuance
 │   │
-│   ├── 📂 AI & Career Prep/           # Phân hệ Trợ lý Trí tuệ Nhân tạo & Chuẩn bị Việc làm
-│   │   ├── 📄 AiTutorController.cs           # Phân tích độ phức tạp Big-O, giải thích lỗi code
-│   │   └── 📄 InterviewController.cs         # Phỏng vấn kỹ thuật 1-1 AI Tech Lead (Voice STT/TTS)
+│   ├── 📂 AI & Career Prep/           # AI Assistant & Technical Interview Controllers
+│   │   ├── 📄 AiTutorController.cs           # Algorithmic Big-O analysis, code diagnostics, xUnit generation
+│   │   └── 📄 InterviewController.cs         # 1-on-1 AI Tech Lead technical mock interview with Voice STT/TTS
 │   │
-│   ├── 📂 Community & Gamification/   # Phân hệ Tương tác Xã hội & Động lực Học tập
-│   │   ├── 📄 LeaderboardController.cs       # Bảng vàng xếp hạng Top học viên (Hall of Fame)
-│   │   ├── 📄 StreakController.cs            # Check-in hàng ngày, chuỗi ngọn lửa (Flame Streaks)
-│   │   ├── 📄 DiscussionController.cs        # Diễn đàn Q&A dưới mỗi bài học (SignalR)
-│   │   ├── 📄 ActivityController.cs          # Dòng thời gian hoạt động cộng đồng (Feed)
-│   │   ├── 📄 ProjectController.cs           # Nộp đồ án tốt nghiệp Capstone (GitHub / Demo)
-│   │   └── 📄 CertificateController.cs       # Xem chứng chỉ PDF & quét QR xác thực công khai
+│   ├── 📂 Community & Gamification/   # Social Collaboration & Gamification Controllers
+│   │   ├── 📄 LeaderboardController.cs       # Hall of Fame leaderboard ranking top learners
+│   │   ├── 📄 StreakController.cs            # Daily check-in tracking with flame streak visualizers
+│   │   ├── 📄 DiscussionController.cs        # Q&A discussion forum embedded under every tutorial (SignalR)
+│   │   ├── 📄 ActivityController.cs          # Real-time community activity feed
+│   │   ├── 📄 ProjectController.cs           # Capstone project submission (GitHub repository & Live Demo)
+│   │   └── 📄 CertificateController.cs       # Vector PDF certificate viewer and cryptographic QR verification
 │   │
-│   └── 📂 User & Core/                # Phân hệ Tài khoản & Tiện ích Nền tảng
-│       ├── 📄 AccountController.cs           # Đăng nhập, đăng ký, hồ sơ, đổi mật khẩu Identity
-│       ├── 📄 ProfileController.cs           # Trang Profile công khai (/u/{username})
-│       ├── 📄 PlannerController.cs           # Lập kế hoạch học tập cá nhân hóa
-│       ├── 📄 NotificationController.cs     # Thông báo hệ thống thời gian thực
-│       ├── 📄 LanguageController.cs          # Chuyển đổi ngôn ngữ Song ngữ (Tiếng Việt / English)
-│       └── 📄 HomeController.cs              # Landing page, giới thiệu, chính sách & trang lỗi
+│   └── 📂 User & Core/                # User Profile & Identity Controllers
+│       ├── 📄 AccountController.cs           # ASP.NET Core Identity authentication (Login, Register, Logout)
+│       ├── 📄 ProfileController.cs           # Public developer showcase portfolio (/u/{username})
+│       ├── 📄 PlannerController.cs           # Personalized weekly learning planner
+│       ├── 📄 NotificationController.cs     # Real-time learner notification center
+│       ├── 📄 LanguageController.cs          # Bilingual localization switcher (English / Vietnamese)
+│       └── 📄 HomeController.cs              # Landing page, value proposition, policies, and error handling
 │
-├── 📂 Services/                       # [Tầng Nghiệp vụ] Chứa toàn bộ Business Logic độc lập
-│   ├── 📄 CodeExecutionService.cs     # Roslyn Sandbox chạy mã C#, đo thời gian & chấm test case
-│   ├── 📄 AiTutorService.cs           # Đánh giá thuật toán Big-O, chấm phỏng vấn 3 chiều
-│   ├── 📄 CertificateService.cs       # Tạo chứng chỉ Vector PDF bằng QuestPDF & mã QR
-│   ├── 📄 MarkdownService.cs          # Render Markdown thành HTML an toàn hỗ trợ Prism.js
-│   ├── 📄 TutorialService.cs          # Truy vấn & lọc bài học, danh mục
-│   ├── 📄 LearningProgressService.cs  # Tính toán tỷ lệ hoàn thành khóa học & cộng XP
-│   ├── 📄 StreakService.cs            # Thuật toán tính chuỗi ngày học liên tục
-│   ├── 📄 FlashcardService.cs         # Thuật toán Spaced Repetition (Leitner System)
-│   ├── 📄 DiscussionService.cs        # Xử lý bình luận lồng nhau, upvote, accepted solution
-│   ├── 📄 INavMenuService.cs          # Interface Cache điều hướng & tìm kiếm Command Palette
-│   ├── 📄 NavMenuService.cs           # Triển khai bộ nhớ đệm IMemoryCache cho Navigation & Search
-│   ├── 📄 MobileAuthService.cs        # Sinh mã token xác thực cho ứng dụng Mobile
-│   ├── 📄 LocalizationHelper.cs       # Helper hỗ trợ đa ngôn ngữ VI/EN trên toàn hệ thống
-│   └── 📄 *Translations.cs            # Dữ liệu nội dung song ngữ chuẩn bị sẵn
+├── 📂 Services/                       # [Application Services Tier] Encapsulated Business Domain Logic
+│   ├── 📄 CodeExecutionService.cs     # Roslyn Sandbox compiler, execution supervisor, and unit test runner
+│   ├── 📄 AiTutorService.cs           # Big-O asymptotic analyzer and 3-dimensional interview scoring engine
+│   ├── 📄 CertificateService.cs       # Vector PDF certificate generator (QuestPDF) and QR validation code
+│   ├── 📄 MarkdownService.cs          # Markdig HTML renderer configured with security and Prism.js syntax
+│   ├── 📄 TutorialService.cs          # Lesson and category querying, filtering, and caching
+│   ├── 📄 LearningProgressService.cs  # Course completion calculation and automated XP award pipeline
+│   ├── 📄 StreakService.cs            # Consecutive day check-in algorithm and streak retention rules
+│   ├── 📄 FlashcardService.cs         # Leitner spaced repetition review scheduling algorithm
+│   ├── 📄 DiscussionService.cs        # Threaded discussion replies, upvoting, and accepted solution awards
+│   ├── 📄 INavMenuService.cs          # Navigation menu and universal Command Palette cache interface
+│   ├── 📄 NavMenuService.cs           # In-memory cached implementation of navigation metadata
+│   ├── 📄 MobileAuthService.cs        # Stateless JWT token generation and validation for mobile clients
+│   ├── 📄 LocalizationHelper.cs       # Cross-cutting localization helper supporting EN and VI
+│   └── 📄 *Translations.cs            # Pre-seeded bilingual localization dictionaries
 │
-├── 📂 Data/                           # [Tầng Dữ liệu] Tương tác Cơ sở Dữ liệu & Seeding
-│   ├── 📄 AppDbContext.cs             # IdentityDbContext định nghĩa 23 bảng thực thể & quan hệ
-│   ├── 📄 DbInitializer.cs            # Tự động tạo bảng & seed dữ liệu mẫu giáo trình, user
-│   ├── 📄 InterviewFlashcardSeeder.cs # Seed ngân hàng câu hỏi phỏng vấn kỹ thuật
-│   └── 📄 MockUserSeeder.cs           # Seed danh sách học viên mô phỏng cho Bảng xếp hạng
+├── 📂 Data/                           # [Data Persistence Tier] Database Context & Seeding Pipeline
+│   ├── 📄 AppDbContext.cs             # IdentityDbContext managing 23 entity sets, configurations, and indexes
+│   ├── 📄 DbInitializer.cs            # Schema bootstrap, migrations, and initial seed data for curriculum and users
+│   ├── 📄 InterviewFlashcardSeeder.cs # Pre-seeded technical interview question repository
+│   └── 📄 MockUserSeeder.cs           # Mock learner accounts for the Hall of Fame leaderboard
 │
-├── 📂 Hubs/                           # [Tầng Thời gian thực] WebSockets qua SignalR
-│   ├── 📄 DiscussionHub.cs            # Broadcast bình luận mới, số người đang online học
-│   └── 📄 NotificationHub.cs          # Bắn thông báo realtime (lên cấp, được upvote, có điểm)
+├── 📂 Hubs/                           # [Real-Time WebSocket Tier] SignalR Hubs
+│   ├── 📄 DiscussionHub.cs            # Broadcasts new comments, peer upvotes, and online learner presence
+│   └── 📄 NotificationHub.cs          # Real-time notifications for level-ups, badge unlocks, and exam results
 │
-├── 📂 Models/                         # [Tầng Mô hình] Định nghĩa Entity, DTO và ViewModel
-│   ├── 📂 Entities/                   # 23 Entity POCO ánh xạ trực tiếp vào Database
-│   │   ├── 📄 ApplicationUser.cs      # Kế thừa IdentityUser, bổ sung XP, Streak, Avatar, Bio
-│   │   ├── 📄 Tutorial.cs / Category.cs # Bài học và chuyên mục
-│   │   ├── 📄 CodingChallenge.cs / CodeTestCase.cs / CodeSubmission.cs # Bài tập thuật toán
-│   │   ├── 📄 DiscussionComment.cs / CommentUpvote.cs # Bình luận Q&A
-│   │   ├── 📄 InterviewFlashcard.cs / UserFlashcardProgress.cs # Thẻ ôn phỏng vấn
-│   │   ├── 📄 Certificate.cs / CapstoneProject.cs # Chứng chỉ và đồ án
-│   │   └── 📄 DailyCheckIn.cs / UserBadge.cs # Gamification entities
-│   ├── 📂 DTOs/Mobile/                # Data Transfer Objects dành riêng cho API Mobile
-│   └── 📂 ViewModels/                 # Models truyền dữ liệu ra màn hình Razor Views
+├── 📂 Models/                         # [Data Model Tier] Entities, DTOs, and ViewModels
+│   ├── 📂 Entities/                   # 23 POCO database entities mapped directly to relational tables
+│   │   ├── 📄 ApplicationUser.cs      # Inherits IdentityUser, adds XP, Streak, Avatar, and Bio
+│   │   ├── 📄 Tutorial.cs / Category.cs # Lesson content, taxonomy, and roadmap stages
+│   │   ├── 📄 CodingChallenge.cs / CodeTestCase.cs / CodeSubmission.cs # Coding challenges & submissions
+│   │   ├── 📄 DiscussionComment.cs / CommentUpvote.cs # Community Q&A forum threads
+│   │   ├── 📄 InterviewFlashcard.cs / UserFlashcardProgress.cs # Interview flashcards and mastery states
+│   │   ├── 📄 Certificate.cs / CapstoneProject.cs # Digital certificates and capstone submissions
+│   │   └── 📄 DailyCheckIn.cs / UserBadge.cs # Gamification records and earned achievement badges
+│   ├── 📂 DTOs/Mobile/                # Data Transfer Objects tailored for Mobile REST API responses
+│   └── 📂 ViewModels/                 # Strongly-typed models binding application data to Razor Views
 │
-├── 📂 Views/                          # [Tầng Giao diện Web] Razor Views (.cshtml)
-│   ├── 📂 Shared/                     # Layout chung, Navigation, Modal Streak, Discussion partial
-│   ├── 📂 Home/ / Tutorials/ / Playground/ / Interview/ / Exam/ ... # Views tương ứng các Controller
+├── 📂 Views/                          # [Presentation Tier] Razor Views (.cshtml)
+│   ├── 📂 Shared/                     # Master layout, navigation bars, Streak modals, discussion partials
+│   ├── 📂 Home/ / Tutorials/ / Playground/ / Interview/ / Exam/ ... # Views mapped to each functional area
 │   └── 📄 _ViewImports.cshtml / _ViewStart.cshtml
 │
-└── 📂 wwwroot/                        # [Tài nguyên Tĩnh] Static assets phục vụ Client
-    ├── 📂 css/                        # CSS tùy biến (site.css, dark-mode tokens)
-    ├── 📂 js/                         # JavaScript (Monaco config, Web Speech API, SignalR client)
-    ├── 📂 lib/                        # Thư viện ngoài (Bootstrap 5, Monaco Editor, Prism.js)
-    ├── 📂 images/                     # Huy hiệu, logo C#, cờ quốc gia song ngữ
-    ├── 📄 manifest.json               # Cấu hình PWA (Progressive Web App)
-    ├── 📄 sw.js                       # Service Worker xử lý bộ nhớ đệm Offline
-    └── 📄 offline.html                # Màn hình hiển thị khi người dùng mất mạng
+└── 📂 wwwroot/                        # [Static Client Assets]
+    ├── 📂 css/                        # Custom stylesheets (site.css, design system tokens, dark mode)
+    ├── 📂 js/                         # Client scripts (Monaco configuration, Web Speech API, SignalR listeners)
+    ├── 📂 lib/                        # Vendor libraries (Bootstrap 5.3, Monaco Editor, Prism.js)
+    ├── 📂 images/                     # Achievement badge graphics, C# technology logos, language flags
+    ├── 📄 manifest.json               # Progressive Web App (PWA) manifest configuration
+    ├── 📄 sw.js                       # Service Worker implementing offline caching strategies
+    └── 📄 offline.html                # Friendly fallback UI displayed when offline connectivity is lost
 ```
 
 ---
 
-### 1.3. Phân rã Chi tiết Phân hệ Mobile (`mobile/`)
+### 1.3. Mobile Subsystem Architecture (`mobile/`)
 
-Ứng dụng Mobile áp dụng kiến trúc **MVVM (Model-View-ViewModel)** thuần túy thông qua `CommunityToolkit.Mvvm`, giúp tách biệt tuyệt đối giữa giao diện hiển thị XAML và luồng xử lý logic.
+The mobile client leverages the **MVVM (Model-View-ViewModel)** architectural pattern through `CommunityToolkit.Mvvm`, ensuring strict decoupling between the XAML declarative user interface and business logic.
 
 ```text
 mobile/
-├── 📄 MauiProgram.cs                  # Khởi tạo MAUI Builder, đăng ký Dependency Injection
-├── 📄 App.xaml / App.xaml.cs          # Vòng đời ứng dụng & Resource Dictionary màu sắc
-├── 📄 AppShell.xaml / AppShell.xaml.cs# Điều hướng Flyout/Tab Menu (Home, Tutorials, Roadmap, Flashcards)
-├── 📄 NET_Tutos.Mobile.csproj         # Cấu hình target Android API 21-36, iOS, Windows
+├── 📄 MauiProgram.cs                  # MAUI App Builder, Dependency Injection, and service registrations
+├── 📄 App.xaml / App.xaml.cs          # Application lifecycle handlers and shared Resource Dictionary tokens
+├── 📄 AppShell.xaml / AppShell.xaml.cs# Navigation topology with Shell Flyout/Tab Menu (Home, Tutorials, Roadmap, Flashcards)
+├── 📄 NET_Tutos.Mobile.csproj         # Target framework specifications (Android API 21-36, iOS, Windows)
 │
 ├── 📂 Models/                         # Client Data Models
-│   └── 📄 MobileModels.cs             # Định nghĩa UserProfile, TutorialSummary, FlashcardItem...
+│   └── 📄 MobileModels.cs             # Client-side definitions: UserProfile, TutorialSummary, FlashcardItem
 │
-├── 📂 Services/                       # Tầng giao tiếp mạng & Hệ điều hành
-│   ├── 📄 ApiService.cs               # HttpClient gọi REST API WebApp, quản lý Bearer Token
-│   └── 📄 ThemeService.cs             # Quản lý Dark/Light Theme đồng bộ với OS Preferences
+├── 📂 Services/                       # Network Communication & Platform Services
+│   ├── 📄 ApiService.cs               # HttpClient wrapper calling Web APIs with Bearer Token management
+│   └── 📄 ThemeService.cs             # Synchronizes dark/light themes with operating system preferences
 │
-├── 📂 ViewModels/                     # Lớp trung gian xử lý dữ liệu (MVVM)
-│   ├── 📄 BaseViewModel.cs            # ViewModel cha (IsBusy, Title, INotifyPropertyChanged)
-│   ├── 📄 HomeViewModel.cs            # Thống kê cá nhân, chuỗi Streak, danh mục nổi bật
-│   ├── 📄 TutorialsViewModel.cs       # Tìm kiếm, lọc bài học theo chuyên mục, phân trang
-│   ├── 📄 TutorialDetailViewModel.cs  # Đọc Markdown bài học, bấm hoàn thành bài (+20 XP)
-│   ├── 📄 RoadmapViewModel.cs         # Trực quan hóa các chặng học tập
-│   ├── 📄 FlashcardsViewModel.cs      # Lật thẻ phỏng vấn, đánh giá độ khó (Leitner)
-│   ├── 📄 LoginViewModel.cs           # Đăng nhập, lưu token an toàn vào Preferences
-│   └── 📄 SettingsViewModel.cs        # Đổi Dark/Light mode, cấu hình URL máy chủ API
+├── 📂 ViewModels/                     # Reactive ViewModel Tier (MVVM)
+│   ├── 📄 BaseViewModel.cs            # Root ViewModel providing IsBusy, Title, and INotifyPropertyChanged
+│   ├── 📄 HomeViewModel.cs            # Learner dashboard stats, active streak indicators, featured categories
+│   ├── 📄 TutorialsViewModel.cs       # Search, filtering by category taxonomy, and paginated lesson lists
+│   ├── 📄 TutorialDetailViewModel.cs  # Markdown lesson reader and lesson completion trigger (+20 XP)
+│   ├── 📄 RoadmapViewModel.cs         # Visual learner roadmap progress tracker
+│   ├── 📄 FlashcardsViewModel.cs      # Interactive 3D flip card review session with Leitner ratings
+│   ├── 📄 LoginViewModel.cs           # User authentication and secure token storage via MAUI Preferences
+│   └── 📄 SettingsViewModel.cs        # Theme configuration and configurable API host URL (default: 10.0.2.2)
 │
-├── 📂 Views/                          # Giao diện XAML Native
-│   ├── 📄 HomePage.xaml               # Màn hình chính tổng hợp tiến độ và bài học mới
-│   ├── 📄 TutorialsPage.xaml          # Danh sách bài học kèm thanh tìm kiếm
-│   ├── 📄 TutorialDetailPage.xaml    # Giao diện đọc bài giảng tối ưu cho di động
-│   ├── 📄 RoadmapPage.xaml            # Sơ đồ chặng đường học tập
-│   ├── 📄 FlashcardsPage.xaml         # Trải nghiệm lật thẻ 3D ôn luyện phỏng vấn
-│   ├── 📄 LoginPage.xaml              # Form đăng nhập với 1-click Demo Account
-│   └── 📄 SettingsPage.xaml           # Thiết lập giao diện và API host (10.0.2.2)
+├── 📂 Views/                          # Native Declarative XAML User Interface
+│   ├── 📄 HomePage.xaml               # Home dashboard with progress summaries and active course cards
+│   ├── 📄 TutorialsPage.xaml          # Lesson catalog with real-time search and filter controls
+│   ├── 📄 TutorialDetailPage.xaml    # Mobile-optimized Markdown reader with code syntax rendering
+│   ├── 📄 RoadmapPage.xaml            # Step-by-step 4-stage learning path visualization
+│   ├── 📄 FlashcardsPage.xaml         # 3D animated flashcard review interface
+│   ├── 📄 LoginPage.xaml              # Authentication form with 1-click pre-configured demo accounts
+│   └── 📄 SettingsPage.xaml           # Application preferences and backend API endpoint settings
 │
-├── 📂 Platforms/                      # Mã nguồn cấu hình phần cứng đặc thù từng nền tảng
-│   ├── 📂 Android/                    # AndroidManifest.xml, MainActivity.cs, API 36 target
+├── 📂 Platforms/                      # Platform-Specific Native Code & Manifests
+│   ├── 📂 Android/                    # AndroidManifest.xml, MainActivity.cs, API level 36 target
 │   ├── 📂 iOS/                        # Info.plist, AppDelegate.cs
 │   └── 📂 Windows/                    # Package.appxmanifest, App.xaml.cs
 │
-└── 📂 Resources/                      # Tài nguyên đa phương tiện
-    ├── 📂 AppIcon/ & 📂 Splash/       # Biểu tượng ứng dụng và màn hình khởi động vector
-    ├── 📂 Fonts/                      # Phông chữ OpenSans-Regular, OpenSans-Semibold
-    ├── 📂 Images/                     # Icon SVG cho thanh điều hướng TabBar
-    └── 📂 Styles/                     # File Colors.xaml và Styles.xaml dùng chung
+└── 📂 Resources/                      # Multi-Platform Visual & Font Assets
+    ├── 📂 AppIcon/ & 📂 Splash/       # Vector SVG application icons and launch splash screens
+    ├── 📂 Fonts/                      # Embedded typography (OpenSans-Regular, OpenSans-Semibold)
+    ├── 📂 Images/                     # Vector SVG icons for bottom tab navigation
+    └── 📂 Styles/                     # Global styling resources (Colors.xaml, Styles.xaml)
 ```
 
 ---
 
-## 2. Sơ đồ Kiến trúc Hệ thống (System Architecture)
+## 2. Multi-Tier System Topology & Interaction Architecture
 
-Hệ thống được thiết kế theo mô hình **Kiến trúc Đa tầng (N-Tier Architecture)** kết hợp với các dịch vụ chuyên biệt cho Sandbox biên dịch mã nguồn và Trí tuệ Nhân tạo.
+The solution implements an **N-Tier Distributed Architecture**, combining server-side rendering for web clients with stateless RESTful APIs for mobile apps, sandboxed code execution, and AI evaluation services.
 
 ```mermaid
 flowchart TD
@@ -219,7 +219,7 @@ flowchart TD
     end
 
     subgraph StorageTier ["5. Persistence Storage Tier (PostgreSQL 17 & Multi-Provider Fallback)"]
-        Postgres[("Primary: PostgreSQL 17 (Docker)<br/>nettutos_db")]
+        Postgres[("Primary: PostgreSQL 17 (Docker Compose)<br/>nettutos_db:5432")]
         SQLite[("Resilient Fallback: SQLite<br/>dotnet_tutorials.db")]
         SQLServer[("Optional: Microsoft SQL Server<br/>LocalDB")]
         SecureStore["Client Storage<br/>(MAUI Preferences / Browser LocalStorage)"]
@@ -236,19 +236,19 @@ flowchart TD
 
     ServiceTier --> EF
     EF -->|Primary| Postgres
-    EF -.->|Fallback if Offline| SQLite
+    EF -.->|Fallback if Docker Offline| SQLite
 ```
 
 ---
 
-## 3. Sơ đồ Luồng Dữ liệu (Key Sequence Flows)
+## 3. Key Sequence Flows
 
-### 3.1. Luồng Chấm mã nguồn Trực tiếp (Roslyn Sandbox Execution & AI Diagnosis)
+### 3.1. Live Roslyn Code Execution & Automated AI Diagnostic Flow
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Learner as Học viên
+    actor Learner as Active Learner
     participant Editor as Monaco Editor (Browser)
     participant Ctrl as PlaygroundController
     participant Sandbox as CodeExecutionService
@@ -256,70 +256,70 @@ sequenceDiagram
     participant AI as AiTutorService
     participant DB as AppDbContext
 
-    Learner->>Editor: Nhập mã C# và bấm "Chạy kiểm thử" (Ctrl+Enter)
+    Learner->>Editor: Enter C# solution code and press "Run & Test" (Ctrl+Enter)
     Editor->>Ctrl: POST /Playground/SubmitChallenge { challengeId, code }
-    Ctrl->>DB: Truy vấn CodeTestCase[] (InputParams, ExpectedOutput)
+    Ctrl->>DB: Query CodeTestCase[] (InputParameters, ExpectedOutput)
     Ctrl->>Sandbox: ExecuteWithTestCasesAsync(code, testCases)
     
-    alt Lỗi biên dịch cú pháp (Compile Error)
-        Sandbox-->>Ctrl: CompilationDiagnostics (CS0103, CS1061...)
-        Ctrl-->>Editor: Trả về danh sách lỗi đỏ kèm nút "Hỏi AI Tutor"
-        Learner->>AI: Yêu cầu AI chẩn đoán nguyên nhân lỗi
-        AI-->>Editor: Trả về phân tích dòng lỗi, nguyên nhân & gợi ý sửa
-    else Biên dịch thành công (Runtime Evaluation)
-        loop Duyệt từng Test Case
-            Sandbox->>Roslyn: Truyền đối số và thực thi phương thức Solution()
-            Roslyn-->>Sandbox: Nhận ActualOutput trong giới hạn timeout 4s
-            Sandbox->>Sandbox: So sánh ActualOutput == ExpectedOutput
+    alt Compilation / Syntax Error Encountered
+        Sandbox-->>Ctrl: Return CompilationDiagnostics (CS0103, CS1061...)
+        Ctrl-->>Editor: Render error list in red with "Ask AI Tutor" button
+        Learner->>AI: Request AI diagnostic explanation
+        AI-->>Editor: Return line-by-line fault analysis, root cause, and hints
+    else Successful Compilation (Runtime Evaluation)
+        loop Iterate Each Test Case
+            Sandbox->>Roslyn: Pass arguments and invoke Solution() entrypoint
+            Roslyn-->>Sandbox: Capture ActualOutput within 4-second timeout guardrail
+            Sandbox->>Sandbox: Compare ActualOutput == ExpectedOutput
         end
-        alt Vượt qua 100% Test Cases
-            Sandbox-->>Ctrl: Kết quả Thành công (AllPassed = true, TimeMs)
-            Ctrl->>DB: Lưu CodeSubmission, cộng +50 XP & kiểm tra mở khóa Badge
-            Ctrl-->>Editor: Thông báo Accepted, hiển thị pháo hoa & XP nhận được
-        else Có Test Case sai kết quả
-            Sandbox-->>Ctrl: Kết quả Thất bại (Chi tiết ca kiểm thử không khớp)
-            Ctrl-->>Editor: Hiển thị bảng so sánh Expected vs Actual kèm nút "AI Phân tích"
+        alt All Test Cases Passed (100% Match)
+            Sandbox-->>Ctrl: Return Success (AllPassed = true, TimeMs)
+            Ctrl->>DB: Persist CodeSubmission, credit +50 XP & check Badge unlocks
+            Ctrl-->>Editor: Display Accepted status with celebratory animations & XP reward
+        else One or More Test Cases Failed
+            Sandbox-->>Ctrl: Return Failure (Detailed test case comparison)
+            Ctrl-->>Editor: Display Expected vs. Actual diff with "Analyze with AI" button
         end
     end
 ```
 
-### 3.2. Luồng Phỏng vấn Giả lập Giọng nói AI (AI Mock Voice Interview)
+### 3.2. AI Mock Voice Technical Interview Flow
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Candidate as Ứng viên
-    participant WebUI as Giao diện Phỏng vấn (Mock.cshtml)
+    actor Candidate as Job Candidate
+    participant WebUI as Interview View (Mock.cshtml)
     participant Speech as Web Speech API (STT & TTS)
     participant InterviewCtrl as InterviewController
     participant AiTutor as AiTutorService
 
-    Candidate->>WebUI: Bắt đầu phiên phỏng vấn (Chọn cấp độ Junior/Senior)
+    Candidate->>WebUI: Start interview session (Select Junior or Senior difficulty)
     WebUI->>InterviewCtrl: GET /Interview/Mock?count=5
-    InterviewCtrl-->>WebUI: Tải bộ câu hỏi ngẫu nhiên và bật đồng hồ bấm giờ
+    InterviewCtrl-->>WebUI: Deliver question batch and start session countdown timer
     
-    WebUI->>Speech: Đọc to câu hỏi bằng giọng nói (Text-to-Speech)
-    Candidate->>Speech: Nhấn mic & nói câu trả lời (Speech-to-Text)
-    Speech-->>WebUI: Điền văn bản nhận diện trực tiếp vào khung trả lời
+    WebUI->>Speech: Speak question aloud via Text-to-Speech (TTS)
+    Candidate->>Speech: Click microphone & dictate verbal response (Speech-to-Text)
+    Speech-->>WebUI: Stream transcribed text directly into candidate answer area
     
-    Candidate->>WebUI: Bấm "Nộp câu trả lời cho Tech Lead"
+    Candidate->>WebUI: Click "Submit Answer to AI Tech Lead"
     WebUI->>InterviewCtrl: POST /Interview/EvaluateAiAnswer { flashcardId, candidateAnswer }
     InterviewCtrl->>AiTutor: EvaluateInterviewAnswerAsync()
-    AiTutor->>AiTutor: Chấm điểm 3 chiều: Kỹ thuật (40%), Rõ ràng (30%), Thực tiễn (30%)
-    AiTutor->>AiTutor: Tạo câu hỏi phản biện sâu (Follow-up Challenge)
-    AiTutor-->>InterviewCtrl: Kết quả chấm điểm, điểm mạnh, điểm thiếu sót
-    InterviewCtrl-->>WebUI: Hiển thị thẻ nhận xét và câu hỏi thách thức tiếp theo
+    AiTutor->>AiTutor: Compute 3D rubric score: Technical (40%), Clarity (30%), Practicality (30%)
+    AiTutor->>AiTutor: Generate deep-dive follow-up challenge question
+    AiTutor-->>InterviewCtrl: Return rubric scores, strengths, and missing nuances
+    InterviewCtrl-->>WebUI: Display evaluation card and render follow-up challenge
 ```
 
 ---
 
-## 4. Thiết kế Cơ sở Dữ liệu & Sơ đồ Thực thể (Database ERD)
+## 4. Relational Database Schema & Entity Relationship Diagram (ERD)
 
-Hệ thống sở hữu **23 bảng thực thể** liên kết chặt chẽ qua EF Core 10. Dưới đây là lược đồ thực thể quan hệ trung tâm:
+The persistence model consists of **23 relational entity tables** orchestrated via Entity Framework Core 10. Below is the central entity relationship blueprint:
 
 ```mermaid
 erDiagram
-    ApplicationUser ||--o{ UserLessonProgress : "has"
+    ApplicationUser ||--o{ UserLessonProgress : "tracks"
     ApplicationUser ||--o{ CourseEnrollment : "enrolls"
     ApplicationUser ||--o{ QuizAttempt : "attempts"
     ApplicationUser ||--o{ Certificate : "earns"
@@ -330,7 +330,7 @@ erDiagram
     ApplicationUser ||--o{ DailyCheckIn : "logs"
     ApplicationUser ||--o{ UserNotification : "receives"
     ApplicationUser ||--o{ ProjectSubmission : "presents"
-    ApplicationUser ||--o{ UserFlashcardProgress : "studies"
+    ApplicationUser ||--o{ UserFlashcardProgress : "reviews"
     ApplicationUser ||--o| DeveloperProfile : "owns"
 
     Category ||--o{ Tutorial : "contains"
@@ -339,8 +339,8 @@ erDiagram
 
     Tutorial ||--o{ QuizQuestion : "has"
     Tutorial ||--o{ CodeSnippet : "embeds"
-    Tutorial ||--o{ UserLessonProgress : "tracks"
-    Tutorial ||--o{ DiscussionComment : "discusses"
+    Tutorial ||--o{ UserLessonProgress : "monitors"
+    Tutorial ||--o{ DiscussionComment : "hosts"
 
     CodingChallenge ||--o{ CodeTestCase : "defines"
     CodingChallenge ||--o{ CodeSubmission : "evaluates"
@@ -420,130 +420,131 @@ erDiagram
     }
 ```
 
-### 4.1. Phân nhóm Thực thể Nghiệp vụ
+### 4.1. Business Entity Groupings
 
-| Phân nhóm | Thực thể chính | Mục đích nghiệp vụ |
+| Functional Domain | Core Entities | Business Purpose |
 | :--- | :--- | :--- |
-| **Giáo trình & Bài giảng** | `Category`, `Tutorial`, `CodeSnippet` | Lưu trữ 101 bài học Markdown, phân loại theo 4 cấp độ và nhúng code mẫu. |
-| **Đánh giá & Chấm code** | `CodingChallenge`, `CodeTestCase`, `CodeSubmission` | Lưu trữ đề bài thuật toán, các bộ test case ẩn/hiện, lịch sử nộp code và thời gian chạy. |
-| **Kiểm tra & Chứng chỉ** | `QuizQuestion`, `QuizAttempt`, `Certificate` | Ngân hàng trắc nghiệm, lịch sử thi sát hạch và mã chứng chỉ số có QR xác thực. |
-| **Cộng đồng & Trao đổi** | `DiscussionComment`, `CommentUpvote` | Hệ thống bình luận lồng nhau theo bài học/thách thức, cơ chế upvote và đánh dấu "Accepted Solution". |
-| **Gamification** | `DailyCheckIn`, `UserBadge`, `ActivityFeedItem` | Theo dõi chuỗi streak, huy hiệu thành tựu và bảng tin hoạt động thời gian thực. |
-| **Phỏng vấn Kỹ thuật** | `InterviewFlashcard`, `UserFlashcardProgress` | Ngân hàng câu hỏi tuyển dụng C# / CLR / EF Core, thuật toán ngắt quãng Leitner. |
-| **Đồ án Tốt nghiệp** | `CapstoneProject`, `ProjectSubmission` | Đề tài đồ án lớn, đường dẫn GitHub, URL Demo và nhận xét của Giảng viên/Admin. |
-| **Lập kế hoạch & Hồ sơ** | `StudyPlan`, `StudyPlanItem`, `DeveloperProfile` | Kế hoạch học tập cá nhân hóa và trang Portfolio công khai (`/u/{username}`). |
+| **Curriculum & Lessons** | `Category`, `Tutorial`, `CodeSnippet` | Stores 101 structured Markdown tutorials across 4 mastery stages with embedded syntax examples. |
+| **Evaluation & Judging** | `CodingChallenge`, `CodeTestCase`, `CodeSubmission` | Stores algorithmic problem descriptions, visible/hidden test cases, and historical user submissions. |
+| **Quizzes & Certification** | `QuizQuestion`, `QuizAttempt`, `Certificate` | Question pool for timed assessment exams, scoring history, and cryptographic vector PDF certificates. |
+| **Community & Discussion** | `DiscussionComment`, `CommentUpvote` | Threaded Q&A comments scoped by tutorial or coding challenge with peer upvoting and accepted answers. |
+| **Gamification Engine** | `DailyCheckIn`, `UserBadge`, `ActivityFeedItem` | Consecutive day flame streaks, trigger-based unlockable achievement badges, and real-time community feed. |
+| **Technical Interview** | `InterviewFlashcard`, `UserFlashcardProgress` | Curated C#, CLR, and EF Core question bank with Leitner spaced repetition review intervals. |
+| **Capstone Projects** | `CapstoneProject`, `ProjectSubmission` | Real-world project assignments with GitHub repository URLs, live demo links, and instructor evaluations. |
+| **Study Planning & Profiles** | `StudyPlan`, `StudyPlanItem`, `DeveloperProfile` | Personalized learner study schedules and shareable developer showcase profiles (`/u/{username}`). |
 
 ---
 
-## 5. Thiết kế Giao diện Người dùng (UI / UX Wireframe Architecture)
+## 5. UI/UX Wireframe & Screen Architecture
 
-### 5.1. Kiến trúc Bố cục Màn hình Sân chơi Code (`Playground/Index.cshtml`)
+### 5.1. Interactive Playground IDE Layout (`Playground/Index.cshtml`)
 
-Trang Playground được thiết kế theo tỷ lệ **Split-Screen chuẩn IDE** giúp người học tập trung tối đa mà không cần rời màn hình.
+The Playground interface utilizes a **split-screen IDE layout**, enabling learners to review specifications and write code side-by-side without context switching.
 
 ```text
 +---------------------------------------------------------------------------------------------------+
-|  [Logo C#] NET-Tutos    Giáo trình   Roadmap   Sân chơi C#   Phỏng vấn AI   [🔥 5 Ngày] [Avatar]  |
+|  [Logo C#] NET-Tutos    Curriculum   Roadmap   C# Playground   AI Interview   [🔥 5 Days] [Avatar] |
 +---------------------------------------------------------------------------------------------------+
-|  Thử thách: Đảo ngược chuỗi từ (Reverse Words)    [Độ khó: Medium]   [Thưởng: +40 XP]  [⏱️ 00:00]   |
+|  Challenge: Reverse Words in a String         [Difficulty: Medium]   [Reward: +40 XP]  [⏱️ 00:00]   |
 +-------------------------------------------------+-------------------------------------------------+
-|  MÔ TẢ BÀI TOÁN & VÍ DỤ                         |  TRÌNH SOẠN THẢO CODE (MONACO EDITOR)           |
+|  PROBLEM DESCRIPTION & EXAMPLES                 |  IN-BROWSER CODE EDITOR (MONACO ENGINE)         |
 |                                                 |                                                 |
-|  Cho một chuỗi đầu vào s, hãy đảo ngược thứ tự  |  1 | using System;                              |
-|  các từ trong chuỗi.                            |  2 |                                            |
+|  Given an input string s, reverse the order     |  1 | using System;                              |
+|  of the words in the string.                    |  2 |                                            |
 |                                                 |  3 | public class Solution                      |
-|  Ví dụ 1:                                       |  4 | {                                          |
+|  Example 1:                                     |  4 | {                                          |
 |  Input: s = "the sky is blue"                   |  5 |     public string ReverseWords(string s)   |
 |  Output: "blue is sky the"                      |  6 |     {                                      |
-|                                                 |  7 |         // Viết code của bạn tại đây...    |
-|  Ràng buộc:                                     |  8 |     }                                      |
+|                                                 |  7 |         // Write your C# code here...      |
+|  Constraints:                                   |  8 |     }                                      |
 |  - 1 <= s.Length <= 10^4                        |  9 | }                                          |
-|  - Không dùng thêm bộ nhớ quá mức               |                                                 |
-|                                                 |  [Phím tắt: Ctrl+Enter (Chạy) | Ctrl+S (Lưu)]   |
+|  - In-place memory efficiency encouraged        |                                                 |
+|                                                 |  [Shortcuts: Ctrl+Enter (Run) | Ctrl+S (Save)]  |
 +-------------------------------------------------+-------------------------------------------------+
-|  KẾT QUẢ KIỂM THỬ (TEST RESULTS)                                                                  |
+|  AUTOMATED TEST RESULTS (ROSLYN SANDBOX)                                                          |
 |                                                                                                   |
-|  [✅ Test Case 1: Đạt (12ms)]   [✅ Test Case 2: Đạt (8ms)]   [❌ Test Case 3: Sai đầu ra]        |
+|  [✅ Test Case 1: Passed (12ms)]   [✅ Test Case 2: Passed (8ms)]   [❌ Test Case 3: Output Mismatch] |
 |  -----------------------------------------------------------------------------------------------  |
-|  Test Case 3: Đầu vào: "  hello world  "  |  Kỳ vọng: "world hello"  |  Thực tế: "world hello "   |
-|  👉 [🤖 Nhờ AI Tutor chẩn đoán lỗi này]      👉 [💡 Xem gợi ý Socratic]   [ Nộp bài chấm điểm 🚀 ] |
+|  Test Case 3: Input: "  hello world  "  |  Expected: "world hello"  |  Actual: "world hello "     |
+|  👉 [🤖 Ask AI Tutor to Diagnose]            👉 [💡 View Socratic Hint]       [ Submit Solution 🚀 ] |
 +---------------------------------------------------------------------------------------------------+
 ```
 
-### 5.2. Kiến trúc Màn hình Đọc Bài giảng (`Tutorials/Details.cshtml`)
+### 5.2. Lesson Markdown Reader Layout (`Tutorials/Details.cshtml`)
 
 ```text
 +---------------------------------------------------------------------------------------------------+
-|  [===] Thanh tiến độ đọc bài: 65% [=====================================================>       ] |
+|  [===] Reading Progress: 65% [=====================================================>             ] |
 +----------------------------------+------------------------------------------------+---------------+
-|  MỤC LỤC KHÓA HỌC (SIDEBAR)      |  NỘI DUNG BÀI GIẢNG (MARKDOWN VIEWER)          |  TRONG BÀI    |
+|  COURSE TABLE OF CONTENTS        |  LESSON CONTENT (MARKDOWN ENGINE)              |  ON THIS PAGE |
 |                                  |                                                |               |
-|  Chương 2: C# Nâng cao           |  # Kỹ thuật Bất đồng bộ với async/await        |  - Khái niệm  |
-|  ├─ 2.1 Concurrency cơ bản       |                                                |  - Task vs    |
-|  ├─ 2.2 async và await (Hiện tại)|  Trong .NET, mô hình bất đồng bộ dựa trên      |    Thread     |
-|  ├─ 2.3 CancellationToken        |  Task (TAP - Task-based Asynchronous Pattern)  |  - Tránh      |
-|  └─ 2.4 Channels & Dataflow      |  giúp ứng dụng không bị block luồng UI/I-O...  |    Deadlock   |
-|                                  |                                                |  - Bài tập    |
-|  Chương 3: Entity Framework Core |  ```csharp                                     |               |
-|  ├─ 3.1 Cấu hình DbContext       |  public async Task<List<User>> GetUsersAsync() |  [🔥 350 XP]  |
-|  └─ 3.2 Tối ưu hóa truy vấn LINQ |  {                                             |  [Đánh dấu    |
-|                                  |      return await _db.Users.ToListAsync();     |   hoàn thành  |
+|  Chapter 2: Advanced C#          |  # Asynchronous Programming with async/await   |  - Concept    |
+|  ├─ 2.1 Concurrency Basics       |                                                |  - Task vs    |
+|  ├─ 2.2 async and await (Active) |  In .NET, asynchronous programming relies on   |    Thread     |
+|  ├─ 2.3 CancellationToken        |  the Task-based Asynchronous Pattern (TAP)     |  - Deadlock   |
+|  └─ 2.4 Channels & Dataflow      |  to prevent UI thread and I/O blocking...      |    Prevention |
+|                                  |                                                |  - Exercises  |
+|  Chapter 3: Entity Framework     |  ```csharp                                     |               |
+|  ├─ 3.1 DbContext Configuration  |  public async Task<List<User>> GetUsersAsync() |  [🔥 350 XP]  |
+|  └─ 3.2 LINQ Query Optimization  |  {                                             |  [Mark as     |
+|                                  |      return await _db.Users.ToListAsync();     |   Complete    |
 |                                  |  }                                             |   +20 XP]     |
 |                                  |  ```                                           |               |
 +----------------------------------+------------------------------------------------+---------------+
-|  KHU VỰC THẢO LUẬN THỜI GIAN THỰC (SIGNALR DISCUSSION)                                            |
+|  REAL-TIME PEER DISCUSSION (SIGNALR Q&A)                                                          |
 |                                                                                                   |
-|  [ Viết bình luận hoặc câu hỏi của bạn... (Hỗ trợ Markdown)                 ]  [ Gửi bình luận ]  |
+|  [ Write a question or comment... (Markdown formatting supported)             ]  [ Post Comment ] |
 |                                                                                                   |
-|  💬 Trần Minh: "Cho em hỏi dùng ConfigureAwait(false) trong ASP.NET Core có cần thiết không ạ?"    |
-|     ↳ 🌟 Admin (Accepted Solution): "Từ ASP.NET Core không còn SynchronizationContext nên..."     |
+|  💬 Alex Miller: "Is ConfigureAwait(false) still recommended in ASP.NET Core controllers?"         |
+|     ↳ 🌟 Admin (Accepted Solution): "In ASP.NET Core, SynchronizationContext was removed, so..."   |
 +---------------------------------------------------------------------------------------------------+
 ```
 
-### 5.3. Kiến trúc Giao diện Mobile App (.NET MAUI Tab Navigation)
+### 5.3. Mobile Client Layout (.NET MAUI Tab Navigation)
 
 ```text
 +-----------------------------------+
 | 09:41                        📶 🔋 |
 | .NET Tutos            [🌙] [🔔]   |
 +-----------------------------------+
-| Xin chào, Nguyễn Văn An! 👋       |
-| 🔥 Chuỗi: 5 ngày  |  ⭐ 350 XP    |
+| Welcome back, Alex Miller! 👋     |
+| 🔥 Streak: 5 Days  |  ⭐ 350 XP   |
 +-----------------------------------+
-| [TIẾP TỤC BÀI HỌC DỞ DANG]        |
-| 📘 Bài 14: LINQ Deferred Exec...  |
+| [RESUME ACTIVE LESSON]            |
+| 📘 Lesson 14: LINQ Execution...   |
 | [================>      ] 70%     |
 +-----------------------------------+
-| LỘ TRÌNH MASTERY (4 CHẶNG)        |
-| 🟢 Chặng 1: C# Fundamentals (100%)|
-| 🟡 Chặng 2: OOP & LINQ (65%)      |
-| ⚪ Chặng 3: EF Core & SQL (0%)    |
-| ⚪ Chặng 4: ASP.NET Core Web API  |
+| 4-STAGE MASTERY ROADMAP           |
+| 🟢 Stage 1: C# Fundamentals (100%)|
+| 🟡 Stage 2: OOP & LINQ (65%)      |
+| ⚪ Stage 3: EF Core & SQL (0%)    |
+| ⚪ Stage 4: ASP.NET Core Web API  |
 +-----------------------------------+
-| ÔN TẬP PHỎNG VẤN HÔM NAY (FLASHCARD)|
+| TODAY'S INTERVIEW FLASHCARD       |
 | +-------------------------------+ |
-| | 🎴 Thẻ #12: Phân biệt         | |
-| | IQueryable vs IEnumerable?    | |
+| | 🎴 Card #12: Key differences  | |
+| | between IQueryable and        | |
+| | IEnumerable in EF Core?       | |
 | |                               | |
-| |    [ Chạm để lật đáp án 👆 ]   | |
+| |   [ Tap to flip answer 👆 ]   | |
 | +-------------------------------+ |
-| [ 🔴 Cần ôn lại ]  [ 🟢 Đã thuộc ]|
+| [ 🔴 Review Needed ] [ 🟢 Mastered ] |
 +-----------------------------------+
-| [ 🏠 Trang chủ | 📚 Bài học | 🗺️ Roadmap | 🎴 Flashcard | ⚙️ Cài đặt ] |
+| [ 🏠 Home | 📚 Lessons | 🗺️ Roadmap | 🎴 Flashcards | ⚙️ Settings ] |
 +-----------------------------------+
 ```
 
 ---
 
-## 6. Tiêu chuẩn Mã nguồn & Quy ước Vibe Code (Code Style Conventions)
+## 6. Engineering Standards & Code Style Conventions
 
-1. **C# 14 & .NET 10 Modern Features**:
-   - Tận dụng triệt để `File-scoped namespaces`, `Primary Constructors`, `Target-typed new`, và biểu thức mẫu (`Pattern Matching`).
-   - Mọi phương thức truy vấn I/O hoặc Database bắt buộc dùng `async/await` kết hợp `CancellationToken`.
+1. **C# 14 & .NET 10 Modern Idioms**:
+   - Leverage `File-scoped namespaces`, `Primary Constructors`, `Target-typed new`, and recursive `Pattern Matching`.
+   - All I/O and database operations must be asynchronous (`async/await`) accepting a `CancellationToken`.
 2. **EF Core Best Practices**:
-   - Sử dụng `AsNoTracking()` cho toàn bộ các thao tác chỉ đọc (Read-only queries) để giảm thiểu tiêu thụ RAM.
-   - Luôn phân trang (`Skip()`, `Take()`) đối với các danh sách lớn (Tutorials, Activity Feed, Discussions).
-3. **Bảo mật Sandbox (Security Boundaries)**:
-   - Roslyn Scripting API chạy hoàn toàn trong AppDomain có kiểm soát từ khóa nguy hiểm và giới hạn `timeout` để triệt tiêu mã độc hoặc vòng lặp vô tận.
-4. **Resilient Fallback**:
-   - Hệ thống ưu tiên kết nối PostgreSQL 17 (chạy qua Docker Compose) và tự động giáng cấp sang SQLite khi Docker chưa khởi động, đảm bảo bất kỳ ai tải source code về luôn chạy được ngay sau lệnh `dotnet run` mà không bao giờ gặp lỗi gián đoạn.
+   - Enforce `AsNoTracking()` across all read-only queries to eliminate change tracker memory overhead.
+   - Strictly paginate (`Skip()`, `Take()`) unbounded datasets (Tutorials, Activity Feed items, and Discussion comments).
+3. **Sandbox Security Boundaries**:
+   - The Roslyn Scripting API executes inside a controlled AppDomain guardrail with prohibited namespace filters and a strict 4-second timeout to mitigate infinite loops and resource exhaustion attacks.
+4. **Resilient Dual-Provider Database Fallback**:
+   - The platform targets PostgreSQL 17 (hosted in Docker Compose) as its primary enterprise database, with automatic transparent fallback to SQLite if the Docker daemon is offline. Developers cloning the repository can run `dotnet run` instantly with zero setup roadblocks.
