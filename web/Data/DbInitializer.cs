@@ -1725,7 +1725,7 @@ Viết hàm `Fibonacci(int n)` trả về số Fibonacci thứ $n$.
                 ON [UserBadges] ([UserId], [BadgeCode]);
             ");
         }
-        else
+        else if (context.Database.IsSqlServer())
         {
             await context.Database.ExecuteSqlRawAsync(@"
                 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'DiscussionComments')
@@ -1837,7 +1837,7 @@ Viết hàm `Fibonacci(int n)` trả về số Fibonacci thứ $n$.
                 ON [DailyCheckIns] ([UserId], [CheckInDate]);
             ");
         }
-        else
+        else if (context.Database.IsSqlServer())
         {
             await context.Database.ExecuteSqlRawAsync(@"
                 IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('AspNetUsers') AND name = 'CurrentStreak')
@@ -1910,7 +1910,7 @@ Viết hàm `Fibonacci(int n)` trả về số Fibonacci thứ $n$.
                 ON [ActivityFeedItems] ([CreatedAt]);
             ");
         }
-        else
+        else if (context.Database.IsSqlServer())
         {
             await context.Database.ExecuteSqlRawAsync(@"
                 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'UserNotifications')
@@ -2193,7 +2193,7 @@ Viết hàm `Fibonacci(int n)` trả về số Fibonacci thứ $n$.
                 ON [ProjectSubmissions] ([ProjectId], [UserId]);
             ");
         }
-        else
+        else if (context.Database.IsSqlServer())
         {
             await context.Database.ExecuteSqlRawAsync(@"
                 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'CapstoneProjects')
@@ -2449,7 +2449,7 @@ Xây dựng một sàn đấu giá trực tuyến hoạt động thời gian th�
                 CREATE INDEX IF NOT EXISTS [IX_StudyPlanItems_IsCompleted] ON [StudyPlanItems] ([IsCompleted]);
             ");
         }
-        else
+        else if (context.Database.IsSqlServer())
         {
             await context.Database.ExecuteSqlRawAsync(@"
                 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'StudyPlans')
@@ -2519,7 +2519,7 @@ Xây dựng một sàn đấu giá trực tuyến hoạt động thời gian th�
                 CREATE UNIQUE INDEX IF NOT EXISTS [IX_DeveloperProfiles_UserId] ON [DeveloperProfiles] ([UserId]);
             ");
         }
-        else
+        else if (context.Database.IsSqlServer())
         {
             await context.Database.ExecuteSqlRawAsync(@"
                 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'DeveloperProfiles')

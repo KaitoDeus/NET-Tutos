@@ -7,7 +7,11 @@ using NET_Tutos.Hubs;
 using NET_Tutos.Models;
 using NET_Tutos.Models.Entities;
 using NET_Tutos.Services;
+using Npgsql;
 using System.Globalization;
+
+// Enable Npgsql legacy timestamp behavior for seamless DateTime compatibility
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -111,16 +115,53 @@ builder.Services.AddScoped<IMobileAuthService, MobileAuthService>();
 builder.Services.AddSingleton<INavMenuService, NavMenuService>();
 
 // Determine Database Provider
-var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
-var sqlServerConnection = builder.Configuration.GetConnectionString("DefaultConnection") 
+var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "PostgreSql";
+var postgreSqlConnection = builder.Configuration.GetConnectionString("PostgreSqlConnection")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? "Host=localhost;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres;Include Error Detail=true";
+var sqlServerConnection = builder.Configuration.GetConnectionString("SqlServerConnection") 
     ?? "Server=(localdb)\\mssqllocaldb;Database=DotNetTutorialsDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True";
 var sqliteConnection = builder.Configuration.GetConnectionString("SqliteConnection") 
     ?? "Data Source=dotnet_tutorials.db";
 
-string activeProvider = "SQL Server (LocalDB)";
-string activeProviderEn = "SQL Server (LocalDB)";
+string activeProvider = "PostgreSQL";
+string activeProviderEn = "PostgreSQL";
 
-if (configuredProvider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
+if (configuredProvider.Equals("PostgreSql", StringComparison.OrdinalIgnoreCase) || configuredProvider.Equals("Postgres", StringComparison.OrdinalIgnoreCase))
+{
+    bool isPostgresAvailable = false;
+    try
+    {
+        var npgsqlBuilder = new NpgsqlConnectionStringBuilder(postgreSqlConnection)
+        {
+            Timeout = 3,
+            CommandTimeout = 3
+        };
+        using var testConn = new NpgsqlConnection(npgsqlBuilder.ConnectionString);
+        testConn.Open();
+        isPostgresAvailable = true;
+    }
+    catch
+    {
+        isPostgresAvailable = false;
+    }
+
+    if (isPostgresAvailable)
+    {
+        activeProvider = "PostgreSQL";
+        activeProviderEn = "PostgreSQL";
+        builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseNpgsql(postgreSqlConnection));
+    }
+    else
+    {
+        activeProvider = "SQLite (Fallback - Khởi động Docker Compose để kích hoạt PostgreSQL)";
+        activeProviderEn = "SQLite (Fallback - Start Docker Compose to activate PostgreSQL)";
+        builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlite(sqliteConnection));
+    }
+}
+else if (configuredProvider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
 {
     bool isSqlServerAvailable = false;
     try

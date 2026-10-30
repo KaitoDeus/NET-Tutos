@@ -198,7 +198,7 @@ The WebApp exposes dedicated JSON endpoints under `/api/mobile/` consumed by the
 | **Mobile Platform** | .NET MAUI 10.0 (Targeting Android 5.0+ / API 21-36) |
 | **MVVM Framework** | `CommunityToolkit.Mvvm` 8.4 |
 | **ORM / Data Access** | Entity Framework Core 10.0 |
-| **Database Engines** | Microsoft SQL Server (LocalDB) / SQLite (Resilient fallback) |
+| **Database Engines** | PostgreSQL 17 (Chính qua Docker Compose) / SQLite / SQL Server (LocalDB) |
 | **Code Scripting** | `Microsoft.CodeAnalysis.CSharp.Scripting` 5.0 (Roslyn Engine) |
 | **Real-Time Web** | ASP.NET Core SignalR |
 | **PDF Generation** | QuestPDF 2026.9 |
@@ -218,7 +218,29 @@ The WebApp exposes dedicated JSON endpoints under `/api/mobile/` consumed by the
 
 ---
 
-### Running the Web Application
+### Running with Docker Compose (Recommended)
+
+Khởi chạy trọn gói Web Application cùng PostgreSQL 17 và pgAdmin 4:
+
+1. **Khởi chạy tất cả dịch vụ trong background:**
+   ```bash
+   docker compose up -d
+   ```
+
+2. **Truy cập ứng dụng:**
+   - **Web Application & Swagger UI**: [http://localhost:5000](http://localhost:5000)
+   - **PostgreSQL Database**: `localhost:5432` (`Database: nettutos_db`, `User: postgres`, `Pass: postgres`)
+   - **pgAdmin 4 Web GUI**: [http://localhost:5050](http://localhost:5050) (`admin@nettutos.com` / `admin`)
+
+3. **Chỉ chạy PostgreSQL database phục vụ lập trình cục bộ (.NET SDK):**
+   ```powershell
+   docker compose up -d postgres
+   dotnet run --project web/web.csproj
+   ```
+
+---
+
+### Running the Web Application (Local .NET SDK)
 
 1. **Clone the repository:**
    ```bash

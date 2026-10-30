@@ -51,7 +51,7 @@ public static class InterviewFlashcardSeeder
                 CREATE INDEX IF NOT EXISTS [IX_UserFlashcardProgresses_NextReviewDate] ON [UserFlashcardProgresses] ([NextReviewDate]);
             ");
         }
-        else
+        else if (context.Database.IsSqlServer())
         {
             await context.Database.ExecuteSqlRawAsync(@"
                 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'InterviewFlashcards')

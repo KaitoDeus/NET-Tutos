@@ -1,0 +1,55 @@
+services:
+  # PostgreSQL 17 Database Service
+  postgres:
+    image: postgres:17-alpine
+    container_name: nettutos-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nettutos_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nettutos_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ASP.NET Core 10 Web Application & RESTful API Engine
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nettutos-web
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - DatabaseProvider=PostgreSql
+      - ConnectionStrings__PostgreSqlConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres;Include Error Detail=true
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres;Include Error Detail=true
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Optional pgAdmin 4 GUI (Web-based management at http://localhost:5050)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: nettutos-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@nettutos.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+    driver: local
