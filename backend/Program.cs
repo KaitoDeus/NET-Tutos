@@ -16,6 +16,48 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 builder.Services.AddMemoryCache();
 
+// CORS configuration for Frontend (Next.js) and other clients
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+                "https://localhost:3000"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
+// Swagger / OpenAPI specification & Interactive UI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
+    {
+        Title = ".NET Tutos RESTful API Engine",
+        Version = "v1",
+        Description = "Hệ thống RESTful Web API chuẩn hóa phục vụ Web Frontend (Next.js) và Mobile App (.NET MAUI)."
+    });
+
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.OpenApiSecurityScheme
+    {
+        Description = "Nhập Token ủy quyền theo chuẩn: Bearer {token}",
+        Name = "Authorization",
+        In = Microsoft.OpenApi.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(_ => new Microsoft.OpenApi.OpenApiSecurityRequirement
+    {
+        [new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", null)] = new List<string>()
+    });
+});
+
 // Localization configuration (Supports Vietnamese and English)
 var supportedCultures = new[]
 {
@@ -174,9 +216,23 @@ app.UseRequestLocalization(locOptions.Value);
 
 app.UseRouting();
 
+// Enable CORS for Next.js frontend and mobile
+app.UseCors("FrontendPolicy");
+
+// Enable Swagger API Documentation & Explorer UI
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", ".NET Tutos API Engine v1");
+    c.RoutePrefix = "swagger";
+});
+
 // Authentication must be before Authorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Map Web API Controllers
+app.MapControllers();
 
 // Bilingual friendly routes for tutorials: /lessons/{slug}, /tutorials/{slug}, /bai-hoc/{slug}
 app.MapControllerRoute(
