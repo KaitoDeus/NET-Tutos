@@ -1,4 +1,4 @@
 <Solution>
-  <Project Path="NET-Tutos.WebApp/NET-Tutos.WebApp.csproj" />
+  <Project Path="backend/backend.csproj" />
   <Project Path="mobile/NET_Tutos.Mobile.csproj" />
 </Solution>
