@@ -89,23 +89,33 @@ The platform uses authentic **Microsoft .NET Indigo (`#512BD4`)** as its deliber
 
 ---
 
-## 4. Typography Standards
+## 4. Typography Standards & Strict Type Scale
 
 ```
 Display:  Plus Jakarta Sans, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
 Code/Kbd: "JetBrains Mono", "Fira Code", monospace
 ```
 
-- **Headings (H1–H4)**:
-  - Tight tracking: `letter-spacing: -0.025em`.
-  - Solid color: `#0f172a` (Light) / `#f4f4f5` (Dark). **No gradient text**.
-- **Body Prose**:
-  - Font size: `0.9375rem` (15px) or `1rem` (16px).
-  - Line height: `1.65` for optimal reading flow across long Markdown technical tutorials.
-- **Monospace Elements (Code, Badges, Metrics, Shortcuts)**:
-  - Font size: `0.8125rem` (13px).
-  - Tracking: `-0.01em`.
-  - Wrapped in crisp `<kbd>` elements with 1px border for keyboard shortcuts (`Ctrl+Enter`, `Ctrl+K`).
+### 4.1. Standardized Type Scale & Token Specifications
+
+| Token | Size (Rem / Px) | Line Height | Tracking | Weight | Semantic Use Case |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `--text-4xl` | `2.35rem` (37.6px) | `1.2` | `-0.035em` | `700` (Bold) | Hero title (`.hero-title`) |
+| `--text-3xl` | `1.875rem` (30px) | `1.25` | `-0.025em` | `700` (Bold) | Major page headers (`H1`) |
+| `--text-2xl` | `1.5rem` (24px) | `1.3` | `-0.02em` | `700` (Bold) | Section headers (`H2`) |
+| `--text-xl` | `1.25rem` (20px) | `1.35` | `-0.02em` | `600` (SemiBold) | Section sub-headers (`H3`) |
+| `--text-lg` | `1.125rem` (18px) | `1.4` | `-0.015em` | `600` (SemiBold) | Card headers, modal titles (`H4`) |
+| `--text-md` | `1rem` (16px) | `1.55` | `-0.005em` | `400` / `600` | Hero subtitle (`.hero-subtitle`), card titles (`H5`) |
+| `--text-base` | `0.9375rem` (15px) | `1.6` | `-0.005em` | `400` (Normal) | Default body text & Markdown tutorial reading |
+| `--text-nav` | `0.875rem` (14px) | `1.4` | `-0.01em` | `500` / `600` | Top navbar links, action buttons (`.btn`) |
+| `--text-sm` | `0.8125rem` (13px) | `1.55` | `normal` | `400` / `600` | Card summaries, roadmap stage titles (`H6`), list items |
+| `--text-xs` | `0.75rem` (12px) | `1.4` | `0.03em` | `500` / `600` | Section labels (`.section-label`), timestamps, lesson counts |
+| `--text-2xs` | `0.6875rem` (11px) | `1.2` | `0.04em` | `600` (SemiBold) | Micro badge indicators, status pills |
+
+### 4.2. Core Typographic Rules
+- **No Arbitrary Ultra-Heavy Weights:** Banned `font-weight: 800` and `900`. All bold headings use `font-weight: 700`.
+- **Prose Readability:** Tutorial body text enforces `line-height: 1.6` to `1.65` for optimal reading comprehension.
+- **Monospace Elements (Code, Badges, Metrics, Shortcuts):** Wrapped in `<kbd>` or `.font-monospace` with exact `0.8125rem` (13px) sizing and `-0.01em` tracking.
 
 ---
 

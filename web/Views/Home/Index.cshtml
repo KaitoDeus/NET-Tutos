@@ -9,12 +9,12 @@
 <!-- Minimalist Hero Section with Prominent Video Showcase -->
 <section class="py-4 py-md-5 border-bottom">
     <div class="container">
-        <!-- Punchy, Direct Header (No Clutter, No Sub-labels) -->
+        <!-- Punchy, Direct Header (Strict Typographic Standard) -->
         <div class="text-center mb-4">
-            <h1 class="hero-title fw-extrabold mb-2 text-body-emphasis">
+            <h1 class="hero-title mb-2">
                 @(isEn ? "Modern .NET & C# Engineering" : "Lập Trình .NET & C# Hiện Đại")
             </h1>
-            <p class="text-body-secondary mx-auto mb-0" style="max-width: 580px; font-size: 1.05rem;">
+            <p class="hero-subtitle mx-auto mb-0">
                 @(isEn ? "Introductory video, structured lessons, and hands-on coding practice." : "Video hướng dẫn nhập môn, giáo trình chuẩn hóa và bài tập thực hành.")
             </p>
         </div>
@@ -26,13 +26,13 @@
                     <div class="d-flex align-items-center justify-content-between p-2.5 px-3 rounded-2 border bg-body-tertiary">
                         <div class="d-flex align-items-center gap-2">
                             <span class="status-indicator-dot"></span>
-                            <span class="small fw-semibold text-body-emphasis">@(isEn ? "Welcome back" : "Xin chào"), @(User.Identity.Name?.Split('@')[0])!</span>
-                            <span class="text-muted small">· @(Model.CompletedLessonsCount ?? 0) @(isEn ? "lessons completed" : "bài hoàn thành")</span>
+                            <span class="fw-semibold text-body-emphasis" style="font-size: var(--text-sm);">@(isEn ? "Welcome back" : "Xin chào"), @(User.Identity.Name?.Split('@')[0])!</span>
+                            <span class="text-muted" style="font-size: var(--text-xs);">· @(Model.CompletedLessonsCount ?? 0) @(isEn ? "lessons completed" : "bài hoàn thành")</span>
                         </div>
                         @if (Model.LastAccessedTutorial != null)
                         {
                             <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@Model.LastAccessedTutorial.GetSlug(isEn)" 
-                               class="btn btn-xs btn-outline-primary rounded-1 px-2.5 py-1 small fw-semibold text-truncate" style="max-width: 280px;">
+                               class="btn btn-xs btn-outline-primary rounded-1 px-2.5 py-1 fw-semibold text-truncate" style="max-width: 280px; font-size: var(--text-xs);">
                                 <i class="bi bi-play-fill"></i> @(isEn ? "Resume:" : "Học tiếp:") @Model.LastAccessedTutorial.GetTitle(isEn)
                             </a>
                         }
@@ -56,15 +56,15 @@
                             </div>
                         </div>
 
-                        <!-- Right: Clean, Direct Curriculum Navigation (No Fluff Text) -->
+                        <!-- Right: Clean, Direct Curriculum Navigation (Standardized Type Scale) -->
                         <div class="col-lg-5">
                             <div class="d-flex flex-column justify-content-between h-100">
                                 <div>
-                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <h6 class="fw-bold mb-0 text-body-emphasis text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.05em;">
+                                    <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                                        <span class="section-label">
                                             @(isEn ? "Curriculum Roadmap" : "Lộ Trình 4 Chặng")
-                                        </h6>
-                                        <a asp-controller="Roadmap" asp-action="Index" class="small text-muted text-decoration-none" style="font-size: 0.775rem;">
+                                        </span>
+                                        <a asp-controller="Roadmap" asp-action="Index" class="text-muted text-decoration-none" style="font-size: var(--text-xs);">
                                             @(isEn ? "Full roadmap" : "Chi tiết") <i class="bi bi-chevron-right"></i>
                                         </a>
                                     </div>
@@ -76,19 +76,19 @@
                                                class="d-flex align-items-center justify-content-between p-2 px-2.5 rounded-2 border bg-body-tertiary text-decoration-none hover-border-primary transition-colors">
                                                 <div class="d-flex align-items-center gap-2 min-w-0">
                                                     <i class="bi @cat.IconClass text-primary"></i>
-                                                    <span class="small fw-semibold text-body-emphasis text-truncate">@cat.GetTitle(isEn)</span>
+                                                    <span class="fw-semibold text-body-emphasis text-truncate" style="font-size: var(--text-sm);">@cat.GetTitle(isEn)</span>
                                                 </div>
-                                                <span class="text-muted small font-monospace flex-shrink-0" style="font-size: 0.75rem;">@cat.Tutorials.Count @(isEn ? "lessons" : "bài")</span>
+                                                <span class="text-muted font-monospace flex-shrink-0" style="font-size: var(--text-xs);">@cat.Tutorials.Count @(isEn ? "lessons" : "bài")</span>
                                             </a>
                                         }
                                     </div>
                                 </div>
 
                                 <div class="d-flex gap-2 pt-2 border-top">
-                                    <a asp-controller="Tutorials" asp-action="Index" class="btn btn-sm btn-primary rounded-2 px-3 py-2 fw-semibold flex-grow-1">
+                                    <a asp-controller="Tutorials" asp-action="Index" class="btn btn-sm btn-primary rounded-2 px-3 py-2 fw-semibold flex-grow-1" style="font-size: var(--text-nav);">
                                         @(isEn ? "Start Learning" : "Bắt đầu học ngay") <i class="bi bi-arrow-right ms-1"></i>
                                     </a>
-                                    <a asp-controller="Playground" asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-2 px-3 py-2 fw-semibold font-monospace">
+                                    <a asp-controller="Playground" asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-2 px-3 py-2 fw-semibold font-monospace" style="font-size: var(--text-nav);">
                                         <i class="bi bi-terminal me-1"></i> Playground
                                     </a>
                                 </div>
@@ -101,13 +101,13 @@
     </div>
 </section>
 
-<!-- Featured Technical Guides (Minimal, High Information Density) -->
+<!-- Featured Technical Guides (Strict Typographic Scale) -->
 <section class="container py-4 my-2">
     <div class="d-flex align-items-center justify-content-between mb-3">
         <h2 class="h5 fw-bold mb-0 text-body-emphasis">
             @(isEn ? "Featured Lessons" : "Bài Học Tiêu Biểu")
         </h2>
-        <a asp-controller="Tutorials" asp-action="Index" class="small text-muted text-decoration-none">
+        <a asp-controller="Tutorials" asp-action="Index" class="text-muted text-decoration-none" style="font-size: var(--text-xs);">
             @(isEn ? "All 101 lessons" : "Tất cả 101 bài") <i class="bi bi-chevron-right"></i>
         </a>
     </div>
@@ -119,12 +119,12 @@
                 <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.GetSlug(isEn)" 
                    class="card h-100 rounded-2 border p-3 bg-body text-decoration-none hover-border-primary transition-colors d-flex flex-column justify-content-between">
                     <div>
-                        <div class="d-flex align-items-center justify-content-between text-muted small mb-1.5" style="font-size: 0.775rem;">
-                            <span class="text-primary font-monospace">@item.Category.GetTitle(isEn)</span>
+                        <div class="d-flex align-items-center justify-content-between text-muted mb-1.5" style="font-size: var(--text-xs);">
+                            <span class="text-primary font-monospace fw-medium">@item.Category.GetTitle(isEn)</span>
                             <span>@item.EstimatedReadingMinutes @(isEn ? "min read" : "phút đọc")</span>
                         </div>
-                        <h6 class="fw-bold mb-1.5 text-body-emphasis">@item.GetTitle(isEn)</h6>
-                        <p class="text-body-secondary small mb-0 text-truncate-2" style="font-size: 0.825rem; line-height: 1.5;">
+                        <h3 class="h6 fw-semibold mb-1 text-body-emphasis" style="font-size: var(--text-base);">@item.GetTitle(isEn)</h3>
+                        <p class="text-body-secondary mb-0 text-truncate-2" style="font-size: var(--text-sm); line-height: 1.55;">
                             @item.GetSummary(isEn)
                         </p>
                     </div>
@@ -139,10 +139,10 @@
 {
     <section class="container py-3 my-2 mb-4">
         <div class="d-flex align-items-center justify-content-between mb-2.5">
-            <h2 class="h6 fw-bold mb-0 text-body-secondary text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+            <span class="section-label">
                 <i class="bi bi-activity text-primary me-1"></i> @(isEn ? "Recent Activity" : "Hoạt Động Gần Đây")
-            </h2>
-            <a asp-controller="Activity" asp-action="Index" class="small text-muted text-decoration-none" style="font-size: 0.775rem;">
+            </span>
+            <a asp-controller="Activity" asp-action="Index" class="text-muted text-decoration-none" style="font-size: var(--text-xs);">
                 @(isEn ? "View all" : "Xem tất cả") <i class="bi bi-chevron-right"></i>
             </a>
         </div>
@@ -152,15 +152,15 @@
                 <div class="d-flex align-items-center justify-content-between p-2.5 px-3 border-bottom last-border-0 gap-2">
                     <div class="d-flex align-items-center gap-2 min-w-0">
                         <i class="bi @act.IconClass text-primary small"></i>
-                        <span class="small fw-semibold text-body-emphasis text-truncate">@act.UserDisplayName</span>
-                        <span class="small text-muted text-truncate d-none d-sm-inline">@act.GetActivityTitle(isEn)</span>
+                        <span class="fw-semibold text-body-emphasis text-truncate" style="font-size: var(--text-sm);">@act.UserDisplayName</span>
+                        <span class="text-muted text-truncate d-none d-sm-inline" style="font-size: var(--text-sm);">@act.GetActivityTitle(isEn)</span>
                     </div>
                     <div class="d-flex align-items-center gap-2 flex-shrink-0">
                         @if (act.XpEarned > 0)
                         {
-                            <span class="text-warning-emphasis font-monospace small" style="font-size: 0.75rem;">+@act.XpEarned XP</span>
+                            <span class="text-warning-emphasis font-monospace" style="font-size: var(--text-xs);">+@act.XpEarned XP</span>
                         }
-                        <span class="text-muted font-monospace small" style="font-size: 0.725rem;">@act.GetActivityTimeAgo(isEn)</span>
+                        <span class="text-muted font-monospace" style="font-size: var(--text-xs);">@act.GetActivityTimeAgo(isEn)</span>
                     </div>
                 </div>
             }
