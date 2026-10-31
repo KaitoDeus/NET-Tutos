@@ -92,7 +92,7 @@ The platform uses authentic **Microsoft .NET Indigo (`#512BD4`)** as its deliber
 ## 4. Typography Standards & Strict Type Scale
 
 ```
-Display:  Plus Jakarta Sans, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
+Display:  Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
 Code/Kbd: "JetBrains Mono", "Fira Code", monospace
 ```
 

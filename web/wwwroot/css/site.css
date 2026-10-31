@@ -1,7 +1,9 @@
 :root {
-    /* 1. Font Family Tokens */
-    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    /* 1. Font Family Tokens (Montserrat Default) */
+    --font-sans: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --bs-body-font-family: var(--font-sans);
+    --bs-font-sans-serif: var(--font-sans);
 
     /* 2. Typographic Scale (Strict Rem & Px Standard) */
     --text-2xs: 0.6875rem; /* 11px - Micro badges */
