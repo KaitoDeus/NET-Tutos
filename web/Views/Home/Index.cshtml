@@ -6,7 +6,7 @@
     ViewData["Title"] = isEn ? "Home" : "Trang chủ";
 }
 
-<!-- Minimalist Hero Section (Developer Tool Standard) -->
+<!-- Minimalist Hero Section with Prominent Video Showcase -->
 <section class="py-4 py-md-5 border-bottom">
     <div class="container">
         <!-- Punchy, Direct Header (No Clutter, No Sub-labels) -->
@@ -14,23 +14,15 @@
             <h1 class="hero-title fw-extrabold mb-2 text-body-emphasis">
                 @(isEn ? "Modern .NET & C# Engineering" : "Lập Trình .NET & C# Hiện Đại")
             </h1>
-            <p class="text-body-secondary mx-auto mb-3" style="max-width: 580px; font-size: 1.05rem;">
-                @(isEn ? "Hands-on tutorials, in-browser Roslyn sandbox, and production roadmaps." : "Khóa học chuẩn hóa, sân chơi Roslyn trực tuyến và bài tập thực chiến.")
+            <p class="text-body-secondary mx-auto mb-0" style="max-width: 580px; font-size: 1.05rem;">
+                @(isEn ? "Introductory video, structured lessons, and hands-on coding practice." : "Video hướng dẫn nhập môn, giáo trình chuẩn hóa và bài tập thực hành.")
             </p>
-            <div class="d-flex justify-content-center gap-2 flex-wrap">
-                <a asp-controller="Tutorials" asp-action="Index" class="btn btn-primary rounded-2 px-3 py-2 fw-semibold">
-                    @(isEn ? "Start Learning" : "Bắt đầu học ngay") <i class="bi bi-arrow-right ms-1"></i>
-                </a>
-                <a asp-controller="Playground" asp-action="Index" class="btn btn-outline-secondary rounded-2 px-3 py-2 fw-semibold font-monospace">
-                    <i class="bi bi-terminal me-1"></i> Playground
-                </a>
-            </div>
         </div>
 
         @if (User.Identity?.IsAuthenticated == true)
         {
             <div class="row justify-content-center mb-3">
-                <div class="col-xl-10">
+                <div class="col-xl-11">
                     <div class="d-flex align-items-center justify-content-between p-2.5 px-3 rounded-2 border bg-body-tertiary">
                         <div class="d-flex align-items-center gap-2">
                             <span class="status-indicator-dot"></span>
@@ -49,80 +41,71 @@
             </div>
         }
 
-        <!-- Interactive C# 14 Code Terminal Showcase -->
+        <!-- Video Player & Roadmap Showcase (Video Front and Center, Minimal Text) -->
         <div class="row justify-content-center">
-            <div class="col-xl-10">
-                <div class="dev-code-window">
-                    <div class="dev-code-window-header">
-                        <div class="dev-code-dots">
-                            <span class="dev-code-dot close"></span>
-                            <span class="dev-code-dot minimize"></span>
-                            <span class="dev-code-dot maximize"></span>
+            <div class="col-xl-11">
+                <div class="card border rounded-3 p-3 p-md-3.5 bg-body shadow-sm">
+                    <div class="row g-3 g-lg-4 align-items-center">
+                        <!-- Left: Embedded YouTube Video Player -->
+                        <div class="col-lg-7">
+                            <div class="ratio ratio-16x9 rounded-2 overflow-hidden border bg-dark">
+                                <iframe src="https://www.youtube-nocookie.com/embed/6BcPIvVfVAw" 
+                                        title="@(isEn ? "What is .NET? (Microsoft Official Guide)" : ".NET là gì? (Tài liệu Microsoft)")" 
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                        allowfullscreen></iframe>
+                            </div>
                         </div>
-                        <span class="dev-code-title">Program.cs</span>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="dev-code-pill">C# 14 · .NET 10</span>
-                            <a asp-controller="Playground" asp-action="Index" class="btn btn-xs btn-outline-light rounded-1 px-2 py-0.5 font-monospace" style="font-size: 0.725rem;">
-                                <i class="bi bi-play-fill text-success"></i> Run (Ctrl+Enter)
-                            </a>
+
+                        <!-- Right: Clean, Direct Curriculum Navigation (No Fluff Text) -->
+                        <div class="col-lg-5">
+                            <div class="d-flex flex-column justify-content-between h-100">
+                                <div>
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <h6 class="fw-bold mb-0 text-body-emphasis text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.05em;">
+                                            @(isEn ? "Curriculum Roadmap" : "Lộ Trình 4 Chặng")
+                                        </h6>
+                                        <a asp-controller="Roadmap" asp-action="Index" class="small text-muted text-decoration-none" style="font-size: 0.775rem;">
+                                            @(isEn ? "Full roadmap" : "Chi tiết") <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </div>
+
+                                    <div class="d-flex flex-column gap-2 mb-3">
+                                        @foreach (var cat in Model.Categories)
+                                        {
+                                            <a asp-controller="Tutorials" asp-action="Index" asp-route-category="@cat.GetSlug(isEn)" 
+                                               class="d-flex align-items-center justify-content-between p-2 px-2.5 rounded-2 border bg-body-tertiary text-decoration-none hover-border-primary transition-colors">
+                                                <div class="d-flex align-items-center gap-2 min-w-0">
+                                                    <i class="bi @cat.IconClass text-primary"></i>
+                                                    <span class="small fw-semibold text-body-emphasis text-truncate">@cat.GetTitle(isEn)</span>
+                                                </div>
+                                                <span class="text-muted small font-monospace flex-shrink-0" style="font-size: 0.75rem;">@cat.Tutorials.Count @(isEn ? "lessons" : "bài")</span>
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2 pt-2 border-top">
+                                    <a asp-controller="Tutorials" asp-action="Index" class="btn btn-sm btn-primary rounded-2 px-3 py-2 fw-semibold flex-grow-1">
+                                        @(isEn ? "Start Learning" : "Bắt đầu học ngay") <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
+                                    <a asp-controller="Playground" asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-2 px-3 py-2 fw-semibold font-monospace">
+                                        <i class="bi bi-terminal me-1"></i> Playground
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <pre class="dev-code-body mb-0"><code><span class="text-primary">var</span> curriculum = <span class="text-primary">new</span> <span class="text-warning">Curriculum</span>(Name: <span class="text-success">"Enterprise .NET"</span>, Stages: 4);
-
-<span class="text-primary">await foreach</span> (<span class="text-primary">var</span> stage <span class="text-primary">in</span> curriculum.GetTracksAsync())
-{
-    Console.WriteLine($<span class="text-success">"[{stage.Index}] {stage.Title} -> {stage.LessonsCount} lessons"</span>);
-}
-
-<span class="text-secondary">// Output:</span>
-<span class="text-success">// [1] C# & .NET Cơ bản -> 25 lessons</span>
-<span class="text-success">// [2] OOP & C# Nâng cao -> 30 lessons</span>
-<span class="text-success">// [3] Entity Framework Core -> 22 lessons</span>
-<span class="text-success">// [4] ASP.NET Core & Web API -> 24 lessons</span></code></pre>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Sleek Roadmap Stage Grid (Minimal, No Description Clutter) -->
+<!-- Featured Technical Guides (Minimal, High Information Density) -->
 <section class="container py-4 my-2">
     <div class="d-flex align-items-center justify-content-between mb-3">
         <h2 class="h5 fw-bold mb-0 text-body-emphasis">
-            @(isEn ? "Curriculum Roadmap" : "Lộ Trình Học")
-        </h2>
-        <a asp-controller="Roadmap" asp-action="Index" class="small text-muted text-decoration-none">
-            @(isEn ? "View all tracks" : "Xem tất cả") <i class="bi bi-chevron-right"></i>
-        </a>
-    </div>
-
-    <div class="row g-2.5">
-        @foreach (var cat in Model.Categories)
-        {
-            <div class="col-md-6 col-lg-3">
-                <a asp-controller="Tutorials" asp-action="Index" asp-route-category="@cat.GetSlug(isEn)" 
-                   class="card h-100 rounded-2 border p-3 bg-body text-decoration-none hover-border-primary transition-colors d-flex flex-column justify-content-between">
-                    <div class="d-flex align-items-center gap-2.5 mb-2">
-                        <div class="text-primary fs-5">
-                            <i class="bi @cat.IconClass"></i>
-                        </div>
-                        <h6 class="fw-bold mb-0 text-body-emphasis">@cat.GetTitle(isEn)</h6>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between text-muted small pt-2 border-top">
-                        <span class="font-monospace" style="font-size: 0.8rem;">@cat.Tutorials.Count @(isEn ? "lessons" : "bài học")</span>
-                        <i class="bi bi-arrow-right text-primary"></i>
-                    </div>
-                </a>
-            </div>
-        }
-    </div>
-</section>
-
-<!-- Featured Technical Guides (Minimal Card Grid) -->
-<section class="container py-4 my-2">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <h2 class="h5 fw-bold mb-0 text-body-emphasis">
-            @(isEn ? "Featured Guides" : "Bài Hướng Dẫn Nổi Bật")
+            @(isEn ? "Featured Lessons" : "Bài Học Tiêu Biểu")
         </h2>
         <a asp-controller="Tutorials" asp-action="Index" class="small text-muted text-decoration-none">
             @(isEn ? "All 101 lessons" : "Tất cả 101 bài") <i class="bi bi-chevron-right"></i>
@@ -151,7 +134,7 @@
     </div>
 </section>
 
-<!-- Recent Community Activity (Compact List, No Clutter) -->
+<!-- Compact Community Activity Strip -->
 @if (Model.RecentActivities.Any())
 {
     <section class="container py-3 my-2 mb-4">
