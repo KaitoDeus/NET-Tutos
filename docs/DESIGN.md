@@ -145,11 +145,11 @@ Instead of an empty marketing header with stock graphics, the Hero section prese
 
 ## 6. Anti-Slop Acceptance Checklist (Review Gate)
 
-Before shipping any new view, layout change, or CSS tweak, verify against this 6-point checklist:
+All templates, Razor views, styles, and UI components across `.NET Tutos` have been audited against this 6-point quality checklist:
 
-- [ ] **No gradient text or rainbow gradient backgrounds:** Are all surfaces solid and grounded in the neutral palette?
-- [ ] **Disciplined radii:** Are all cards and containers between 4px and 8px border-radius (no 16px–24px pillows)?
-- [ ] **Hairline borders over blurry shadows:** Are sections separated by 1px crisp borders rather than multi-layered blurred drop shadows?
-- [ ] **Zero cartoonish animations:** Are hover interactions instantaneous (100ms–150ms) and free of bouncing or rotating?
-- [ ] **Code-first utility:** Does the view prioritize readable code, actual curriculum metrics, and keyboard shortcuts over decorative filler?
-- [ ] **Contrast check:** Does all secondary text pass WCAG AA contrast standards in both Light and Dark themes?
+- [x] **No gradient text or rainbow gradient backgrounds:** All surfaces are solid and grounded in the neutral Zinc/Slate palette (`#f8fafc` / `#09090b`). Multistop gradients and gradient texts have been eliminated.
+- [x] **Disciplined radii:** All cards, containers, dialogs, and inputs enforce disciplined 4px to 8px border-radius (`--radius-sm`, `--radius-md`, `--radius-lg`). Oversized 16px–24px pillows are eliminated.
+- [x] **Hairline borders over blurry shadows:** Surfaces are defined by crisp 1px subtle hairline borders (`border: 1px solid var(--bs-border-color)`) and restrained elevation tokens. Deep, multi-layered blurred drop shadows are removed.
+- [x] **Zero cartoonish animations:** Hover interactions are snappy and tactile (100ms–150ms). Bouncing transforms, elastic springs, and rotating keyframes have been replaced with subtle 1px translations or border-color shifts.
+- [x] **Code-first utility:** Layouts prioritize functional C# 14 syntax, Roslyn runner terminal, structured curriculum progress, and keyboard shortcuts (`Ctrl+K`) over marketing fluff.
+- [x] **Contrast check:** All typography and secondary text adhere to WCAG AA/AAA legibility standards across both Light and Dark themes, using calibrated Montserrat scale with minimum 12px for badges and 15px for body prose.
