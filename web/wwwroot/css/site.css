@@ -5,24 +5,24 @@
     --bs-body-font-family: var(--font-sans);
     --bs-font-sans-serif: var(--font-sans);
 
-    /* 2. Typographic Scale (Strict Rem & Px Standard) */
-    --text-2xs: 0.6875rem; /* 11px - Micro badges */
-    --text-xs:  0.75rem;   /* 12px - Timestamps, captions, kbd */
-    --text-sm:  0.8125rem; /* 13px - Secondary metadata, small tags */
-    --text-nav: 0.875rem;  /* 14px - Navigation links, standard labels */
-    --text-base: 0.9375rem; /* 15px - Body text default */
-    --text-md:   1rem;     /* 16px - Prominent body, card titles */
-    --text-lg:   1.125rem; /* 18px - Subheadings, H4 */
-    --text-xl:   1.25rem;  /* 20px - Section sub-titles, H3 */
-    --text-2xl:  1.5rem;   /* 24px - Section H2 */
-    --text-3xl:  1.875rem; /* 30px - Page headers */
-    --text-4xl:  2.35rem;  /* 37.6px - Hero title H1 */
+    /* 2. Typographic Scale for Montserrat (Strict Rem & Px Standard) */
+    --text-2xs:  0.75rem;   /* 12px - Minimum micro legible size for badges & pills */
+    --text-xs:   0.8125rem; /* 13px - Timestamps, metadata tags, counts, kbd */
+    --text-sm:   0.875rem;  /* 14px - Card summaries, roadmap stages, helper copy */
+    --text-nav:  0.875rem;  /* 14px - Navigation links, standard labels, buttons */
+    --text-base: 0.9375rem; /* 15px - Body text default & tutorial reading */
+    --text-md:   1rem;      /* 16px - Prominent body, card titles (H5), subtitle */
+    --text-lg:   1.125rem;  /* 18px - Subheadings, card group headers (H4) */
+    --text-xl:   1.25rem;   /* 20px - Section sub-titles (H3) */
+    --text-2xl:  1.45rem;   /* 23.2px - Section headers (H2) */
+    --text-3xl:  1.75rem;   /* 28px - Major page headers (H1) */
+    --text-4xl:  2.1rem;    /* 33.6px - Max hero title display */
 
-    /* 3. Letter Spacing (Tracking) */
-    --tracking-tightest: -0.035em; /* For Hero H1 */
-    --tracking-tight:    -0.02em;  /* For H2, H3 */
-    --tracking-normal:   -0.005em; /* For body text */
-    --tracking-wide:      0.03em;  /* For uppercase labels */
+    /* 3. Letter Spacing (Tracking tuned for Montserrat) */
+    --tracking-tightest: -0.025em; /* For Hero H1 */
+    --tracking-tight:    -0.015em; /* For H2, H3, H4 */
+    --tracking-normal:   0em;      /* For body text in Montserrat */
+    --tracking-wide:     0.035em;  /* For uppercase labels & badges */
 
     /* 4. Font Weights */
     --font-weight-normal:   400;
@@ -66,10 +66,10 @@ body {
 }
 
 h1, .h1 {
-    font-size: var(--text-4xl);
+    font-size: var(--text-3xl);
     font-weight: var(--font-weight-bold);
-    letter-spacing: var(--tracking-tightest);
-    line-height: 1.2;
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.25;
     color: var(--bs-heading-color);
 }
 
@@ -112,10 +112,10 @@ h6, .h6 {
 }
 
 .hero-title {
-    font-size: clamp(1.85rem, 3.2vw + 0.5rem, 2.45rem);
+    font-size: clamp(1.6rem, 2.2vw + 0.4rem, 2.15rem);
     font-weight: var(--font-weight-bold);
-    line-height: 1.2;
-    letter-spacing: var(--tracking-tightest);
+    line-height: 1.25;
+    letter-spacing: var(--tracking-tight);
     color: var(--bs-heading-color);
 }
 
@@ -125,6 +125,27 @@ h6, .h6 {
     line-height: 1.55;
     color: var(--bs-secondary-color);
     letter-spacing: var(--tracking-normal);
+    max-width: 600px;
+}
+
+/* Calibrated Display Typography for Montserrat */
+.display-1 { font-size: clamp(2.2rem, 3.5vw, 2.75rem) !important; font-weight: 700 !important; line-height: 1.15; letter-spacing: var(--tracking-tight); }
+.display-2 { font-size: clamp(1.95rem, 3vw, 2.45rem) !important; font-weight: 700 !important; line-height: 1.2; letter-spacing: var(--tracking-tight); }
+.display-3 { font-size: clamp(1.75rem, 2.5vw, 2.15rem) !important; font-weight: 700 !important; line-height: 1.2; letter-spacing: var(--tracking-tight); }
+.display-4 { font-size: clamp(1.5rem, 2vw, 1.85rem) !important; font-weight: 700 !important; line-height: 1.25; letter-spacing: var(--tracking-tight); }
+.display-5 { font-size: clamp(1.35rem, 1.8vw, 1.7rem) !important; font-weight: 700 !important; line-height: 1.25; letter-spacing: var(--tracking-tight); }
+.display-6 { font-size: clamp(1.2rem, 1.4vw, 1.45rem) !important; font-weight: 700 !important; line-height: 1.3; letter-spacing: var(--tracking-tight); }
+
+.lead {
+    font-size: var(--text-base) !important;
+    font-weight: var(--font-weight-normal) !important;
+    line-height: 1.6;
+    color: var(--bs-secondary-color);
+}
+@media (min-width: 768px) {
+    .lead {
+        font-size: var(--text-md) !important;
+    }
 }
 
 .brand-text {
@@ -658,19 +679,6 @@ h6, .h6 {
     }
 }
 
-.hero-title {
-    font-size: clamp(2rem, 4.5vw + 0.5rem, 3.5rem);
-    line-height: 1.15;
-    letter-spacing: -0.035em;
-    color: var(--bs-body-emphasis);
-    font-weight: 800;
-}
-
-.hero-lead {
-    font-size: clamp(1rem, 1.1vw + 0.5rem, 1.2rem);
-    line-height: 1.6;
-    color: var(--bs-secondary-color);
-}
 
 [data-bs-theme="dark"] .hero-learn-dotnet {
     background-color: #0c0d0f;
@@ -901,40 +909,46 @@ h6, .h6 {
     border-color: rgba(81, 43, 212, 0.45);
 }
 
-/* Tutorial Reading Styles */
+/* Tutorial Reading Styles (Calibrated for Montserrat) */
 .markdown-body {
-    font-size: 1.075rem;
-    line-height: 1.8;
+    font-size: var(--text-base);
+    line-height: 1.7;
+    letter-spacing: var(--tracking-normal);
 }
 
 .markdown-body h1, 
 .markdown-body h2, 
-.markdown-body h3 {
+.markdown-body h3,
+.markdown-body h4 {
     font-weight: 700;
-    letter-spacing: -0.02em;
-    margin-top: 1.8rem;
-    margin-bottom: 1rem;
+    letter-spacing: var(--tracking-tight);
+    margin-top: 1.6rem;
+    margin-bottom: 0.85rem;
     color: var(--bs-heading-color);
 }
 
 .markdown-body h1 {
-    font-size: 2.1rem;
-    border-bottom: 2px solid var(--bs-border-color);
-    padding-bottom: 0.5rem;
+    font-size: var(--text-2xl);
+    border-bottom: 1px solid var(--bs-border-color);
+    padding-bottom: 0.4rem;
 }
 
 .markdown-body h2 {
-    font-size: 1.6rem;
+    font-size: var(--text-xl);
     border-bottom: 1px solid var(--bs-border-color-subtle);
     padding-bottom: 0.3rem;
 }
 
 .markdown-body h3 {
-    font-size: 1.3rem;
+    font-size: var(--text-lg);
+}
+
+.markdown-body h4 {
+    font-size: var(--text-md);
 }
 
 .markdown-body p {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.15rem;
 }
 
 .markdown-body blockquote {

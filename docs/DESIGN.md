@@ -96,26 +96,27 @@ Display:  Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
 Code/Kbd: "JetBrains Mono", "Fira Code", monospace
 ```
 
-### 4.1. Standardized Type Scale & Token Specifications
+### 4.1. Standardized Type Scale & Token Specifications (Tuned for Montserrat)
 
 | Token | Size (Rem / Px) | Line Height | Tracking | Weight | Semantic Use Case |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `--text-4xl` | `2.35rem` (37.6px) | `1.2` | `-0.035em` | `700` (Bold) | Hero title (`.hero-title`) |
-| `--text-3xl` | `1.875rem` (30px) | `1.25` | `-0.025em` | `700` (Bold) | Major page headers (`H1`) |
-| `--text-2xl` | `1.5rem` (24px) | `1.3` | `-0.02em` | `700` (Bold) | Section headers (`H2`) |
-| `--text-xl` | `1.25rem` (20px) | `1.35` | `-0.02em` | `600` (SemiBold) | Section sub-headers (`H3`) |
-| `--text-lg` | `1.125rem` (18px) | `1.4` | `-0.015em` | `600` (SemiBold) | Card headers, modal titles (`H4`) |
-| `--text-md` | `1rem` (16px) | `1.55` | `-0.005em` | `400` / `600` | Hero subtitle (`.hero-subtitle`), card titles (`H5`) |
-| `--text-base` | `0.9375rem` (15px) | `1.6` | `-0.005em` | `400` (Normal) | Default body text & Markdown tutorial reading |
-| `--text-nav` | `0.875rem` (14px) | `1.4` | `-0.01em` | `500` / `600` | Top navbar links, action buttons (`.btn`) |
-| `--text-sm` | `0.8125rem` (13px) | `1.55` | `normal` | `400` / `600` | Card summaries, roadmap stage titles (`H6`), list items |
-| `--text-xs` | `0.75rem` (12px) | `1.4` | `0.03em` | `500` / `600` | Section labels (`.section-label`), timestamps, lesson counts |
-| `--text-2xs` | `0.6875rem` (11px) | `1.2` | `0.04em` | `600` (SemiBold) | Micro badge indicators, status pills |
+| `--text-4xl` | `2.1rem` (33.6px) | `1.2` | `-0.025em` | `700` (Bold) | Maximum hero title display |
+| `--text-3xl` | `1.75rem` (28px) | `1.25` | `-0.02em` | `700` (Bold) | Major page headers (`H1`, `.display-5`) |
+| `--text-2xl` | `1.45rem` (23.2px) | `1.3` | `-0.015em` | `700` (Bold) | Section headers (`H2`, `.display-6`) |
+| `--text-xl` | `1.25rem` (20px) | `1.35` | `-0.015em` | `600` (SemiBold) | Section sub-headers (`H3`) |
+| `--text-lg` | `1.125rem` (18px) | `1.4` | `-0.01em` | `600` (SemiBold) | Card group headers, section titles (`H4`) |
+| `--text-md` | `1rem` (16px) | `1.55` | `0em` | `400` / `600` | Hero subtitle (`.hero-subtitle`), card titles (`H5`) |
+| `--text-base` | `0.9375rem` (15px) | `1.65` | `0em` | `400` (Normal) | Default body text & Markdown tutorial reading |
+| `--text-nav` | `0.875rem` (14px) | `1.4` | `-0.005em` | `500` / `600` | Top navbar links, action buttons (`.btn`) |
+| `--text-sm` | `0.875rem` (14px) | `1.5` | `0em` | `400` / `600` | Card summaries, roadmap stage titles (`H6`), list items |
+| `--text-xs` | `0.8125rem` (13px) | `1.4` | `0.02em` | `500` / `600` | Section labels (`.section-label`), timestamps, lesson counts |
+| `--text-2xs` | `0.75rem` (12px) | `1.25` | `0.035em` | `600` (SemiBold) | Minimum micro badge indicators, status pills |
 
 ### 4.2. Core Typographic Rules
 - **No Arbitrary Ultra-Heavy Weights:** Banned `font-weight: 800` and `900`. All bold headings use `font-weight: 700`.
-- **Prose Readability:** Tutorial body text enforces `line-height: 1.6` to `1.65` for optimal reading comprehension.
-- **Monospace Elements (Code, Badges, Metrics, Shortcuts):** Wrapped in `<kbd>` or `.font-monospace` with exact `0.8125rem` (13px) sizing and `-0.01em` tracking.
+- **Prose Readability:** Tutorial body text enforces `line-height: 1.65` to `1.7` for optimal reading comprehension with geometric letterforms.
+- **Monospace Elements (Code, Badges, Metrics, Shortcuts):** Wrapped in `<kbd>` or `.font-monospace` with exact `0.8125rem` (13px) sizing and `0em` tracking.
+- **Calibrated Display Classes:** Bootstrap `.display-1` through `.display-6` are capped between `1.2rem` (19.2px) and `2.75rem` (44px) to prevent layout breakages.
 
 ---
 

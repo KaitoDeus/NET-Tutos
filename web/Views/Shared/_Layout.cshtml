@@ -61,7 +61,7 @@
             <div class="container-fluid px-3 px-xl-4">
                 <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-decoration-none py-1 me-2 me-sm-3" asp-controller="Home" asp-action="Index">
                     <img src="~/images/csharp-logo.png" alt="C# Logo" width="30" height="34" class="csharp-nav-logo" />
-                    <span class="brand-text fw-extrabold fs-4"><span class="text-dotnet">.NET</span><span class="text-body-emphasis"> Tutos</span></span>
+                    <span class="brand-text fw-bold"><span class="text-dotnet">.NET</span><span class="text-body-emphasis"> Tutos</span></span>
                 </a>
 
                 <!-- Mobile Quick Actions Bar (Language Switch, Theme Switch & Toggler) -->
@@ -144,10 +144,10 @@
                                     <!-- Cột 1: Danh mục chuyên đề -->
                                     <div class="mega-menu-col mega-menu-divider">
                                         <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                                            <span class="text-uppercase fw-bold text-muted small" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                                            <span class="section-label">
                                                 <i class="bi bi-collection-play me-1 text-primary"></i> <span data-lang-key="nav_topics">@(isEn ? "Topic Categories" : "Danh mục chuyên đề")</span>
                                             </span>
-                                            <a asp-controller="Tutorials" asp-action="Index" class="small text-primary text-decoration-none fw-semibold">
+                                            <a asp-controller="Tutorials" asp-action="Index" class="small text-primary text-decoration-none fw-semibold" style="font-size: var(--text-xs);">
                                                 <span data-lang-key="nav_view_all">@(isEn ? "View all" : "Xem tất cả")</span> <i class="bi bi-arrow-right"></i>
                                             </a>
                                         </div>
@@ -171,7 +171,7 @@
                                                         <div class="category-content-box">
                                                             <div class="d-flex align-items-center justify-content-between gap-1 mb-0.5">
                                                                 <span class="category-text-title">@cat.GetTitle(isEn)</span>
-                                                                <span class="badge bg-@cat.BadgeColor-subtle text-@cat.BadgeColor rounded-pill flex-shrink-0" style="font-size: 0.65rem;">
+                                                                <span class="badge bg-@cat.BadgeColor-subtle text-@cat.BadgeColor rounded-pill flex-shrink-0" style="font-size: var(--text-2xs);">
                                                                     @levelBadge
                                                                 </span>
                                                             </div>
@@ -186,7 +186,7 @@
                                     <!-- Cột 2: Lối tắt học tập & Tra cứu -->
                                     <div class="mega-menu-col">
                                         <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                                            <span class="text-uppercase fw-bold text-muted small" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                                            <span class="section-label">
                                                 <i class="bi bi-compass me-1 text-warning"></i> <span data-lang-key="nav_shortcuts">@(isEn ? "Quick Learning" : "Lối tắt học tập")</span>
                                             </span>
                                         </div>
