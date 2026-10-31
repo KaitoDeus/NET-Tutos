@@ -1583,6 +1583,15 @@ i.bi.ms-2 { margin-left: 0.55rem !important; }
     bottom: 24px;
     right: 24px;
     z-index: 1070;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+body.modal-open .floating-ai-container,
+body.offcanvas-open .floating-ai-container,
+.offcanvas.show ~ .floating-ai-container {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 .floating-ai-btn {
