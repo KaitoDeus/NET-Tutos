@@ -28,7 +28,8 @@ d:\NET-Tutos\docs\
 ├── 04_non_functional_requirements.md   # Quality Attributes, Performance SLAs, Security & PWA Specs
 ├── 05_data_models_and_api_specs.md     # Relational ERD Schemas & RESTful Integration API Contracts
 ├── 06_architecture_and_design_blueprint.md # Architecture Blueprint, Folder Breakdown, ERD & UI/UX Wireframes
-└── 07_docker_and_database_setup.md     # PostgreSQL 17, Npgsql EF Core 10 & Docker Compose Architecture
+├── 07_docker_and_database_setup.md     # PostgreSQL 17, Npgsql EF Core 10 & Docker Compose Architecture
+└── DESIGN.md                           # Frontend Design System & Anti-AI-Slop Quality Constitution
 ```
 
 ### Detailed Document Summaries:
@@ -85,6 +86,12 @@ d:\NET-Tutos\docs\
    - `Npgsql.EntityFrameworkCore.PostgreSQL` 10 configuration, connection strings, and resilient SQLite fallback.
    - 31 database tables specification and seed data initialization.
    - Operations guide (`docker compose up -d`) and VS Code Database Client / SQLTools configuration.
+
+8. [**DESIGN. Design System & Anti-AI-Slop Constitution**](file:///d:/NET-Tutos/docs/DESIGN.md)
+   - Developer Tool standard inspired by Linear, Raycast, Stripe, and GitHub Primer.
+   - Anti-Slop banned patterns (no neon gradients, no cartoonish hover transforms, no card nesting).
+   - Grounded Zinc/Slate neutral palettes, disciplined 6px–8px radii, and 1px hairline borders.
+   - Code-First terminal anatomy, status chips, and the 6-point review gate checklist.
 
 ---
 

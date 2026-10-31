@@ -139,7 +139,7 @@
                                href="#" id="navCoursesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-grid-fill me-1 text-primary"></i> <span data-lang-key="nav_courses">@(isEn ? "Courses & Roadmap" : "Khóa học & Lộ trình")</span>
                             </a>
-                            <div class="dropdown-menu dropdown-menu-start shadow-lg border-0 rounded-4 p-3 mt-0 nav-mega-dropdown" aria-labelledby="navCoursesDropdown">
+                            <div class="dropdown-menu dropdown-menu-start border rounded-3 p-3 mt-0 nav-mega-dropdown" aria-labelledby="navCoursesDropdown">
                                 <div class="mega-menu-grid">
                                     <!-- Cột 1: Danh mục chuyên đề -->
                                     <div class="mega-menu-col mega-menu-divider">
@@ -269,7 +269,7 @@
                                href="#" id="navPracticeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-cpu me-1 text-danger"></i> <span data-lang-key="nav_practice">@(isEn ? "Practice & Arena" : "Thực hành & Thi đấu")</span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-start shadow-lg border-0 rounded-4 p-2 mt-0 nav-standard-dropdown" aria-labelledby="navPracticeDropdown" style="min-width: 300px;">
+                            <ul class="dropdown-menu dropdown-menu-start border rounded-3 p-2 mt-0 nav-standard-dropdown" aria-labelledby="navPracticeDropdown" style="min-width: 300px;">
                                 <li>
                                     <a class="dropdown-item category-shortcut-card p-2 rounded-3 mb-1 @(currentController == "Playground" ? "active" : "")"
                                        asp-controller="Playground" asp-action="Index">
@@ -351,7 +351,7 @@
                                href="#" id="navCommunityDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-people-fill me-1 text-warning"></i> <span data-lang-key="nav_community">@(isEn ? "Community" : "Cộng đồng")</span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-start shadow-lg border-0 rounded-4 p-2 mt-0 nav-standard-dropdown" aria-labelledby="navCommunityDropdown" style="min-width: 280px;">
+                            <ul class="dropdown-menu dropdown-menu-start border rounded-3 p-2 mt-0 nav-standard-dropdown" aria-labelledby="navCommunityDropdown" style="min-width: 280px;">
                                 <li>
                                     <a class="dropdown-item category-shortcut-card p-2 rounded-3 mb-1 @(currentController == "Leaderboard" ? "active" : "")"
                                        asp-controller="Leaderboard" asp-action="Index">
@@ -440,8 +440,8 @@
                                         0
                                     </span>
                                 </button>
-                                <div class="dropdown-menu dropdown-menu-end shadow-lg border rounded-4 p-0 mt-2 notification-menu" style="width: 360px; max-width: 92vw;">
-                                    <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-body-tertiary rounded-top-4">
+                                <div class="dropdown-menu dropdown-menu-end border rounded-3 p-0 mt-2 notification-menu" style="width: 360px; max-width: 92vw;">
+                                    <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-body-tertiary rounded-top-3">
                                         <div class="d-flex align-items-center gap-2">
                                             <h6 class="fw-bold mb-0"><i class="bi bi-bell-fill text-primary me-2"></i>@(isEn ? "Notifications" : "Thông báo")</h6>
                                             <span id="notificationUnreadPill" class="badge bg-danger rounded-pill d-none">0 @(isEn ? "new" : "mới")</span>
