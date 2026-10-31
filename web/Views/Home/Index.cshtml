@@ -11,12 +11,9 @@
     <div class="container">
         <!-- Punchy, Direct Header (Strict Typographic Standard) -->
         <div class="text-center mb-4">
-            <h1 class="hero-title mb-2">
+            <h1 class="hero-title mb-0">
                 @(isEn ? "Modern .NET & C# Engineering" : "Lập Trình .NET & C# Hiện Đại")
             </h1>
-            <p class="hero-subtitle mx-auto mb-0">
-                @(isEn ? "Introductory video, structured lessons, and hands-on coding practice." : "Video hướng dẫn nhập môn, giáo trình chuẩn hóa và bài tập thực hành.")
-            </p>
         </div>
 
         @if (User.Identity?.IsAuthenticated == true)
