@@ -125,6 +125,9 @@ public static class DbInitializer
         if (await context.Categories.AnyAsync())
         {
             // Seed Mock Users if not already populated (e.g. on existing database)
+            await AdditionalTutorialSeeder.SeedAdditionalTutorialsAsync(context);
+
+            // Seed Mock Users if not already populated (e.g. on existing database)
             await MockUserSeeder.SeedMockUsersAsync(context, roleManager, targetCount: 1000);
             return; // DB has been seeded
         }
@@ -1223,6 +1226,7 @@ builder.Services.AddSingleton<IMemoryCacheService, MemoryCacheService>();
         tutorials.AddRange(new[] { t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11 });
         context.Tutorials.AddRange(tutorials);
         await context.SaveChangesAsync();
+        await AdditionalTutorialSeeder.SeedAdditionalTutorialsAsync(context);
         #endregion
 
         #region Useful Code Snippets
@@ -1314,7 +1318,10 @@ public class UsersController : ControllerBase
         #endregion
 
         // Seed 1000 Mock Users on fresh DB initialization
-        await MockUserSeeder.SeedMockUsersAsync(context, roleManager, targetCount: 1000);
+        await AdditionalTutorialSeeder.SeedAdditionalTutorialsAsync(context);
+
+            // Seed Mock Users if not already populated (e.g. on existing database)
+            await MockUserSeeder.SeedMockUsersAsync(context, roleManager, targetCount: 1000);
     }
 
     private static async Task SeedCodingChallengesAsync(AppDbContext context)

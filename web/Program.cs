@@ -282,6 +282,14 @@ app.UseAuthorization();
 // Map Web API Controllers
 app.MapControllers();
 
+// Seed/Sync additional tutorials endpoint
+app.MapGet("/api/admin/seed-tutorials", async (AppDbContext db) =>
+{
+    await AdditionalTutorialSeeder.SeedAdditionalTutorialsAsync(db);
+    var count = await db.Tutorials.CountAsync();
+    return Results.Ok(new { message = "Seeded successfully", totalTutorials = count });
+});
+
 // Bilingual friendly routes for tutorials: /lessons/{slug}, /tutorials/{slug}, /bai-hoc/{slug}
 app.MapControllerRoute(
     name: "tutorial-slug-en",

@@ -17,7 +17,21 @@ public static class LocalizationHelper
         ["entity-framework-core-code-first-dbcontext-migrations"] = "ef-core-code-first-dbcontext-and-migrations",
         ["kien-truc-aspnet-core-mvc-programcs-middleware-controller"] = "aspnet-core-mvc-architecture-pipeline-controllers",
         ["xay-dung-restful-web-api-chuan-voi-aspnet-core"] = "building-restful-web-apis-with-aspnet-core",
-        ["dependency-injection-va-nguyen-ly-solid-trong-aspnet-core"] = "dependency-injection-and-solid-in-aspnet-core"
+        ["dependency-injection-va-nguyen-ly-solid-trong-aspnet-core"] = "dependency-injection-and-solid-in-aspnet-core",
+        ["phuong-thuc-va-tham-so-trong-csharp-ref-out-in-params"] = "csharp-methods-and-parameter-modifiers-ref-out-in-params",
+        ["xu-ly-ngoai-le-chuyen-sau-try-catch-exception-filters"] = "advanced-exception-handling-try-catch-exception-filters",
+        ["value-types-reference-types-struct-enum-nullable"] = "value-types-reference-types-struct-enum-nullable",
+        ["delegate-event-action-func-trong-csharp"] = "delegates-events-action-func-in-csharp",
+        ["modern-csharp-records-pattern-matching-switch-expressions"] = "modern-csharp-records-pattern-matching-switch-expressions",
+        ["quan-ly-bo-nho-gc-idisposable-span-memory"] = "memory-management-gc-idisposable-span-memory",
+        ["reflection-attributes-source-generators-csharp"] = "reflection-attributes-source-generators-in-csharp",
+        ["da-luong-song-song-task-parallel-library-channels-cancellation"] = "parallel-programming-tpl-channels-cancellation",
+        ["thiet-ke-quan-he-du-lieu-ef-core-fluent-api"] = "entity-relationships-ef-core-fluent-api",
+        ["toi-uu-truy-van-hieu-nang-ef-core-asnotracking-loading"] = "optimizing-ef-core-queries-asnotracking-split-queries",
+        ["transactions-concurrency-control-repository-pattern-ef-core"] = "transactions-concurrency-control-repository-pattern-ef-core",
+        ["minimal-apis-aspnet-core-high-performance-endpoints"] = "minimal-apis-in-aspnet-core-high-performance-endpoints",
+        ["xac-thuc-phan-quyen-aspnet-core-jwt-bearer-identity-rbac"] = "authentication-and-authorization-jwt-bearer-identity-rbac",
+        ["logging-caching-toi-uu-hieu-nang-web-api-serilog-redis"] = "logging-caching-performance-optimization-web-api-serilog-redis"
     };
 
     public static readonly Dictionary<string, string> ViToEnProjectSlugs = new(StringComparer.OrdinalIgnoreCase)
