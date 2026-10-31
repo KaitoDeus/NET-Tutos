@@ -318,6 +318,16 @@ app.MapControllerRoute(
     defaults: new { controller = "Project", action = "Details" });
 
 app.MapControllerRoute(
+    name: "streak-vi",
+    pattern: "chuoi-ngay-hoc",
+    defaults: new { controller = "Streak", action = "Index" });
+
+app.MapControllerRoute(
+    name: "streak-en",
+    pattern: "streak",
+    defaults: new { controller = "Streak", action = "Index" });
+
+app.MapControllerRoute(
     name: "interview-vi",
     pattern: "phong-van-csharp",
     defaults: new { controller = "Interview", action = "Index" });

@@ -1,0 +1,317 @@
+@model NET_Tutos.Models.ViewModels.StreakStatusViewModel
+@using NET_Tutos.Services
+@{
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "Learning Streak & Daily Check-in" : "Chuỗi Học Tập & Điểm Danh";
+}
+
+<div class="container py-4 py-md-5">
+    <!-- Header Section -->
+    <div class="text-center mb-4">
+        <div class="d-inline-flex align-items-center gap-2 mb-2">
+            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-2 px-2.5 py-1 fw-semibold" style="font-size: var(--text-xs);">
+                <i class="bi bi-fire text-danger me-1"></i> @(isEn ? "STREAK SYSTEM" : "HỆ THỐNG GIỮ LỬA")
+            </span>
+        </div>
+        <h1 class="hero-title mb-2">
+            @(isEn ? "Daily Learning Streak & Check-in" : "Chuỗi Học Tập & Điểm Danh Hàng Ngày")
+        </h1>
+        <p class="text-body-secondary mx-auto mb-0" style="max-width: 620px; font-size: var(--text-base);">
+            @(isEn 
+                ? "Cultivate disciplined C# & .NET engineering habits. Check in daily, solve coding challenges, and unlock milestone rewards." 
+                : "Xây dựng thói quen lập trình .NET kỷ luật mỗi ngày. Điểm danh đều đặn, giải bài tập C# và mở khóa các mốc huy hiệu vinh danh.")
+        </p>
+    </div>
+
+    <div class="row justify-content-center g-4">
+        <!-- Main Streak Spotlight Card -->
+        <div class="col-lg-8">
+            <div class="card border rounded-3 p-4 bg-body shadow-sm mb-4">
+                <div class="row g-4 align-items-center">
+                    <!-- Left: Streak Counter & Fire Visual -->
+                    <div class="col-md-5 text-center border-end-md pb-3 pb-md-0">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle border bg-body-tertiary mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-fire text-danger" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <div class="display-4 fw-bold text-body-emphasis mb-0" id="pageStreakCount">
+                            @Model.CurrentStreak
+                        </div>
+                        <div class="section-label mt-1 text-muted">
+                            @(isEn ? "Consecutive Days" : "Ngày Học Liên Tục")
+                        </div>
+                        <div class="mt-2 text-muted" style="font-size: var(--text-xs);">
+                            <i class="bi bi-award me-1 text-warning"></i>
+                            @(isEn ? $"Record: {Model.LongestStreak} days" : $"Kỷ lục cá nhân: {Model.LongestStreak} ngày")
+                        </div>
+                    </div>
+
+                    <!-- Right: Check-in Status & Action -->
+                    <div class="col-md-7">
+                        @if (!Model.IsAuthenticated)
+                        {
+                            <div class="text-center text-md-start">
+                                <h2 class="h5 fw-bold text-body-emphasis mb-2">
+                                    @(isEn ? "Sign in to start your streak" : "Đăng nhập để bắt đầu tính chuỗi")
+                                </h2>
+                                <p class="text-body-secondary mb-3" style="font-size: var(--text-sm);">
+                                    @(isEn 
+                                        ? "Create an account or sign in to track your learning journey, earn XP points, and preserve your daily streak." 
+                                        : "Đăng nhập tài khoản để hệ thống tự động ghi nhận thời gian học, tích lũy điểm kinh nghiệm XP và bảo lưu chuỗi ngày học của bạn.")
+                                </p>
+                                <div class="d-flex gap-2">
+                                    <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Streak" class="btn btn-primary rounded-2 px-3.5 py-2 fw-semibold" style="font-size: var(--text-nav);">
+                                        <i class="bi bi-box-arrow-in-right me-1.5"></i> @(isEn ? "Sign In" : "Đăng nhập ngay")
+                                    </a>
+                                    <a asp-controller="Account" asp-action="Register" class="btn btn-outline-secondary rounded-2 px-3.5 py-2 fw-semibold" style="font-size: var(--text-nav);">
+                                        @(isEn ? "Register" : "Đăng ký miễn phí")
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center text-md-start">
+                                @if (Model.HasCheckedInToday)
+                                {
+                                    <div class="d-flex align-items-center gap-2 mb-2 justify-content-center justify-content-md-start">
+                                        <span class="status-indicator-dot"></span>
+                                        <span class="fw-bold text-success" style="font-size: var(--text-md);">
+                                            @(isEn ? "You're all set for today!" : "Hôm nay bạn đã điểm danh thành công!")
+                                        </span>
+                                    </div>
+                                    <p class="text-body-secondary mb-3" style="font-size: var(--text-sm);">
+                                        @(isEn 
+                                            ? $"Streak preserved! You've checked in today and secured your consecutive record. Come back tomorrow for +{Model.NextRewardXp} XP." 
+                                            : $"Chuỗi ngày học đã được bảo toàn! Bạn đã điểm danh hôm nay và giữ vững kỷ lục. Hãy quay lại vào ngày mai để nhận tiếp +{Model.NextRewardXp} XP.")
+                                    </p>
+                                    <button class="btn btn-success rounded-2 px-4 py-2.5 fw-semibold w-100 w-md-auto text-white disabled" disabled style="font-size: var(--text-nav);">
+                                        <i class="bi bi-check-circle-fill me-1.5"></i> @(isEn ? "Checked In Today" : "Đã Điểm Danh Hôm Nay")
+                                    </button>
+                                }
+                                else
+                                {
+                                    <div class="d-flex align-items-center gap-2 mb-2 justify-content-center justify-content-md-start">
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-1 px-2 py-0.5" style="font-size: var(--text-2xs);">
+                                            @(isEn ? "PENDING" : "CHƯA ĐIỂM DANH")
+                                        </span>
+                                        <span class="fw-bold text-body-emphasis" style="font-size: var(--text-md);">
+                                            @(isEn ? "Keep your flame burning today!" : "Giữ ngọn lửa học tập của bạn hôm nay!")
+                                        </span>
+                                    </div>
+                                    <p class="text-body-secondary mb-3" style="font-size: var(--text-sm);">
+                                        @(isEn 
+                                            ? $"Check in now to earn +{Model.NextRewardXp} XP and extend your learning streak to {Model.CurrentStreak + 1} days." 
+                                            : $"Bấm điểm danh ngay để nhận +{Model.NextRewardXp} XP và nâng chuỗi học tập lên {Model.CurrentStreak + 1} ngày liên tục.")
+                                    </p>
+                                    <form id="formStreakCheckIn" method="post" asp-controller="Streak" asp-action="CheckIn">
+                                        @Html.AntiForgeryToken()
+                                        <button id="btnPageCheckIn" type="button" class="btn btn-warning rounded-2 px-4 py-2.5 fw-semibold w-100 w-md-auto text-dark shadow-sm" style="font-size: var(--text-nav);" onclick="doPageCheckIn()">
+                                            <span class="spinner-border spinner-border-sm d-none me-1.5" id="pageCheckInSpinner"></span>
+                                            <i class="bi bi-lightning-charge-fill text-danger me-1.5" id="pageCheckInIcon"></i>
+                                            <span id="pageCheckInBtnText">@(isEn ? $"Check in now (+{Model.NextRewardXp} XP)" : $"Điểm danh ngay (+{Model.NextRewardXp} XP)")</span>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Past 7 Days Progress Card -->
+            <div class="card border rounded-3 p-3.5 bg-body shadow-sm mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <span class="section-label">
+                        <i class="bi bi-calendar-check text-primary me-1"></i> @(isEn ? "Past 7 Days History" : "Lịch Sử 7 Ngày Gần Nhất")
+                    </span>
+                    <span class="text-primary font-monospace fw-semibold" style="font-size: var(--text-xs);">
+                        @(isEn ? $"+{Model.TotalXpEarnedFromStreaks} XP accumulated" : $"+{Model.TotalXpEarnedFromStreaks} XP đã tích lũy")
+                    </span>
+                </div>
+                <div class="row g-2 text-center">
+                    @foreach (var day in Model.Past7Days)
+                    {
+                        string dayLabel = isEn ? day.DayNameEn : day.DayName;
+                        <div class="col">
+                            <div class="p-2.5 rounded-2 border @(day.IsToday ? "border-primary bg-primary-subtle" : "bg-body-tertiary") h-100 d-flex flex-column align-items-center justify-content-between gap-1.5">
+                                <span class="fw-bold @(day.IsToday ? "text-primary" : "text-body-secondary")" style="font-size: var(--text-xs);">
+                                    @dayLabel
+                                </span>
+                                <div class="d-flex align-items-center justify-content-center rounded-circle @(day.IsCheckedIn ? "bg-success text-white" : "bg-secondary-subtle text-secondary")" style="width: 32px; height: 32px; font-size: 0.9rem;">
+                                    @if (day.IsCheckedIn)
+                                    {
+                                        <i class="bi bi-check-lg"></i>
+                                    }
+                                    else
+                                    {
+                                        <span style="font-size: 0.75rem;">·</span>
+                                    }
+                                </div>
+                                <span class="text-muted font-monospace" style="font-size: var(--text-2xs);">
+                                    @day.Date.ToString("dd/MM")
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Milestone Achievements -->
+            <div class="card border rounded-3 p-3.5 bg-body shadow-sm">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <span class="section-label">
+                        <i class="bi bi-trophy text-warning me-1"></i> @(isEn ? "Milestones & Badges" : "Cột Mốc Thưởng & Huy Hiệu")
+                    </span>
+                    <span class="text-muted" style="font-size: var(--text-xs);">
+                        @(isEn ? "Continuous discipline unlocks rewards" : "Học liên tục để mở khóa phần thưởng")
+                    </span>
+                </div>
+                <div class="d-flex flex-column gap-2">
+                    @foreach (var ms in Model.Milestones)
+                    {
+                        string title = isEn ? ms.TitleEn : ms.Title;
+                        <div class="d-flex align-items-center justify-content-between p-2.5 px-3 rounded-2 border @(ms.IsReached ? "border-success-subtle bg-success-subtle" : "bg-body-tertiary")">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="d-flex align-items-center justify-content-center rounded-2 @(ms.IsReached ? "bg-success text-white" : "bg-secondary-subtle text-secondary")" style="width: 38px; height: 38px;">
+                                    <i class="bi @(ms.IsReached ? "bi-check-circle-fill" : "bi-lock")" style="font-size: 1.15rem;"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold text-body-emphasis" style="font-size: var(--text-sm);">
+                                        @title
+                                    </div>
+                                    <div class="text-muted" style="font-size: var(--text-xs);">
+                                        @(isEn ? $"Requirement: {ms.Days} consecutive days" : $"Yêu cầu: {ms.Days} ngày liên tiếp")
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="badge @(ms.IsReached ? "bg-success text-white" : "bg-warning-subtle text-warning-emphasis border border-warning-subtle") rounded-1 px-2.5 py-1 font-monospace" style="font-size: var(--text-xs);">
+                                +@ms.BonusXp XP
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar: How Streaks Work & Quick Links -->
+        <div class="col-lg-4">
+            <div class="card border rounded-3 p-3.5 bg-body shadow-sm mb-4">
+                <h3 class="h6 fw-bold mb-3 text-body-emphasis d-flex align-items-center gap-2">
+                    <i class="bi bi-info-circle text-primary"></i> @(isEn ? "How Streaks Work" : "Quy Tắc Điểm Danh & Streak")
+                </h3>
+                <div class="d-flex flex-column gap-3" style="font-size: var(--text-sm);">
+                    <div class="d-flex gap-2.5">
+                        <i class="bi bi-1-circle-fill text-primary flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <span class="fw-semibold text-body-emphasis">@(isEn ? "Check-in Daily" : "Bấm nút Điểm danh:")</span>
+                            <span class="text-body-secondary d-block mt-0.5">
+                                @(isEn ? "Click check-in on this page or the top navigation flame badge once every 24 hours." : "Bấm nút điểm danh tại trang này hoặc qua biểu tượng ngọn lửa trên thanh menu mỗi 24 giờ.")
+                            </span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2.5">
+                        <i class="bi bi-2-circle-fill text-primary flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <span class="fw-semibold text-body-emphasis">@(isEn ? "Learn & Practice:" : "Học bài & Giải code:")</span>
+                            <span class="text-body-secondary d-block mt-0.5">
+                                @(isEn ? "Reading a tutorial, running code in Playground, or taking quizzes also counts as daily check-in." : "Hoàn thành bài học, chạy code trong Playground hoặc trả lời quiz trắc nghiệm đều tự động kích hoạt điểm danh.")
+                            </span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2.5">
+                        <i class="bi bi-3-circle-fill text-primary flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <span class="fw-semibold text-body-emphasis">@(isEn ? "Protect Your Flame:" : "Không ngắt quãng:")</span>
+                            <span class="text-body-secondary d-block mt-0.5">
+                                @(isEn ? "If 48 hours pass without learning, your streak resets to 0. Consistency builds mastery!" : "Nếu qua 48 giờ không có hoạt động học tập, chuỗi streak sẽ trở về 0. Hãy kiên trì từng ngày!")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border rounded-3 p-3.5 bg-body shadow-sm">
+                <h3 class="h6 fw-bold mb-2.5 text-body-emphasis">
+                    @(isEn ? "Quick Learning Actions" : "Lối Tắt Tiếp Tục Học")
+                </h3>
+                <div class="d-flex flex-column gap-2">
+                    <a asp-controller="Tutorials" asp-action="Index" class="btn btn-outline-secondary rounded-2 p-2 text-start d-flex align-items-center justify-content-between text-decoration-none" style="font-size: var(--text-sm);">
+                        <span class="text-body-emphasis"><i class="bi bi-journal-code text-primary me-2"></i> @(isEn ? "Browse 25 Lessons" : "Duyệt 25 Bài Học C#")</span>
+                        <i class="bi bi-chevron-right text-muted small"></i>
+                    </a>
+                    <a asp-controller="Playground" asp-action="Index" class="btn btn-outline-secondary rounded-2 p-2 text-start d-flex align-items-center justify-content-between text-decoration-none" style="font-size: var(--text-sm);">
+                        <span class="text-body-emphasis"><i class="bi bi-terminal text-success me-2"></i> @(isEn ? "Code in Playground" : "Sân Chơi Roslyn Sandbox")</span>
+                        <i class="bi bi-chevron-right text-muted small"></i>
+                    </a>
+                    <a asp-controller="Roadmap" asp-action="Index" class="btn btn-outline-secondary rounded-2 p-2 text-start d-flex align-items-center justify-content-between text-decoration-none" style="font-size: var(--text-sm);">
+                        <span class="text-body-emphasis"><i class="bi bi-signpost-split text-warning me-2"></i> @(isEn ? "4-Phase Roadmap" : "Lộ Trình Nghề Nghiệp")</span>
+                        <i class="bi bi-chevron-right text-muted small"></i>
+                    </a>
+                    <a asp-controller="Leaderboard" asp-action="Index" class="btn btn-outline-secondary rounded-2 p-2 text-start d-flex align-items-center justify-content-between text-decoration-none" style="font-size: var(--text-sm);">
+                        <span class="text-body-emphasis"><i class="bi bi-trophy text-danger me-2"></i> @(isEn ? "Hall of Fame" : "Bảng Xếp Hạng")</span>
+                        <i class="bi bi-chevron-right text-muted small"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function doPageCheckIn() {
+            const btn = document.getElementById('btnPageCheckIn');
+            const spinner = document.getElementById('pageCheckInSpinner');
+            const icon = document.getElementById('pageCheckInIcon');
+            const text = document.getElementById('pageCheckInBtnText');
+            const tokenInput = document.querySelector('#formStreakCheckIn input[name="__RequestVerificationToken"]');
+
+            if (!btn || btn.disabled) return;
+
+            btn.disabled = true;
+            spinner.classList.remove('d-none');
+            icon.classList.add('d-none');
+            text.textContent = '@(isEn ? "Recording..." : "Đang ghi nhận...")';
+
+            try {
+                const response = await fetch('/Streak/CheckIn', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': tokenInput ? tokenInput.value : ''
+                    },
+                    body: tokenInput ? `__RequestVerificationToken=${encodeURIComponent(tokenInput.value)}` : ''
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        // Reload page to reflect new streak status and 7-day progress
+                        window.location.reload();
+                    } else {
+                        alert(data.message || '@(isEn ? "Check-in failed" : "Điểm danh không thành công")');
+                        btn.disabled = false;
+                        spinner.classList.add('d-none');
+                        icon.classList.remove('d-none');
+                        text.textContent = '@(isEn ? "Check in now" : "Điểm danh ngay")';
+                    }
+                } else if (response.status === 401) {
+                    window.location.href = '/Account/Login?returnUrl=/Streak';
+                } else {
+                    alert('@(isEn ? "Network error. Please try again." : "Lỗi kết nối. Vui lòng thử lại.")');
+                    btn.disabled = false;
+                    spinner.classList.add('d-none');
+                    icon.classList.remove('d-none');
+                    text.textContent = '@(isEn ? "Check in now" : "Điểm danh ngay")';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('@(isEn ? "Network error. Please try again." : "Lỗi kết nối. Vui lòng thử lại.")');
+                btn.disabled = false;
+                spinner.classList.add('d-none');
+                icon.classList.remove('d-none');
+                text.textContent = '@(isEn ? "Check in now" : "Điểm danh ngay")';
+            }
+        }
+    </script>
+}

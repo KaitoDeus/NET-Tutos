@@ -20,6 +20,14 @@ public class StreakController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        var userId = _userManager.GetUserId(User);
+        var status = await _streakService.GetUserStreakStatusAsync(userId);
+        return View(status);
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Status()
     {
         var userId = _userManager.GetUserId(User);
