@@ -220,7 +220,7 @@ The WebApp exposes dedicated JSON endpoints under `/api/mobile/` consumed by the
 
 ### Running with Docker Compose (Recommended)
 
-Launch the full-stack ecosystem including ASP.NET Core 10 Web App, PostgreSQL 17, and pgAdmin 4:
+Launch the full-stack ecosystem including ASP.NET Core 10 Web App and PostgreSQL 17:
 
 1. **Start all services in background:**
    ```bash
@@ -230,7 +230,6 @@ Launch the full-stack ecosystem including ASP.NET Core 10 Web App, PostgreSQL 17
 2. **Access applications:**
    - **Web Application & Swagger UI**: [http://localhost:5000](http://localhost:5000)
    - **PostgreSQL Database**: `localhost:5432` (`Database: nettutos_db`, `User: postgres`, `Pass: postgres`)
-   - **pgAdmin 4 Web GUI**: [http://localhost:5050](http://localhost:5050) (`admin@nettutos.com` / `admin`)
 
 3. **Run only PostgreSQL database for local .NET development:**
    ```powershell

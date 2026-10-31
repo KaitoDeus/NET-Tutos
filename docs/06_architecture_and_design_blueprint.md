@@ -18,7 +18,7 @@ The project is structured according to the modern `.NET 10 Solution` specificati
 ```text
 d:\NET-Tutos\
 ├── 📄 NET-Tutos.slnx                  # Modern .NET 10 XML solution file (clean, lightweight)
-├── 📄 docker-compose.yml              # Multi-container orchestration (PostgreSQL 17, Web App, pgAdmin 4)
+├── 📄 docker-compose.yml              # Multi-container orchestration (PostgreSQL 17 & Web App)
 ├── 📄 Dockerfile                      # Multi-stage production build for ASP.NET Core 10 Web App
 ├── 📄 README.md                       # Comprehensive repository guide and quickstart manual
 ├── 📄 .gitignore                      # Standardized Git exclusion rules for .NET / C# / Visual Studio

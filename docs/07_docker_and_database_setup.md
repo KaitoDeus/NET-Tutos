@@ -31,10 +31,6 @@ graph TD
             PostgresDB[("PostgreSQL 17 Alpine<br/>Database: nettutos_db<br/>31 Relational Tables")]
         end
 
-        subgraph PgAdminContainer ["Container: nettutos-pgadmin"]
-            PgAdmin["pgAdmin 4 Web GUI<br/>Port: 5050"]
-        end
-
         Volume[("Volume: postgres_data")]
     end
 
@@ -42,7 +38,6 @@ graph TD
     VSCode -->|Port 5432 / Trust Auth| PostgresDB
     DotnetLocal -->|Host=localhost:5432| PostgresDB
     WebApp -->|Host=postgres:5432| PostgresDB
-    PgAdmin -->|Host=postgres:5432| PostgresDB
     PostgresDB --- Volume
 ```
 
@@ -50,13 +45,12 @@ graph TD
 
 ## 2. Service Specifications in `docker-compose.yml`
 
-The deployment environment orchestrates three tightly integrated services defined in [`docker-compose.yml`](file:///d:/NET-Tutos/docker-compose.yml):
+The deployment environment orchestrates two tightly integrated services defined in [`docker-compose.yml`](file:///d:/NET-Tutos/docker-compose.yml):
 
 | Service Name | Image / Build Target | Port Mapping (Host:Container) | Role & Operational Configuration |
 | :--- | :--- | :--- | :--- |
 | **`postgres`** | `postgres:17-alpine` | `5432:5432` | Core relational persistence engine. Durable storage backed by `postgres_data` volume. Built-in `pg_isready` healthcheck. |
 | **`web`** | `build: . (Dockerfile)` | `5000:5000` | Flagship ASP.NET Core 10 MVC application & Mobile Web APIs. Automatically waits until `postgres` becomes healthy before starting. |
-| **`pgadmin`** | `dpage/pgadmin4:latest` | `5050:80` | Official PostgreSQL visual web administration tool (Default credentials: `admin@nettutos.com` / `admin`). |
 
 ---
 
@@ -96,7 +90,6 @@ docker compose up -d
 ```
 - **Web Application & Swagger UI**: [http://localhost:5000](http://localhost:5000)
 - **PostgreSQL Database Endpoint**: `localhost:5432` (`Database: nettutos_db`, `User: postgres`, `Pass: postgres`)
-- **pgAdmin 4 Web GUI**: [http://localhost:5050](http://localhost:5050)
 
 To stop all services:
 ```bash

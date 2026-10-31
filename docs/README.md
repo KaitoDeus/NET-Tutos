@@ -82,7 +82,7 @@ d:\NET-Tutos\docs\
    - Wireframe layout architecture (Playground Monaco IDE, Markdown reader, MAUI mobile tab navigation).
 
 7. [**07. PostgreSQL 17 & Docker Compose Infrastructure**](file:///d:/NET-Tutos/docs/07_docker_and_database_setup.md)
-   - Multi-container topology (PostgreSQL 17 Alpine, ASP.NET Core 10 Web App, pgAdmin 4).
+   - Multi-container topology (PostgreSQL 17 Alpine and ASP.NET Core 10 Web App).
    - `Npgsql.EntityFrameworkCore.PostgreSQL` 10 configuration, connection strings, and resilient SQLite fallback.
    - 31 database tables specification and seed data initialization.
    - Operations guide (`docker compose up -d`) and VS Code Database Client / SQLTools configuration.
