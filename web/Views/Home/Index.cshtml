@@ -6,446 +6,181 @@
     ViewData["Title"] = isEn ? "Home" : "Trang chủ";
 }
 
-<!-- Hero Section (Developer Tool Standard) -->
-<section class="hero-learn-dotnet mb-5">
+<!-- Minimalist Hero Section (Developer Tool Standard) -->
+<section class="py-4 py-md-5 border-bottom">
     <div class="container">
-        <!-- Eyebrow Badge & Centered Header -->
-        <div class="text-center mb-4 mb-md-5">
-            <div class="d-inline-flex align-items-center gap-2 mb-3">
-                <span class="badge border bg-body-tertiary text-body-secondary px-3 py-1.5 rounded-2 small fw-semibold font-monospace">
-                    <span class="status-indicator-dot"></span> .NET 10 & C# 14 Ecosystem
-                </span>
-                <span class="badge border bg-primary bg-opacity-10 text-primary px-2.5 py-1.5 rounded-2 small fw-semibold font-monospace d-none d-sm-inline-flex">
-                    <kbd class="kbd-badge me-1">Ctrl</kbd><kbd class="kbd-badge">K</kbd> Quick Search
-                </span>
-            </div>
-            <h1 class="hero-title fw-extrabold mb-2 mb-md-3">
-                @(isEn ? "Master Modern .NET Engineering" : "Làm Chủ Kỹ Thuật Lập Trình .NET")
+        <!-- Punchy, Direct Header (No Clutter, No Sub-labels) -->
+        <div class="text-center mb-4">
+            <h1 class="hero-title fw-extrabold mb-2 text-body-emphasis">
+                @(isEn ? "Modern .NET & C# Engineering" : "Lập Trình .NET & C# Hiện Đại")
             </h1>
-            <p class="hero-lead text-body-secondary mx-auto" style="max-width: 800px;">
-                @(isEn ? "Curated tutorials, Roslyn-powered code sandboxes, interactive AI mock interviews, and enterprise roadmaps engineered for modern developers." : "Khóa học chuẩn hóa, sân chơi code Roslyn trực tuyến, phỏng vấn thử nghiệm AI và lộ trình phát triển ứng dụng từ cơ bản đến kiến trúc doanh nghiệp.")
+            <p class="text-body-secondary mx-auto mb-3" style="max-width: 580px; font-size: 1.05rem;">
+                @(isEn ? "Hands-on tutorials, in-browser Roslyn sandbox, and production roadmaps." : "Khóa học chuẩn hóa, sân chơi Roslyn trực tuyến và bài tập thực chiến.")
             </p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a asp-controller="Tutorials" asp-action="Index" class="btn btn-primary rounded-2 px-3 py-2 fw-semibold">
+                    @(isEn ? "Start Learning" : "Bắt đầu học ngay") <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+                <a asp-controller="Playground" asp-action="Index" class="btn btn-outline-secondary rounded-2 px-3 py-2 fw-semibold font-monospace">
+                    <i class="bi bi-terminal me-1"></i> Playground
+                </a>
+            </div>
         </div>
 
         @if (User.Identity?.IsAuthenticated == true)
         {
-            <div class="row justify-content-center mb-4">
-                <div class="col-xl-11">
-                    <div class="card border rounded-3 p-3 p-md-3.5 bg-body-tertiary">
-                        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="rounded-2 bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
-                                    <i class="bi bi-terminal fs-5"></i>
-                                </div>
-                                <div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <h5 class="fw-bold mb-0">@(isEn ? "Welcome" : "Xin chào"), @(User.Identity.Name?.Split('@')[0] ?? (isEn ? "Learner" : "Học viên"))!</h5>
-                                        <span class="badge bg-warning bg-opacity-15 text-warning-emphasis border border-warning border-opacity-25 rounded-2 fw-semibold font-monospace">
-                                            <i class="bi bi-lightning-charge-fill me-1"></i>@(Model.UserExperiencePoints ?? 0) XP
-                                        </span>
-                                    </div>
-                                    <p class="text-body-secondary small mb-0 mt-0.5">
-                                        @(isEn ? "You have completed" : "Bạn đã hoàn thành") <strong class="text-body-emphasis">@(Model.CompletedLessonsCount ?? 0)</strong> @(isEn ? "lessons in your curriculum." : "bài học trên hệ thống.")
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center gap-2 flex-wrap">
-                                @if (Model.LastAccessedTutorial != null)
-                                {
-                                    <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@Model.LastAccessedTutorial.GetSlug(isEn)" 
-                                       class="btn btn-sm btn-primary rounded-2 px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-2 text-truncate" style="max-width: 320px;">
-                                        <i class="bi bi-play-circle-fill"></i>
-                                        <span class="text-truncate">@(isEn ? "Continue:" : "Học tiếp:") @Model.LastAccessedTutorial.GetTitle(isEn)</span>
-                                    </a>
-                                }
-                                <a asp-controller="Account" asp-action="Profile" class="btn btn-sm btn-outline-secondary rounded-2 px-3 py-1.5 fw-semibold">
-                                    <i class="bi bi-person-lines-fill me-1"></i> @(isEn ? "Dashboard" : "Góc học tập")
-                                </a>
-                            </div>
+            <div class="row justify-content-center mb-3">
+                <div class="col-xl-10">
+                    <div class="d-flex align-items-center justify-content-between p-2.5 px-3 rounded-2 border bg-body-tertiary">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="status-indicator-dot"></span>
+                            <span class="small fw-semibold text-body-emphasis">@(isEn ? "Welcome back" : "Xin chào"), @(User.Identity.Name?.Split('@')[0])!</span>
+                            <span class="text-muted small">· @(Model.CompletedLessonsCount ?? 0) @(isEn ? "lessons completed" : "bài hoàn thành")</span>
                         </div>
+                        @if (Model.LastAccessedTutorial != null)
+                        {
+                            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@Model.LastAccessedTutorial.GetSlug(isEn)" 
+                               class="btn btn-xs btn-outline-primary rounded-1 px-2.5 py-1 small fw-semibold text-truncate" style="max-width: 280px;">
+                                <i class="bi bi-play-fill"></i> @(isEn ? "Resume:" : "Học tiếp:") @Model.LastAccessedTutorial.GetTitle(isEn)
+                            </a>
+                        }
                     </div>
                 </div>
             </div>
         }
 
-        <!-- Spotlight Showcase: Code-First Interactive Sandbox Preview -->
+        <!-- Interactive C# 14 Code Terminal Showcase -->
         <div class="row justify-content-center">
-            <div class="col-xl-11">
-                <div class="card spotlight-card border overflow-hidden">
-                    <div class="card-body p-3 p-md-4 p-lg-4.5">
-                        <div class="row g-4 g-lg-5 align-items-center">
-                            <!-- Left: Authentic C# 14 Code Window (Code-First) -->
-                            <div class="col-lg-6">
-                                <div class="dev-code-window">
-                                    <div class="dev-code-window-header">
-                                        <div class="dev-code-dots">
-                                            <span class="dev-code-dot close"></span>
-                                            <span class="dev-code-dot minimize"></span>
-                                            <span class="dev-code-dot maximize"></span>
-                                        </div>
-                                        <span class="dev-code-title">Program.cs — Modern C# 14</span>
-                                        <span class="dev-code-pill">Roslyn .NET 10</span>
-                                    </div>
-                                    <pre class="dev-code-body"><code><span class="text-secondary">// 1. Strongly typed domain model</span>
-<span class="text-primary">public record</span> <span class="text-warning">Learner</span>(<span class="text-info">string</span> Name, <span class="text-info">int</span> XP, <span class="text-info">int</span> StreakDays);
-
-<span class="text-secondary">// 2. Pattern matching evaluation</span>
-<span class="text-primary">var</span> engineer = <span class="text-primary">new</span> <span class="text-warning">Learner</span>(<span class="text-success">"Alex Miller"</span>, 350, 5);
-
-<span class="text-info">string</span> milestone = engineer <span class="text-primary">switch</span>
-{
-    { StreakDays: &gt;= 5, XP: &gt; 300 } =&gt; <span class="text-success">"🔥 Active Streak + Level 3 Unlocked"</span>,
-    { XP: &gt; 100 }                   =&gt; <span class="text-success">"⭐ Junior Scholar Badge"</span>,
-    _                               =&gt; <span class="text-success">"🚀 Ready to Code"</span>
-};
-
-Console.WriteLine($<span class="text-success">"Status: {milestone}"</span>);</code></pre>
-                                    <div class="px-3 py-2 bg-dark border-top border-secondary border-opacity-25 d-flex align-items-center justify-content-between">
-                                        <span class="text-secondary small font-monospace">Output: Status: 🔥 Active Streak + Level 3 Unlocked</span>
-                                        <a asp-controller="Playground" asp-action="Index" class="btn btn-xs btn-outline-light rounded-1 px-2 py-1 font-monospace" style="font-size: 0.725rem;">
-                                            <i class="bi bi-play-fill text-success"></i> Run (Ctrl+Enter)
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Right: Structured Information & Direct Technical Actions -->
-                            <div class="col-lg-6">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge border bg-body-tertiary text-primary rounded-1 font-monospace small px-2 py-1">
-                                        .NET ARCHITECTURE
-                                    </span>
-                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-muted small d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#videoModal">
-                                        <i class="bi bi-play-circle text-danger"></i> @(isEn ? "Watch Overview Video" : "Xem video giới thiệu")
-                                    </button>
-                                </div>
-
-                                <h2 class="h3 fw-bold text-body-emphasis mb-2">
-                                    @(isEn ? "The Modern C# & .NET Platform" : "Nền Tảng C# & .NET Hiện Đại")
-                                </h2>
-
-                                <p class="text-body-secondary small mb-3">
-                                    @(isEn ? ".NET is an open-source, cross-platform developer platform by Microsoft for building cloud-native web APIs, high-performance microservices, mobile apps with .NET MAUI, and AI-enabled workloads." : ".NET là nền tảng mã nguồn mở, đa nền tảng hiệu năng cao của Microsoft phục vụ xây dựng Web API cloud-native, microservices, ứng dụng di động .NET MAUI và hệ thống tích hợp trí tuệ nhân tạo.")
-                                </p>
-
-                                <div class="d-flex flex-column gap-2 mb-3">
-                                    <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@(isEn ? "dotnet-ecosystem-overview-and-environment-setup" : "tong-quan-he-sinh-thai-dotnet-cai-dat-moi-truong")"
-                                       class="text-decoration-none d-flex align-items-center justify-content-between p-2 rounded-2 border bg-body-tertiary text-body-emphasis hover-border-primary">
-                                        <span class="small fw-semibold"><i class="bi bi-file-earmark-code text-primary me-2"></i>@(isEn ? "Lesson 1: Ecosystem Overview & SDK Setup" : "Bài 1: Tổng quan Hệ sinh thái & Cài đặt SDK")</span>
-                                        <i class="bi bi-arrow-right text-muted small"></i>
-                                    </a>
-                                    <a asp-controller="Playground" asp-action="Index"
-                                       class="text-decoration-none d-flex align-items-center justify-content-between p-2 rounded-2 border bg-body-tertiary text-body-emphasis hover-border-primary">
-                                        <span class="small fw-semibold"><i class="bi bi-terminal text-success me-2"></i>@(isEn ? "Interactive Playground: Roslyn C# Code Sandbox" : "Sân chơi Code: Biên dịch C# với Roslyn Sandbox")</span>
-                                        <i class="bi bi-arrow-right text-muted small"></i>
-                                    </a>
-                                    <a asp-controller="Roadmap" asp-action="Index"
-                                       class="text-decoration-none d-flex align-items-center justify-content-between p-2 rounded-2 border bg-body-tertiary text-body-emphasis hover-border-primary">
-                                        <span class="small fw-semibold"><i class="bi bi-signpost-split text-info me-2"></i>@(isEn ? "4-Stage Learning Path: Fundamentals to Enterprise" : "Lộ trình 4 giai đoạn: Từ Cơ bản đến Doanh nghiệp")</span>
-                                        <i class="bi bi-arrow-right text-muted small"></i>
-                                    </a>
-                                </div>
-
-                                <div class="pt-2 border-top d-flex align-items-center justify-content-between flex-wrap gap-2 text-muted small">
-                                    <span class="d-inline-flex align-items-center gap-1.5 font-monospace" style="font-size: 0.775rem;">
-                                        <span class="status-indicator-dot"></span>
-                                        <span>@(isEn ? "DB Provider:" : "CSDL:") <strong class="text-body-emphasis">@(isEn ? Model.DatabaseProviderUsedEn : Model.DatabaseProviderUsed)</strong></span>
-                                    </span>
-                                    <div class="d-flex gap-1.5">
-                                        <a asp-controller="CheatSheet" asp-action="Index" class="btn btn-xs btn-outline-secondary rounded-1 px-2 py-1 font-monospace" style="font-size: 0.75rem;">
-                                            <i class="bi bi-code-square me-1"></i> CheatSheet
-                                        </a>
-                                        <a asp-controller="Interview" asp-action="Index" class="btn btn-xs btn-outline-secondary rounded-1 px-2 py-1 font-monospace" style="font-size: 0.75rem;">
-                                            <i class="bi bi-chat-square-quote me-1"></i> AI Interview
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+            <div class="col-xl-10">
+                <div class="dev-code-window">
+                    <div class="dev-code-window-header">
+                        <div class="dev-code-dots">
+                            <span class="dev-code-dot close"></span>
+                            <span class="dev-code-dot minimize"></span>
+                            <span class="dev-code-dot maximize"></span>
+                        </div>
+                        <span class="dev-code-title">Program.cs</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="dev-code-pill">C# 14 · .NET 10</span>
+                            <a asp-controller="Playground" asp-action="Index" class="btn btn-xs btn-outline-light rounded-1 px-2 py-0.5 font-monospace" style="font-size: 0.725rem;">
+                                <i class="bi bi-play-fill text-success"></i> Run (Ctrl+Enter)
+                            </a>
                         </div>
                     </div>
+                    <pre class="dev-code-body mb-0"><code><span class="text-primary">var</span> curriculum = <span class="text-primary">new</span> <span class="text-warning">Curriculum</span>(Name: <span class="text-success">"Enterprise .NET"</span>, Stages: 4);
+
+<span class="text-primary">await foreach</span> (<span class="text-primary">var</span> stage <span class="text-primary">in</span> curriculum.GetTracksAsync())
+{
+    Console.WriteLine($<span class="text-success">"[{stage.Index}] {stage.Title} -> {stage.LessonsCount} lessons"</span>);
+}
+
+<span class="text-secondary">// Output:</span>
+<span class="text-success">// [1] C# & .NET Cơ bản -> 25 lessons</span>
+<span class="text-success">// [2] OOP & C# Nâng cao -> 30 lessons</span>
+<span class="text-success">// [3] Entity Framework Core -> 22 lessons</span>
+<span class="text-success">// [4] ASP.NET Core & Web API -> 24 lessons</span></code></pre>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Video Modal (Clean Developer Modal) -->
-<div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content rounded-3 border bg-dark text-white">
-            <div class="modal-header border-secondary border-opacity-25 pb-2">
-                <h6 class="modal-title fw-bold font-monospace" id="videoModalLabel">
-                    <i class="bi bi-play-circle-fill text-danger me-2"></i>@(isEn ? "What is .NET? (Microsoft Official Guide)" : ".NET là gì? (Tài liệu chính thức Microsoft)")
-                </h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-2">
-                <div class="ratio ratio-16x9 rounded-2 overflow-hidden border border-secondary border-opacity-25">
-                    <iframe id="videoIframe" src="https://www.youtube.com/embed/6BcPIvVfVAw?enablejsapi=1" title="@(isEn ? ".NET for Beginners" : ".NET cho người mới bắt đầu")" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                </div>
-            </div>
-            <div class="modal-footer border-secondary border-opacity-25 pt-2 d-flex justify-content-between align-items-center">
-                <a href="https://www.youtube.com/watch?v=6BcPIvVfVAw" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary font-monospace" style="font-size: 0.8rem;">
-                    <i class="bi bi-youtube text-danger me-1"></i> YouTube
-                </a>
-                <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@(isEn ? "dotnet-ecosystem-overview-and-environment-setup" : "tong-quan-he-sinh-thai-dotnet-cai-dat-moi-truong")" class="btn btn-sm btn-primary rounded-2 fw-semibold">
-                    @(isEn ? "Open Lesson 1" : "Mở Bài 1") <i class="bi bi-arrow-right ms-1"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- High-Density Metrics Bar -->
-<div class="container mb-5">
-    <div class="row g-3 text-center">
-        <div class="col-6 col-md-3">
-            <div class="p-3 rounded-2 bg-body-tertiary border">
-                <div class="fs-3 fw-bold text-body-emphasis mb-0 font-monospace">@Model.TotalCategories</div>
-                <div class="text-body-secondary small">@(isEn ? "Mastery Tracks" : "Chuyên đề cốt lõi")</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="p-3 rounded-2 bg-body-tertiary border">
-                <div class="fs-3 fw-bold text-body-emphasis mb-0 font-monospace">@Model.TotalTutorials</div>
-                <div class="text-body-secondary small">@(isEn ? "Handcrafted Lessons" : "Bài giảng chi tiết")</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="p-3 rounded-2 bg-body-tertiary border">
-                <div class="fs-3 fw-bold text-body-emphasis mb-0 font-monospace">@Model.TotalQuizzes</div>
-                <div class="text-body-secondary small">@(isEn ? "Assessment Quizzes" : "Câu hỏi kiểm tra")</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="p-3 rounded-2 bg-body-tertiary border">
-                <div class="fs-3 fw-bold text-success mb-0 font-monospace">100%</div>
-                <div class="text-body-secondary small">@(isEn ? "Production .NET 10" : "Mã nguồn chuẩn .NET 10")</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 4-Stage Mastery Roadmap Section -->
-<section class="container mb-5">
-    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-end gap-2 mb-4">
-        <div>
-            <h2 class="h4 fw-bold mb-1">@(isEn ? "4-Stage Learning Roadmap" : "Lộ Trình Học 4 Giai Đoạn")</h2>
-            <p class="text-body-secondary small mb-0">@(isEn ? "Progressively build competence from fundamentals to cloud architecture" : "Xây dựng năng lực lập trình từ cơ bản đến kiến trúc đám mây")</p>
-        </div>
-        <a asp-controller="Roadmap" asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-2">
-            @(isEn ? "View full roadmap" : "Xem lộ trình chi tiết") <i class="bi bi-arrow-right ms-1"></i>
+<!-- Sleek Roadmap Stage Grid (Minimal, No Description Clutter) -->
+<section class="container py-4 my-2">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h5 fw-bold mb-0 text-body-emphasis">
+            @(isEn ? "Curriculum Roadmap" : "Lộ Trình Học")
+        </h2>
+        <a asp-controller="Roadmap" asp-action="Index" class="small text-muted text-decoration-none">
+            @(isEn ? "View all tracks" : "Xem tất cả") <i class="bi bi-chevron-right"></i>
         </a>
     </div>
 
-    <div class="row g-3">
+    <div class="row g-2.5">
         @foreach (var cat in Model.Categories)
         {
             <div class="col-md-6 col-lg-3">
-                <div class="card h-100 rounded-3 border bg-body p-3.5 hover-border-primary transition-colors">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="badge border bg-body-tertiary text-body-secondary rounded-1 font-monospace small px-2 py-1">
-                            @LocalizationHelper.GetDifficultyName(cat.Level, isEn)
-                        </span>
-                        <div class="fs-4 text-primary">
+                <a asp-controller="Tutorials" asp-action="Index" asp-route-category="@cat.GetSlug(isEn)" 
+                   class="card h-100 rounded-2 border p-3 bg-body text-decoration-none hover-border-primary transition-colors d-flex flex-column justify-content-between">
+                    <div class="d-flex align-items-center gap-2.5 mb-2">
+                        <div class="text-primary fs-5">
                             <i class="bi @cat.IconClass"></i>
                         </div>
+                        <h6 class="fw-bold mb-0 text-body-emphasis">@cat.GetTitle(isEn)</h6>
                     </div>
-                    <h6 class="fw-bold mb-1 text-body-emphasis">@cat.GetTitle(isEn)</h6>
-                    <p class="text-body-secondary small flex-grow-1 mb-3" style="font-size: 0.8125rem; line-height: 1.5;">@cat.GetDesc(isEn)</p>
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-auto">
-                        <span class="text-muted small font-monospace" style="font-size: 0.775rem;">
-                            <i class="bi bi-file-earmark-text me-1"></i>@cat.Tutorials.Count @(isEn ? "lessons" : "bài học")
-                        </span>
-                        <a asp-controller="Tutorials" asp-action="Index" asp-route-category="@cat.GetSlug(isEn)" class="btn btn-xs btn-outline-primary rounded-1 px-2 py-1 fw-semibold font-monospace" style="font-size: 0.75rem;">
-                            @(isEn ? "Open Track" : "Vào học") <i class="bi bi-chevron-right"></i>
-                        </a>
+                    <div class="d-flex align-items-center justify-content-between text-muted small pt-2 border-top">
+                        <span class="font-monospace" style="font-size: 0.8rem;">@cat.Tutorials.Count @(isEn ? "lessons" : "bài học")</span>
+                        <i class="bi bi-arrow-right text-primary"></i>
                     </div>
-                </div>
+                </a>
             </div>
         }
     </div>
 </section>
 
-<!-- Featured Tutorials -->
-<section class="container mb-5">
-    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-end gap-2 mb-4">
-        <div>
-            <h2 class="h4 fw-bold mb-1">@(isEn ? "Core Technical Tutorials" : "Bài Hướng Dẫn Cốt Lõi")</h2>
-            <p class="text-body-secondary small mb-0">@(isEn ? "In-depth engineering guides covering modern C#, EF Core, and Web API" : "Các bài học chuyên sâu về C# hiện đại, EF Core và Web API")</p>
-        </div>
-        <a asp-controller="Tutorials" asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-2">
-            @(isEn ? "Browse all 101 lessons" : "Xem tất cả 101 bài học") <i class="bi bi-arrow-right ms-1"></i>
+<!-- Featured Technical Guides (Minimal Card Grid) -->
+<section class="container py-4 my-2">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h5 fw-bold mb-0 text-body-emphasis">
+            @(isEn ? "Featured Guides" : "Bài Hướng Dẫn Nổi Bật")
+        </h2>
+        <a asp-controller="Tutorials" asp-action="Index" class="small text-muted text-decoration-none">
+            @(isEn ? "All 101 lessons" : "Tất cả 101 bài") <i class="bi bi-chevron-right"></i>
         </a>
     </div>
 
-    <div class="row g-3">
+    <div class="row g-2.5">
         @foreach (var item in Model.FeaturedTutorials)
         {
             <div class="col-md-6 col-lg-4">
-                <div class="card h-100 rounded-3 border bg-body hover-border-primary transition-colors">
-                    <div class="card-body p-3.5 d-flex flex-column">
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge border bg-body-tertiary text-primary rounded-1 small font-monospace">@item.Category.GetTitle(isEn)</span>
-                            <span class="text-muted small font-monospace ms-auto" style="font-size: 0.75rem;">
-                                <i class="bi bi-clock me-1"></i>@item.EstimatedReadingMinutes @(isEn ? "min read" : "phút")
-                            </span>
+                <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.GetSlug(isEn)" 
+                   class="card h-100 rounded-2 border p-3 bg-body text-decoration-none hover-border-primary transition-colors d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between text-muted small mb-1.5" style="font-size: 0.775rem;">
+                            <span class="text-primary font-monospace">@item.Category.GetTitle(isEn)</span>
+                            <span>@item.EstimatedReadingMinutes @(isEn ? "min read" : "phút đọc")</span>
                         </div>
-                        <h6 class="card-title fw-bold mb-2">
-                            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.GetSlug(isEn)" class="text-decoration-none text-body-emphasis">
-                                @item.GetTitle(isEn)
-                            </a>
-                        </h6>
-                        <p class="card-text text-body-secondary small flex-grow-1 mb-3" style="font-size: 0.825rem; line-height: 1.55;">
+                        <h6 class="fw-bold mb-1.5 text-body-emphasis">@item.GetTitle(isEn)</h6>
+                        <p class="text-body-secondary small mb-0 text-truncate-2" style="font-size: 0.825rem; line-height: 1.5;">
                             @item.GetSummary(isEn)
                         </p>
-                        <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-auto">
-                            <span class="badge bg-body-tertiary text-body-secondary border rounded-1 font-monospace" style="font-size: 0.725rem;">
-                                @LocalizationHelper.GetDifficultyName(item.Difficulty, isEn)
-                            </span>
-                            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.GetSlug(isEn)" class="btn btn-xs btn-link text-decoration-none p-0 fw-semibold text-primary" style="font-size: 0.8rem;">
-                                @(isEn ? "Read Guide" : "Đọc bài") <i class="bi bi-arrow-right ms-0.5"></i>
-                            </a>
-                        </div>
                     </div>
-                </div>
+                </a>
             </div>
         }
     </div>
 </section>
 
-<!-- Community Activity Pulse Section -->
+<!-- Recent Community Activity (Compact List, No Clutter) -->
 @if (Model.RecentActivities.Any())
 {
-    <section class="container mb-5">
-        <div class="card border rounded-3 bg-body-tertiary p-3.5 p-md-4">
-            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-3">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge border bg-body text-primary p-2 rounded-2">
-                        <i class="bi bi-activity fs-6"></i>
-                    </span>
-                    <div>
-                        <h5 class="fw-bold mb-0">@(isEn ? "Community Activity Pulse" : "Nhịp Đập Hoạt Động Cộng Đồng")</h5>
-                        <span class="text-body-secondary small">@(isEn ? "Real-time updates on active learners' milestones" : "Cập nhật thời gian thực thành tựu của học viên")</span>
+    <section class="container py-3 my-2 mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-2.5">
+            <h2 class="h6 fw-bold mb-0 text-body-secondary text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                <i class="bi bi-activity text-primary me-1"></i> @(isEn ? "Recent Activity" : "Hoạt Động Gần Đây")
+            </h2>
+            <a asp-controller="Activity" asp-action="Index" class="small text-muted text-decoration-none" style="font-size: 0.775rem;">
+                @(isEn ? "View all" : "Xem tất cả") <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+        <div class="border rounded-2 bg-body overflow-hidden">
+            @foreach (var act in Model.RecentActivities.Take(4))
+            {
+                <div class="d-flex align-items-center justify-content-between p-2.5 px-3 border-bottom last-border-0 gap-2">
+                    <div class="d-flex align-items-center gap-2 min-w-0">
+                        <i class="bi @act.IconClass text-primary small"></i>
+                        <span class="small fw-semibold text-body-emphasis text-truncate">@act.UserDisplayName</span>
+                        <span class="small text-muted text-truncate d-none d-sm-inline">@act.GetActivityTitle(isEn)</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                        @if (act.XpEarned > 0)
+                        {
+                            <span class="text-warning-emphasis font-monospace small" style="font-size: 0.75rem;">+@act.XpEarned XP</span>
+                        }
+                        <span class="text-muted font-monospace small" style="font-size: 0.725rem;">@act.GetActivityTimeAgo(isEn)</span>
                     </div>
                 </div>
-                <a asp-controller="Activity" asp-action="Index" class="btn btn-xs btn-outline-secondary rounded-2 px-2.5 py-1 font-monospace" style="font-size: 0.8rem;">
-                    @(isEn ? "View all" : "Xem tất cả") <i class="bi bi-arrow-right ms-1"></i>
-                </a>
-            </div>
-
-            <div class="row g-2.5">
-                @foreach (var act in Model.RecentActivities)
-                {
-                    <div class="col-md-6">
-                        <div class="card border rounded-2 bg-body p-2.5 h-100">
-                            <div class="d-flex align-items-center gap-2.5">
-                                <div class="rounded-1 bg-body-tertiary border text-primary fw-bold d-flex align-items-center justify-content-center flex-shrink-0"
-                                     style="width: 36px; height: 36px;">
-                                    <i class="bi @act.IconClass fs-6"></i>
-                                </div>
-                                <div class="flex-grow-1 min-w-0">
-                                    <div class="d-flex align-items-center justify-content-between gap-2">
-                                        <div class="text-truncate">
-                                            <strong class="text-body-emphasis small">@act.UserDisplayName</strong>
-                                            <span class="text-muted small">@act.GetActivityTitle(isEn)</span>
-                                        </div>
-                                        <span class="text-muted small text-nowrap font-monospace" style="font-size: 0.725rem;"><i class="bi bi-clock me-1"></i>@act.GetActivityTimeAgo(isEn)</span>
-                                    </div>
-                                    <div class="text-truncate mt-0.5">
-                                        @if (!string.IsNullOrEmpty(act.TargetUrl))
-                                        {
-                                            <a href="@act.GetActivityTargetUrl(isEn)" class="text-decoration-none small text-body-secondary">
-                                                @act.GetActivityDescription(isEn)
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted small">@act.GetActivityDescription(isEn)</span>
-                                        }
-                                    </div>
-                                </div>
-                                @if (act.XpEarned > 0)
-                                {
-                                    <span class="badge bg-warning bg-opacity-15 text-warning-emphasis border border-warning border-opacity-25 rounded-1 font-monospace small px-1.5 py-0.5">
-                                        +@act.XpEarned XP
-                                    </span>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
+            }
         </div>
     </section>
 }
-
-<!-- Capstone Project Highlight Section -->
-<section class="container mb-5">
-    <div class="card border rounded-3 bg-body p-3.5 p-md-4">
-        <div class="row align-items-center g-4">
-            <div class="col-lg-7">
-                <span class="badge border bg-body-tertiary text-primary rounded-1 font-monospace small px-2 py-1 mb-2.5">
-                    <i class="bi bi-mortarboard-fill me-1 text-warning"></i> @(isEn ? "CAPSTONE ENTERPRISE PROJECTS" : "ĐỒ ÁN THỰC CHIẾN DOANH NGHIỆP")
-                </span>
-                <h3 class="fw-bold mb-2 text-body-emphasis">@(isEn ? "Build Production Systems & Earn Architecture Badges" : "Làm Chủ Kiến Trúc Doanh Nghiệp Với Đồ Án Thực Tế")</h3>
-                <p class="text-body-secondary small mb-3">
-                    @(isEn ? "Tackle production scenarios: Clean Architecture, CQRS, and real-time SignalR systems. Submit GitHub repository links for instructor code reviews and verified digital certificates." : "Xây dựng các hệ thống Clean Architecture, CQRS và ứng dụng thời gian thực SignalR. Nộp mã nguồn qua GitHub để nhận đánh giá chi tiết và cấp chứng chỉ số có mã QR xác thực.")
-                </p>
-                <div class="d-flex flex-wrap gap-2">
-                    <a asp-controller="Project" asp-action="Index" class="btn btn-sm btn-primary rounded-2 px-3 py-1.5 fw-semibold">
-                        <i class="bi bi-folder-check me-1.5"></i> @(isEn ? "Explore Capstone Topics" : "Xem đề tài đồ án")
-                    </a>
-                    <a asp-controller="Leaderboard" asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-2 px-3 py-1.5 fw-semibold">
-                        <i class="bi bi-trophy me-1.5"></i> @(isEn ? "Leaderboard" : "Bảng vinh danh")
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-5">
-                <div class="p-3 rounded-2 bg-body-tertiary border font-monospace">
-                    <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
-                        <span class="small fw-bold text-body-secondary"><i class="bi bi-patch-check-fill text-success me-1.5"></i> @(isEn ? "EVALUATION CRITERIA" : "TIÊU CHUẨN ĐÁNH GIÁ")</span>
-                        <span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-25 rounded-1">100 pts</span>
-                    </div>
-                    <div class="small mb-1.5 d-flex align-items-center justify-content-between">
-                        <span><i class="bi bi-check2 text-primary me-1.5"></i> Clean Architecture & SOLID</span>
-                        <strong class="text-body-emphasis">40%</strong>
-                    </div>
-                    <div class="small mb-1.5 d-flex align-items-center justify-content-between">
-                        <span><i class="bi bi-check2 text-success me-1.5"></i> EF Core & Data Access</span>
-                        <strong class="text-body-emphasis">30%</strong>
-                    </div>
-                    <div class="small mb-1.5 d-flex align-items-center justify-content-between">
-                        <span><i class="bi bi-check2 text-warning me-1.5"></i> Resilience & Error Handling</span>
-                        <strong class="text-body-emphasis">15%</strong>
-                    </div>
-                    <div class="small d-flex align-items-center justify-content-between">
-                        <span><i class="bi bi-check2 text-info me-1.5"></i> xUnit Tests & Swagger Docs</span>
-                        <strong class="text-body-emphasis">15%</strong>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Call to Action Banner (Developer Technical Panel) -->
-<div class="container mb-5">
-    <div class="p-4 p-md-4.5 rounded-3 bg-body-tertiary border text-center">
-        <h3 class="fw-bold mb-2 text-body-emphasis">@(isEn ? "Ready to Advance Your .NET Engineering Career?" : "Sẵn Sàng Làm Chủ Nền Tảng .NET Hiện Đại?")</h3>
-        <p class="text-body-secondary small mb-3 mx-auto" style="max-width: 650px;">
-            @(isEn ? "Begin with the fundamentals of modern C# and progressively master cloud-native backend development." : "Bắt đầu từ những dòng lệnh C# đầu tiên và từng bước làm chủ kiến trúc phần mềm chuyên nghiệp.")
-        </p>
-        <div class="d-flex justify-content-center gap-2 flex-wrap">
-            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@(isEn ? "dotnet-ecosystem-overview-and-environment-setup" : "tong-quan-he-sinh-thai-dotnet-cai-dat-moi-truong")" class="btn btn-sm btn-primary rounded-2 px-3 py-2 fw-semibold">
-                <i class="bi bi-play-circle-fill me-1.5"></i> @(isEn ? "Start Lesson 1" : "Bắt đầu Bài 1 ngay")
-            </a>
-            <a asp-controller="CheatSheet" asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-2 px-3 py-2 fw-semibold font-monospace">
-                <i class="bi bi-code-square me-1.5"></i> C# 14 Cheatsheet
-            </a>
-            <a asp-controller="Playground" asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-2 px-3 py-2 fw-semibold font-monospace">
-                <i class="bi bi-terminal me-1.5"></i> Monaco Playground
-            </a>
-        </div>
-    </div>
-</div>
