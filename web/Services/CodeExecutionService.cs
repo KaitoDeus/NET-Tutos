@@ -122,7 +122,25 @@ public class CodeExecutionService : ICodeExecutionService
                 };
             }
 
-            var state = await script.RunAsync(cancellationToken: executionCts.Token);
+            var runTask = script.RunAsync(cancellationToken: executionCts.Token);
+            var timeoutTask = Task.Delay(timeoutMs);
+            var completedTask = await Task.WhenAny(runTask, timeoutTask);
+
+            if (completedTask == timeoutTask)
+            {
+                executionCts.Cancel();
+                stopwatch.Stop();
+                return new CodeExecutionResponse
+                {
+                    IsSuccess = false,
+                    IsTimeout = true,
+                    Error = $"Thời gian chạy vượt quá giới hạn an toàn ({timeoutMs / 1000.0:F1}s). Vui lòng kiểm tra lại vòng lặp hoặc thuật toán.",
+                    Output = stringWriter.ToString(),
+                    ExecutionTimeMs = stopwatch.ElapsedMilliseconds
+                };
+            }
+
+            var state = await runTask;
             stopwatch.Stop();
 
             var output = stringWriter.ToString();
@@ -277,7 +295,7 @@ public class CodeExecutionService : ICodeExecutionService
             return $@"{userCode}
 
 // Evaluation Test Harness
-var __result = {invocation};
+object? __result = {invocation};
 if (__result is System.Collections.IEnumerable __enumerable && !(__result is string))
 {{
     var __items = new System.Collections.Generic.List<string>();

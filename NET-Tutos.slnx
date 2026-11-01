@@ -1,4 +1,6 @@
 <Solution>
   <Project Path="web/web.csproj" />
   <Project Path="mobile/NET_Tutos.Mobile.csproj" />
+  <Project Path="tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj" />
+  <Project Path="tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj" />
 </Solution>

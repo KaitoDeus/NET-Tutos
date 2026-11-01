@@ -1,0 +1,59 @@
+name: .NET CI & Automated Testing Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    name: Build & Test (.NET 10)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET SDK (10.0)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore Web & Test Dependencies
+      run: |
+        dotnet restore web/web.csproj
+        dotnet restore tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
+        dotnet restore tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
+
+    - name: Build Web Application & Test Projects
+      run: |
+        dotnet build web/web.csproj --configuration Release --no-restore
+        dotnet build tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj --configuration Release --no-restore
+        dotnet build tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj --configuration Release --no-restore
+
+    - name: Run Unit Tests with Code Coverage
+      run: |
+        dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj \
+          --configuration Release \
+          --no-build \
+          --verbosity normal \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./TestResults/UnitTests
+
+    - name: Run Integration Tests with Code Coverage
+      run: |
+        dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj \
+          --configuration Release \
+          --no-build \
+          --verbosity normal \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./TestResults/IntegrationTests
+
+    - name: Upload Test Results Artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-and-coverage
+        path: ./TestResults
+        retention-days: 14

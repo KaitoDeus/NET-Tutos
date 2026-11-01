@@ -29,6 +29,7 @@ d:\NET-Tutos\docs\
 ├── 05_data_models_and_api_specs.md     # Relational ERD Schemas & RESTful Integration API Contracts
 ├── 06_architecture_and_design_blueprint.md # Architecture Blueprint, Folder Breakdown, ERD & UI/UX Wireframes
 ├── 07_docker_and_database_setup.md     # PostgreSQL 17, Npgsql EF Core 10 & Docker Compose Architecture
+├── 08_testing_strategy_and_test_cases.md # Automated Testing Strategy, Test Matrix & Exception Specs
 └── DESIGN.md                           # Frontend Design System & Anti-AI-Slop Quality Constitution
 ```
 
@@ -87,7 +88,14 @@ d:\NET-Tutos\docs\
    - 31 database tables specification and seed data initialization.
    - Operations guide (`docker compose up -d`) and VS Code Database Client / SQLTools configuration.
 
-8. [**DESIGN. Design System & Anti-AI-Slop Constitution**](file:///d:/NET-Tutos/docs/DESIGN.md)
+8. [**08. Automated Testing Strategy, Test Case Matrix & Exception Handling**](file:///d:/NET-Tutos/docs/08_testing_strategy_and_test_cases.md)
+   - Quality strategy and automated testing pyramid (Unit, Integration, CI/CD).
+   - Complete 35+ automated test cases matrix covering Streak, Gamification, Exam, Roslyn Sandbox, AI Tutor, and HTTP endpoints.
+   - Comprehensive Exceptions and Error Handling matrix with system mitigation and user recovery strategies.
+   - GitHub Actions CI workflow pipeline configuration (`.github/workflows/ci.yml`) and code coverage quality gates.
+   - Local developer CLI execution guide.
+
+9. [**DESIGN. Design System & Anti-AI-Slop Constitution**](file:///d:/NET-Tutos/docs/DESIGN.md)
    - Developer Tool standard inspired by Linear, Raycast, Stripe, and GitHub Primer.
    - Anti-Slop banned patterns (no neon gradients, no cartoonish hover transforms, no card nesting).
    - Grounded Zinc/Slate neutral palettes, disciplined 6px–8px radii, and 1px hairline borders.
@@ -112,4 +120,4 @@ d:\NET-Tutos\docs\
 - **Product Owners & Business Stakeholders:** Review [01. Business Overview](file:///d:/NET-Tutos/docs/01_business_overview.md) and [03. Functional Requirements (BRD)](file:///d:/NET-Tutos/docs/03_functional_requirements_brd.md) to understand the product roadmap, functional scope, and strategic business goals.
 - **Solution Architects & Engineering Leads:** Review [02. System Architecture Overview](file:///d:/NET-Tutos/docs/02_system_architecture_overview.md) and [05. Data Models & API Specifications](file:///d:/NET-Tutos/docs/05_data_models_and_api_specs.md) to evaluate system topology, data flows, and schema structures.
 - **Software Developers (Web & Mobile):** Refer to [03. Functional Requirements (BRD)](file:///d:/NET-Tutos/docs/03_functional_requirements_brd.md) for acceptance criteria and [05. Data Models & API Specifications](file:///d:/NET-Tutos/docs/05_data_models_and_api_specs.md) for endpoint request/response contracts.
-- **QA & Test Automation Engineers:** Leverage acceptance criteria in [03. Functional Requirements (BRD)](file:///d:/NET-Tutos/docs/03_functional_requirements_brd.md) and performance benchmarks in [04. Non-Functional Requirements (NFR)](file:///d:/NET-Tutos/docs/04_non_functional_requirements.md) to create comprehensive test plans and load testing scripts.
+- **QA & Test Automation Engineers:** Leverage the automated test cases matrix and exception catalog in [08. Automated Testing Strategy & Test Cases](file:///d:/NET-Tutos/docs/08_testing_strategy_and_test_cases.md), acceptance criteria in [03. Functional Requirements (BRD)](file:///d:/NET-Tutos/docs/03_functional_requirements_brd.md), and performance benchmarks in [04. Non-Functional Requirements (NFR)](file:///d:/NET-Tutos/docs/04_non_functional_requirements.md) to maintain the CI/CD test suites and regression pipelines.
