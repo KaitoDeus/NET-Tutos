@@ -25,7 +25,7 @@ public class AiTutorServiceTests
         response.Should().NotBeNull();
         response.ResponseMarkdown.Should().ContainAny("LINQ", "Deferred Execution", "Thực thi");
         response.CodeSnippet.Should().NotBeNullOrEmpty();
-        response.SuggestedFollowUps.Should().NotBeEmpty();
+        response.SuggestedFollowUps.Should().BeEmpty();
     }
 
     [Fact]

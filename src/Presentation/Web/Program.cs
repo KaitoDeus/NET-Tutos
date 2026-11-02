@@ -13,6 +13,48 @@ using System.Globalization;
 // Enable Npgsql legacy timestamp behavior for seamless DateTime compatibility
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
+// Auto-load .env environment file if present (for development outside Docker)
+try
+{
+    var currentDir = Directory.GetCurrentDirectory();
+    string? envPath = null;
+    while (!string.IsNullOrEmpty(currentDir))
+    {
+        var candidate = Path.Combine(currentDir, ".env");
+        if (File.Exists(candidate))
+        {
+            envPath = candidate;
+            break;
+        }
+        var parent = Directory.GetParent(currentDir);
+        if (parent == null || parent.FullName == currentDir) break;
+        currentDir = parent.FullName;
+    }
+
+    if (!string.IsNullOrEmpty(envPath) && File.Exists(envPath))
+    {
+        foreach (var line in File.ReadAllLines(envPath))
+        {
+            var trimmed = line.Trim();
+            if (string.IsNullOrWhiteSpace(trimmed) || trimmed.StartsWith('#')) continue;
+            var idx = trimmed.IndexOf('=');
+            if (idx > 0)
+            {
+                var key = trimmed.Substring(0, idx).Trim();
+                var val = trimmed.Substring(idx + 1).Trim();
+                if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(key)))
+                {
+                    Environment.SetEnvironmentVariable(key, val);
+                }
+            }
+        }
+    }
+}
+catch
+{
+    // Ignore .env read error
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -117,6 +159,7 @@ builder.Services.AddScoped<ICurriculumService, CurriculumService>();
 builder.Services.AddScoped<IStudyPlannerService, StudyPlannerService>();
 builder.Services.AddScoped<AiTutorService>();
 builder.Services.AddScoped<IAiTutorService, GeminiAgentService>();
+builder.Services.AddScoped<IAiConversationService, AiConversationService>();
 builder.Services.AddScoped<IDeveloperPortfolioService, DeveloperPortfolioService>();
 builder.Services.AddScoped<IMobileAuthService, MobileAuthService>();
 builder.Services.AddSingleton<INavMenuService, NavMenuService>();

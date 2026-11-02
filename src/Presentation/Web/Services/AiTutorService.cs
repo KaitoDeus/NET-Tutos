@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using NET_Tutos.Data;
 using NET_Tutos.Models.ViewModels;
@@ -55,9 +55,7 @@ public class AiTutorService : IAiTutorService
                       "```\n\n" +
                       "💡 **Mẹo của Tech Lead**: Với Entity Framework Core, hãy giữ kiểu `IQueryable<T>` cho đến bước cuối cùng trước khi gọi `.ToListAsync()`, giúp câu lệnh được dịch sang mã SQL tối ưu và chạy trực tiếp trên máy chủ Database.",
                 CodeSnippet = "var topStudents = students.Where(s => s.Score >= 80).OrderByDescending(s => s.Score).Take(5).ToList();",
-                SuggestedFollowUps = isEnglish
-                    ? new List<string> { "Difference between IQueryable and IEnumerable", "How to avoid N+1 query problem in EF Core", "Modern LINQ improvements in .NET 10" }
-                    : new List<string> { "Phân biệt IQueryable và IEnumerable", "Cách tránh lỗi N+1 truy vấn trong EF Core", "Các hàm LINQ mới tối ưu trong .NET 10" }
+                SuggestedFollowUps = new List<string>()
             };
         }
 
@@ -101,9 +99,7 @@ public class AiTutorService : IAiTutorService
                       "}\n" +
                       "```",
                 CodeSnippet = "public async Task<List<Item>> GetDataAsync(CancellationToken ct) => await _context.Items.ToListAsync(ct);",
-                SuggestedFollowUps = isEnglish
-                    ? new List<string> { "When to use ValueTask over Task?", "How does CancellationToken work?", "Avoiding Deadlocks in ASP.NET Core" }
-                    : new List<string> { "Khi nào nên dùng ValueTask thay cho Task?", "Cách sử dụng CancellationToken hiệu quả", "Cơ chế hoạt động của ThreadPool trong .NET 10" }
+                SuggestedFollowUps = new List<string>()
             };
         }
 
@@ -129,9 +125,7 @@ public class AiTutorService : IAiTutorService
                       "| **Singleton** (`AddSingleton`) | Tạo **1 lần duy nhất** suốt vòng đời ứng dụng | Cache bộ nhớ, dịch vụ cấu hình hệ thống |\n\n" +
                       "⚠️ **Lỗi phổ biến cần tránh (Captive Dependency)**: Không bao giờ inject một dịch vụ `Scoped` (như `DbContext`) vào trong một dịch vụ `Singleton`. Điều này sẽ khiến DbContext sống mãi mãi và gây lỗi Race Condition khi nhiều user truy cập cùng lúc!",
                 CodeSnippet = "builder.Services.AddScoped<ILearningProgressService, LearningProgressService>();",
-                SuggestedFollowUps = isEnglish
-                    ? new List<string> { "What is Captive Dependency?", "How to use IHttpClientFactory?", "Keyed Services in .NET 10" }
-                    : new List<string> { "Lỗi Captive Dependency là gì?", "Cách sử dụng IHttpClientFactory tối ưu", "Keyed Services mới trong .NET 10" }
+                SuggestedFollowUps = new List<string>()
             };
         }
 
@@ -163,9 +157,7 @@ public class AiTutorService : IAiTutorService
                       "var student2 = student1 with { Xp = 150 }; // Tạo bản sao với giá trị XP mới\n" +
                       "```",
                 CodeSnippet = "public record UserDto(int Id, string Username, string Email);",
-                SuggestedFollowUps = isEnglish
-                    ? new List<string> { "Primary Constructors in C#", "Deep copy with 'with' keyword", "Record Struct performance" }
-                    : new List<string> { "Primary Constructors trong C#", "Từ khóa 'with' hoạt động thế nào?", "Hiệu năng của Record Struct" }
+                SuggestedFollowUps = new List<string>()
             };
         }
 
@@ -181,15 +173,13 @@ public class AiTutorService : IAiTutorService
                   $"- 📚 **In-depth concepts** across ASP.NET Core, EF Core, LINQ, and Clean Architecture.\n\n" +
                   $"Feel free to ask a question or paste your code snippet below!"
                 : $"### 🤖 Trợ Lý AI Gia Sư .NET\n\n" +
-                  $"Chào bạn! Tôi là Trợ lý AI chuyên sâu về hệ sinh thái **C# & .NET 10**. Tôi có thể hỗ trợ bạn:\n\n" +
+                  $"Chào bạn! Tôi là **Atus**, Trợ lý AI chuyên sâu về hệ sinh thái **C# & .NET 10** của NET-Tutos (tên tôi kết hợp từ **A**gent và hậu tố Tu**tos**). Tôi có thể hỗ trợ bạn:\n\n" +
                   $"- 🔍 **Phân tích và sửa lỗi biên dịch**: Chỉ rõ nguyên nhân và cách khắc phục các lỗi như CS0103, CS0029, NullReferenceException.\n" +
                   $"- 💡 **Gợi ý giải bài tập**: Cung cấp ý tưởng giải thuật toán theo từng cấp độ mà không làm mất tính tự học.\n" +
                   $"- ⚡ **Tối ưu hóa mã nguồn (Code Review)**: Nâng cấp code theo chuẩn Clean Code và cú pháp Modern C#.\n" +
                   $"- 📚 **Giải đáp kiến trúc**: Phân tích chuyên sâu về ASP.NET Core, EF Core, Dependency Injection, LINQ và Async/Await.\n\n" +
                   $"Bạn hãy đặt câu hỏi hoặc dán đoạn mã nguồn cần hỗ trợ bên dưới nhé!",
-            SuggestedFollowUps = isEnglish
-                ? new List<string> { "How to optimize LINQ queries?", "Explain Async/Await and ThreadPool", "ASP.NET Core Dependency Injection Lifetimes" }
-                : new List<string> { "Làm thế nào để tối ưu câu truy vấn LINQ?", "Giải thích cơ chế Async/Await trong C#", "Phân biệt AddScoped, AddTransient, AddSingleton" }
+            SuggestedFollowUps = new List<string>()
         };
     }
 
@@ -1132,6 +1122,20 @@ public class {methodName}Tests
             XpAwarded = xp,
             TimeSpentSeconds = request.TimeSpentSeconds
         };
+    }
+
+    public Task<AiTutorStatusResponse> CheckStatusAsync()
+    {
+        return Task.FromResult(new AiTutorStatusResponse
+        {
+            Success = true,
+            IsLiveGemini = false,
+            Provider = "Local Expert Rule Engine (Deterministic)",
+            Model = "Local Offline Engine",
+            IsAvailable = true,
+            LatencyMs = 0,
+            Message = "Offline expert rule engine is fully functional and ready."
+        });
     }
 }
 

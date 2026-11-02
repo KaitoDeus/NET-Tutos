@@ -97,7 +97,7 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
-    public async Task Post_AiTutorChat_ReturnsValidMarkdownExplanation()
+    public async Task Post_AiTutorChat_WhenUnauthenticated_ReturnsUnauthorized()
     {
         // Arrange
         var request = new AiTutorChatRequest
@@ -108,10 +108,7 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
         // Act
         var response = await _client.PostAsJsonAsync("/AiTutor/Chat", request);
 
-        // Assert
-        response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<AiTutorChatResponse>();
-        result.Should().NotBeNull();
-        result!.ResponseMarkdown.Should().NotBeNullOrEmpty();
+        // Assert: Unauthenticated access requires signing in before chatting with agent
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }

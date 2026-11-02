@@ -1,151 +1,365 @@
+@model NET_Tutos.Models.ViewModels.AiTutorIndexViewModel
 @{
     bool isEn = Context.IsEnglish();
-    ViewData["Title"] = isEn ? "AI .NET Tutor & Mentor | NET-Tutos" : "Trợ Lý AI Gia Sư .NET | NET-Tutos";
+    ViewData["Title"] = isEn ? "Atus — AI .NET Mentor | NET-Tutos" : "Atus — Trợ Lý AI Gia Sư .NET | NET-Tutos";
+    var activeConv = Model.ActiveConversation;
+    var activeConvId = Model.ActiveConversationId?.ToString() ?? "";
 }
 
-<div class="container py-4">
-    <!-- Top Header Banner -->
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 p-4 rounded-4 shadow-sm border bg-body">
-        <div class="d-flex align-items-center gap-3">
-            <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
-                <i class="bi bi-robot fs-2"></i>
-            </div>
-            <div>
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <h3 class="fw-bold mb-0">@(isEn ? "AI .NET Tutor & Code Mentor" : "Trợ Lý AI Gia Sư .NET")</h3>
-                </div>
-                <p class="text-muted small mb-0">
-                    @(isEn
-                        ? "Interactive C# mentor: Ask concepts, explain compiler errors, receive challenge hints, and optimize code."
-                        : "Gia sư lập trình tương tác: Giải thích lỗi biên dịch, gợi ý thuật toán, tối ưu hóa code và giải đáp kiến thức chuyên sâu.")
-                </p>
-            </div>
-        </div>
+@Html.AntiForgeryToken()
 
-        <div class="d-flex align-items-center gap-2">
-            <a asp-controller="Playground" asp-action="Index" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold d-flex align-items-center gap-1.5">
-                <i class="bi bi-terminal-fill"></i>
-                <span>@(isEn ? "Open C# Sandbox" : "Mở C# Sandbox")</span>
-            </a>
-            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5" onclick="clearChatHistory()" title="@(isEn ? "Clear conversation" : "Làm mới hội thoại")">
-                <i class="bi bi-arrow-clockwise me-1"></i>@(isEn ? "Reset" : "Làm mới")
+<div class="aitutor-viewport d-flex overflow-hidden bg-body border-top">
+    <!-- LEFT SIDEBAR: CHAT HISTORY (ChatGPT-Style) -->
+    <aside class="aitutor-sidebar d-flex flex-column border-end bg-body-tertiary flex-shrink-0" id="chatSidebar">
+        <!-- Sidebar Header: New Chat Button -->
+        <div class="p-3 border-bottom">
+            <button type="button" class="btn btn-primary w-100 rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2 shadow-sm" onclick="startNewChat()">
+                <i class="bi bi-plus-lg fs-6"></i>
+                <span>@(isEn ? "New Chat" : "Đoạn chat mới")</span>
             </button>
-        </div>
-    </div>
-
-    <div class="row g-4">
-        <!-- Left Sidebar: Quick Prompts & Knowledge Topics -->
-        <div class="col-lg-4 col-xl-3">
-            <div class="card border shadow-sm rounded-4 bg-body p-3 mb-3">
-                <h6 class="fw-bold text-body-emphasis mb-3 d-flex align-items-center gap-2">
-                    <i class="bi bi-lightning-charge-fill text-warning"></i>
-                    <span>@(isEn ? "Popular Topics" : "Chủ đề Thường Gặp")</span>
-                </h6>
-
-                <div class="d-flex flex-column gap-2">
-                    <button type="button" class="preset-topic-btn btn btn-sm rounded-3 p-2.5 d-flex align-items-center gap-2 w-100" onclick="sendPresetPrompt('linq')">
-                        <i class="bi bi-funnel text-primary fs-6"></i>
-                        <span class="small fw-semibold">@(isEn ? "Explain LINQ & Deferred Exec" : "Làm chủ LINQ & Deferred Exec")</span>
-                    </button>
-                    <button type="button" class="preset-topic-btn btn btn-sm rounded-3 p-2.5 d-flex align-items-center gap-2 w-100" onclick="sendPresetPrompt('async')">
-                        <i class="bi bi-cpu text-success fs-6"></i>
-                        <span class="small fw-semibold">@(isEn ? "Async/Await & Deadlocks" : "Bất đồng bộ Async/Await & Task")</span>
-                    </button>
-                    <button type="button" class="preset-topic-btn btn btn-sm rounded-3 p-2.5 d-flex align-items-center gap-2 w-100" onclick="sendPresetPrompt('di')">
-                        <i class="bi bi-diagram-3 text-info fs-6"></i>
-                        <span class="small fw-semibold">@(isEn ? "Scoped vs Transient vs Singleton" : "3 Vòng đời Dependency Injection")</span>
-                    </button>
-                    <button type="button" class="preset-topic-btn btn btn-sm rounded-3 p-2.5 d-flex align-items-center gap-2 w-100" onclick="sendPresetPrompt('record')">
-                        <i class="bi bi-box-seam text-warning fs-6"></i>
-                        <span class="small fw-semibold">@(isEn ? "Record vs Class vs Struct" : "Phân biệt Record, Class, Struct")</span>
-                    </button>
-                    <button type="button" class="preset-topic-btn btn btn-sm rounded-3 p-2.5 d-flex align-items-center gap-2 w-100" onclick="sendPresetPrompt('null')">
-                        <i class="bi bi-shield-check text-danger fs-6"></i>
-                        <span class="small fw-semibold">@(isEn ? "Fix NullReferenceException" : "Khắc phục lỗi NullReference")</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Features Info Box -->
-            <div class="card border-0 rounded-4 p-3 bg-primary-subtle text-primary">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                    <i class="bi bi-info-circle-fill"></i>
-                    <span class="fw-bold small">@(isEn ? "Smart Assistance" : "Hỗ trợ Đa năng")</span>
-                </div>
-                <p class="small mb-0 opacity-90 lh-base" style="font-size: 0.8rem;">
-                    @(isEn
-                        ? "You can paste compiler error messages or ask for code reviews directly in the chat box."
-                        : "Bạn có thể dán mã lỗi biên dịch (vd: CS0103, CS0029) hoặc yêu cầu review code trực tiếp trong khung chat.")
-                </p>
+            <div class="input-group input-group-sm mt-2">
+                <span class="input-group-text bg-body border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control bg-body border-start-0 ps-0 shadow-none" id="searchChatInput" placeholder="@(isEn ? "Search conversations..." : "Tìm đoạn chat...")" oninput="filterConversations(this.value)">
             </div>
         </div>
 
-        <!-- Main Chat Area -->
-        <div class="col-lg-8 col-xl-9">
-            <div class="card border shadow-sm rounded-4 bg-body d-flex flex-column" id="aiChatCard" style="height: 650px; min-height: 420px; max-height: 92vh; resize: vertical; overflow: hidden; position: relative;">
-                <!-- Chat Messages Scroll Container -->
-                <div class="flex-grow-1 p-3 p-md-4 overflow-y-auto" id="chatMessagesContainer">
-                    <!-- Initial Welcome Message from AI -->
-                    <div class="d-flex gap-3 mb-4 ai-msg-item">
-                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                            <i class="bi bi-robot fs-5"></i>
-                        </div>
-                        <div class="flex-grow-1" style="max-width: 90%;">
-                            <div class="p-3 rounded-4 bg-body-tertiary border text-body shadow-xs">
-                                <div class="fw-bold mb-1 text-primary small d-flex align-items-center gap-2">
-                                    <span>NET-Tutos AI Mentor</span>
-                                    <span class="badge bg-success-subtle text-success" style="font-size: 0.65rem;">Online</span>
+        <!-- Sidebar Body: Conversation History List -->
+        <div class="aitutor-history-list flex-grow-1 overflow-y-auto px-2 py-2" id="conversationsContainer">
+            @if (!Model.IsAuthenticated)
+            {
+                <div class="p-3 text-center text-muted">
+                    <i class="bi bi-clock-history fs-3 d-block mb-2 opacity-50"></i>
+                    <p class="small mb-2">@(isEn ? "Sign in to save and sync your chat history across devices." : "Đăng nhập để lưu và đồng bộ lịch sử hội thoại của bạn.")</p>
+                    <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/AiTutor" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                        @(isEn ? "Sign In" : "Đăng nhập ngay")
+                    </a>
+                </div>
+            }
+            else if (Model.Conversations.Count == 0)
+            {
+                <div class="p-3 text-center text-muted small" id="noConversationsMsg">
+                    <i class="bi bi-chat-square-text fs-3 d-block mb-2 opacity-50"></i>
+                    <span>@(isEn ? "No conversations yet. Start a new chat!" : "Chưa có đoạn chat nào. Bắt đầu ngay!")</span>
+                </div>
+            }
+            else
+            {
+                var grouped = Model.Conversations.GroupBy(c => c.TimeGroup).ToList();
+                foreach (var group in grouped)
+                {
+                    <div class="conv-group-header text-uppercase text-muted fw-bold px-2.5 pt-2 pb-1" style="font-size: 0.68rem; letter-spacing: 0.5px;">
+                        @group.Key
+                    </div>
+                    <div class="conv-group-items d-flex flex-column gap-1 mb-2">
+                        @foreach (var c in group)
+                        {
+                            bool isActive = activeConv != null && activeConv.Id == c.Id;
+                            <div class="conv-item rounded-3 px-2.5 py-2 d-flex align-items-center justify-content-between position-relative @(isActive ? "active bg-primary bg-opacity-10 text-primary fw-semibold" : "text-body")"
+                                 data-id="@c.Id" data-title="@c.Title" data-pinned="@(c.IsPinned ? "true" : "false")" onclick="selectConversation(this)">
+                                <div class="d-flex align-items-center gap-2 overflow-hidden flex-grow-1 me-2">
+                                    <i class="bi @(c.IsPinned ? "bi-pin-fill text-warning" : (isActive ? "bi-chat-dots-fill text-primary" : "bi-chat-left-text text-secondary")) flex-shrink-0" style="font-size: 0.85rem;"></i>
+                                    <span class="conv-title text-truncate small">@c.Title</span>
                                 </div>
-                                <div class="markdown-body small lh-lg">
-                                    <p class="mb-2">
-                                        @(isEn
-                                            ? "Hello! I am your AI .NET & C# Mentor. How can I assist your coding journey today?"
-                                            : "Xin chào! Tôi là Trợ lý AI Gia Sư .NET của bạn. Hôm nay bạn đang gặp thử thách gì với C# hoặc ASP.NET Core?")
-                                    </p>
-                                    <p class="mb-0 text-muted">
-                                        @(isEn
-                                            ? "You can choose a suggested topic from the left sidebar or type any question below!"
-                                            : "Bạn có thể chọn chủ đề gợi ý bên trái hoặc gõ bất kỳ câu hỏi nào bên dưới nhé!")
-                                    </p>
+                                <div class="conv-actions d-flex align-items-center gap-1 flex-shrink-0">
+                                    <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="@(isEn ? "Rename" : "Đổi tên")" onclick="event.stopPropagation(); renameConversationPrompt(this)">
+                                        <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="@(c.IsPinned ? (isEn ? "Unpin" : "Bỏ ghim") : (isEn ? "Pin" : "Ghim"))" onclick="event.stopPropagation(); togglePinConversation(this)">
+                                        <i class="bi @(c.IsPinned ? "bi-pin-angle-fill text-warning" : "bi-pin-angle")" style="font-size: 0.75rem;"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon text-hover-danger" title="@(isEn ? "Delete" : "Xóa")" onclick="event.stopPropagation(); deleteConversationConfirm(this)">
+                                        <i class="bi bi-trash3" style="font-size: 0.75rem;"></i>
+                                    </button>
                                 </div>
                             </div>
-                            <span class="text-muted small ps-2" style="font-size: 0.7rem;">@(DateTime.Now.ToString("HH:mm"))</span>
+                        }
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Sidebar Footer: User Status & Navigation -->
+        <div class="p-2.5 border-top bg-body">
+            @if (Model.IsAuthenticated)
+            {
+                <div class="d-flex align-items-center justify-content-between p-1.5 rounded-3">
+                    <div class="d-flex align-items-center gap-2 overflow-hidden">
+                        @if (!string.IsNullOrWhiteSpace(Model.CurrentUserAvatar))
+                        {
+                            <img src="@Model.CurrentUserAvatar" alt="Avatar" class="rounded-circle flex-shrink-0" style="width: 32px; height: 32px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                @(Model.CurrentUserName?.Substring(0, 1).ToUpper() ?? "U")
+                            </div>
+                        }
+                        <div class="overflow-hidden">
+                            <div class="fw-semibold small text-truncate">@Model.CurrentUserName</div>
+                            <div class="text-muted" style="font-size: 0.68rem;"><i class="bi bi-check-circle-fill text-success me-1"></i>@(isEn ? "Pro Member" : "Học viên NET-Tutos")</div>
+                        </div>
+                    </div>
+                    <a asp-controller="Playground" asp-action="Index" class="btn btn-sm btn-outline-secondary p-1" title="@(isEn ? "C# Sandbox" : "Mở C# Sandbox")">
+                        <i class="bi bi-terminal" style="font-size: 0.85rem;"></i>
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex gap-2">
+                    <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/AiTutor" class="btn btn-sm btn-primary flex-fill rounded-3 fw-semibold">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>@(isEn ? "Sign In" : "Đăng nhập")
+                    </a>
+                    <a asp-controller="Account" asp-action="Register" class="btn btn-sm btn-outline-secondary flex-fill rounded-3">
+                        @(isEn ? "Register" : "Đăng ký")
+                    </a>
+                </div>
+            }
+        </div>
+    </aside>
+
+    <!-- RIGHT WORKSPACE: MAIN CHAT AREA (ChatGPT-Style) -->
+    <main class="aitutor-main d-flex flex-column flex-grow-1 position-relative overflow-hidden bg-body">
+        <!-- Top Navbar in Chat -->
+        <header class="aitutor-navbar d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-body z-2">
+            <div class="d-flex align-items-center gap-2 overflow-hidden">
+                <button type="button" class="btn btn-sm btn-outline-secondary border-0 p-1.5 rounded-3" id="toggleSidebarBtn" onclick="toggleSidebar()" title="@(isEn ? "Toggle sidebar" : "Ẩn/hiện thanh bên")">
+                    <i class="bi bi-layout-sidebar-inset fs-5"></i>
+                </button>
+                <div class="d-flex align-items-center gap-2 overflow-hidden">
+                    <span class="fw-bold text-truncate" id="currentChatTitle">@(activeConv != null ? activeConv.Title : (isEn ? "New Chat" : "Đoạn chat mới"))</span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 d-none d-sm-inline-flex align-items-center gap-1" style="font-size: 0.7rem;">
+                        <span class="status-dot-pulse"></span>
+                        <span>Atus</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <a asp-controller="Playground" asp-action="Index" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 d-none d-md-inline-flex align-items-center gap-1" style="font-size: 0.78rem;">
+                    <i class="bi bi-terminal-fill"></i>
+                    <span>@(isEn ? "C# Sandbox" : "C# Sandbox")</span>
+                </a>
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1" onclick="startNewChat()" title="@(isEn ? "New conversation" : "Tạo đoạn chat mới")" style="font-size: 0.78rem;">
+                    <i class="bi bi-plus-lg me-1"></i><span class="d-none d-sm-inline">@(isEn ? "New Chat" : "Mới")</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Messages Feed (Scrollable) -->
+        <div class="aitutor-messages-feed flex-grow-1 overflow-y-auto px-3 py-4" id="messagesContainer">
+            <div class="chat-max-width mx-auto">
+                <!-- If No active conversation or no messages, show Hero Starter View -->
+                <div id="heroStarterView" class="@(activeConv != null && activeConv.Messages.Count > 0 ? "d-none" : "")">
+                    <div class="text-center py-4 my-2">
+                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center p-3 mb-3 shadow-xs" style="width: 68px; height: 68px;">
+                            <i class="bi bi-robot fs-1"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">@(isEn ? "Meet Atus — Your .NET AI Mentor" : "Gặp gỡ Atus — Trợ Lý AI Gia Sư .NET")</h4>
+                        <p class="text-muted small mx-auto" style="max-width: 580px;">
+                            @(isEn
+                                ? "Ask architectural concepts, paste compiler error codes to diagnose, review Clean Code, or brainstorm .NET 10 solutions with Atus (Agent + Tutos)."
+                                : "Hỏi đáp kiến trúc chuyên sâu, dán mã lỗi biên dịch để nhận chẩn đoán, tối ưu Clean Code, đồng hành cùng Atus (kết hợp từ Agent + Tutos) chinh phục C# & .NET 10.")
+                        </p>
+                    </div>
+
+                    <!-- Prompt Starter Cards -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="starter-card p-3 rounded-4 border bg-body-tertiary h-100 cursor-pointer hover-card shadow-xs" onclick="useStarterPrompt('Làm thế nào để tối ưu hóa truy vấn Entity Framework Core bằng AsNoTracking và AsSplitQuery?')">
+                                <div class="d-flex align-items-center gap-2 mb-1.5 text-primary">
+                                    <i class="bi bi-funnel-fill"></i>
+                                    <span class="fw-bold small">@(isEn ? "LINQ & EF Core Performance" : "Làm chủ LINQ & EF Core")</span>
+                                </div>
+                                <div class="text-muted small lh-base" style="font-size: 0.8rem;">
+                                    @(isEn ? "How to optimize queries using AsNoTracking and AsSplitQuery?" : "Làm thế nào để tối ưu truy vấn EF Core bằng AsNoTracking và AsSplitQuery?")
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="starter-card p-3 rounded-4 border bg-body-tertiary h-100 cursor-pointer hover-card shadow-xs" onclick="useStarterPrompt('Giải thích cơ chế giải phóng thread của Async/Await và ThreadPool trong .NET 10')">
+                                <div class="d-flex align-items-center gap-2 mb-1.5 text-success">
+                                    <i class="bi bi-cpu-fill"></i>
+                                    <span class="fw-bold small">@(isEn ? "Async/Await & Concurrency" : "Bất đồng bộ Async/Await & ThreadPool")</span>
+                                </div>
+                                <div class="text-muted small lh-base" style="font-size: 0.8rem;">
+                                    @(isEn ? "Deep dive into thread release and state machines in modern .NET." : "Cơ chế giải phóng luồng non-blocking và State Machine bên dưới Task.")
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="starter-card p-3 rounded-4 border bg-body-tertiary h-100 cursor-pointer hover-card shadow-xs" onclick="useStarterPrompt('Phân biệt AddScoped, AddTransient, AddSingleton và giải thích lỗi Captive Dependency')">
+                                <div class="d-flex align-items-center gap-2 mb-1.5 text-info">
+                                    <i class="bi bi-diagram-3-fill"></i>
+                                    <span class="fw-bold small">@(isEn ? "Dependency Injection Lifetimes" : "3 Vòng đời Dependency Injection")</span>
+                                </div>
+                                <div class="text-muted small lh-base" style="font-size: 0.8rem;">
+                                    @(isEn ? "Scoped vs Transient vs Singleton and the Captive Dependency anti-pattern." : "Phân biệt Scoped, Transient, Singleton và cách né bẫy Captive Dependency.")
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="starter-card p-3 rounded-4 border bg-body-tertiary h-100 cursor-pointer hover-card shadow-xs" onclick="useStarterPrompt('Tôi đang gặp lỗi CS0103 The name does not exist in current context, hãy giải thích cách sửa.')">
+                                <div class="d-flex align-items-center gap-2 mb-1.5 text-danger">
+                                    <i class="bi bi-shield-x"></i>
+                                    <span class="fw-bold small">@(isEn ? "Compiler Diagnostic Assistant" : "Khắc phục Lỗi Biên Dịch C#")</span>
+                                </div>
+                                <div class="text-muted small lh-base" style="font-size: 0.8rem;">
+                                    @(isEn ? "Diagnose CS0103, CS0029, or NullReferenceException instantly." : "Chẩn đoán nguyên nhân và đề xuất phương án sửa lỗi CS0103, CS0029, NullReference.")
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Typing indicator -->
-                <div class="px-4 py-2 d-none" id="typingIndicator">
-                    <div class="d-flex align-items-center gap-2 text-muted small">
-                        <div class="spinner-grow spinner-grow-sm text-primary" role="status" style="width: 10px; height: 10px;"></div>
-                        <span style="font-size: 0.8rem;">@(isEn ? "AI Tutor is analyzing..." : "AI Tutor đang suy nghĩ...")</span>
+                <!-- Messages Render Area -->
+                <div id="messagesList" class="d-flex flex-column gap-4">
+                    @if (activeConv != null && activeConv.Messages.Count > 0)
+                    {
+                        foreach (var msg in activeConv.Messages)
+                        {
+                            if (msg.Role.Equals("user", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <!-- USER MESSAGE -->
+                                <div class="d-flex justify-content-end msg-row user-msg">
+                                    <div class="d-flex flex-column align-items-end" style="max-width: 85%;">
+                                        <div class="user-bubble p-3 rounded-4 bg-primary text-white shadow-xs">
+                                            <div class="message-text">@msg.Content</div>
+                                            @if (!string.IsNullOrWhiteSpace(msg.CodeSnippet))
+                                            {
+                                                <div class="mt-2 p-2 rounded-3 bg-dark bg-opacity-25 small font-monospace">
+                                                    <code>@msg.CodeSnippet</code>
+                                                </div>
+                                            }
+                                        </div>
+                                        <span class="text-muted small pe-2 mt-1" style="font-size: 0.68rem;">@msg.CreatedAt.ToLocalTime().ToString("HH:mm")</span>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- AI MODEL MESSAGE -->
+                                <div class="d-flex gap-3 msg-row ai-msg">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                                        <i class="bi bi-robot fs-5"></i>
+                                    </div>
+                                    <div class="d-flex flex-column flex-grow-1 overflow-hidden" style="max-width: 90%;">
+                                        <div class="ai-bubble p-3.5 rounded-4 bg-body-tertiary border shadow-xs">
+                                            <div class="fw-bold mb-1 text-primary small d-flex align-items-center gap-2">
+                                                <span>Atus</span>
+                                                <span class="badge bg-primary-subtle text-primary" style="font-size: 0.65rem;">AI Agent</span>
+                                            </div>
+                                            <div class="markdown-body small lh-lg">
+                                                @Html.Raw(msg.Content)
+                                            </div>
+
+                                        </div>
+                                        <span class="text-muted small ps-2 mt-1" style="font-size: 0.68rem;">@msg.CreatedAt.ToLocalTime().ToString("HH:mm")</span>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+                </div>
+
+                <!-- Thinking Wave Animation -->
+                <div class="d-flex gap-3 msg-row ai-msg d-none mt-3" id="typingIndicator">
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                        <i class="bi bi-robot fs-5"></i>
+                    </div>
+                    <div class="p-3 rounded-4 bg-body-tertiary border shadow-xs d-inline-flex align-items-center gap-2">
+                        <div class="typing-wave">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <span class="text-muted small" style="font-size: 0.8rem;">@(isEn ? "Atus is analyzing & coding..." : "Atus đang suy nghĩ & phân tích...")</span>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Chat Input Controls -->
-                <div class="p-3 border-top bg-body-tertiary">
-                    <form id="chatForm" onsubmit="handleSendChat(event)">
-                        <div class="input-group shadow-xs rounded-3 overflow-hidden bg-body border">
-                            <textarea id="chatInput" class="form-control border-0 p-2.5 small" rows="2" placeholder="@(isEn ? "Ask a C#/.NET question or paste an error message... (Enter to send)" : "Hỏi về C#/.NET hoặc dán mã lỗi biên dịch... (Enter để gửi)")" style="resize: none;"></textarea>
-                            <button type="submit" class="btn btn-primary px-4 d-flex align-items-center justify-content-center" id="btnSendChat" title="@(isEn ? "Send message" : "Gửi tin nhắn")">
-                                <i class="bi bi-send-fill fs-5"></i>
-                            </button>
+        <!-- Floating Bottom Input Bar (ChatGPT-Style) -->
+        <div class="aitutor-input-area p-3 border-top bg-body z-2">
+            <div class="chat-max-width mx-auto">
+                @if (!Model.IsAuthenticated)
+                {
+                    <div class="p-3 rounded-4 bg-primary bg-opacity-10 border border-primary-subtle text-center">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                            <div class="text-start">
+                                <div class="fw-bold text-primary small d-flex align-items-center gap-1.5">
+                                    <i class="bi bi-lock-fill"></i>
+                                    <span>@(isEn ? "Sign in required to chat" : "Yêu cầu đăng nhập để trò chuyện")</span>
+                                </div>
+                                <div class="text-muted small" style="font-size: 0.78rem;">
+                                    @(isEn
+                                        ? "Sign in to chat with Atus and save your conversational history."
+                                        : "Vui lòng đăng nhập tài khoản để trò chuyện cùng Atus và lưu trữ lịch sử cuộc hội thoại của bạn.")
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/AiTutor" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold">
+                                    @(isEn ? "Sign In" : "Đăng nhập ngay")
+                                </a>
+                                <a asp-controller="Account" asp-action="Register" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                    @(isEn ? "Register" : "Tạo tài khoản")
+                                </a>
+                            </div>
                         </div>
-                        <div class="d-flex align-items-center justify-content-between mt-2 px-1">
-                            <span class="text-muted" style="font-size: 0.72rem;">
-                                <i class="bi bi-keyboard me-1"></i>@(isEn ? "Press Enter to send, Shift+Enter for new line" : "Nhấn Enter để gửi, Shift+Enter để xuống dòng")
-                            </span>
-                            <span class="text-muted small d-inline-flex align-items-center gap-1 opacity-75" style="font-size: 0.72rem;" title="@(isEn ? "Drag bottom edge to resize chat" : "Kéo góc hoặc cạnh dưới để co dãn khung chat")">
-                                <i class="bi bi-arrows-expand-vertical"></i>
-                            </span>
-                        </div>
-                    </form>
+                    </div>
+                }
+                else
+                {
+                    <!-- Input Box Card -->
+                    <div class="input-card border rounded-4 p-2 bg-body shadow-sm d-flex align-items-end gap-2 focus-ring-card">
+                        <textarea class="form-control border-0 bg-transparent shadow-none p-2 resize-none" id="chatMessageInput" rows="1"
+                                  placeholder="@(isEn ? "Message Atus (Press Enter to send, Shift + Enter for new line)..." : "Nhắn tin cho Atus (Enter để gửi, Shift + Enter để xuống dòng)...")"
+                                  oninput="autoResizeTextarea(this)" onkeydown="handleInputKeydown(event)"></textarea>
+                        
+                        <button type="button" class="btn btn-primary rounded-circle p-0 d-flex align-items-center justify-content-center flex-shrink-0 send-btn" id="sendMessageBtn" onclick="sendMessage()" title="@(isEn ? "Send message" : "Gửi tin nhắn")">
+                            <i class="bi bi-arrow-up fs-5"></i>
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Rename Conversation Modal -->
+<div class="modal fade" id="renameModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold">@(isEn ? "Rename Chat" : "Đổi tên đoạn chat")</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <input type="hidden" id="renameConvId">
+                <input type="text" class="form-control rounded-3" id="renameConvTitle" placeholder="@(isEn ? "Enter title..." : "Nhập tiêu đề mới...")">
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">@(isEn ? "Cancel" : "Hủy")</button>
+                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" onclick="submitRename()">@(isEn ? "Save" : "Lưu")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Conversation Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content rounded-4 border-0 shadow text-center p-3">
+            <div class="modal-body p-2">
+                <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-inline-flex align-items-center justify-content-center p-3 mb-2" style="width: 52px; height: 52px;">
+                    <i class="bi bi-trash3 fs-4"></i>
                 </div>
-
-                <!-- Bottom Resizer Bar (Edge & Corner Dragging) -->
-                <div id="chatResizeHandle" class="chat-resize-bar d-flex align-items-center justify-content-center py-1 rounded-bottom-4" title="@(isEn ? "Drag to resize chat window (Double-click to toggle size)" : "Kéo để thay đổi kích thước khung chat (Nhấp đúp để phóng to/thu nhỏ)")">
-                    <div class="chat-resize-grip-pill"></div>
-                    <i class="bi bi-grip-horizontal text-muted small ms-1" style="font-size: 0.85rem; opacity: 0.6;"></i>
+                <h6 class="fw-bold mb-1">@(isEn ? "Delete Chat?" : "Xóa đoạn chat?")</h6>
+                <p class="text-muted small mb-3" style="font-size: 0.8rem;">
+                    @(isEn ? "This conversation and all its messages will be removed permanently." : "Cuộc trò chuyện này và toàn bộ tin nhắn sẽ bị xóa vĩnh viễn.")
+                </p>
+                <input type="hidden" id="deleteConvId">
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">@(isEn ? "Cancel" : "Hủy")</button>
+                    <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 fw-semibold" onclick="submitDeleteConversation()">@(isEn ? "Delete" : "Xác nhận xóa")</button>
                 </div>
             </div>
         </div>
@@ -154,283 +368,769 @@
 
 @section Scripts {
 <script>
-    const chatContainer = document.getElementById('chatMessagesContainer');
-    const chatInput = document.getElementById('chatInput');
-    const typingIndicator = document.getElementById('typingIndicator');
-    const btnSendChat = document.getElementById('btnSendChat');
     const isEn = @(isEn ? "true" : "false");
+    const isAuthenticated = @(Model.IsAuthenticated ? "true" : "false");
+    let currentConversationId = '@activeConvId';
+    let isWaitingResponse = false;
 
-    // Handle Enter to send
-    chatInput.addEventListener('keydown', function(e) {
+    // Auto-scroll messages container to bottom
+    function scrollToBottom() {
+        const feed = document.getElementById('messagesContainer');
+        if (feed) {
+            feed.scrollTop = feed.scrollHeight;
+        }
+    }
+
+    // Auto-resize textarea up to 180px
+    function autoResizeTextarea(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 180) + 'px';
+    }
+
+    function handleInputKeydown(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            handleSendChat(e);
+            sendMessage();
         }
+    }
+
+    // Toggle Sidebar collapse
+    function toggleSidebar() {
+        const sidebar = document.getElementById('chatSidebar');
+        if (sidebar) {
+            sidebar.classList.toggle('collapsed');
+            localStorage.setItem('nettutos_chat_sidebar_collapsed', sidebar.classList.contains('collapsed'));
+        }
+    }
+
+    // Restore sidebar state
+    document.addEventListener('DOMContentLoaded', () => {
+        if (localStorage.getItem('nettutos_chat_sidebar_collapsed') === 'true') {
+            const sidebar = document.getElementById('chatSidebar');
+            if (sidebar) sidebar.classList.add('collapsed');
+        }
+        scrollToBottom();
     });
 
-    async function handleSendChat(e) {
-        if (e) e.preventDefault();
-        const text = chatInput.value.trim();
-        if (!text) return;
+    // Start New Chat session
+    function startNewChat() {
+        if (!isAuthenticated) {
+            window.location.href = '/Account/Login?returnUrl=/AiTutor';
+            return;
+        }
 
-        // Render user message
-        appendUserMessage(text);
-        chatInput.value = '';
-        chatInput.focus();
+        currentConversationId = '';
+        const titleEl = document.getElementById('currentChatTitle');
+        if (titleEl) titleEl.innerText = isEn ? 'New Chat' : 'Đoạn chat mới';
+        
+        const list = document.getElementById('messagesList');
+        if (list) list.innerHTML = '';
+        
+        const hero = document.getElementById('heroStarterView');
+        if (hero) hero.classList.remove('d-none');
+        
+        // Remove active class from all items
+        document.querySelectorAll('.conv-item').forEach(el => {
+            el.classList.remove('active', 'bg-primary', 'bg-opacity-10', 'text-primary', 'fw-semibold');
+            const icon = el.querySelector('.bi-chat-dots-fill');
+            if (icon) icon.className = 'bi bi-chat-left-text text-secondary flex-shrink-0';
+        });
 
-        // Show typing
-        showTyping(true);
+        // Update URL to clean state
+        if (window.history && window.history.pushState) {
+            window.history.pushState(null, '', '/AiTutor');
+        }
+
+        const input = document.getElementById('chatMessageInput');
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+    }
+
+    // Select existing conversation
+    async function selectConversation(target) {
+        if (!isAuthenticated) {
+            window.location.href = '/Account/Login?returnUrl=/AiTutor';
+            return;
+        }
+
+        let convId = '';
+        if (typeof target === 'string') {
+            convId = target;
+        } else if (target && target.closest) {
+            const item = target.closest('.conv-item');
+            if (item) convId = item.dataset.id;
+        }
+
+        if (!convId || currentConversationId === convId) return;
 
         try {
-            const res = await fetch('/AiTutor/Chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text })
-            });
-
+            const res = await fetch(`/AiTutor/Conversations/${convId}`);
+            if (!res.ok) throw new Error('Failed to load conversation');
             const data = await res.json();
-            showTyping(false);
 
-            if (data && data.responseMarkdown) {
-                appendAiMessage(data.responseMarkdown, data.suggestedFollowUps, data.codeSnippet);
-            } else {
-                appendAiMessage(isEn ? "Sorry, I could not process your query. Please try again." : "Rất tiếc, AI chưa thể xử lý yêu cầu này. Vui lòng thử lại câu hỏi khác nhé.");
+            if (data.success && data.conversation) {
+                const conv = data.conversation;
+                currentConversationId = conv.id;
+                
+                const titleEl = document.getElementById('currentChatTitle');
+                if (titleEl) titleEl.innerText = conv.title || (isEn ? 'New Chat' : 'Đoạn chat mới');
+
+                // Update URL browser
+                if (window.history && window.history.pushState) {
+                    window.history.pushState(null, '', `/AiTutor?id=${conv.id}`);
+                }
+
+                // Update active class in sidebar
+                document.querySelectorAll('.conv-item').forEach(el => {
+                    if (el.dataset.id === convId) {
+                        el.classList.add('active', 'bg-primary', 'bg-opacity-10', 'text-primary', 'fw-semibold');
+                        const icon = el.querySelector('.bi-chat-left-text');
+                        if (icon) icon.className = 'bi bi-chat-dots-fill text-primary flex-shrink-0';
+                    } else {
+                        el.classList.remove('active', 'bg-primary', 'bg-opacity-10', 'text-primary', 'fw-semibold');
+                        const icon = el.querySelector('.bi-chat-dots-fill');
+                        if (icon) icon.className = 'bi bi-chat-left-text text-secondary flex-shrink-0';
+                    }
+                });
+
+                // Render messages
+                const list = document.getElementById('messagesList');
+                list.innerHTML = '';
+
+                if (conv.messages && conv.messages.length > 0) {
+                    document.getElementById('heroStarterView')?.classList.add('d-none');
+                    conv.messages.forEach(m => {
+                        const timeStr = formatTime(m.createdAt);
+                        if (m.role.toLowerCase() === 'user') {
+                            appendUserMessageToDOM(m.content, m.codeSnippet, timeStr);
+                        } else {
+                            appendAiMessageToDOM(m.content, m.codeSnippet, timeStr);
+                        }
+                    });
+                } else {
+                    document.getElementById('heroStarterView')?.classList.remove('d-none');
+                }
+
+                scrollToBottom();
             }
         } catch (err) {
-            showTyping(false);
-            appendAiMessage(isEn ? "Error connecting to AI Tutor service." : "Có lỗi kết nối đến máy chủ AI Tutor. Vui lòng kiểm tra lại kết nối mạng.");
+            console.error('Lỗi khi tải cuộc trò chuyện:', err);
         }
     }
 
-    function sendPresetPrompt(type) {
-        let msg = '';
-        if (type === 'linq') msg = isEn ? 'Explain LINQ deferred execution with examples' : 'Giải thích LINQ và cơ chế Deferred Execution trong C#';
-        if (type === 'async') msg = isEn ? 'How does async await work and how to prevent deadlocks?' : 'Cơ chế hoạt động của async await và cách phòng chống deadlock trong C#';
-        if (type === 'di') msg = isEn ? 'What is the difference between Transient, Scoped, and Singleton in ASP.NET Core?' : 'Phân biệt AddTransient, AddScoped và AddSingleton trong ASP.NET Core';
-        if (type === 'record') msg = isEn ? 'When should I use Record instead of Class in C#?' : 'Khi nào nên dùng Record thay vì Class trong C#?';
-        if (type === 'null') msg = isEn ? 'How to fix and prevent NullReferenceException?' : 'Làm thế nào để sửa lỗi NullReferenceException trong C#?';
-
-        chatInput.value = msg;
-        handleSendChat();
+    // Starter Prompt clicked
+    function useStarterPrompt(prompt) {
+        if (!isAuthenticated) {
+            window.location.href = '/Account/Login?returnUrl=/AiTutor';
+            return;
+        }
+        const input = document.getElementById('chatMessageInput');
+        if (input) {
+            input.value = prompt;
+            sendMessage();
+        }
     }
 
-    function appendUserMessage(text) {
-        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const html = `
-            <div class="d-flex gap-3 mb-4 justify-content-end user-msg-item">
-                <div class="flex-grow-1 text-end" style="max-width: 85%;">
-                    <div class="p-3 rounded-4 bg-primary text-white d-inline-block text-start shadow-xs">
-                        <div class="small lh-base">${escapeHtml(text)}</div>
-                    </div>
-                    <div class="text-muted pe-2 mt-1" style="font-size: 0.7rem;">${timeStr}</div>
-                </div>
-                <div class="rounded-circle bg-secondary-subtle text-secondary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                    <i class="bi bi-person-fill fs-5"></i>
-                </div>
-            </div>`;
-        chatContainer.insertAdjacentHTML('beforeend', html);
+    function sendPresetPrompt(prompt) {
+        useStarterPrompt(prompt);
+    }
+
+    // Send Message
+    async function sendMessage() {
+        if (!isAuthenticated) {
+            window.location.href = '/Account/Login?returnUrl=/AiTutor';
+            return;
+        }
+
+        const input = document.getElementById('chatMessageInput');
+        const text = input ? input.value.trim() : '';
+        if (!text || isWaitingResponse) return;
+
+        // Hide hero starter view
+        document.getElementById('heroStarterView')?.classList.add('d-none');
+
+        // Append user message to UI
+        const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        appendUserMessageToDOM(text, null, nowStr);
+        input.value = '';
+        input.style.height = 'auto';
+
+        // Show typing indicator
+        isWaitingResponse = true;
+        document.getElementById('typingIndicator')?.classList.remove('d-none');
+        scrollToBottom();
+
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+            const payload = {
+                message: text,
+                conversationId: currentConversationId || null
+            };
+
+            const response = await fetch('/AiTutor/Chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.status === 401) {
+                window.location.href = '/Account/Login?returnUrl=/AiTutor';
+                return;
+            }
+
+            const data = await response.json();
+            document.getElementById('typingIndicator')?.classList.add('d-none');
+            isWaitingResponse = false;
+
+            if (data && data.responseMarkdown) {
+                if (data.conversationId) {
+                    currentConversationId = data.conversationId;
+                    if (window.history && window.history.pushState) {
+                        window.history.pushState(null, '', `/AiTutor?id=${currentConversationId}`);
+                    }
+                }
+                appendAiMessageToDOM(data.responseMarkdown, data.codeSnippet, nowStr);
+                await reloadConversationsList();
+            } else {
+                appendAiMessageToDOM(isEn ? "Sorry, I could not process your query. Please try again." : "Rất tiếc, AI chưa thể xử lý yêu cầu này. Vui lòng thử lại nhé.", null, nowStr);
+            }
+        } catch (err) {
+            console.error(err);
+            document.getElementById('typingIndicator')?.classList.add('d-none');
+            isWaitingResponse = false;
+            appendAiMessageToDOM(isEn ? "Network error connecting to Atus. Please check your connection." : "Lỗi mạng khi kết nối tới Atus. Vui lòng thử lại sau.", null, nowStr);
+        }
+
         scrollToBottom();
     }
 
-    function appendAiMessage(markdown, followUps, codeSnippet) {
-        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // Reload sidebar conversations list via AJAX
+    async function reloadConversationsList() {
+        if (!isAuthenticated) return;
+        try {
+            const res = await fetch('/AiTutor/Conversations');
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.success && data.conversations) {
+                renderSidebarConversations(data.conversations);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function renderSidebarConversations(convs) {
+        const container = document.getElementById('conversationsContainer');
+        if (!container) return;
+
+        if (convs.length === 0) {
+            container.innerHTML = `<div class="p-3 text-center text-muted small"><i class="bi bi-chat-square-text fs-3 d-block mb-2 opacity-50"></i><span>${isEn ? 'No conversations yet.' : 'Chưa có đoạn chat nào.'}</span></div>`;
+            return;
+        }
+
+        // Group by TimeGroup
+        const groups = {};
+        convs.forEach(c => {
+            if (!groups[c.timeGroup]) groups[c.timeGroup] = [];
+            groups[c.timeGroup].push(c);
+        });
+
+        let html = '';
+        for (const [groupName, items] of Object.entries(groups)) {
+            html += `<div class="conv-group-header text-uppercase text-muted fw-bold px-2.5 pt-2 pb-1" style="font-size: 0.68rem; letter-spacing: 0.5px;">${groupName}</div><div class="conv-group-items d-flex flex-column gap-1 mb-2">`;
+            items.forEach(c => {
+                const isActive = currentConversationId === c.id;
+                html += `
+                    <div class="conv-item rounded-3 px-2.5 py-2 d-flex align-items-center justify-content-between position-relative ${isActive ? 'active bg-primary bg-opacity-10 text-primary fw-semibold' : 'text-body'}"
+                         data-id="${c.id}" data-title="${escapeHtml(c.title)}" data-pinned="${c.isPinned ? 'true' : 'false'}" onclick="selectConversation(this)">
+                        <div class="d-flex align-items-center gap-2 overflow-hidden flex-grow-1 me-2">
+                            <i class="bi ${c.isPinned ? 'bi-pin-fill text-warning' : (isActive ? 'bi-chat-dots-fill text-primary' : 'bi-chat-left-text text-secondary')} flex-shrink-0" style="font-size: 0.85rem;"></i>
+                            <span class="conv-title text-truncate small">${escapeHtml(c.title)}</span>
+                        </div>
+                        <div class="conv-actions d-flex align-items-center gap-1 flex-shrink-0">
+                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="${isEn ? 'Rename' : 'Đổi tên'}" onclick="event.stopPropagation(); renameConversationPrompt(this)">
+                                <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
+                            </button>
+                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="${c.isPinned ? (isEn ? 'Unpin' : 'Bỏ ghim') : (isEn ? 'Pin' : 'Ghim')}" onclick="event.stopPropagation(); togglePinConversation(this)">
+                                <i class="bi ${c.isPinned ? 'bi-pin-angle-fill text-warning' : 'bi-pin-angle'}" style="font-size: 0.75rem;"></i>
+                            </button>
+                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon text-hover-danger" title="${isEn ? 'Delete' : 'Xóa'}" onclick="event.stopPropagation(); deleteConversationConfirm(this)">
+                                <i class="bi bi-trash3" style="font-size: 0.75rem;"></i>
+                            </button>
+                        </div>
+                    </div>`;
+            });
+            html += `</div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    // Filter conversations in real time
+    function filterConversations(query) {
+        const q = (query || '').toLowerCase().trim();
+        const groups = document.querySelectorAll('.conv-group-items');
+
+        groups.forEach(group => {
+            let hasVisibleChild = false;
+            const items = group.querySelectorAll('.conv-item');
+            items.forEach(el => {
+                const title = (el.dataset.title || '').toLowerCase();
+                if (!q || title.includes(q)) {
+                    el.classList.remove('d-none');
+                    hasVisibleChild = true;
+                } else {
+                    el.classList.add('d-none');
+                }
+            });
+
+            // Toggle corresponding group header
+            const header = group.previousElementSibling;
+            if (header && header.classList.contains('conv-group-header')) {
+                if (hasVisibleChild) {
+                    header.classList.remove('d-none');
+                    group.classList.remove('d-none');
+                } else {
+                    header.classList.add('d-none');
+                    group.classList.add('d-none');
+                }
+            }
+        });
+    }
+
+    // Rename prompt
+    function renameConversationPrompt(btn) {
+        const item = btn ? btn.closest('.conv-item') : null;
+        if (!item) return;
+
+        const convId = item.dataset.id;
+        const currentTitle = item.dataset.title || '';
+
+        document.getElementById('renameConvId').value = convId;
+        const input = document.getElementById('renameConvTitle');
+        input.value = currentTitle;
+
+        const modalEl = document.getElementById('renameModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+
+        setTimeout(() => {
+            input.focus();
+            input.select();
+        }, 150);
+    }
+
+    // Submit Rename
+    async function submitRename() {
+        const id = document.getElementById('renameConvId').value;
+        const titleInput = document.getElementById('renameConvTitle');
+        const title = titleInput ? titleInput.value.trim() : '';
+        if (!id || !title) return;
+
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+            const res = await fetch(`/AiTutor/Conversations/${id}/Title`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ title })
+            });
+
+            if (res.ok) {
+                const modalEl = document.getElementById('renameModal');
+                bootstrap.Modal.getInstance(modalEl)?.hide();
+
+                if (currentConversationId === id) {
+                    const titleEl = document.getElementById('currentChatTitle');
+                    if (titleEl) titleEl.innerText = title;
+                }
+
+                // Update element title instantly in DOM
+                const item = document.querySelector(`.conv-item[data-id="${id}"]`);
+                if (item) {
+                    item.dataset.title = title;
+                    const span = item.querySelector('.conv-title');
+                    if (span) span.innerText = title;
+                }
+
+                await reloadConversationsList();
+            }
+        } catch (e) {
+            console.error('Lỗi khi đổi tên hội thoại:', e);
+        }
+    }
+
+    // Listen Enter key on Rename Input
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('renameConvTitle')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitRename();
+            }
+        });
+    });
+
+    // Toggle Pin
+    async function togglePinConversation(btn) {
+        const item = btn ? btn.closest('.conv-item') : null;
+        if (!item) return;
+
+        const convId = item.dataset.id;
+        const currentlyPinned = item.dataset.pinned === 'true';
+        const newPinnedState = !currentlyPinned;
+
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+            const res = await fetch(`/AiTutor/Conversations/${convId}/Pin`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ isPinned: newPinnedState })
+            });
+
+            if (res.ok) {
+                item.dataset.pinned = newPinnedState ? 'true' : 'false';
+                await reloadConversationsList();
+            }
+        } catch (e) {
+            console.error('Lỗi khi ghim cuộc trò chuyện:', e);
+        }
+    }
+
+    // Delete Conversation Confirmation
+    function deleteConversationConfirm(btn) {
+        const item = btn ? btn.closest('.conv-item') : null;
+        if (!item) return;
+
+        const convId = item.dataset.id;
+        document.getElementById('deleteConvId').value = convId;
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteModal'));
+        modal.show();
+    }
+
+    // Submit Delete Conversation
+    async function submitDeleteConversation() {
+        const convId = document.getElementById('deleteConvId').value;
+        if (!convId) return;
+
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+            const res = await fetch(`/AiTutor/Conversations/${convId}`, {
+                method: 'DELETE',
+                headers: {
+                    'RequestVerificationToken': token
+                }
+            });
+
+            if (res.ok) {
+                const modalEl = document.getElementById('deleteModal');
+                bootstrap.Modal.getInstance(modalEl)?.hide();
+
+                if (currentConversationId === convId) {
+                    startNewChat();
+                }
+
+                await reloadConversationsList();
+            }
+        } catch (e) {
+            console.error('Lỗi khi xóa cuộc trò chuyện:', e);
+        }
+    }
+
+    // Helper DOM builders
+    function appendUserMessageToDOM(content, codeSnippet, timeStr) {
+        const list = document.getElementById('messagesList');
+        const snippetHtml = codeSnippet ? `<div class="mt-2 p-2 rounded-3 bg-dark bg-opacity-25 small font-monospace"><code>${escapeHtml(codeSnippet)}</code></div>` : '';
+        const html = `
+            <div class="d-flex justify-content-end msg-row user-msg">
+                <div class="d-flex flex-column align-items-end" style="max-width: 85%;">
+                    <div class="user-bubble p-3 rounded-4 bg-primary text-white shadow-xs">
+                        <div class="message-text">${escapeHtml(content).replace(/\\n/g, '<br>')}</div>
+                        ${snippetHtml}
+                    </div>
+                    <span class="text-muted small pe-2 mt-1" style="font-size: 0.68rem;">${timeStr}</span>
+                </div>
+            </div>`;
+        list.insertAdjacentHTML('beforeend', html);
+    }
+
+    function appendAiMessageToDOM(markdown, codeSnippet, timeStr) {
+        const list = document.getElementById('messagesList');
         let formatted = formatSimpleMarkdown(markdown);
 
-        let followUpsHtml = '';
-        if (followUps && followUps.length > 0) {
-            const chips = followUps.map(f => `<button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-0.5 px-2.5 small me-1 mb-1" style="font-size: 0.75rem;" onclick="quickAsk('${escapeHtml(f)}')"><i class="bi bi-chat-dots me-1"></i>${escapeHtml(f)}</button>`).join('');
-            followUpsHtml = `<div class="mt-3 pt-2 border-top"><div class="text-muted small mb-1" style="font-size: 0.72rem;">${isEn ? 'Suggested Follow-ups:' : 'Gợi ý câu hỏi tiếp theo:'}</div><div class="d-flex flex-wrap">${chips}</div></div>`;
-        }
-
         const html = `
-            <div class="d-flex gap-3 mb-4 ai-msg-item">
-                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+            <div class="d-flex gap-3 msg-row ai-msg">
+                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
                     <i class="bi bi-robot fs-5"></i>
                 </div>
-                <div class="flex-grow-1" style="max-width: 90%;">
-                    <div class="p-3 rounded-4 bg-body-tertiary border text-body shadow-xs">
+                <div class="d-flex flex-column flex-grow-1 overflow-hidden" style="max-width: 90%;">
+                    <div class="ai-bubble p-3.5 rounded-4 bg-body-tertiary border shadow-xs">
                         <div class="fw-bold mb-1 text-primary small d-flex align-items-center gap-2">
-                            <span>NET-Tutos AI Mentor</span>
-                            <span class="badge bg-primary-subtle text-primary" style="font-size: 0.65rem;">C# Expert</span>
+                            <span>Atus</span>
+                            <span class="badge bg-primary-subtle text-primary" style="font-size: 0.65rem;">AI Agent</span>
                         </div>
                         <div class="markdown-body small lh-lg">${formatted}</div>
-                        ${followUpsHtml}
                     </div>
-                    <span class="text-muted small ps-2 mt-1 d-inline-block" style="font-size: 0.7rem;">${timeStr}</span>
+                    <span class="text-muted small ps-2 mt-1" style="font-size: 0.68rem;">${timeStr}</span>
                 </div>
             </div>`;
-
-        chatContainer.insertAdjacentHTML('beforeend', html);
-        scrollToBottom();
-
-        // Highlight code
-        if (window.Prism) {
-            Prism.highlightAllUnder(chatContainer);
-        }
+        list.insertAdjacentHTML('beforeend', html);
     }
 
-    function quickAsk(q) {
-        chatInput.value = q;
-        handleSendChat();
-    }
-
-    function showTyping(show) {
-        if (show) {
-            typingIndicator.classList.remove('d-none');
-            btnSendChat.disabled = true;
-        } else {
-            typingIndicator.classList.add('d-none');
-            btnSendChat.disabled = false;
-        }
-        scrollToBottom();
-    }
-
-    function scrollToBottom() {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    function clearChatHistory() {
-        if (confirm(isEn ? "Reset conversation?" : "Làm mới cuộc trò chuyện?")) {
-            location.reload();
-        }
+    function formatTime(isoStr) {
+        if (!isoStr) return '';
+        const d = new Date(isoStr);
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
     function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        if (!text) return '';
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function copyCodeToClipboard(btn) {
+        const pre = btn.closest('.code-toolbar-wrapper').querySelector('pre code');
+        if (pre) {
+            navigator.clipboard.writeText(pre.innerText).then(() => {
+                const original = btn.innerHTML;
+                btn.innerHTML = `<i class="bi bi-check2 text-success"></i> ${isEn ? 'Copied' : 'Đã sao chép'}`;
+                setTimeout(() => { btn.innerHTML = original; }, 2000);
+            });
+        }
+    }
+
+    function openInSandbox(btn) {
+        const pre = btn.closest('.code-toolbar-wrapper').querySelector('pre code');
+        if (pre) {
+            sessionStorage.setItem('nettutos_sandbox_code', pre.innerText);
+            window.open('/Playground', '_blank');
+        }
     }
 
     function formatSimpleMarkdown(text) {
         if (!text) return '';
-        let html = text
-            .replace(/### (.*?)\n/g, '<h5 class="fw-bold text-primary mt-2 mb-2">$1</h5>')
-            .replace(/#### (.*?)\n/g, '<h6 class="fw-bold mt-2 mb-1">$1</h6>')
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/```csharp\n([\s\S]*?)```/g, '<div class="position-relative my-2"><pre class="rounded-3 p-3 bg-dark text-light"><code class="language-csharp">$1</code></pre></div>')
-            .replace(/```([\s\S]*?)```/g, '<div class="position-relative my-2"><pre class="rounded-3 p-3 bg-dark text-light"><code>$1</code></pre></div>')
-            .replace(/`([^`]+)`/g, '<code class="bg-secondary-subtle px-1.5 py-0.5 rounded text-primary">$1</code>')
-            .replace(/\n\n/g, '<br/><br/>')
-            .replace(/\n/g, '<br/>');
-        return html;
+
+        // Code blocks with syntax toolbar & Copy button & Sandbox button
+        text = text.replace(/```(?:csharp|cs)?\n([\s\S]*?)```/gi, function(match, code) {
+            return `
+                <div class="code-toolbar-wrapper my-3 rounded-3 overflow-hidden border">
+                    <div class="d-flex align-items-center justify-content-between px-3 py-1.5 bg-dark text-white border-bottom border-secondary border-opacity-25" style="font-size: 0.72rem;">
+                        <span class="fw-semibold text-info"><i class="bi bi-filetype-cs me-1"></i>C# (.NET 10)</span>
+                        <div class="d-flex gap-1.5">
+                            <button type="button" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 0.68rem;" onclick="copyCodeToClipboard(this)">
+                                <i class="bi bi-clipboard me-1"></i>${isEn ? 'Copy' : 'Sao chép'}
+                            </button>
+                            <button type="button" class="btn btn-sm btn-primary py-0 px-2" style="font-size: 0.68rem;" onclick="openInSandbox(this)">
+                                <i class="bi bi-play-circle-fill me-1"></i>${isEn ? 'Run in Sandbox' : 'Chạy thử'}
+                            </button>
+                        </div>
+                    </div>
+                    <pre class="bg-dark text-light p-3 mb-0 overflow-x-auto font-monospace" style="font-size: 0.8rem; line-height: 1.55;"><code>${escapeHtml(code.trim())}</code></pre>
+                </div>`;
+        });
+
+        // Headers
+        text = text.replace(/^### (.*$)/gim, '<h5 class="fw-bold mt-3 mb-2 text-primary">$1</h5>');
+        text = text.replace(/^## (.*$)/gim, '<h4 class="fw-bold mt-3 mb-2">$1</h4>');
+        text = text.replace(/^# (.*$)/gim, '<h3 class="fw-bold mt-4 mb-2">$1</h3>');
+
+        // Bold & Italic
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+        // Inline code
+        text = text.replace(/`([^`]+)`/g, '<code class="bg-body-secondary px-1.5 py-0.5 rounded text-primary" style="font-size: 0.85em;">$1</code>');
+
+        // Blockquotes
+        text = text.replace(/^> (.*$)/gim, '<blockquote class="border-start border-3 border-warning ps-3 py-1 my-2 text-muted fst-italic bg-warning bg-opacity-10 rounded-end">$1</blockquote>');
+
+        // Bullet lists
+        text = text.replace(/^\s*[-*]\s+(.*$)/gim, '<li class="ms-3 mb-1">$1</li>');
+        text = text.replace(/(<li class="ms-3 mb-1">.*<\/li>)/gs, '<ul class="ps-1 my-2">$1</ul>');
+
+        // Links
+        text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-decoration-none text-primary fw-semibold" target="_blank">$1 <i class="bi bi-box-arrow-up-right small" style="font-size: 0.7em;"></i></a>');
+
+        // Newlines to <br> for regular paragraphs
+        text = text.replace(/\n\n+/g, '</p><p class="mb-2">');
+        return `<p class="mb-2">${text}</p>`;
     }
-
-    // Resizable Chat Card Handler (Bottom Edge & Corner Dragging)
-    (function initChatResizer() {
-        const card = document.getElementById('aiChatCard');
-        const handle = document.getElementById('chatResizeHandle');
-        if (!card || !handle) return;
-
-        // Restore user preferred height if previously saved
-        const savedHeight = localStorage.getItem('nettutos_aichat_height');
-        if (savedHeight) {
-            card.style.height = savedHeight;
-        }
-
-        let isResizing = false;
-        let startY = 0;
-        let startHeight = 0;
-
-        handle.addEventListener('mousedown', function(e) {
-            isResizing = true;
-            startY = e.clientY;
-            startHeight = card.getBoundingClientRect().height;
-            handle.classList.add('resizing');
-            card.classList.add('is-resizing');
-            document.body.style.cursor = 'ns-resize';
-            document.body.style.userSelect = 'none';
-            e.preventDefault();
-        });
-
-        handle.addEventListener('touchstart', function(e) {
-            if (e.touches.length === 1) {
-                isResizing = true;
-                startY = e.touches[0].clientY;
-                startHeight = card.getBoundingClientRect().height;
-                handle.classList.add('resizing');
-                card.classList.add('is-resizing');
-            }
-        }, { passive: true });
-
-        window.addEventListener('mousemove', function(e) {
-            if (!isResizing) return;
-            const delta = e.clientY - startY;
-            const newHeight = Math.max(420, Math.min(window.innerHeight * 0.92, startHeight + delta));
-            card.style.height = newHeight + 'px';
-        });
-
-        window.addEventListener('touchmove', function(e) {
-            if (!isResizing || e.touches.length !== 1) return;
-            const delta = e.touches[0].clientY - startY;
-            const newHeight = Math.max(420, Math.min(window.innerHeight * 0.92, startHeight + delta));
-            card.style.height = newHeight + 'px';
-        }, { passive: true });
-
-        function stopResizing() {
-            if (isResizing) {
-                isResizing = false;
-                handle.classList.remove('resizing');
-                card.classList.remove('is-resizing');
-                document.body.style.cursor = '';
-                document.body.style.userSelect = '';
-                localStorage.setItem('nettutos_aichat_height', card.style.height);
-                scrollToBottom();
-            }
-        }
-
-        window.addEventListener('mouseup', stopResizing);
-        window.addEventListener('touchend', stopResizing);
-
-        // Double-click toggle (Default 650px <-> 820px)
-        handle.addEventListener('dblclick', function() {
-            const current = card.getBoundingClientRect().height;
-            if (current < 750) {
-                card.style.height = '820px';
-            } else {
-                card.style.height = '650px';
-            }
-            localStorage.setItem('nettutos_aichat_height', card.style.height);
-            scrollToBottom();
-        });
-    })();
 </script>
 
 <style>
-    #aiChatCard {
-        resize: vertical;
+    /* Lock entire page to prevent window scroll / overscroll bounce / scaling glitch */
+    html, body {
+        height: 100% !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
+    }
+
+    /* Hide global website footer on AI Tutor chat */
+    footer.footer {
+        display: none !important;
+    }
+
+    /* Reset layout main container to fill exact viewport height */
+    main[role="main"] {
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+        height: calc(100vh - 58px) !important;
+        height: calc(100dvh - 58px) !important;
+        max-height: calc(100dvh - 58px) !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* Full-viewport App Style */
+    .aitutor-viewport {
+        height: 100% !important;
+        max-height: 100% !important;
+        min-height: 0 !important;
+        flex: 1 1 auto;
         overflow: hidden;
-        min-height: 420px;
-        max-height: 92vh;
-        transition: box-shadow 0.2s ease;
     }
-    #aiChatCard.is-resizing {
-        user-select: none;
-        box-shadow: 0 0.5rem 1.5rem rgba(13, 110, 253, 0.15) !important;
+
+    /* Contain overscroll on internal scrollables so mousewheel never scrolls outer window */
+    .aitutor-history-list,
+    .aitutor-messages-feed {
+        overscroll-behavior: contain !important;
+        -webkit-overflow-scrolling: touch;
     }
-    .chat-resize-bar {
-        cursor: ns-resize;
+
+    /* Sidebar Styling */
+    .aitutor-sidebar {
+        width: 280px;
+        transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .aitutor-sidebar.collapsed {
+        margin-left: -280px;
+    }
+    @@media (max-width: 768px) {
+        .aitutor-sidebar {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1040;
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+        }
+        .aitutor-sidebar:not(.collapsed) {
+            margin-left: 0;
+        }
+        .aitutor-sidebar.collapsed {
+            margin-left: -280px;
+        }
+    }
+
+    .conv-item {
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .conv-item:hover {
         background-color: var(--bs-tertiary-bg);
-        border-top: 1px solid var(--bs-border-color-translucent);
-        user-select: none;
-        height: 16px;
-        transition: background-color 0.15s ease;
     }
-    .chat-resize-bar:hover, .chat-resize-bar.resizing {
-        background-color: var(--bs-primary-bg-subtle, rgba(13, 110, 253, 0.1));
+    .conv-actions {
+        opacity: 0;
+        transition: opacity 0.15s ease;
     }
-    .chat-resize-grip-pill {
-        width: 44px;
-        height: 4px;
-        background-color: var(--bs-secondary-color);
-        border-radius: 2px;
-        opacity: 0.35;
-        transition: opacity 0.15s ease, background-color 0.15s ease, width 0.15s ease;
+    .conv-item:hover .conv-actions {
+        opacity: 1;
     }
-    .chat-resize-bar:hover .chat-resize-grip-pill, .chat-resize-bar.resizing .chat-resize-grip-pill {
-        opacity: 0.9;
-        width: 60px;
+    .hover-icon:hover {
+        color: var(--bs-primary) !important;
+    }
+    .text-hover-danger:hover {
+        color: var(--bs-danger) !important;
+    }
+
+    /* Main Area Styling */
+    .chat-max-width {
+        max-width: 820px;
+        width: 100%;
+    }
+
+    .starter-card {
+        transition: all 0.2s ease;
+    }
+    .starter-card:hover {
+        border-color: var(--bs-primary) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 0.25rem 0.75rem rgba(13, 110, 253, 0.08);
+    }
+
+    /* Chat Bubbles */
+    .user-bubble {
+        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+        border-bottom-right-radius: 4px !important;
+    }
+    .ai-bubble {
+        border-top-left-radius: 4px !important;
+    }
+
+    /* Floating Input Card */
+    .focus-ring-card:focus-within {
+        border-color: var(--bs-primary) !important;
+        box-shadow: 0 0.25rem 1rem rgba(13, 110, 253, 0.15) !important;
+    }
+    .send-btn {
+        width: 38px;
+        height: 38px;
+        transition: transform 0.15s ease;
+    }
+    .send-btn:hover {
+        transform: scale(1.06);
+    }
+
+    /* Pulse dot */
+    .status-dot-pulse {
+        width: 6px;
+        height: 6px;
+        background-color: #198754;
+        border-radius: 50%;
+        display: inline-block;
+        animation: pulse-green 2s infinite;
+    }
+    @@keyframes pulse-green {
+        0% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.7); }
+        70% { box-shadow: 0 0 0 5px rgba(25, 135, 84, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
+    }
+
+    /* Wave typing animation */
+    .typing-wave span {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
         background-color: var(--bs-primary);
+        margin: 0 2px;
+        animation: wave-dots 1.3s infinite ease-in-out;
+    }
+    .typing-wave span:nth-child(2) { animation-delay: 0.15s; }
+    .typing-wave span:nth-child(3) { animation-delay: 0.3s; }
+    @@keyframes wave-dots {
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+        30% { transform: translateY(-5px); opacity: 1; }
+    }
+
+    /* Clean markdown code blocks */
+    .code-toolbar-wrapper pre {
+        border-radius: 0 0 8px 8px;
     }
 </style>
 }

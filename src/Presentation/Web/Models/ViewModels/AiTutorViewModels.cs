@@ -1,7 +1,8 @@
-namespace NET_Tutos.Models.ViewModels;
+﻿namespace NET_Tutos.Models.ViewModels;
 
 public class AiTutorChatRequest
 {
+    public Guid? ConversationId { get; set; }
     public string Message { get; set; } = string.Empty;
     public string? CodeContext { get; set; }
     public string? ErrorContext { get; set; }
@@ -10,7 +11,10 @@ public class AiTutorChatRequest
 
 public class AiTutorChatResponse
 {
+    public string? ModelUsed { get; set; }
     public bool Success { get; set; } = true;
+    public Guid ConversationId { get; set; }
+    public string ConversationTitle { get; set; } = string.Empty;
     public string ResponseMarkdown { get; set; } = string.Empty;
     public string? CodeSnippet { get; set; }
     public List<string> SuggestedFollowUps { get; set; } = new();
@@ -213,3 +217,74 @@ public class AiInterviewReportResponse
     public int TimeSpentSeconds { get; set; }
 }
 
+
+
+public class AiTutorStatusResponse
+{
+    public bool Success { get; set; }
+    public bool IsLiveGemini { get; set; }
+    public string Provider { get; set; } = string.Empty;
+    public string Model { get; set; } = string.Empty;
+    public bool IsAvailable { get; set; }
+    public long LatencyMs { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public DateTime CheckedAt { get; set; } = DateTime.UtcNow;
+}
+public class AiConversationSummaryDto
+{
+    public Guid Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public bool IsPinned { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public int MessageCount { get; set; }
+    public string TimeGroup { get; set; } = "Hôm nay";
+}
+
+public class AiConversationDetailDto
+{
+    public Guid Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public bool IsPinned { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public List<AiChatMessageDto> Messages { get; set; } = new();
+}
+
+public class AiChatMessageDto
+{
+    public long Id { get; set; }
+    public Guid ConversationId { get; set; }
+    public string Role { get; set; } = "user"; // "user" hoặc "model"
+    public string Content { get; set; } = string.Empty;
+    public string? CodeSnippet { get; set; }
+    public List<string> SuggestedFollowUps { get; set; } = new();
+    public string? ModelUsed { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class AiCreateConversationRequest
+{
+    public string? Title { get; set; }
+}
+
+public class AiUpdateTitleRequest
+{
+    public string Title { get; set; } = string.Empty;
+}
+
+public class AiTogglePinRequest
+{
+    public bool IsPinned { get; set; }
+}
+public class AiTutorIndexViewModel
+{
+    public bool IsAuthenticated { get; set; }
+    public string? CurrentUserId { get; set; }
+    public string? CurrentUserName { get; set; }
+    public string? CurrentUserAvatar { get; set; }
+    public List<AiConversationSummaryDto> Conversations { get; set; } = new();
+    public AiConversationDetailDto? ActiveConversation { get; set; }
+    public Guid? ActiveConversationId => ActiveConversation?.Id;
+    public bool IsLiveGeminiConfigured { get; set; }
+}

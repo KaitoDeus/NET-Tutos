@@ -20,6 +20,7 @@ public class GeminiAgentService : IAiTutorService
     private readonly IStreakService _streakService;
     private readonly AiTutorService _fallbackEngine;
     private readonly ILogger<GeminiAgentService> _logger;
+    private readonly IAiConversationService? _conversationService;
 
     private readonly string? _apiKey;
     private readonly string _model;
@@ -33,7 +34,8 @@ public class GeminiAgentService : IAiTutorService
         AppDbContext context,
         IStreakService streakService,
         AiTutorService fallbackEngine,
-        ILogger<GeminiAgentService> logger)
+        ILogger<GeminiAgentService> logger,
+        IAiConversationService? conversationService = null)
     {
         _httpClient = httpClientFactory.CreateClient("Gemini");
         _configuration = configuration;
@@ -42,9 +44,19 @@ public class GeminiAgentService : IAiTutorService
         _streakService = streakService;
         _fallbackEngine = fallbackEngine;
         _logger = logger;
+        _conversationService = conversationService;
 
-        _apiKey = _configuration["Gemini:ApiKey"] ?? _configuration["GEMINI_API_KEY"];
-        _model = _configuration["Gemini:Model"] ?? "gemini-2.0-flash";
+        var rawKey = (_configuration["Gemini:ApiKey"] 
+            ?? _configuration["GEMINI_API_KEY"] 
+            ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY") 
+            ?? string.Empty).Trim();
+        if (rawKey.StartsWith("${") && rawKey.EndsWith("}"))
+        {
+            rawKey = rawKey.Substring(2, rawKey.Length - 3).Trim();
+        }
+        _apiKey = string.IsNullOrWhiteSpace(rawKey) ? null : rawKey;
+
+        _model = _configuration["Gemini:Model"] ?? "gemini-3.8-flash";
         _enabled = _configuration.GetValue<bool>("Gemini:Enabled", true);
         _temperature = _configuration.GetValue<double>("Gemini:Temperature", 0.4);
     }
@@ -53,47 +65,132 @@ public class GeminiAgentService : IAiTutorService
 
     public async Task<AiTutorChatResponse> ChatAsync(AiTutorChatRequest request, bool isEnglish)
     {
+        // 1. Save user question if conversation exists
+        if (_conversationService != null && request.ConversationId.HasValue && request.ConversationId.Value != Guid.Empty)
+        {
+            await _conversationService.SaveMessageAsync(
+                request.ConversationId.Value,
+                role: "user",
+                content: request.Message,
+                codeSnippet: request.CodeContext);
+        }
+
+        AiTutorChatResponse response;
+
         if (!IsLiveGeminiAvailable)
         {
             _logger.LogInformation("Gemini API key is not configured or disabled. Delegating to local rule engine.");
-            return await _fallbackEngine.ChatAsync(request, isEnglish);
+            response = await _fallbackEngine.ChatAsync(request, isEnglish);
+        }
+        else
+        {
+            try
+            {
+                response = await ExecuteAgentChatLoopAsync(request, isEnglish);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Gemini Agent failed with error: {Message}. Fallback to local expert rule engine.", ex.Message);
+                response = await _fallbackEngine.ChatAsync(request, isEnglish);
+
+                string shortError = "Connection Busy";
+                if (ex.Message.Contains("404")) shortError = "Model 404";
+                else if (ex.Message.Contains("503")) shortError = "Server Busy 503";
+                else if (ex.Message.Contains("429")) shortError = "Rate Limit 429";
+                else if (ex.Message.Contains("400")) shortError = "Protocol Error 400";
+
+                response.ResponseMarkdown = (isEnglish
+                    ? $"> ⚠️ *[Offline Engine Active - AI Assistant busy ({shortError})]*\n\n"
+                    : $"> ⚠️ *[Chế độ Ngoại tuyến kích hoạt - Hệ thống AI đang bận ({shortError})]*\n\n")
+                    + response.ResponseMarkdown;
+            }
         }
 
-        try
+        // 2. Save model answer and auto-generate title if conversation exists
+        if (_conversationService != null && request.ConversationId.HasValue && request.ConversationId.Value != Guid.Empty)
         {
-            return await ExecuteAgentChatLoopAsync(request, isEnglish);
+            await _conversationService.SaveMessageAsync(
+                request.ConversationId.Value,
+                role: "model",
+                content: response.ResponseMarkdown,
+                codeSnippet: response.CodeSnippet,
+                followUps: response.SuggestedFollowUps,
+                modelUsed: response.ModelUsed ?? _model);
+
+            await _conversationService.EnsureAutoTitleAsync(request.ConversationId.Value, request.Message, isEnglish);
+            response.ConversationId = request.ConversationId.Value;
         }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Gemini Agent failed with error: {Message}. Fallback to local expert rule engine.", ex.Message);
-            var fallbackResponse = await _fallbackEngine.ChatAsync(request, isEnglish);
-            fallbackResponse.ResponseMarkdown = (isEnglish
-                ? "> ⚠️ *[Offline Engine Active - Live Gemini Agent unavailable: " + ex.Message + "]*\n\n"
-                : "> ⚠️ *[Chế độ Offline kích hoạt - Kết nối Gemini Agent tạm ngắt: " + ex.Message + "]*\n\n")
-                + fallbackResponse.ResponseMarkdown;
-            return fallbackResponse;
-        }
+
+        return response;
     }
 
     private async Task<AiTutorChatResponse> ExecuteAgentChatLoopAsync(AiTutorChatRequest request, bool isEnglish)
     {
+        var modelsToTry = new List<string> { _model };
+        string[] fallbacks = ["gemini-3.5-flash-lite", "gemini-3-flash-preview", "gemini-3.1-flash-lite-preview"];
+        foreach (var fb in fallbacks)
+        {
+            if (!modelsToTry.Contains(fb, StringComparer.OrdinalIgnoreCase))
+            {
+                modelsToTry.Add(fb);
+            }
+        }
+
+        Exception? lastEx = null;
+        foreach (var currentModel in modelsToTry)
+        {
+            try
+            {
+                return await ExecuteModelChatLoopAsync(currentModel, request, isEnglish);
+            }
+            catch (Exception ex)
+            {
+                lastEx = ex;
+                _logger.LogWarning(ex, "Gemini model {Model} failed with {Message}. Auto-recovering using resilient fallback chain.", currentModel, ex.Message);
+            }
+        }
+
+        throw lastEx ?? new InvalidOperationException("All Gemini models in fallback chain were exhausted.");
+    }
+
+    private async Task<AiTutorChatResponse> ExecuteModelChatLoopAsync(string modelName, AiTutorChatRequest request, bool isEnglish)
+    {
         var systemInstruction = BuildSystemPrompt(isEnglish);
         var toolsDefinition = BuildToolsDefinition();
 
-        var contents = new JsonArray
+        var contents = new JsonArray();
+
+        // Load multi-turn history if conversation context is available
+        if (_conversationService != null && request.ConversationId.HasValue && request.ConversationId.Value != Guid.Empty)
         {
-            new JsonObject
+            var history = await _conversationService.GetRecentMessagesForContextAsync(request.ConversationId.Value, 8);
+            foreach (var msg in history)
             {
-                ["role"] = "user",
-                ["parts"] = new JsonArray
+                // Ensure valid roles: 'user' or 'model'
+                var role = msg.Role.Equals("model", StringComparison.OrdinalIgnoreCase) ? "model" : "user";
+                contents.Add(new JsonObject
                 {
-                    new JsonObject
+                    ["role"] = role,
+                    ["parts"] = new JsonArray
                     {
-                        ["text"] = BuildUserPrompt(request)
+                        new JsonObject { ["text"] = msg.Content }
                     }
+                });
+            }
+        }
+
+        // Append current turn user prompt
+        contents.Add(new JsonObject
+        {
+            ["role"] = "user",
+            ["parts"] = new JsonArray
+            {
+                new JsonObject
+                {
+                    ["text"] = BuildUserPrompt(request)
                 }
             }
-        };
+        });
 
         const int maxToolTurns = 4;
         int currentTurn = 0;
@@ -120,7 +217,7 @@ public class GeminiAgentService : IAiTutorService
                 }
             };
 
-            var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
+            var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{modelName}:generateContent?key={_apiKey}";
             using var response = await _httpClient.PostAsJsonAsync(endpoint, requestBody);
 
             if (!response.IsSuccessStatusCode)
@@ -155,27 +252,13 @@ public class GeminiAgentService : IAiTutorService
                 // Execute local tool
                 var toolResult = await DispatchToolAsync(functionName, functionArgs);
 
-                // Add assistant's call to history
-                contents.Add(new JsonObject
-                {
-                    ["role"] = "model",
-                    ["parts"] = new JsonArray
-                    {
-                        new JsonObject
-                        {
-                            ["functionCall"] = new JsonObject
-                            {
-                                ["name"] = functionName,
-                                ["args"] = functionArgs.DeepClone()
-                            }
-                        }
-                    }
-                });
+                // Add assistant's call to history (preserving candidate parts and thoughtSignature)
+                contents.Add(candidate.DeepClone());
 
-                // Add tool result to history
+                // Add tool result to history (Google Gemini v1beta requires role: "user" for functionResponse)
                 contents.Add(new JsonObject
                 {
-                    ["role"] = "function",
+                    ["role"] = "user",
                     ["parts"] = new JsonArray
                     {
                         new JsonObject
@@ -200,7 +283,9 @@ public class GeminiAgentService : IAiTutorService
                 .ToList();
 
             var fullText = string.Join("\n", textParts);
-            return ParseAgentResponse(fullText, isEnglish);
+            var res = ParseAgentResponse(fullText, isEnglish);
+            res.ModelUsed = modelName;
+            return res;
         }
 
         throw new InvalidOperationException("Exceeded maximum tool calling loop iterations.");
@@ -210,26 +295,40 @@ public class GeminiAgentService : IAiTutorService
     {
         if (isEnglish)
         {
-            return @"You are NET-Tutos AI Mentor, an elite Principal .NET Architect and Technical Lead.
+            return @"You are Atus, an elite Principal .NET Architect, Technical Lead, and dedicated AI Agent of the NET-Tutos platform.
+Your name 'Atus' has a special, creative meaning:
+- 'A' stands for 'Agent'.
+- 'tus' is the suffix taken from the website name 'Tutos'.
+Together, Agent + Tutos forms your unique identity: Atus!
+
 Your mission is to guide learners to master C# 14, .NET 10, ASP.NET Core, EF Core, and Enterprise Clean Architecture.
 
 Core Principles:
-1. Socratic Mentorship: Guide learners to discover solutions rather than giving away entire solutions upfront. Give hints and structural patterns.
-2. Verified Execution: When user asks to run code, debug an error, or test an algorithm, ALWAYS use the `execute_csharp_code` tool to verify before responding.
-3. High Standards: Recommend Modern C# (records, pattern matching, span/memory, primary constructors, async best practices, CancellationToken, AsNoTracking).
-4. Curriculum Integration: When discussing topics covered in .NET Tutos, use `search_curriculum` to point to specific tutorials.
-5. Format: Clear Markdown, bold keywords, syntax-highlighted ```csharp code blocks. Always provide 2-3 suggested follow-up questions at the very end in a section named '### Suggested Follow-ups'.";
+1. Identity: When asked who you are or about your name, proudly introduce yourself as Atus, and explain that 'A' represents Agent and 'tus' represents Tutos.
+2. Socratic Mentorship: Guide learners to discover solutions rather than giving away entire solutions upfront. Give hints and structural patterns.
+3. Verified Execution: When user asks to run code, debug an error, or test an algorithm, ALWAYS use the `execute_csharp_code` tool to verify before responding.
+4. High Standards: Recommend Modern C# (records, pattern matching, span/memory, primary constructors, async best practices, CancellationToken, AsNoTracking).
+5. Curriculum Integration: When discussing topics covered in .NET Tutos, use `search_curriculum` to point to specific tutorials.
+6. Format: Clear Markdown, bold keywords, syntax-highlighted ```csharp code blocks.
+7. Boundaries: Never mention the word 'Gemini' or external AI provider names. Do NOT include suggested follow-up questions at the end of your response.";
         }
 
-        return @"Bạn là NET-Tutos AI Mentor, chuyên gia Principal .NET Architect & Technical Lead hàng đầu.
+        return @"Bạn là Atus, chuyên gia Principal .NET Architect & Technical Lead, trợ lý AI Agent thông minh độc quyền của nền tảng NET-Tutos.
+Tên gọi 'Atus' của bạn mang một ý nghĩa đặc biệt và gần gũi:
+- Chữ 'A' đại diện cho 'Agent'.
+- Hậu tố 'tus' được lấy từ tên website 'Tutos'.
+Kết hợp lại, Agent + Tutos tạo nên danh xưng: Atus!
+
 Sứ mệnh của bạn là dẫn dắt học viên làm chủ C# 14, .NET 10, ASP.NET Core, Entity Framework Core và Clean Architecture chuẩn công nghiệp.
 
 Nguyên tắc cốt lõi:
-1. Phương pháp Socratic: Gợi mở tư duy từng bước, phân tích nguyên nhân gốc rễ và cơ chế bên dưới (Memory Allocation, Heap/Stack, ThreadPool, StateMachine) thay vì giải hộ toàn bộ bài tập.
-2. Thực thi kiểm chứng: Khi học viên gửi code nhờ kiểm tra hoặc nhờ chạy thử, LUÔN LUÔN gọi Tool `execute_csharp_code` để biên dịch và kiểm tra lỗi thật trên máy chủ Roslyn trước khi phân tích.
-3. Chuẩn hiện đại: Khuyến khích cú pháp C# mới (.NET 10, record, pattern matching, async/await non-blocking, CancellationToken, AsNoTracking).
-4. Gắn kết giáo trình: Dùng Tool `search_curriculum` để tìm kiếm bài học trong 101 bài của hệ thống và điều hướng học viên.
-5. Định dạng: Markdown đẹp mắt, in đậm từ khóa quan trọng, khối code ```csharp rõ ràng. Cuối câu trả lời luôn gợi ý 2-3 câu hỏi tiếp theo trong phần '### Gợi ý câu hỏi tiếp theo'.";
+1. Danh tính & Ý nghĩa tên gọi: Khi học viên hỏi bạn là ai, tên gì, hoặc ý nghĩa tên của bạn, hãy tự hào giới thiệu bạn là Atus và giải thích rõ ràng rằng: chữ 'A' là Agent, còn 'tus' là hậu tố của 'Tutos'.
+2. Phương pháp Socratic: Gợi mở tư duy từng bước, phân tích nguyên nhân gốc rễ và cơ chế bên dưới (Memory Allocation, Heap/Stack, ThreadPool, StateMachine) thay vì giải hộ toàn bộ bài tập.
+3. Thực thi kiểm chứng: Khi học viên gửi code nhờ kiểm tra hoặc nhờ chạy thử, LUÔN LUÔN gọi Tool `execute_csharp_code` để biên dịch và kiểm tra lỗi thật trên máy chủ Roslyn trước khi phân tích.
+4. Chuẩn hiện đại: Khuyến khích cú pháp C# mới (.NET 10, record, pattern matching, async/await non-blocking, CancellationToken, AsNoTracking).
+5. Gắn kết giáo trình: Dùng Tool `search_curriculum` để tìm kiếm bài học trong 101 bài của hệ thống và điều hướng học viên.
+6. Định dạng: Markdown đẹp mắt, in đậm từ khóa quan trọng, khối code ```csharp rõ ràng.
+7. Giới hạn: Tuyệt đối không nhắc đến từ 'Gemini' hoặc tên nhà cung cấp AI. KHÔNG đưa phần gợi ý câu hỏi tiếp theo vào cuối câu trả lời.";
     }
 
     private static string BuildUserPrompt(AiTutorChatRequest request)
@@ -412,30 +511,34 @@ Nguyên tắc cốt lõi:
         var followUps = new List<string>();
         string cleanMarkdown = fullText;
 
-        // Extract Suggested Follow-ups section if generated by model
-        var marker = isEnglish ? "### Suggested Follow-ups" : "### Gợi ý câu hỏi tiếp theo";
-        int idx = fullText.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
-        if (idx >= 0)
+        var markers = new[]
         {
-            cleanMarkdown = fullText.Substring(0, idx).Trim();
-            var followUpBlock = fullText.Substring(idx + marker.Length);
-            var lines = followUpBlock.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-            foreach (var line in lines)
+            "### Gợi ý câu hỏi tiếp theo",
+            "### Gợi ý câu hỏi",
+            "### Gợi ý tiếp theo",
+            "### Gợi ý",
+            "**Gợi ý câu hỏi tiếp theo",
+            "Gợi ý câu hỏi tiếp theo:",
+            "Gợi ý câu hỏi:",
+            "### Suggested Follow-ups",
+            "### Suggested Follow-up",
+            "### Suggested questions",
+            "### Next Steps",
+            "Suggested Follow-ups:",
+            "Suggested follow-ups:"
+        };
+
+        foreach (var marker in markers)
+        {
+            int idx = cleanMarkdown.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            if (idx >= 0)
             {
-                var cleanLine = line.Trim().TrimStart('-', '*', '1', '2', '3', '.', ' ');
-                if (!string.IsNullOrWhiteSpace(cleanLine) && cleanLine.Length > 5 && followUps.Count < 3)
-                {
-                    followUps.Add(cleanLine);
-                }
+                cleanMarkdown = cleanMarkdown.Substring(0, idx).Trim();
+                break;
             }
         }
 
-        if (followUps.Count == 0)
-        {
-            followUps = isEnglish
-                ? new List<string> { "Deep dive into internals", "Best practices in .NET 10", "Run unit tests for this" }
-                : new List<string> { "Đào sâu cơ chế bên dưới", "Chuẩn Clean Code trong .NET 10", "Cách viết Unit Test cho đoạn này" };
-        }
+        cleanMarkdown = System.Text.RegularExpressions.Regex.Replace(cleanMarkdown, @"(\r?\n\s*[-*_]{3,}\s*)+$", "").Trim();
 
         // Extract code snippet if present
         string? snippet = null;
@@ -454,7 +557,7 @@ Nguyên tắc cốt lõi:
             Success = true,
             ResponseMarkdown = cleanMarkdown,
             CodeSnippet = snippet,
-            SuggestedFollowUps = followUps,
+            SuggestedFollowUps = new List<string>(),
             Timestamp = DateTime.UtcNow
         };
     }
@@ -526,5 +629,106 @@ Nguyên tắc cốt lõi:
     public async Task<AiInterviewReportResponse> GenerateInterviewReportAsync(AiInterviewReportRequest request, bool isEnglish)
     {
         return await _fallbackEngine.GenerateInterviewReportAsync(request, isEnglish);
+    }
+
+    public async Task<AiTutorStatusResponse> CheckStatusAsync()
+    {
+        if (!IsLiveGeminiAvailable)
+        {
+            return new AiTutorStatusResponse
+            {
+                Success = false,
+                IsLiveGemini = false,
+                Provider = "Google Gemini Agent (Chua cau hinh)",
+                Model = _model,
+                IsAvailable = false,
+                LatencyMs = 0,
+                Message = "Gemini API key chua duoc cau hinh hoac dang bi tat."
+            };
+        }
+
+        var pingPayload = new
+        {
+            contents = new[]
+            {
+                new { role = "user", parts = new[] { new { text = "Ping test: respond with single word PONG." } } }
+            }
+        };
+
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
+            var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
+            var response = await _httpClient.PostAsJsonAsync(endpoint, pingPayload, cts.Token);
+            stopwatch.Stop();
+
+            if (response.IsSuccessStatusCode)
+            {
+                return new AiTutorStatusResponse
+                {
+                    Success = true,
+                    IsLiveGemini = true,
+                    Provider = "Atus AI Agent",
+                    Model = "Atus",
+                    IsAvailable = true,
+                    LatencyMs = stopwatch.ElapsedMilliseconds,
+                    Message = "Kết nối Trợ Lý AI Atus thành công và sẵn sàng phục vụ!"
+                };
+            }
+        }
+        catch { }
+
+        // If primary model failed/timed out, try fallback model gemini-3.5-flash
+        var backupStopwatch = System.Diagnostics.Stopwatch.StartNew();
+        try
+        {
+            using var backupCts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+            var backupEndpoint = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={_apiKey}";
+            var backupResponse = await _httpClient.PostAsJsonAsync(backupEndpoint, pingPayload, backupCts.Token);
+            backupStopwatch.Stop();
+
+            if (backupResponse.IsSuccessStatusCode)
+            {
+                return new AiTutorStatusResponse
+                {
+                    Success = true,
+                    IsLiveGemini = true,
+                    Provider = "Google Gemini Live Agent (Du phong thong minh)",
+                    Model = $"{_model} (tu dong dieu phoi qua gemini-3.5-flash do Google 3.8 dang tai cao)",
+                    IsAvailable = true,
+                    LatencyMs = backupStopwatch.ElapsedMilliseconds,
+                    Message = "Ket noi Google Gemini san sang phuc vu (Dieu phoi tai qua gemini-3.5-flash)!"
+                };
+            }
+            else
+            {
+                var err = await backupResponse.Content.ReadAsStringAsync();
+                return new AiTutorStatusResponse
+                {
+                    Success = false,
+                    IsLiveGemini = true,
+                    Provider = "Google Gemini Live Agent",
+                    Model = _model,
+                    IsAvailable = false,
+                    LatencyMs = backupStopwatch.ElapsedMilliseconds,
+                    Message = $"Gemini API returned HTTP {(int)backupResponse.StatusCode}: {err}"
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            backupStopwatch.Stop();
+            return new AiTutorStatusResponse
+            {
+                Success = false,
+                IsLiveGemini = true,
+                Provider = "Google Gemini Live Agent",
+                Model = _model,
+                IsAvailable = false,
+                LatencyMs = backupStopwatch.ElapsedMilliseconds,
+                Message = $"Loi ket noi Gemini: {ex.Message}"
+            };
+        }
     }
 }

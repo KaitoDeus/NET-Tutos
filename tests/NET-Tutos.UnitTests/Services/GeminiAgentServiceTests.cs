@@ -144,7 +144,7 @@ public class GeminiAgentServiceTests
         result.Should().NotBeNull();
         result.ResponseMarkdown.Should().Contain("Primary Constructors");
         result.CodeSnippet.Should().Contain("public class Service(ILogger logger)");
-        result.SuggestedFollowUps.Should().Contain(f => f.Contains("readonly fields"));
+        result.SuggestedFollowUps.Should().BeEmpty();
     }
 
     [Fact]

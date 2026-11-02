@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using NET_Tutos.Models.Entities;
 
@@ -34,6 +34,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<StudyPlan> StudyPlans => Set<StudyPlan>();
     public DbSet<StudyPlanItem> StudyPlanItems => Set<StudyPlanItem>();
     public DbSet<DeveloperProfile> DeveloperProfiles => Set<DeveloperProfile>();
+    public DbSet<AiConversation> AiConversations => Set<AiConversation>();
+    public DbSet<AiChatMessage> AiChatMessages => Set<AiChatMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

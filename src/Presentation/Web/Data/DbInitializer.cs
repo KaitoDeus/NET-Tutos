@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using NET_Tutos.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -37,6 +37,9 @@ public static class DbInitializer
 
         // Ensure newly added Developer Profile table exists
         await EnsureDeveloperProfileTableExistAsync(context);
+
+        // Ensure newly added AI Chat History tables exist
+        await EnsureAiChatHistoryTablesExistAsync(context);
 
         // Seed Roles
         string[] roles = { "Admin", "Student" };
@@ -2552,5 +2555,105 @@ Xây dựng một sàn đấu giá trực tuyến hoạt động thời gian th�
             ");
         }
     }
-}
 
+    private static async Task EnsureAiChatHistoryTablesExistAsync(AppDbContext context)
+    {
+        var isSqlite = context.Database.IsSqlite();
+        var isSqlServer = context.Database.IsSqlServer();
+
+        if (isSqlite)
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS [AiConversations] (
+                    [Id] TEXT NOT NULL PRIMARY KEY,
+                    [UserId] TEXT NOT NULL,
+                    [Title] TEXT NOT NULL,
+                    [IsPinned] INTEGER NOT NULL DEFAULT 0,
+                    [IsArchived] INTEGER NOT NULL DEFAULT 0,
+                    [CreatedAt] TEXT NOT NULL,
+                    [UpdatedAt] TEXT NOT NULL,
+                    FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS [IX_AiConversations_UserId] ON [AiConversations] ([UserId]);
+
+                CREATE TABLE IF NOT EXISTS [AiChatMessages] (
+                    [Id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    [ConversationId] TEXT NOT NULL,
+                    [Role] TEXT NOT NULL,
+                    [Content] TEXT NOT NULL,
+                    [CodeSnippet] TEXT NULL,
+                    [SuggestedFollowUpsJson] TEXT NULL,
+                    [ModelUsed] TEXT NULL,
+                    [CreatedAt] TEXT NOT NULL,
+                    FOREIGN KEY ([ConversationId]) REFERENCES [AiConversations] ([Id]) ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS [IX_AiChatMessages_ConversationId] ON [AiChatMessages] ([ConversationId]);
+            ");
+        }
+        else if (isSqlServer)
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'AiConversations')
+                BEGIN
+                    CREATE TABLE [AiConversations] (
+                        [Id] uniqueidentifier NOT NULL PRIMARY KEY,
+                        [UserId] nvarchar(450) NOT NULL,
+                        [Title] nvarchar(200) NOT NULL,
+                        [IsPinned] bit NOT NULL DEFAULT 0,
+                        [IsArchived] bit NOT NULL DEFAULT 0,
+                        [CreatedAt] datetime2 NOT NULL,
+                        [UpdatedAt] datetime2 NOT NULL,
+                        CONSTRAINT [FK_AiConversations_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+                    );
+                    CREATE INDEX [IX_AiConversations_UserId] ON [AiConversations] ([UserId]);
+                END;
+
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'AiChatMessages')
+                BEGIN
+                    CREATE TABLE [AiChatMessages] (
+                        [Id] bigint NOT NULL IDENTITY PRIMARY KEY,
+                        [ConversationId] uniqueidentifier NOT NULL,
+                        [Role] nvarchar(20) NOT NULL,
+                        [Content] nvarchar(max) NOT NULL,
+                        [CodeSnippet] nvarchar(max) NULL,
+                        [SuggestedFollowUpsJson] nvarchar(max) NULL,
+                        [ModelUsed] nvarchar(50) NULL,
+                        [CreatedAt] datetime2 NOT NULL,
+                        CONSTRAINT [FK_AiChatMessages_AiConversations_ConversationId] FOREIGN KEY ([ConversationId]) REFERENCES [AiConversations] ([Id]) ON DELETE CASCADE
+                    );
+                    CREATE INDEX [IX_AiChatMessages_ConversationId] ON [AiChatMessages] ([ConversationId]);
+                END;
+            ");
+        }
+        else
+        {
+            // PostgreSQL
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS ""AiConversations"" (
+                    ""Id"" uuid NOT NULL PRIMARY KEY,
+                    ""UserId"" text NOT NULL,
+                    ""Title"" varchar(200) NOT NULL,
+                    ""IsPinned"" boolean NOT NULL DEFAULT FALSE,
+                    ""IsArchived"" boolean NOT NULL DEFAULT FALSE,
+                    ""CreatedAt"" timestamp with time zone NOT NULL,
+                    ""UpdatedAt"" timestamp with time zone NOT NULL,
+                    CONSTRAINT ""FK_AiConversations_AspNetUsers_UserId"" FOREIGN KEY (""UserId"") REFERENCES ""AspNetUsers"" (""Id"") ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS ""IX_AiConversations_UserId"" ON ""AiConversations"" (""UserId"");
+
+                CREATE TABLE IF NOT EXISTS ""AiChatMessages"" (
+                    ""Id"" bigserial NOT NULL PRIMARY KEY,
+                    ""ConversationId"" uuid NOT NULL,
+                    ""Role"" varchar(20) NOT NULL,
+                    ""Content"" text NOT NULL,
+                    ""CodeSnippet"" text NULL,
+                    ""SuggestedFollowUpsJson"" text NULL,
+                    ""ModelUsed"" varchar(50) NULL,
+                    ""CreatedAt"" timestamp with time zone NOT NULL,
+                    CONSTRAINT ""FK_AiChatMessages_AiConversations_ConversationId"" FOREIGN KEY (""ConversationId"") REFERENCES ""AiConversations"" (""Id"") ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS ""IX_AiChatMessages_ConversationId"" ON ""AiChatMessages"" (""ConversationId"");
+            ");
+        }
+    }
+}
