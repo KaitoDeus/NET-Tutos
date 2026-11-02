@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/00. Gateways (API Gateway &amp; Reverse Proxy)/">
+    <Project Path="src/Gateways/NET-Tutos.YarpGateway/NET-Tutos.YarpGateway.csproj" />
+  </Folder>
   <Folder Name="/01. UI (User Interface &amp; Clients)/">
     <Project Path="src/UI/Web/web.csproj" />
     <Project Path="src/UI/Mobile/NET_Tutos.Mobile.csproj" />
@@ -26,5 +29,6 @@
     <Project Path="tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj" />
     <Project Path="tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj" />
     <Project Path="tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.csproj" />
+    <Project Path="tests/NET-Tutos.Gateway.Tests/NET-Tutos.Gateway.Tests.csproj" />
   </Folder>
 </Solution>

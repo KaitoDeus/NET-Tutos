@@ -6,7 +6,7 @@ System: **.NET Tutos - Comprehensive .NET Learning & Assessment Platform**
 Target Framework: **.NET 10 (`net10.0`), C# 14, ASP.NET Core**  
 Architecture Pattern: **Strangler Fig Migration, Domain-Driven Design (DDD), Clean Architecture, Event-Driven Architecture (EDA)**  
 Container Orchestration: **Docker Compose (PostgreSQL 17, RabbitMQ 3, CodeRunner.API, Gamification.API, Web BFF)**  
-Status: **Phase 1, Phase 2 & Phase 3 Implemented & Verified in CI Pipeline (67/67 Tests Passing)**  
+Status: **Phase 1, Phase 2, Phase 3 & Phase 4 (YARP API Gateway) Implemented & Verified in CI Pipeline (85/85 Tests Passing)**  
 
 ---
 
@@ -289,17 +289,34 @@ Both [`CodeExecutionService.cs`](file:///d:/NET-Tutos/src/UI/Web/Services/CodeEx
 
 ---
 
+## 5.5. Ingress Layer: Microsoft YARP API Gateway (`src/Gateways/NET-Tutos.YarpGateway`)
+
+To provide unified access control, TLS termination, distributed tracing, and rate limiting across services, .NET Tutos implements an enterprise API Gateway using **Microsoft YARP (Yet Another Reverse Proxy)**.
+
+### Architectural Responsibilities:
+1. **Single Entry Point (Ingress):** Listens on port `5000` (mapped to container port `8080`) and terminates all external client traffic from browsers, mobile applications, and external integrators.
+2. **Reverse Proxy & Route Mapping:**
+   - `/api/v1/runner/{**catch-all}` -> Routed to `coderunner-cluster` (`http://coderunner:8080`).
+   - `/api/v1/gamification/{**catch-all}` -> Routed to `gamification-cluster` (`http://gamification:8080`).
+   - `/{**catch-all}` -> Routed to `web-cluster` (`http://web:5000`).
+3. **Correlation ID Middleware:** Automatically inspects incoming HTTP requests for `X-Correlation-ID`. If missing, generates a new unique `Guid` and stamps it onto both response headers and forwarded upstream requests for distributed tracing.
+4. **Endpoint Rate Limiting:** Enforces ASP.NET Core Fixed-Window Rate Limiter (`runner-policy`: 60 requests/minute per client IP) on compute-intensive Roslyn execution endpoints to defend against denial-of-service abuse.
+5. **Gateway Health & Topology Discovery:** Exposes `/healthz` for load-balancer probes and `/api/v1/gateway/status` for real-time cluster/route discovery.
+
+---
+
 ## 6. Docker Compose Multi-Container Orchestration
 
 The platform is orchestrated via [`docker-compose.yml`](file:///d:/NET-Tutos/docker-compose.yml) on a shared bridge network:
 
 | Container Name | Service | Image / Dockerfile | Ports | Purpose |
 | :--- | :--- | :--- | :--- | :--- |
-| **`nettutos-postgres`** | `postgres` | `postgres:17-alpine` | `5432:5432` | Relational storage for Identity, Web, and Gamification |
-| **`nettutos-rabbitmq`** | `rabbitmq` | `rabbitmq:3-management-alpine` | `5672:5672`<br/>`15672:15672` | AMQP Message Broker & Management Web Console |
+| **`nettutos-gateway`** | `gateway` | `src/Gateways/NET-Tutos.YarpGateway/Dockerfile` | `5000:8080` | Microsoft YARP API Gateway (Single External Ingress) |
+| **`nettutos-web`** | `web` | `src/UI/Web/Dockerfile` | `5001:5000` | ASP.NET Core 10 Web Application & BFF Frontend |
 | **`nettutos-coderunner`** | `coderunner` | `src/Services/CodeRunner/NET-Tutos.CodeRunner.API/Dockerfile` | `5002:8080` | Sandboxed Roslyn script compilation & challenge judge |
 | **`nettutos-gamification`** | `gamification` | `src/Services/Gamification/NET-Tutos.Gamification.API/Dockerfile` | `5004:8080` | Gamification microservice with MassTransit consumers |
-| **`nettutos-web`** | `web` | `src/UI/Web/Dockerfile` | `5000:5000` | ASP.NET Core 10 Web Application & BFF Frontend |
+| **`nettutos-rabbitmq`** | `rabbitmq` | `rabbitmq:3-management-alpine` | `5672:5672`<br/>`15672:15672` | AMQP Message Broker & Management Web Console |
+| **`nettutos-postgres`** | `postgres` | `postgres:17-alpine` | `5432:5432` | Relational storage for Identity, Web, and Gamification |
 
 To spin up the entire distributed ecosystem:
 ```powershell
@@ -310,21 +327,24 @@ docker compose up -d --build
 
 ## 7. Verification & Automated Quality Gates
 
-The distributed microservices architecture is verified by a 67-test automated suite executed across all projects:
+The distributed microservices architecture is verified by an 85-test automated suite executed across all projects:
 
 ```powershell
-# 1. Run Gamification microservice domain & consumer tests (7 tests)
+# 1. Run API Gateway routing and correlation ID tests (4 tests)
+dotnet test tests/NET-Tutos.Gateway.Tests/NET-Tutos.Gateway.Tests.csproj
+
+# 2. Run Gamification microservice domain & consumer tests (16 tests)
 dotnet test tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.csproj
 
-# 2. Run CodeRunner microservice Roslyn sandbox tests (6 tests)
+# 3. Run CodeRunner microservice Roslyn sandbox tests (11 tests)
 dotnet test tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj
 
-# 3. Run Web application unit & service tests (42 tests)
+# 4. Run Web application unit & service tests (42 tests)
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
 
-# 4. Run HTTP integration pipeline tests (12 tests)
+# 5. Run HTTP integration pipeline tests (12 tests)
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
 ```
 
-**Quality Gate Result:** **67/67 Tests Passing (100% Pass Rate, 0 Failed, 0 Skipped).**  
+**Quality Gate Result:** **85/85 Tests Passing (100% Pass Rate, 0 Failed, 0 Skipped).**  
 All test suites are permanently enforced in GitHub Actions continuous delivery via [`.github/workflows/ci.yml`](file:///d:/NET-Tutos/.github/workflows/ci.yml).
