@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Gateways\NET-Tutos.YarpGateway\NET-Tutos.YarpGateway.csproj" />
+    <ProjectReference Include="..\..\src\Gateways\Gateway\NET-Tutos.YarpGateway.csproj" />
   </ItemGroup>
 
 </Project>

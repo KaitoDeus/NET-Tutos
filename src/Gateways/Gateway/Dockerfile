@@ -4,13 +4,13 @@ WORKDIR /src
 
 # Copy project files and restore
 COPY ["src/Infrastructure/Common/NET-Tutos.BuildingBlocks.Common.csproj", "src/Infrastructure/Common/"]
-COPY ["src/Gateways/NET-Tutos.YarpGateway/NET-Tutos.YarpGateway.csproj", "src/Gateways/NET-Tutos.YarpGateway/"]
+COPY ["src/Gateways/Gateway/NET-Tutos.YarpGateway.csproj", "src/Gateways/Gateway/"]
 
-RUN dotnet restore "src/Gateways/NET-Tutos.YarpGateway/NET-Tutos.YarpGateway.csproj"
+RUN dotnet restore "src/Gateways/Gateway/NET-Tutos.YarpGateway.csproj"
 
 # Copy full source and publish
 COPY . .
-WORKDIR "/src/src/Gateways/NET-Tutos.YarpGateway"
+WORKDIR "/src/src/Gateways/Gateway"
 RUN dotnet publish "NET-Tutos.YarpGateway.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime Stage

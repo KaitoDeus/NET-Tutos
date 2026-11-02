@@ -289,7 +289,7 @@ Both [`CodeExecutionService.cs`](file:///d:/NET-Tutos/src/UI/Web/Services/CodeEx
 
 ---
 
-## 5.5. Ingress Layer: Microsoft YARP API Gateway (`src/Gateways/NET-Tutos.YarpGateway`)
+## 5.5. Ingress Layer: Microsoft YARP API Gateway (`src/Gateways/Gateway`)
 
 To provide unified access control, TLS termination, distributed tracing, and rate limiting across services, .NET Tutos implements an enterprise API Gateway using **Microsoft YARP (Yet Another Reverse Proxy)**.
 
@@ -311,7 +311,7 @@ The platform is orchestrated via [`docker-compose.yml`](file:///d:/NET-Tutos/doc
 
 | Container Name | Service | Image / Dockerfile | Ports | Purpose |
 | :--- | :--- | :--- | :--- | :--- |
-| **`nettutos-gateway`** | `gateway` | `src/Gateways/NET-Tutos.YarpGateway/Dockerfile` | `5000:8080` | Microsoft YARP API Gateway (Single External Ingress) |
+| **`nettutos-gateway`** | `gateway` | `src/Gateways/Gateway/Dockerfile` | `5000:8080` | Microsoft YARP API Gateway (Single External Ingress) |
 | **`nettutos-web`** | `web` | `src/UI/Web/Dockerfile` | `5001:5000` | ASP.NET Core 10 Web Application & BFF Frontend |
 | **`nettutos-coderunner`** | `coderunner` | `src/Services/CodeRunner/NET-Tutos.CodeRunner.API/Dockerfile` | `5002:8080` | Sandboxed Roslyn script compilation & challenge judge |
 | **`nettutos-gamification`** | `gamification` | `src/Services/Gamification/NET-Tutos.Gamification.API/Dockerfile` | `5004:8080` | Gamification microservice with MassTransit consumers |

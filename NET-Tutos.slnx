@@ -1,6 +1,6 @@
 <Solution>
   <Folder Name="/00. Gateways (API Gateway &amp; Reverse Proxy)/">
-    <Project Path="src/Gateways/NET-Tutos.YarpGateway/NET-Tutos.YarpGateway.csproj" />
+    <Project Path="src/Gateways/Gateway/NET-Tutos.YarpGateway.csproj" />
   </Folder>
   <Folder Name="/01. UI (User Interface &amp; Clients)/">
     <Project Path="src/UI/Web/web.csproj" />

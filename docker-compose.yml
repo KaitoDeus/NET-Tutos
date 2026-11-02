@@ -93,7 +93,7 @@ services:
   gateway:
     build:
       context: .
-      dockerfile: src/Gateways/NET-Tutos.YarpGateway/Dockerfile
+      dockerfile: src/Gateways/Gateway/Dockerfile
     container_name: nettutos-gateway
     restart: unless-stopped
     environment:

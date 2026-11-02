@@ -26,7 +26,7 @@ d:\NET-Tutos\
 ├── 📂 tests/                          # [Automated Tests] Unit, Integration, and Microservice test suites
 └── 📂 src/                            # [Source Code Root]
     ├── 📂 Gateways/                   # [Gateways Layer - Ingress Reverse Proxy & Traffic Director]
-    │   └── 📂 NET-Tutos.YarpGateway/  # Microsoft YARP Reverse Proxy, Rate Limiter & Correlation ID Tracing
+    │   └── 📂 Gateway/                # Microsoft YARP Reverse Proxy, Rate Limiter & Correlation ID Tracing
     ├── 📂 UI/                         # [User Interface Layer - Frontends & Clients]
     │   ├── 📂 Web/                    # ASP.NET Core 10 MVC + RESTful API + SignalR Hubs + Web Dockerfile
     │   └── 📂 Mobile/                 # Cross-platform .NET MAUI 10 native client application

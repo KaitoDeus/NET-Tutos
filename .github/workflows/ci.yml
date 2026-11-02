@@ -24,7 +24,7 @@ jobs:
       run: |
         dotnet restore src/Infrastructure/Common/NET-Tutos.BuildingBlocks.Common.csproj
         dotnet restore src/Infrastructure/EventBus/NET-Tutos.BuildingBlocks.EventBus.csproj
-        dotnet restore src/Gateways/NET-Tutos.YarpGateway/NET-Tutos.YarpGateway.csproj
+        dotnet restore src/Gateways/Gateway/NET-Tutos.YarpGateway.csproj
         dotnet restore src/Services/CodeRunner/NET-Tutos.CodeRunner.Domain/NET-Tutos.CodeRunner.Domain.csproj
         dotnet restore src/Services/CodeRunner/NET-Tutos.CodeRunner.Application/NET-Tutos.CodeRunner.Application.csproj
         dotnet restore src/Services/CodeRunner/NET-Tutos.CodeRunner.Infrastructure/NET-Tutos.CodeRunner.Infrastructure.csproj
@@ -44,7 +44,7 @@ jobs:
       run: |
         dotnet build src/Infrastructure/Common/NET-Tutos.BuildingBlocks.Common.csproj --configuration Release --no-restore
         dotnet build src/Infrastructure/EventBus/NET-Tutos.BuildingBlocks.EventBus.csproj --configuration Release --no-restore
-        dotnet build src/Gateways/NET-Tutos.YarpGateway/NET-Tutos.YarpGateway.csproj --configuration Release --no-restore
+        dotnet build src/Gateways/Gateway/NET-Tutos.YarpGateway.csproj --configuration Release --no-restore
         dotnet build src/Services/CodeRunner/NET-Tutos.CodeRunner.Domain/NET-Tutos.CodeRunner.Domain.csproj --configuration Release --no-restore
         dotnet build src/Services/CodeRunner/NET-Tutos.CodeRunner.Application/NET-Tutos.CodeRunner.Application.csproj --configuration Release --no-restore
         dotnet build src/Services/CodeRunner/NET-Tutos.CodeRunner.Infrastructure/NET-Tutos.CodeRunner.Infrastructure.csproj --configuration Release --no-restore
