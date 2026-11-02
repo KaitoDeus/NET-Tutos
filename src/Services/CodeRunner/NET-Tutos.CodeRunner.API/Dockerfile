@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy project files and restore
-COPY ["src/BuildingBlocks/Common/NET-Tutos.BuildingBlocks.Common.csproj", "src/BuildingBlocks/Common/"]
+COPY ["src/Infrastructure/Common/NET-Tutos.BuildingBlocks.Common.csproj", "src/Infrastructure/Common/"]
 COPY ["src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj", "src/Services/CodeRunner/NET-Tutos.CodeRunner.API/"]
 
 RUN dotnet restore "src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj"

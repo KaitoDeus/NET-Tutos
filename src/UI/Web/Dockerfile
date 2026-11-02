@@ -3,12 +3,12 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0-preview AS build
 WORKDIR /src
 
 # Copy project file and restore
-COPY ["src/Apps/Web/web.csproj", "src/Apps/Web/"]
-RUN dotnet restore "src/Apps/Web/web.csproj"
+COPY ["src/UI/Web/web.csproj", "src/UI/Web/"]
+RUN dotnet restore "src/UI/Web/web.csproj"
 
 # Copy all source files and publish
-COPY src/Apps/Web/ src/Apps/Web/
-WORKDIR "/src/src/Apps/Web"
+COPY src/UI/Web/ src/UI/Web/
+WORKDIR "/src/src/UI/Web"
 RUN dotnet publish "web.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime stage

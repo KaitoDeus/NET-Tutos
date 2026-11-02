@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\BuildingBlocks\Common\NET-Tutos.BuildingBlocks.Common.csproj" />
+    <ProjectReference Include="..\..\..\Infrastructure\Common\NET-Tutos.BuildingBlocks.Common.csproj" />
   </ItemGroup>
 
 </Project>

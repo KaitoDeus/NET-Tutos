@@ -3,8 +3,8 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy project files and restore
-COPY ["src/BuildingBlocks/Common/NET-Tutos.BuildingBlocks.Common.csproj", "src/BuildingBlocks/Common/"]
-COPY ["src/BuildingBlocks/EventBus/NET-Tutos.BuildingBlocks.EventBus.csproj", "src/BuildingBlocks/EventBus/"]
+COPY ["src/Infrastructure/Common/NET-Tutos.BuildingBlocks.Common.csproj", "src/Infrastructure/Common/"]
+COPY ["src/Infrastructure/EventBus/NET-Tutos.BuildingBlocks.EventBus.csproj", "src/Infrastructure/EventBus/"]
 COPY ["src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj", "src/Services/Gamification/NET-Tutos.Gamification.API/"]
 
 RUN dotnet restore "src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj"

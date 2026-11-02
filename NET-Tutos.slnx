@@ -1,17 +1,17 @@
 <Solution>
-  <Folder Name="/BuildingBlocks/">
-    <Project Path="src/BuildingBlocks/Common/NET-Tutos.BuildingBlocks.Common.csproj" />
-    <Project Path="src/BuildingBlocks/EventBus/NET-Tutos.BuildingBlocks.EventBus.csproj" />
+  <Folder Name="/01. UI (User Interface &amp; Clients)/">
+    <Project Path="src/UI/Web/web.csproj" />
+    <Project Path="src/UI/Mobile/NET_Tutos.Mobile.csproj" />
   </Folder>
-  <Folder Name="/Services/">
+  <Folder Name="/02. Services (Backend Microservices &amp; Server)/">
     <Project Path="src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj" />
     <Project Path="src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj" />
   </Folder>
-  <Folder Name="/Apps/">
-    <Project Path="src/Apps/Web/web.csproj" />
-    <Project Path="src/Apps/Mobile/NET_Tutos.Mobile.csproj" />
+  <Folder Name="/03. Infrastructure (Hạ tầng kỹ thuật &amp; EventBus)/">
+    <Project Path="src/Infrastructure/Common/NET-Tutos.BuildingBlocks.Common.csproj" />
+    <Project Path="src/Infrastructure/EventBus/NET-Tutos.BuildingBlocks.EventBus.csproj" />
   </Folder>
-  <Folder Name="/Tests/">
+  <Folder Name="/04. Tests (Kiểm thử tự động)/">
     <Project Path="tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj" />
     <Project Path="tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj" />
     <Project Path="tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj" />

@@ -18,25 +18,25 @@ To overcome monolithic scaling limitations and eliminate CPU contention caused b
 1. **Compute & Security Isolation:** C# Roslyn compilation and dynamic script execution run in an isolated service process ([`CodeRunner.API`](file:///d:/NET-Tutos/src/Services/CodeRunner/NET-Tutos.CodeRunner.API)), ensuring heavy loops or memory spikes never degrade the web frontend or database transactions.
 2. **Event-Driven Gamification & Retention:** Gamification metrics (streaks, XP curves, badges, leaderboards) are decoupled into a dedicated service ([`Gamification.API`](file:///d:/NET-Tutos/src/Services/Gamification/NET-Tutos.Gamification.API)) consuming asynchronous domain events via MassTransit and RabbitMQ.
 3. **Zero-Downtime Migration (Strangler Fig Pattern):** Rather than a disruptive "big bang" rewrite, bounded contexts are extracted incrementally. The monolithic web app delegates to microservices with automatic, resilient fallback to in-process execution.
-4. **Standardized Solution Folders:** The solution index ([`NET-Tutos.slnx`](file:///d:/NET-Tutos/NET-Tutos.slnx)) organizes projects into `/BuildingBlocks/`, `/Services/`, `/Apps/`, and `/Tests/`.
+4. **Standardized Solution Folders & Explicit Layer Taxonomy:** The solution index ([`NET-Tutos.slnx`](file:///d:/NET-Tutos/NET-Tutos.slnx)) organizes projects into `/01. UI/`, `/02. Services/`, `/03. Infrastructure/`, and `/04. Tests/`.
 
 ```mermaid
 flowchart TD
     Clients["Learners & Mobile Clients\n(Web Browser / .NET MAUI App)"] --> YARP["API Gateway & Reverse Proxy\n(Microsoft YARP / Port 5000)"]
     
-    subgraph Frontend_BFF["Web Presentation & BFF Layer"]
-        YARP --> WebApp["Web MVC & Razor Frontend\n(NET-Tutos.Web / Port 5000)\n[Fallback: In-Process Roslyn & Local DB]"]
+    subgraph Frontend_BFF["UI Layer (User Interface & BFF)"]
+        YARP --> WebApp["Web MVC & Razor Frontend\n(src/UI/Web / Port 5000)\n[Fallback: In-Process Roslyn & Local DB]"]
     end
 
-    subgraph Microservices_Ecosystem["Distributed Microservices Ecosystem"]
-        WebApp -- "HTTP (Resilient Delegation)\nPort 5002" --> SvcRunner["CodeRunner.API\n(NET-Tutos.CodeRunner.API)\n[Roslyn C# 14, Test Case Judge]"]
-        WebApp -- "HTTP / Sync Delegation\nPort 5004" --> SvcGamify["Gamification.API\n(NET-Tutos.Gamification.API)\n[Streak, XP, Badges, Leaderboard]"]
+    subgraph Microservices_Ecosystem["Services Layer (Backend Microservices)"]
+        WebApp -- "HTTP (Resilient Delegation)\nPort 5002" --> SvcRunner["CodeRunner.API\n(src/Services/CodeRunner)\n[Roslyn C# 14, Test Case Judge]"]
+        WebApp -- "HTTP / Sync Delegation\nPort 5004" --> SvcGamify["Gamification.API\n(src/Services/Gamification)\n[Streak, XP, Badges, Leaderboard]"]
         YARP -. "Planned" .-> SvcAI["AiTutor.API\n(Complexity, Test Gen, Voice Mock Interview)"]
         YARP -. "Planned" .-> SvcCurriculum["Curriculum.API\n(101 Lessons, Quizzes, Certificates)"]
         YARP -. "Planned" .-> SvcIdentity["Identity.API\n(Auth, JWT Tokens, Profiles)"]
     end
 
-    subgraph Messaging_Persistence["Event Bus & Persistence Layer"]
+    subgraph Messaging_Persistence["Infrastructure Layer (Event Bus & Persistence)"]
         RabbitMQ["RabbitMQ 3 Management\n(Port 5672 AMQP / 15672 Web)\nMassTransit Event Bus"]
         Postgres[("PostgreSQL 17 Alpine\n(Port 5432)\nnettutos_db")]
         
@@ -57,19 +57,19 @@ flowchart TD
 
 ---
 
-## 2. Shared BuildingBlocks Infrastructure (`src/BuildingBlocks`)
+## 2. Shared Infrastructure Layer (`src/Infrastructure`)
 
 The platform defines reusable, enterprise-grade building blocks referenced by all microservices:
 
 ### 2.1. `NET-Tutos.BuildingBlocks.Common`
-- **Location:** [`src/BuildingBlocks/Common/`](file:///d:/NET-Tutos/src/BuildingBlocks/Common)
+- **Location:** [`src/Infrastructure/Common/`](file:///d:/NET-Tutos/src/Infrastructure/Common)
 - **Namespace:** `NET_Tutos.BuildingBlocks.Common`
 - **Artifacts:**
   - `ApiResponse<T>`: Standardized JSON envelope providing `Success`, `Data`, `Message`, `Errors`, and ISO-8601 `Timestamp`.
   - `Result<T>` and `Result`: Result pattern implementation enabling expressive, exception-free functional error handling across domain boundaries.
 
 ### 2.2. `NET-Tutos.BuildingBlocks.EventBus`
-- **Location:** [`src/BuildingBlocks/EventBus/`](file:///d:/NET-Tutos/src/BuildingBlocks/EventBus)
+- **Location:** [`src/Infrastructure/EventBus/`](file:///d:/NET-Tutos/src/Infrastructure/EventBus)
 - **Namespace:** `NET_Tutos.BuildingBlocks.EventBus`
 - **Artifacts:**
   - `IIntegrationEvent` & `IntegrationEvent`: Base records assigning a unique `Guid EventId` and `DateTime OccurredOn`.
@@ -153,13 +153,13 @@ sequenceDiagram
 
 ## 5. Resilient Delegation & Strangler Fig Dual-Write Fallback Pattern
 
-Both [`CodeExecutionService.cs`](file:///d:/NET-Tutos/src/Apps/Web/Services/CodeExecutionService.cs) and [`StreakService.cs`](file:///d:/NET-Tutos/src/Apps/Web/Services/StreakService.cs) implement the **Strangler Fig Pattern**:
+Both [`CodeExecutionService.cs`](file:///d:/NET-Tutos/src/UI/Web/Services/CodeExecutionService.cs) and [`StreakService.cs`](file:///d:/NET-Tutos/src/UI/Web/Services/StreakService.cs) implement the **Strangler Fig Pattern**:
 
 1. **Intelligent HTTP Client Delegation:** If microservice endpoints are configured in `appsettings.json`, calls are dispatched over HTTP with short timeouts (5s–8s).
 2. **Graceful Fallback:** If the microservice is unreachable, returns an error status code, or experiences a network failure, the call is logged as a warning, and the system seamlessly falls back to local in-process execution (in-process Roslyn execution or local database transaction).
 3. **Zero Learner Disruption:** End-users experience zero downtime or fatal exceptions during microservice restarts, redeployments, or temporary network partitions.
 
-### Configuration (`src/Apps/Web/appsettings.json`):
+### Configuration (`src/UI/Web/appsettings.json`):
 ```json
 "Services": {
   "CodeRunner": {
@@ -183,7 +183,7 @@ The platform is orchestrated via [`docker-compose.yml`](file:///d:/NET-Tutos/doc
 | **`nettutos-rabbitmq`** | `rabbitmq` | `rabbitmq:3-management-alpine` | `5672:5672`<br/>`15672:15672` | AMQP Message Broker & Management Web Console |
 | **`nettutos-coderunner`** | `coderunner` | `src/Services/CodeRunner/NET-Tutos.CodeRunner.API/Dockerfile` | `5002:8080` | Sandboxed Roslyn script compilation & challenge judge |
 | **`nettutos-gamification`** | `gamification` | `src/Services/Gamification/NET-Tutos.Gamification.API/Dockerfile` | `5004:8080` | Gamification microservice with MassTransit consumers |
-| **`nettutos-web`** | `web` | `src/Apps/Web/Dockerfile` | `5000:5000` | ASP.NET Core 10 Web Application & BFF Frontend |
+| **`nettutos-web`** | `web` | `src/UI/Web/Dockerfile` | `5000:5000` | ASP.NET Core 10 Web Application & BFF Frontend |
 
 To spin up the entire distributed ecosystem:
 ```powershell

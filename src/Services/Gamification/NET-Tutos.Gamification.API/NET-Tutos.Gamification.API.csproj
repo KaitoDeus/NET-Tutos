@@ -15,8 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\BuildingBlocks\Common\NET-Tutos.BuildingBlocks.Common.csproj" />
-    <ProjectReference Include="..\..\..\BuildingBlocks\EventBus\NET-Tutos.BuildingBlocks.EventBus.csproj" />
+    <ProjectReference Include="..\..\..\Infrastructure\Common\NET-Tutos.BuildingBlocks.Common.csproj" />
+    <ProjectReference Include="..\..\..\Infrastructure\EventBus\NET-Tutos.BuildingBlocks.EventBus.csproj" />
   </ItemGroup>
 
 </Project>

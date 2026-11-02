@@ -11,7 +11,7 @@ Status: Verified & Approved for Production (PostgreSQL 17 & Docker Orchestrated)
 
 ## 1. Tiered Clean Code Directory Architecture
 
-The project is structured according to the modern `.NET 10 Solution` specification (`NET-Tutos.slnx`), establishing clean architectural separation of concerns between **Applications (`src/Apps/`)**, **Shared Infrastructure (`src/BuildingBlocks/`)**, **Microservices (`src/Services/`)**, and **System Specifications (`docs/`)**.
+The project is structured according to the modern `.NET 10 Solution` specification (`NET-Tutos.slnx`), establishing clean architectural separation of concerns between **UI Layer (`src/UI/`)**, **Infrastructure Layer (`src/Infrastructure/`)**, **Services Layer (`src/Services/`)**, and **System Specifications (`docs/`)**.
 
 ### 1.1. Overall Solution Root Structure
 
@@ -25,20 +25,20 @@ d:\NET-Tutos\
 ├── 📂 docs/                           # [System Specifications] Single Source of Truth (SSOT) documentation
 ├── 📂 tests/                          # [Automated Tests] Unit, Integration, and Microservice test suites
 └── 📂 src/                            # [Source Code Root]
-    ├── 📂 Apps/                       # [Application Frontends & Clients]
+    ├── 📂 UI/                         # [User Interface Layer - Frontends & Clients]
     │   ├── 📂 Web/                    # ASP.NET Core 10 MVC + RESTful API + SignalR Hubs + Web Dockerfile
     │   └── 📂 Mobile/                 # Cross-platform .NET MAUI 10 native client application
-    ├── 📂 BuildingBlocks/             # [Shared Microservices Infrastructure]
-    │   ├── 📂 Common/                 # Standard ApiResponse<T> and Result<T> primitives
-    │   └── 📂 EventBus/               # MassTransit RabbitMQ integration events
-    └── 📂 Services/                   # [Decoupled Microservices]
-        ├── 📂 CodeRunner/             # Roslyn C# 14 compilation & test judging sandbox API
-        └── 📂 Gamification/           # Streak, XP curves, badge catalog & leaderboard API
+    ├── 📂 Services/                   # [Services Layer - Decoupled Server Microservices]
+    │   ├── 📂 CodeRunner/             # Roslyn C# 14 compilation & test judging sandbox API
+    │   └── 📂 Gamification/           # Streak, XP curves, badge catalog & leaderboard API
+    └── 📂 Infrastructure/             # [Infrastructure Layer - Shared BuildingBlocks & EventBus]
+        ├── 📂 Common/                 # Standard ApiResponse<T> and Result<T> primitives
+        └── 📂 EventBus/               # MassTransit RabbitMQ integration events
 ```
 
 ---
 
-### 1.2. Web Subsystem & RESTful API Architecture (`src/Apps/Web/`)
+### 1.2. Web Subsystem & RESTful API Architecture (`src/UI/Web/`)
 
 The web application follows an N-Tier Clean Architecture pattern, isolating presentation (Controllers and Razor Views), business domain logic (Application Services), data persistence (EF Core `DbContext`), and real-time networking (SignalR Hubs).
 
