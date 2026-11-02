@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\web\web.csproj" />
+    <ProjectReference Include="..\..\src\Apps\Web\web.csproj" />
   </ItemGroup>
 
 </Project>

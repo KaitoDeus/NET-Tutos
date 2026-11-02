@@ -11,26 +11,34 @@ Status: Verified & Approved for Production (PostgreSQL 17 & Docker Orchestrated)
 
 ## 1. Tiered Clean Code Directory Architecture
 
-The project is structured according to the modern `.NET 10 Solution` specification (`NET-Tutos.slnx`), establishing clean architectural separation of concerns between **Web Application & REST API (`web/`)**, **Mobile Client (`mobile/`)**, and **System Specifications (`docs/`)**.
+The project is structured according to the modern `.NET 10 Solution` specification (`NET-Tutos.slnx`), establishing clean architectural separation of concerns between **Applications (`src/Apps/`)**, **Shared Infrastructure (`src/BuildingBlocks/`)**, **Microservices (`src/Services/`)**, and **System Specifications (`docs/`)**.
 
 ### 1.1. Overall Solution Root Structure
 
 ```text
 d:\NET-Tutos\
 ├── 📄 NET-Tutos.slnx                  # Modern .NET 10 XML solution file (clean, lightweight)
-├── 📄 docker-compose.yml              # Multi-container orchestration (PostgreSQL 17 & Web App)
-├── 📄 Dockerfile                      # Multi-stage production build for ASP.NET Core 10 Web App
+├── 📄 docker-compose.yml              # Multi-container orchestration (PostgreSQL 17, RabbitMQ 3, Services, Web)
 ├── 📄 README.md                       # Comprehensive repository guide and quickstart manual
 ├── 📄 .gitignore                      # Standardized Git exclusion rules for .NET / C# / Visual Studio
 │
 ├── 📂 docs/                           # [System Specifications] Single Source of Truth (SSOT) documentation
-├── 📂 web/                            # [Web & REST API] ASP.NET Core 10 MVC + RESTful API + SignalR Hubs
-└── 📂 mobile/                         # [Mobile Client] Cross-platform .NET MAUI 10 native client application
+├── 📂 tests/                          # [Automated Tests] Unit, Integration, and Microservice test suites
+└── 📂 src/                            # [Source Code Root]
+    ├── 📂 Apps/                       # [Application Frontends & Clients]
+    │   ├── 📂 Web/                    # ASP.NET Core 10 MVC + RESTful API + SignalR Hubs + Web Dockerfile
+    │   └── 📂 Mobile/                 # Cross-platform .NET MAUI 10 native client application
+    ├── 📂 BuildingBlocks/             # [Shared Microservices Infrastructure]
+    │   ├── 📂 Common/                 # Standard ApiResponse<T> and Result<T> primitives
+    │   └── 📂 EventBus/               # MassTransit RabbitMQ integration events
+    └── 📂 Services/                   # [Decoupled Microservices]
+        ├── 📂 CodeRunner/             # Roslyn C# 14 compilation & test judging sandbox API
+        └── 📂 Gamification/           # Streak, XP curves, badge catalog & leaderboard API
 ```
 
 ---
 
-### 1.2. Web Subsystem & RESTful API Architecture (`web/`)
+### 1.2. Web Subsystem & RESTful API Architecture (`src/Apps/Web/`)
 
 The web application follows an N-Tier Clean Architecture pattern, isolating presentation (Controllers and Razor Views), business domain logic (Application Services), data persistence (EF Core `DbContext`), and real-time networking (SignalR Hubs).
 

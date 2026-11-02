@@ -8,8 +8,8 @@
     <Project Path="src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj" />
   </Folder>
   <Folder Name="/Apps/">
-    <Project Path="web/web.csproj" />
-    <Project Path="mobile/NET_Tutos.Mobile.csproj" />
+    <Project Path="src/Apps/Web/web.csproj" />
+    <Project Path="src/Apps/Mobile/NET_Tutos.Mobile.csproj" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj" />

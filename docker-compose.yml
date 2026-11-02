@@ -71,7 +71,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: src/Apps/Web/Dockerfile
     container_name: nettutos-web
     restart: unless-stopped
     environment:

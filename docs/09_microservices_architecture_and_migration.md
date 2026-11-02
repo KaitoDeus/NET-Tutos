@@ -153,13 +153,13 @@ sequenceDiagram
 
 ## 5. Resilient Delegation & Strangler Fig Dual-Write Fallback Pattern
 
-Both [`CodeExecutionService.cs`](file:///d:/NET-Tutos/web/Services/CodeExecutionService.cs) and [`StreakService.cs`](file:///d:/NET-Tutos/web/Services/StreakService.cs) implement the **Strangler Fig Pattern**:
+Both [`CodeExecutionService.cs`](file:///d:/NET-Tutos/src/Apps/Web/Services/CodeExecutionService.cs) and [`StreakService.cs`](file:///d:/NET-Tutos/src/Apps/Web/Services/StreakService.cs) implement the **Strangler Fig Pattern**:
 
 1. **Intelligent HTTP Client Delegation:** If microservice endpoints are configured in `appsettings.json`, calls are dispatched over HTTP with short timeouts (5s–8s).
 2. **Graceful Fallback:** If the microservice is unreachable, returns an error status code, or experiences a network failure, the call is logged as a warning, and the system seamlessly falls back to local in-process execution (in-process Roslyn execution or local database transaction).
 3. **Zero Learner Disruption:** End-users experience zero downtime or fatal exceptions during microservice restarts, redeployments, or temporary network partitions.
 
-### Configuration (`web/appsettings.json`):
+### Configuration (`src/Apps/Web/appsettings.json`):
 ```json
 "Services": {
   "CodeRunner": {
@@ -183,7 +183,7 @@ The platform is orchestrated via [`docker-compose.yml`](file:///d:/NET-Tutos/doc
 | **`nettutos-rabbitmq`** | `rabbitmq` | `rabbitmq:3-management-alpine` | `5672:5672`<br/>`15672:15672` | AMQP Message Broker & Management Web Console |
 | **`nettutos-coderunner`** | `coderunner` | `src/Services/CodeRunner/NET-Tutos.CodeRunner.API/Dockerfile` | `5002:8080` | Sandboxed Roslyn script compilation & challenge judge |
 | **`nettutos-gamification`** | `gamification` | `src/Services/Gamification/NET-Tutos.Gamification.API/Dockerfile` | `5004:8080` | Gamification microservice with MassTransit consumers |
-| **`nettutos-web`** | `web` | `Dockerfile` | `5000:5000` | ASP.NET Core 10 Web Application & BFF Frontend |
+| **`nettutos-web`** | `web` | `src/Apps/Web/Dockerfile` | `5000:5000` | ASP.NET Core 10 Web Application & BFF Frontend |
 
 To spin up the entire distributed ecosystem:
 ```powershell

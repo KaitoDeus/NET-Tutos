@@ -121,52 +121,22 @@ The project follows clean architecture principles with distinct separation of co
 ```text
 d:\NET-Tutos\
 ├── NET-Tutos.slnx                      # Modern .NET 10 solution definition
+├── docker-compose.yml                  # Multi-container orchestration (PostgreSQL 17, RabbitMQ 3, Services, Web)
 ├── .gitignore                          # Standard .NET gitignore with local script exclusions
 ├── README.md                           # Platform documentation
 │
-├── web/                                # ASP.NET Core 10 MVC & Mobile Web API
-│   ├── web.csproj                      # Web project dependencies & SDK targets
-│   ├── Controllers/                    # MVC Controllers
-│   │   ├── AccountController.cs        # Identity, student dashboard & progress
-│   │   ├── Admin*.cs                   # LMS administrative CMS, quizzes, projects & users
-│   │   ├── CertificateController.cs    # PDF generation & public QR verification
-│   │   ├── DiscussionController.cs     # Real-time discussion API with SignalR
-│   │   ├── ExamController.cs           # Online exams & automated grading
-│   │   ├── InterviewController.cs      # Flashcards & mock interview simulator
-│   │   ├── LeaderboardController.cs    # Rankings, podium & achievements
-│   │   ├── PlaygroundController.cs     # Monaco editor & Roslyn judge harness
-│   │   ├── ProfileController.cs        # Public developer portfolio showcase (/u/{username})
-│   │   ├── ProjectController.cs        # Capstone project submission & reviews
-│   │   ├── StreakController.cs         # Daily check-ins & streak tracking
-│   │   ├── TutorialsController.cs      # Course curriculum & lesson reader
-│   │   └── Api/                        # RESTful API for Mobile App
-│   │       ├── MobileAuthController.cs # Mobile JWT/Bearer authentication
-│   │       └── MobileTutorialsController.cs # Tutorials, categories & roadmap API
-│   ├── Data/                           # Database contexts & seeders
-│   │   ├── AppDbContext.cs             # Identity & EF Core DbContext
-│   │   └── DbInitializer.cs            # Zero-config schema & sample curriculum seeder
-│   ├── Hubs/                           # SignalR Hubs
-│   │   └── DiscussionHub.cs            # Live learner presence & comments hub
-│   ├── Models/                         # Domain entities & ViewModels
-│   │   ├── Entities/                   # Tutorials, Quizzes, Challenges, Streaks, Badges
-│   │   └── DTOs/Mobile/                # Data Transfer Objects for Mobile endpoints
-│   ├── Services/                       # Business logic services
-│   │   ├── CertificateService.cs       # QuestPDF vector document generator
-│   │   ├── CodeExecutionService.cs     # Roslyn C# sandbox & test-case evaluator
-│   │   ├── DiscussionService.cs        # Discussion persistence & upvoting
-│   │   └── MobileAuthService.cs        # Mobile token validation & profile service
-│   ├── Views/                          # Razor MVC views (.cshtml)
-│   ├── wwwroot/                        # Static assets, PWA Service Worker & manifest
-│   └── Program.cs                      # Application pipeline, DI configuration & middleware
-│
-└── mobile/                             # Cross-Platform .NET MAUI 10 Mobile App
-    ├── NET_Tutos.Mobile.csproj         # MAUI Android project configuration
-    ├── AppShell.xaml                   # Flyout/Tab navigation shell
-    ├── MauiProgram.cs                  # MAUI dependency injection builder
-    ├── Models/                         # Client-side domain models
-    ├── Services/                       # HTTP API client (ApiService.cs)
-    ├── ViewModels/                     # MVVM ViewModels (Home, Login, Roadmap, Tutorials)
-    └── Views/                          # XAML Pages (HomePage, LoginPage, RoadmapPage, etc.)
+├── docs/                               # Enterprise architecture, testing and requirements documentation
+├── tests/                              # Automated tests (Unit, Integration, Microservices)
+└── src/                                # Source code root
+    ├── Apps/                           # Application frontends & clients
+    │   ├── Web/                        # ASP.NET Core 10 MVC, REST API & SignalR Hubs (web.csproj)
+    │   └── Mobile/                     # Cross-platform .NET MAUI 10 native client application
+    ├── BuildingBlocks/                 # Shared microservices building blocks
+    │   ├── Common/                     # ApiResponse<T> & Result<T> primitives
+    │   └── EventBus/                   # MassTransit RabbitMQ integration events
+    └── Services/                       # Decoupled microservices
+        ├── CodeRunner/                 # Roslyn C# 14 compilation & test judging sandbox API
+        └── Gamification/               # Streak, XP curves, badge catalog & leaderboard API
 ```
 
 ---
@@ -234,7 +204,7 @@ Launch the full-stack ecosystem including ASP.NET Core 10 Web App and PostgreSQL
 3. **Run only PostgreSQL database for local .NET development:**
    ```powershell
    docker compose up -d postgres
-   dotnet run --project web/web.csproj
+   dotnet run --project src/Apps/Web/web.csproj
    ```
 
 ---
@@ -254,7 +224,7 @@ Launch the full-stack ecosystem including ASP.NET Core 10 Web App and PostgreSQL
 
 3. **Launch the Web Application:**
    ```powershell
-   dotnet run --project web/web.csproj
+   dotnet run --project src/Apps/Web/web.csproj
    ```
 
 4. **Access the application:**
@@ -271,7 +241,7 @@ To run the .NET MAUI mobile app on an Android emulator:
 2. **Start your Android emulator** (e.g. via Android Studio Device Manager or `emulator -avd Pixel_9a`).
 3. **Build and deploy the app:**
    ```powershell
-   dotnet build mobile/NET_Tutos.Mobile.csproj -t:Run -f net10.0-android
+   dotnet build src/Apps/Mobile/NET_Tutos.Mobile.csproj -t:Run -f net10.0-android
    ```
 
 ---
