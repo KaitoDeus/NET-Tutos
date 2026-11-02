@@ -207,21 +207,29 @@ mobile/
 
 ### 1.4. Backend Microservices Clean Architecture Subsystems (`src/Services/`)
 
-Each extracted microservice conforms strictly to the **4-Layer Clean Architecture pattern** (Domain, Application, Infrastructure, API):
+Each extracted microservice conforms strictly to the **Enterprise 4-Layer Clean Architecture pattern** (Domain, Application, Infrastructure, API) with full structural depth:
 
 ```text
 src/Services/
 ├── 📂 CodeRunner/
-│   ├── 📂 NET-Tutos.CodeRunner.Domain/         # Core constraints, blacklist rules, memory/timeout limits
-│   ├── 📂 NET-Tutos.CodeRunner.Application/    # Request/Response DTO contracts & ICodeRunnerEngine interface
-│   ├── 📂 NET-Tutos.CodeRunner.Infrastructure/ # Roslyn CSharpScript sandboxed compilation engine
-│   └── 📂 NET-Tutos.CodeRunner.API/            # Minimal APIs composition root, health checks & Dockerfile
+│   ├── 📂 NET-Tutos.CodeRunner.Domain/         # Layer 1: Rules, ValueObjects (SourceCode, ExecutionTimeout), Exceptions
+│   │   ├── 📂 Common/ / 📂 Rules/ / 📂 ValueObjects/ / 📂 Exceptions/
+│   ├── 📂 NET-Tutos.CodeRunner.Application/    # Layer 2: Contracts, Features/CQRS Commands, Engine port
+│   │   ├── 📂 Contracts/ / 📂 Features/Execution/Commands/ / 📂 Services/
+│   ├── 📂 NET-Tutos.CodeRunner.Infrastructure/ # Layer 3: Roslyn compilation engine, stopwatch diagnostics
+│   │   ├── 📂 Engines/ / 📂 Services/
+│   └── 📂 NET-Tutos.CodeRunner.API/            # Layer 4: Minimal APIs, Endpoints, Middlewares, Dockerfile
+│       ├── 📂 Endpoints/ / 📂 Middlewares/ / 📂 Extensions/
 │
 └── 📂 Gamification/
-    ├── 📂 NET-Tutos.Gamification.Domain/       # Pure domain entities (UserStreak, Badge, UserXpRecord)
-    ├── 📂 NET-Tutos.Gamification.Application/  # IGamificationService, DTOs, XP formulas, IGamificationDbContext
-    ├── 📂 NET-Tutos.Gamification.Infrastructure/# EF Core 10, PostgreSQL & MassTransit RabbitMQ consumers
-    └── 📂 NET-Tutos.Gamification.API/          # ASP.NET Core API host, endpoint mapping & Dockerfile
+    ├── 📂 NET-Tutos.Gamification.Domain/       # Layer 1: Entities, ValueObjects (XpValue, StreakCount), Events, Exceptions
+    │   ├── 📂 Common/ / 📂 Entities/ / 📂 ValueObjects/ / 📂 Enums/ / 📂 Events/ / 📂 Exceptions/
+    │   ├── 📂 NET-Tutos.Gamification.Application/  # Layer 2: CQRS Features (Streaks, Badges, Leaderboard, Xp), DTOs
+    │   ├── 📂 Common/Interfaces/ / 📂 Contracts/ / 📂 Features/ / 📂 Services/
+    ├── 📂 NET-Tutos.Gamification.Infrastructure/# Layer 3: Configurations (IEntityTypeConfiguration), EF Core, Consumers
+    │   ├── 📂 Data/ / 📂 Persistence/Configurations/ / 📂 Consumers/ / 📂 Services/
+    └── 📂 NET-Tutos.Gamification.API/          # Layer 4: Minimal APIs, Endpoints, Middlewares, Dockerfile
+        ├── 📂 Endpoints/ / 📂 Middlewares/ / 📂 Extensions/
 ```
 
 ---

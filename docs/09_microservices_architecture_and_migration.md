@@ -79,25 +79,53 @@ The platform defines reusable, enterprise-grade building blocks referenced by al
 
 ---
 
-## 3. Microservice Deep-Dive: `CodeRunner` (Clean Architecture 4-Layer Decomposition)
+## 3. Microservice Deep-Dive: `CodeRunner` (Enterprise Clean Architecture 4-Layer Structure)
 
-Encapsulates Roslyn C# script compilation, sandboxed runtime execution, and algorithmic test judging following the **Clean Architecture 4-layer pattern**:
+Encapsulates Roslyn C# script compilation, sandboxed runtime execution, and algorithmic test judging following the **Enterprise Clean Architecture 4-layer pattern**:
 
 ```text
 src/Services/CodeRunner/
-├── 📂 NET-Tutos.CodeRunner.Domain/         # Layer 1: Core constraints, validation rules & execution policies
-│   ├── 📄 ExecutionConstraints.cs          # Pure domain rules, blocked APIs, timeout thresholds
+├── 📂 NET-Tutos.CodeRunner.Domain/         # Layer 1: Core constraints, Value Objects & security policies
+│   ├── 📂 Common/                          # Base ValueObject abstractions
+│   │   └── 📄 ValueObject.cs
+│   ├── 📂 Rules/                           # Pure domain rules, blocked APIs, timeout thresholds
+│   │   └── 📄 ExecutionConstraints.cs
+│   ├── 📂 ValueObjects/                    # Immutable domain value objects
+│   │   ├── 📄 SourceCode.cs                # AST-level validation and line counter
+│   │   └── 📄 ExecutionTimeout.cs          # Clamped duration constraints (500ms - 30s)
+│   ├── 📂 Exceptions/                      # Domain-specific exceptions
+│   │   ├── 📄 CodeRunnerDomainException.cs
+│   │   ├── 📄 ForbiddenSyntaxException.cs
+│   │   └── 📄 ExecutionTimeoutException.cs
 │   └── 📄 NET-Tutos.CodeRunner.Domain.csproj
-├── 📂 NET-Tutos.CodeRunner.Application/    # Layer 2: Contracts, DTOs & Engine abstraction interface
-│   ├── 📄 ICodeRunnerEngine.cs             # Engine port abstraction
+│
+├── 📂 NET-Tutos.CodeRunner.Application/    # Layer 2: Contracts, Features & Engine abstraction interface
+│   ├── 📂 Common/Exceptions/               # Application-level exceptions
+│   │   └── 📄 CodeRunnerValidationException.cs
 │   ├── 📂 Contracts/                       # Request/Response models & test evaluation DTOs
 │   │   └── 📄 CodeExecutionContracts.cs
+│   ├── 📂 Features/Execution/Commands/     # CQRS command definitions & handlers
+│   │   ├── 📄 ExecuteScriptCommand.cs
+│   │   └── 📄 EvaluateChallengeCommand.cs
+│   ├── 📂 Services/                        # Engine port abstraction
+│   │   └── 📄 ICodeRunnerEngine.cs
 │   └── 📄 NET-Tutos.CodeRunner.Application.csproj
-├── 📂 NET-Tutos.CodeRunner.Infrastructure/ # Layer 3: Roslyn compilation engine & sandboxed adapter
-│   ├── 📄 RoslynCodeRunnerEngine.cs        # CSharpScript compilation & isolation adapter
+│
+├── 📂 NET-Tutos.CodeRunner.Infrastructure/ # Layer 3: Roslyn compilation engine & execution adapters
+│   ├── 📂 Engines/                         # CSharpScript compilation & isolation adapter
+│   │   └── 📄 RoslynCodeRunnerEngine.cs
+│   ├── 📂 Services/                        # Timing and diagnostics
+│   │   └── 📄 ExecutionStopwatch.cs
 │   └── 📄 NET-Tutos.CodeRunner.Infrastructure.csproj
+│
 └── 📂 NET-Tutos.CodeRunner.API/            # Layer 4: Minimal APIs, endpoint routing & container host
-    ├── 📄 Program.cs                       # Composition root, HTTP pipeline, DI configuration
+    ├── 📂 Endpoints/                       # Modularity route group mappings
+    │   └── 📄 RunnerEndpoints.cs           # Map /api/v1/runner/*
+    ├── 📂 Middlewares/                     # HTTP filters & ProblemDetails RFC 7807 handler
+    │   └── 📄 GlobalExceptionHandlerMiddleware.cs
+    ├── 📂 Extensions/                      # DI Service Collection registrations
+    │   └── 📄 CodeRunnerServiceExtensions.cs
+    ├── 📄 Program.cs                       # Clean composition root
     ├── 📄 Dockerfile                       # Multi-stage container build
     ├── 📄 appsettings.json                 # Service configuration
     └── 📄 NET-Tutos.CodeRunner.API.csproj
@@ -107,10 +135,10 @@ src/Services/CodeRunner/
 
 | Layer | Project | Role & Responsibilities | Upstream Dependencies |
 | :--- | :--- | :--- | :--- |
-| **Domain** | [`NET-Tutos.CodeRunner.Domain`](file:///d:/NET-Tutos/src/Services/CodeRunner/NET-Tutos.CodeRunner.Domain) | Zero external dependencies. Holds execution constraints, forbidden keyword blacklists (`System.IO`, `System.Net`, `System.Diagnostics.Process`), and runtime security policies. | None |
-| **Application** | [`NET-Tutos.CodeRunner.Application`](file:///d:/NET-Tutos/src/Services/CodeRunner/NET-Tutos.CodeRunner.Application) | Defines request/response contracts (`ExecuteScriptRequest`, `EvaluateChallengeRequest`, etc.) and the `ICodeRunnerEngine` interface. | `Domain`, `BuildingBlocks.Common` |
+| **Domain** | [`NET-Tutos.CodeRunner.Domain`](file:///d:/NET-Tutos/src/Services/CodeRunner/NET-Tutos.CodeRunner.Domain) | Zero external dependencies. Holds execution constraints, forbidden keyword blacklists (`System.IO`, `System.Net`, `System.Diagnostics.Process`), domain Value Objects (`SourceCode`, `ExecutionTimeout`), and domain exceptions. | None |
+| **Application** | [`NET-Tutos.CodeRunner.Application`](file:///d:/NET-Tutos/src/Services/CodeRunner/NET-Tutos.CodeRunner.Application) | Defines request/response contracts, CQRS command handlers (`ExecuteScriptCommand`, `EvaluateChallengeCommand`), validation exceptions, and the `ICodeRunnerEngine` interface. | `Domain`, `BuildingBlocks.Common` |
 | **Infrastructure** | [`NET-Tutos.CodeRunner.Infrastructure`](file:///d:/NET-Tutos/src/Services/CodeRunner/NET-Tutos.CodeRunner.Infrastructure) | Implements `ICodeRunnerEngine` using Roslyn (`Microsoft.CodeAnalysis.CSharp.Scripting` v5.0.0). Enforces domain constraints, executes tests, and captures console outputs. | `Application`, `Domain` |
-| **API** | [`NET-Tutos.CodeRunner.API`](file:///d:/NET-Tutos/src/Services/CodeRunner/NET-Tutos.CodeRunner.API) | Host composition root (`Program.cs`). Maps Minimal API endpoints, configures health checks, and exports OpenAPI specifications. | `Application`, `Infrastructure` |
+| **API** | [`NET-Tutos.CodeRunner.API`](file:///d:/NET-Tutos/src/Services/CodeRunner/NET-Tutos.CodeRunner.API) | Host composition root (`Program.cs`). Maps Minimal API endpoint groups (`RunnerEndpoints.cs`), installs `GlobalExceptionHandlerMiddleware`, and configures health checks. | `Application`, `Infrastructure` |
 
 ### 3.2. RESTful API Endpoints
 1. **Execute Arbitrary C# Script:** `POST /api/v1/runner/execute`
@@ -119,31 +147,79 @@ src/Services/CodeRunner/
 
 ---
 
-## 4. Microservice Deep-Dive: `Gamification` (Clean Architecture 4-Layer Decomposition)
+## 4. Microservice Deep-Dive: `Gamification` (Enterprise Clean Architecture 4-Layer Structure)
 
-Manages learner motivation mechanics: daily streak tracking, exponential XP leveling curves, achievement badge unlocks, and global leaderboards following the **Clean Architecture 4-layer pattern**:
+Manages learner motivation mechanics: daily streak tracking, exponential XP leveling curves, achievement badge unlocks, and global leaderboards following the **Enterprise Clean Architecture 4-layer pattern**:
 
 ```text
 src/Services/Gamification/
-├── 📂 NET-Tutos.Gamification.Domain/         # Layer 1: Core domain entities & business rules
-│   ├── 📂 Entities/                         # UserStreak, DailyCheckIn, Badge, UserBadge, UserXpRecord
-│   │   └── 📄 GamificationEntities.cs
+├── 📂 NET-Tutos.Gamification.Domain/         # Layer 1: Core domain entities, Value Objects, Events & Rules
+│   ├── 📂 Common/                           # BaseEntity, IAggregateRoot, ValueObject
+│   │   ├── 📄 BaseEntity.cs
+│   │   ├── 📄 IAggregateRoot.cs
+│   │   └── 📄 ValueObject.cs
+│   ├── 📂 Entities/                         # Aggregate roots and entity models
+│   │   └── 📄 GamificationEntities.cs       # UserStreak, DailyCheckIn, Badge, UserBadge, UserXpRecord
+│   ├── 📂 ValueObjects/                     # Immutable value objects
+│   │   ├── 📄 XpValue.cs                    # Non-negative XP calculation and addition operators
+│   │   └── 📄 StreakCount.cs                # Streak incrementation and milestone rules (3, 7, 14, 30 days)
+│   ├── 📂 Enums/                            # Domain enums
+│   │   ├── 📄 BadgeTier.cs                  # Bronze, Silver, Gold, Platinum
+│   │   └── 📄 XpSourceType.cs               # StreakCheckIn, ChallengeSolved, LessonCompleted, ExamPassed
+│   ├── 📂 Events/                           # Internal Domain Events
+│   │   ├── 📄 StreakMilestoneReachedDomainEvent.cs
+│   │   └── 📄 BadgeUnlockedDomainEvent.cs
+│   ├── 📂 Exceptions/                       # Domain-specific exceptions
+│   │   ├── 📄 GamificationDomainException.cs
+│   │   ├── 📄 NegativeXpValueException.cs
+│   │   └── 📄 StreakAlreadyClaimedException.cs
 │   └── 📄 NET-Tutos.Gamification.Domain.csproj
-├── 📂 NET-Tutos.Gamification.Application/    # Layer 2: Use cases, DTOs & service interfaces
-│   ├── 📄 IGamificationService.cs           # Gamification business contract
-│   ├── 📄 IGamificationDbContext.cs         # Database abstraction interface
-│   ├── 📄 GamificationService.cs            # Core leveling algorithms, streaks, and badge logic
+│
+├── 📂 NET-Tutos.Gamification.Application/    # Layer 2: Use cases, CQRS Features, DTOs & service interfaces
+│   ├── 📂 Common/
+│   │   ├── 📂 Interfaces/                   # Abstraction interfaces
+│   │   │   ├── 📄 IGamificationDbContext.cs
+│   │   │   └── 📄 IDateTimeProvider.cs
+│   │   └── 📂 Exceptions/                   # Application exceptions
+│   │       ├── 📄 GamificationNotFoundException.cs
+│   │       └── 📄 GamificationValidationException.cs
 │   ├── 📂 Contracts/                        # StreakDto, CheckInResultDto, LeaderboardEntryDto
 │   │   └── 📄 GamificationContracts.cs
+│   ├── 📂 Features/                         # CQRS Commands & Queries organized by feature
+│   │   ├── 📂 Streaks/                      # CheckInCommand, GetUserStreakQuery
+│   │   ├── 📂 Badges/                       # GetUserBadgesQuery
+│   │   ├── 📂 Leaderboard/                  # GetLeaderboardQuery
+│   │   └── 📂 Xp/                           # AwardXpCommand
+│   ├── 📂 Services/                         # Core domain services
+│   │   ├── 📄 IGamificationService.cs
+│   │   └── 📄 GamificationService.cs
 │   └── 📄 NET-Tutos.Gamification.Application.csproj
-├── 📂 NET-Tutos.Gamification.Infrastructure/ # Layer 3: EF Core, PostgreSQL & MassTransit consumers
-│   ├── 📂 Data/                             # GamificationDbContext implementation
+│
+├── 📂 NET-Tutos.Gamification.Infrastructure/ # Layer 3: EF Core, Configurations, PostgreSQL & MassTransit
+│   ├── 📂 Data/                             # DbContext implementation
 │   │   └── 📄 GamificationDbContext.cs
+│   ├── 📂 Persistence/Configurations/       # Separate IEntityTypeConfiguration<T> Fluent API maps
+│   │   ├── 📄 UserStreakConfiguration.cs
+│   │   ├── 📄 DailyCheckInConfiguration.cs
+│   │   ├── 📄 BadgeConfiguration.cs
+│   │   ├── 📄 UserBadgeConfiguration.cs
+│   │   └── 📄 UserXpRecordConfiguration.cs
 │   ├── 📂 Consumers/                        # ChallengeSolved, LessonCompleted, ExamPassed consumers
 │   │   └── 📄 GamificationEventConsumers.cs
+│   ├── 📂 Services/                         # Infrastructure service implementations
+│   │   └── 📄 DateTimeProvider.cs
 │   └── 📄 NET-Tutos.Gamification.Infrastructure.csproj
+│
 └── 📂 NET-Tutos.Gamification.API/            # Layer 4: Minimal APIs, endpoint routing & container host
-    ├── 📄 Program.cs                        # Composition root, MassTransit RabbitMQ host, DI setup
+    ├── 📂 Endpoints/                        # Modular route group definitions
+    │   ├── 📄 StreakEndpoints.cs            # Map /api/v1/gamification/streak/*
+    │   ├── 📄 BadgeEndpoints.cs             # Map /api/v1/gamification/badges/*
+    │   └── 📄 LeaderboardEndpoints.cs       # Map /api/v1/gamification/leaderboard/*
+    ├── 📂 Middlewares/                      # Global exception handler returning RFC 7807 ProblemDetails
+    │   └── 📄 GlobalExceptionHandlerMiddleware.cs
+    ├── 📂 Extensions/                       # Clean DI registration
+    │   └── 📄 GamificationServiceExtensions.cs
+    ├── 📄 Program.cs                        # Minimal composition root
     ├── 📄 Dockerfile                        # Multi-stage container build
     ├── 📄 appsettings.json                  # PostgreSQL & RabbitMQ connection parameters
     └── 📄 NET-Tutos.Gamification.API.csproj
@@ -153,10 +229,10 @@ src/Services/Gamification/
 
 | Layer | Project | Role & Responsibilities | Upstream Dependencies |
 | :--- | :--- | :--- | :--- |
-| **Domain** | [`NET-Tutos.Gamification.Domain`](file:///d:/NET-Tutos/src/Services/Gamification/NET-Tutos.Gamification.Domain) | Pure entity models (`UserStreak`, `DailyCheckIn`, `Badge`, `UserBadge`, `UserXpRecord`). Contains zero database or transport dependencies. | None |
-| **Application** | [`NET-Tutos.Gamification.Application`](file:///d:/NET-Tutos/src/Services/Gamification/NET-Tutos.Gamification.Application) | Implements `IGamificationService` containing business calculations (XP curves, streak calculation, milestone checks) and defines `IGamificationDbContext`. | `Domain`, `BuildingBlocks.Common` |
-| **Infrastructure** | [`NET-Tutos.Gamification.Infrastructure`](file:///d:/NET-Tutos/src/Services/Gamification/NET-Tutos.Gamification.Infrastructure) | Implements `IGamificationDbContext` via `GamificationDbContext` (Npgsql EF Core 10) and hosts MassTransit integration event consumers. | `Application`, `Domain`, `BuildingBlocks.EventBus` |
-| **API** | [`NET-Tutos.Gamification.API`](file:///d:/NET-Tutos/src/Services/Gamification/NET-Tutos.Gamification.API) | Host composition root (`Program.cs`). Configures ASP.NET Core Minimal APIs, connects MassTransit with RabbitMQ, and runs database migrations on startup. | `Application`, `Infrastructure` |
+| **Domain** | [`NET-Tutos.Gamification.Domain`](file:///d:/NET-Tutos/src/Services/Gamification/NET-Tutos.Gamification.Domain) | Pure entity models (`UserStreak`, `DailyCheckIn`, `Badge`, `UserBadge`, `UserXpRecord`), Value Objects (`XpValue`, `StreakCount`), Enums (`BadgeTier`, `XpSourceType`), and Domain Events. Contains zero database or transport dependencies. | None |
+| **Application** | [`NET-Tutos.Gamification.Application`](file:///d:/NET-Tutos/src/Services/Gamification/NET-Tutos.Gamification.Application) | Implements `IGamificationService`, CQRS Commands & Queries (`CheckInCommand`, `GetUserStreakQuery`, `GetLeaderboardQuery`), defines `IGamificationDbContext`, and validation exceptions. | `Domain`, `BuildingBlocks.Common` |
+| **Infrastructure** | [`NET-Tutos.Gamification.Infrastructure`](file:///d:/NET-Tutos/src/Services/Gamification/NET-Tutos.Gamification.Infrastructure) | Implements `IGamificationDbContext` via `GamificationDbContext` (applying all `IEntityTypeConfiguration<T>` classes from assembly) and hosts MassTransit integration event consumers. | `Application`, `Domain`, `BuildingBlocks.EventBus` |
+| **API** | [`NET-Tutos.Gamification.API`](file:///d:/NET-Tutos/src/Services/Gamification/NET-Tutos.Gamification.API) | Host composition root (`Program.cs`). Configures modular endpoint groups (`StreakEndpoints`, `BadgeEndpoints`, `LeaderboardEndpoints`), installs `GlobalExceptionHandlerMiddleware`, and runs database migrations on startup. | `Application`, `Infrastructure` |
 
 ### 4.2. Event-Driven Architecture (MassTransit Consumers)
 `Gamification.Infrastructure` hosts MassTransit consumers that subscribe to integration events emitted over RabbitMQ without requiring synchronous coordination:

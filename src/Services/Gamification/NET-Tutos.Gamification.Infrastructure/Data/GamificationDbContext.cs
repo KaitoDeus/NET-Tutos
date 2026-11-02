@@ -22,41 +22,10 @@ public class GamificationDbContext : DbContext, IGamificationDbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<UserStreak>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.UserId).IsUnique();
-        });
+        // Apply all entity configurations defined in Configurations/
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(GamificationDbContext).Assembly);
 
-        modelBuilder.Entity<DailyCheckIn>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.UserId);
-        });
-
-        modelBuilder.Entity<Badge>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.Code).IsUnique();
-        });
-
-        modelBuilder.Entity<UserBadge>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasIndex(e => new { e.UserId, e.BadgeId }).IsUnique();
-            entity.HasOne(e => e.Badge)
-                  .WithMany()
-                  .HasForeignKey(e => e.BadgeId)
-                  .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        modelBuilder.Entity<UserXpRecord>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.UserId).IsUnique();
-        });
-
-        // Seed default badges
+        // Seed default system achievement badges
         modelBuilder.Entity<Badge>().HasData(
             new Badge { Id = 1, Code = "streak-3", Name = "Khởi đầu kiên trì", Description = "Duy trì chuỗi học 3 ngày liên tiếp", IconClass = "bi-fire", BadgeColor = "warning", RequiredCount = 3 },
             new Badge { Id = 2, Code = "streak-7", Name = "Chiến binh 1 tuần", Description = "Duy trì chuỗi học 7 ngày liên tiếp", IconClass = "bi-lightning-charge-fill", BadgeColor = "danger", RequiredCount = 7 },
