@@ -46,6 +46,27 @@ services:
     ports:
       - "5002:8080"
 
+  # Microservice: Gamification & Retention API
+  gamification:
+    build:
+      context: .
+      dockerfile: src/Services/Gamification/NET-Tutos.Gamification.API/Dockerfile
+    container_name: nettutos-gamification
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__PostgreSqlConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres;Include Error Detail=true
+      - RabbitMQ__Host=rabbitmq
+      - UseInMemoryBus=false
+    ports:
+      - "5004:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
   # ASP.NET Core 10 Web Application & BFF Engine
   web:
     build:
@@ -60,6 +81,7 @@ services:
       - ConnectionStrings__PostgreSqlConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres;Include Error Detail=true
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres;Include Error Detail=true
       - Services__CodeRunner__Url=http://coderunner:8080
+      - Services__Gamification__Url=http://gamification:8080
     ports:
       - "5000:5000"
     depends_on:

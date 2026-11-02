@@ -5,6 +5,7 @@
   </Folder>
   <Folder Name="/Services/">
     <Project Path="src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj" />
+    <Project Path="src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj" />
   </Folder>
   <Folder Name="/Apps/">
     <Project Path="web/web.csproj" />
@@ -14,5 +15,6 @@
     <Project Path="tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj" />
     <Project Path="tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj" />
     <Project Path="tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj" />
+    <Project Path="tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.csproj" />
   </Folder>
 </Solution>

@@ -25,20 +25,33 @@ jobs:
         dotnet restore src/BuildingBlocks/Common/NET-Tutos.BuildingBlocks.Common.csproj
         dotnet restore src/BuildingBlocks/EventBus/NET-Tutos.BuildingBlocks.EventBus.csproj
         dotnet restore src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj
+        dotnet restore src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj
         dotnet restore web/web.csproj
         dotnet restore tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
         dotnet restore tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
         dotnet restore tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj
+        dotnet restore tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.csproj
 
     - name: Build Projects
       run: |
         dotnet build src/BuildingBlocks/Common/NET-Tutos.BuildingBlocks.Common.csproj --configuration Release --no-restore
         dotnet build src/BuildingBlocks/EventBus/NET-Tutos.BuildingBlocks.EventBus.csproj --configuration Release --no-restore
         dotnet build src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj --configuration Release --no-restore
+        dotnet build src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj --configuration Release --no-restore
         dotnet build web/web.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj --configuration Release --no-restore
+        dotnet build tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.csproj --configuration Release --no-restore
+
+    - name: Run Microservice Gamification Tests
+      run: |
+        dotnet test tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.csproj \
+          --configuration Release \
+          --no-build \
+          --verbosity normal \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./TestResults/GamificationTests
 
     - name: Run Microservice CodeRunner Tests
       run: |

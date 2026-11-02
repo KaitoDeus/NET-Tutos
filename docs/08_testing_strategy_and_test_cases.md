@@ -125,6 +125,20 @@ The automated test suite covers all core business services, execution runtimes, 
 
 ---
 
+### 2.8. Gamification Microservice & Event Consumers (`GamificationServiceTests` & `ConsumerTests`)
+
+| Test ID | Test Method | Objective / Scenario | Input Data | Expected Result |
+| :--- | :--- | :--- | :--- | :--- |
+| `TC-GMIC-01` | `GetUserStreakAsync_ReturnsEmptyStreakForNewUser` | Verify new user receives initialized 0-day streak with 3 days to first milestone. | Unregistered `userId` | `CurrentStreak = 0`, `DaysToNextMilestone = 3`, `IsCheckedInToday = false` |
+| `TC-GMIC-02` | `CheckInTodayAsync_FirstTime_RecordsStreakAndAwardsXp` | Verify first daily check-in creates streak of 1 day and awards 10 XP in ledger. | Fresh learner `userId` | `IsSuccess = true`, `CurrentStreak = 1`, `XpEarned = 10` |
+| `TC-GMIC-03` | `CheckInTodayAsync_ConsecutiveDay_IncrementsStreak` | Check-in on consecutive day increments streak count and calculates dynamic reward. | User checked in yesterday | `CurrentStreak = 2`, `XpEarned = 14` |
+| `TC-GMIC-04` | `CheckInTodayAsync_SameDayDuplicate_ReturnsAlreadyCheckedIn` | Guard against multiple check-in requests on the same day. | User checked in earlier today | `IsSuccess = false`, `Message` indicates already checked in |
+| `TC-GMIC-05` | `CheckInTodayAsync_MilestoneReached_AwardsMilestoneBadge` | Verify streak reaches milestone 3 and unlocks `streak-3` badge. | Consecutive 3rd day check-in | `NewlyUnlockedBadges` contains `streak-3` |
+| `TC-GMIC-06` | `LessonCompletedConsumer_AwardsXpAndUnlocksBadge` | MassTransit consumer receives `LessonCompletedIntegrationEvent` and records XP ledger transaction. | `LessonCompletedIntegrationEvent` | User XP ledger incremented by event's `XpAwarded` |
+| `TC-GMIC-07` | `ChallengeSolvedConsumer_AwardsXpAndUnlocksBadge` | MassTransit consumer receives `ChallengeSolvedIntegrationEvent` and unlocks `code-master` badge. | `ChallengeSolvedIntegrationEvent` | User XP ledger incremented, `code-master` badge awarded |
+
+---
+
 ## 3. Exceptions & Error Handling Matrix
 
 This matrix catalogs all system exceptions, their triggering scenarios, internal mitigations, and user-facing resolutions.
@@ -182,7 +196,11 @@ dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj --verbosity nor
 
 ### Run Microservice Tests:
 ```powershell
+# Run CodeRunner microservice tests (6 tests)
 dotnet test tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj --verbosity normal
+
+# Run Gamification microservice tests (7 tests)
+dotnet test tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.csproj --verbosity normal
 ```
 
 ### Run Integration Tests:
@@ -192,6 +210,7 @@ dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj -
 
 ### Run All Automated Tests with Code Coverage:
 ```powershell
+dotnet test tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.csproj --collect:"XPlat Code Coverage"
 dotnet test tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj --collect:"XPlat Code Coverage"
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj --collect:"XPlat Code Coverage"
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj --collect:"XPlat Code Coverage"

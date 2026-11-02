@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NET_Tutos.Data;
@@ -13,19 +14,31 @@ public class StreakService : IStreakService
     private readonly INotificationService _notificationService;
     private readonly IActivityFeedService _activityFeedService;
     private readonly ILogger<StreakService> _logger;
+    private readonly HttpClient? _gamificationClient;
+    private readonly string? _gamificationUrl;
 
     public StreakService(
         AppDbContext context,
         UserManager<ApplicationUser> userManager,
         INotificationService notificationService,
         IActivityFeedService activityFeedService,
-        ILogger<StreakService> logger)
+        ILogger<StreakService> logger,
+        IHttpClientFactory? httpClientFactory = null,
+        IConfiguration? configuration = null)
     {
         _context = context;
         _userManager = userManager;
         _notificationService = notificationService;
         _activityFeedService = activityFeedService;
         _logger = logger;
+
+        _gamificationUrl = configuration?["Services:Gamification:Url"]?.TrimEnd('/');
+        if (!string.IsNullOrEmpty(_gamificationUrl) && httpClientFactory != null)
+        {
+            _gamificationClient = httpClientFactory.CreateClient("Gamification");
+            _gamificationClient.BaseAddress = new Uri(_gamificationUrl);
+            _gamificationClient.Timeout = TimeSpan.FromSeconds(5);
+        }
     }
 
     public async Task<StreakStatusViewModel> GetUserStreakStatusAsync(string? userId)
@@ -233,6 +246,27 @@ public class StreakService : IStreakService
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("User {UserId} checked in successfully. Streak: {Streak}, XP: +{Xp}", userId, newStreak, xpReward);
+
+        // Strangler Fig: Asynchronously sync check-in to Gamification microservice if enabled
+        if (_gamificationClient != null)
+        {
+            try
+            {
+                var microserviceResponse = await _gamificationClient.PostAsJsonAsync("/api/v1/gamification/streak/check-in", userId);
+                if (microserviceResponse.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("Synced check-in for user {UserId} with Gamification microservice.", userId);
+                }
+                else
+                {
+                    _logger.LogWarning("Gamification microservice responded with status {StatusCode} for user {UserId}.", microserviceResponse.StatusCode, userId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Gamification microservice unavailable for user {UserId}. Preserved local check-in state.", userId);
+            }
+        }
 
         try
         {

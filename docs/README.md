@@ -100,9 +100,10 @@ d:\NET-Tutos\docs\
    - Distributed system transformation, bounded contexts, and architectural drivers.
    - Reusable `BuildingBlocks` (`Common` and `EventBus` integration events).
    - Dedicated `CodeRunner.API` Roslyn C# execution microservice specification and REST endpoints.
-   - Resilient delegation and graceful in-process fallback pattern in `CodeExecutionService`.
-   - Multi-container Docker Compose orchestration (`postgres`, `rabbitmq`, `coderunner`, `web`).
-   - 60/60 automated test execution and GitHub Actions CI quality gates.
+   - Decoupled `Gamification.API` microservice with MassTransit RabbitMQ event-driven consumers.
+   - Resilient delegation and graceful in-process fallback pattern in `CodeExecutionService` and `StreakService`.
+   - Multi-container Docker Compose orchestration (`postgres`, `rabbitmq`, `coderunner`, `gamification`, `web`).
+   - 67/67 automated test execution and GitHub Actions CI quality gates.
 
 10. [**DESIGN. Design System & Anti-AI-Slop Constitution**](file:///d:/NET-Tutos/docs/DESIGN.md)
    - Developer Tool standard inspired by Linear, Raycast, Stripe, and GitHub Primer.
@@ -120,8 +121,8 @@ d:\NET-Tutos\docs\
 | **Contextual AI Engineering Feedback** | `MOD-AI` | `AiTutorController.cs`, `AiTutorService.cs`, `AiTutorViewModels.cs` | Big-O analysis, failure diagnostics, dynamic xUnit test generation |
 | **Senior Technical Hiring Readiness** | `MOD-INT` | `InterviewController.cs`, `AiTutorService.cs`, `Mock.cshtml` | 3-dimension rubric evaluation, Speech-to-Text, radar reports |
 | **Continuous Cross-Platform Study** | `MOD-MOB` | `MobileAuthController.cs`, `ApiService.cs` (.NET MAUI), `LoginPage.xaml` | JWT Bearer verification, device storage, progress sync |
-| **Learner Engagement & Retention** | `MOD-GAM` | `StreakService.cs`, `LeaderboardService.cs`, `ActivityFeedService.cs` | Daily check-in tests, Level formula calculation, Hall of Fame |
-| **Microservice High-Compute Isolation** | `MOD-ARCH` | `NET-Tutos.CodeRunner.API`, `BuildingBlocks.Common`, `BuildingBlocks.EventBus` | 60/60 automated tests, Docker multi-container topology, CI pipeline |
+| **Learner Engagement & Retention** | `MOD-GAM` | `StreakService.cs`, `LeaderboardService.cs`, `NET-Tutos.Gamification.API` | Daily check-in tests, Level formula calculation, Gamification microservice tests |
+| **Microservice High-Compute Isolation** | `MOD-ARCH` | `NET-Tutos.CodeRunner.API`, `NET-Tutos.Gamification.API`, `BuildingBlocks` | 67/67 automated tests, Docker multi-container topology, CI pipeline |
 
 ---
 
