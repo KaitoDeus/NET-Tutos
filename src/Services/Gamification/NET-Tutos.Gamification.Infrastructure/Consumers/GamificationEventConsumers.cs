@@ -1,11 +1,12 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NET_Tutos.BuildingBlocks.EventBus.Events;
-using NET_Tutos.Gamification.API.Data;
-using NET_Tutos.Gamification.API.Domain.Entities;
-using NET_Tutos.Gamification.API.Services;
+using NET_Tutos.Gamification.Application.Services;
+using NET_Tutos.Gamification.Domain.Entities;
+using NET_Tutos.Gamification.Infrastructure.Data;
 
-namespace NET_Tutos.Gamification.API.Consumers;
+namespace NET_Tutos.Gamification.Infrastructure.Consumers;
 
 public class ChallengeSolvedConsumer : IConsumer<ChallengeSolvedIntegrationEvent>
 {

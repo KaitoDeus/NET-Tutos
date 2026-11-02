@@ -28,9 +28,17 @@ d:\NET-Tutos\
     ├── 📂 UI/                         # [User Interface Layer - Frontends & Clients]
     │   ├── 📂 Web/                    # ASP.NET Core 10 MVC + RESTful API + SignalR Hubs + Web Dockerfile
     │   └── 📂 Mobile/                 # Cross-platform .NET MAUI 10 native client application
-    ├── 📂 Services/                   # [Services Layer - Decoupled Server Microservices]
-    │   ├── 📂 CodeRunner/             # Roslyn C# 14 compilation & test judging sandbox API
-    │   └── 📂 Gamification/           # Streak, XP curves, badge catalog & leaderboard API
+    ├── 📂 Services/                   # [Services Layer - Decoupled Server Microservices with 4-Layer Clean Architecture]
+    │   ├── 📂 CodeRunner/             # Roslyn C# 14 compilation & test judging sandbox microservice
+    │   │   ├── 📂 NET-Tutos.CodeRunner.Domain/         # Layer 1: Domain execution constraints & rules
+    │   │   ├── 📂 NET-Tutos.CodeRunner.Application/    # Layer 2: Contracts, DTOs & ICodeRunnerEngine interface
+    │   │   ├── 📂 NET-Tutos.CodeRunner.Infrastructure/ # Layer 3: Roslyn engine implementation & sandboxing
+    │   │   └── 📂 NET-Tutos.CodeRunner.API/            # Layer 4: Minimal APIs, endpoint routing & container host
+    │   └── 📂 Gamification/           # Streak, XP curves, badge catalog & leaderboard microservice
+    │       ├── 📂 NET-Tutos.Gamification.Domain/       # Layer 1: Domain entities (UserStreak, Badge, UserXpRecord)
+    │       ├── 📂 NET-Tutos.Gamification.Application/  # Layer 2: IGamificationService, DTOs, IGamificationDbContext
+    │       ├── 📂 NET-Tutos.Gamification.Infrastructure/# Layer 3: EF Core DbContext, PostgreSQL & MassTransit consumers
+    │       └── 📂 NET-Tutos.Gamification.API/          # Layer 4: ASP.NET Core API host, endpoint maps & Dockerfile
     └── 📂 Infrastructure/             # [Infrastructure Layer - Shared BuildingBlocks & EventBus]
         ├── 📂 Common/                 # Standard ApiResponse<T> and Result<T> primitives
         └── 📂 EventBus/               # MassTransit RabbitMQ integration events
@@ -193,6 +201,27 @@ mobile/
     ├── 📂 Fonts/                      # Embedded typography (OpenSans-Regular, OpenSans-Semibold)
     ├── 📂 Images/                     # Vector SVG icons for bottom tab navigation
     └── 📂 Styles/                     # Global styling resources (Colors.xaml, Styles.xaml)
+```
+
+---
+
+### 1.4. Backend Microservices Clean Architecture Subsystems (`src/Services/`)
+
+Each extracted microservice conforms strictly to the **4-Layer Clean Architecture pattern** (Domain, Application, Infrastructure, API):
+
+```text
+src/Services/
+├── 📂 CodeRunner/
+│   ├── 📂 NET-Tutos.CodeRunner.Domain/         # Core constraints, blacklist rules, memory/timeout limits
+│   ├── 📂 NET-Tutos.CodeRunner.Application/    # Request/Response DTO contracts & ICodeRunnerEngine interface
+│   ├── 📂 NET-Tutos.CodeRunner.Infrastructure/ # Roslyn CSharpScript sandboxed compilation engine
+│   └── 📂 NET-Tutos.CodeRunner.API/            # Minimal APIs composition root, health checks & Dockerfile
+│
+└── 📂 Gamification/
+    ├── 📂 NET-Tutos.Gamification.Domain/       # Pure domain entities (UserStreak, Badge, UserXpRecord)
+    ├── 📂 NET-Tutos.Gamification.Application/  # IGamificationService, DTOs, XP formulas, IGamificationDbContext
+    ├── 📂 NET-Tutos.Gamification.Infrastructure/# EF Core 10, PostgreSQL & MassTransit RabbitMQ consumers
+    └── 📂 NET-Tutos.Gamification.API/          # ASP.NET Core API host, endpoint mapping & Dockerfile
 ```
 
 ---

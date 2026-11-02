@@ -1,4 +1,4 @@
-namespace NET_Tutos.Gamification.API.Contracts;
+namespace NET_Tutos.Gamification.Application.Contracts;
 
 public class StreakDto
 {

@@ -1,6 +1,6 @@
-using NET_Tutos.CodeRunner.API.Contracts;
+using NET_Tutos.CodeRunner.Application.Contracts;
 
-namespace NET_Tutos.CodeRunner.API.Services;
+namespace NET_Tutos.CodeRunner.Application.Services;
 
 public interface ICodeRunnerEngine
 {

@@ -24,7 +24,13 @@ jobs:
       run: |
         dotnet restore src/Infrastructure/Common/NET-Tutos.BuildingBlocks.Common.csproj
         dotnet restore src/Infrastructure/EventBus/NET-Tutos.BuildingBlocks.EventBus.csproj
+        dotnet restore src/Services/CodeRunner/NET-Tutos.CodeRunner.Domain/NET-Tutos.CodeRunner.Domain.csproj
+        dotnet restore src/Services/CodeRunner/NET-Tutos.CodeRunner.Application/NET-Tutos.CodeRunner.Application.csproj
+        dotnet restore src/Services/CodeRunner/NET-Tutos.CodeRunner.Infrastructure/NET-Tutos.CodeRunner.Infrastructure.csproj
         dotnet restore src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj
+        dotnet restore src/Services/Gamification/NET-Tutos.Gamification.Domain/NET-Tutos.Gamification.Domain.csproj
+        dotnet restore src/Services/Gamification/NET-Tutos.Gamification.Application/NET-Tutos.Gamification.Application.csproj
+        dotnet restore src/Services/Gamification/NET-Tutos.Gamification.Infrastructure/NET-Tutos.Gamification.Infrastructure.csproj
         dotnet restore src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj
         dotnet restore src/UI/Web/web.csproj
         dotnet restore tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
@@ -36,7 +42,13 @@ jobs:
       run: |
         dotnet build src/Infrastructure/Common/NET-Tutos.BuildingBlocks.Common.csproj --configuration Release --no-restore
         dotnet build src/Infrastructure/EventBus/NET-Tutos.BuildingBlocks.EventBus.csproj --configuration Release --no-restore
+        dotnet build src/Services/CodeRunner/NET-Tutos.CodeRunner.Domain/NET-Tutos.CodeRunner.Domain.csproj --configuration Release --no-restore
+        dotnet build src/Services/CodeRunner/NET-Tutos.CodeRunner.Application/NET-Tutos.CodeRunner.Application.csproj --configuration Release --no-restore
+        dotnet build src/Services/CodeRunner/NET-Tutos.CodeRunner.Infrastructure/NET-Tutos.CodeRunner.Infrastructure.csproj --configuration Release --no-restore
         dotnet build src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj --configuration Release --no-restore
+        dotnet build src/Services/Gamification/NET-Tutos.Gamification.Domain/NET-Tutos.Gamification.Domain.csproj --configuration Release --no-restore
+        dotnet build src/Services/Gamification/NET-Tutos.Gamification.Application/NET-Tutos.Gamification.Application.csproj --configuration Release --no-restore
+        dotnet build src/Services/Gamification/NET-Tutos.Gamification.Infrastructure/NET-Tutos.Gamification.Infrastructure.csproj --configuration Release --no-restore
         dotnet build src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj --configuration Release --no-restore
         dotnet build src/UI/Web/web.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj --configuration Release --no-restore

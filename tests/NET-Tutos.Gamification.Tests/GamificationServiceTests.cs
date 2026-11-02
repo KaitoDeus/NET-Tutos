@@ -1,8 +1,9 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
-using NET_Tutos.Gamification.API.Data;
-using NET_Tutos.Gamification.API.Services;
+using NET_Tutos.Gamification.Application.Services;
+using NET_Tutos.Gamification.Infrastructure.Consumers;
+using NET_Tutos.Gamification.Infrastructure.Data;
 using Xunit;
 
 namespace NET_Tutos.Gamification.Tests;
@@ -136,8 +137,8 @@ public class GamificationServiceTests
         // Arrange
         using var context = CreateInMemoryContext();
         var service = new GamificationService(context, NullLogger<GamificationService>.Instance);
-        var consumer = new NET_Tutos.Gamification.API.Consumers.ChallengeSolvedConsumer(
-            service, context, NullLogger<NET_Tutos.Gamification.API.Consumers.ChallengeSolvedConsumer>.Instance);
+        var consumer = new ChallengeSolvedConsumer(
+            service, context, NullLogger<ChallengeSolvedConsumer>.Instance);
 
         var mockContext = new Moq.Mock<MassTransit.ConsumeContext<NET_Tutos.BuildingBlocks.EventBus.Events.ChallengeSolvedIntegrationEvent>>();
         mockContext.Setup(c => c.Message).Returns(new NET_Tutos.BuildingBlocks.EventBus.Events.ChallengeSolvedIntegrationEvent(
@@ -157,8 +158,8 @@ public class GamificationServiceTests
         // Arrange
         using var context = CreateInMemoryContext();
         var service = new GamificationService(context, NullLogger<GamificationService>.Instance);
-        var consumer = new NET_Tutos.Gamification.API.Consumers.LessonCompletedConsumer(
-            service, NullLogger<NET_Tutos.Gamification.API.Consumers.LessonCompletedConsumer>.Instance);
+        var consumer = new LessonCompletedConsumer(
+            service, NullLogger<LessonCompletedConsumer>.Instance);
 
         var mockContext = new Moq.Mock<MassTransit.ConsumeContext<NET_Tutos.BuildingBlocks.EventBus.Events.LessonCompletedIntegrationEvent>>();
         mockContext.Setup(c => c.Message).Returns(new NET_Tutos.BuildingBlocks.EventBus.Events.LessonCompletedIntegrationEvent(

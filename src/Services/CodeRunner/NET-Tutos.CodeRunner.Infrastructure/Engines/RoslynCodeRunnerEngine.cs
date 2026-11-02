@@ -3,9 +3,11 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
-using NET_Tutos.CodeRunner.API.Contracts;
+using NET_Tutos.CodeRunner.Application.Contracts;
+using NET_Tutos.CodeRunner.Application.Services;
+using NET_Tutos.CodeRunner.Domain.Rules;
 
-namespace NET_Tutos.CodeRunner.API.Services;
+namespace NET_Tutos.CodeRunner.Infrastructure.Engines;
 
 public class RoslynCodeRunnerEngine : ICodeRunnerEngine
 {
@@ -28,20 +30,7 @@ public class RoslynCodeRunnerEngine : ICodeRunnerEngine
             typeof(System.Text.Json.JsonSerializer).Assembly
         );
 
-    private static readonly string[] _forbiddenKeywords =
-    {
-        "System.Diagnostics.Process",
-        "Process.Start",
-        "System.IO.File",
-        "System.IO.Directory",
-        "System.IO.FileStream",
-        "System.Environment.Exit",
-        "System.Net.Sockets",
-        "System.Reflection.Emit",
-        "Assembly.Load"
-    };
-
-    public async Task<ExecuteScriptResponse> ExecuteAsync(string code, int timeoutMs = 4000)
+    public async Task<ExecuteScriptResponse> ExecuteAsync(string code, int timeoutMs = ExecutionConstraints.DefaultTimeoutMs)
     {
         if (string.IsNullOrWhiteSpace(code))
         {
@@ -263,12 +252,9 @@ public class RoslynCodeRunnerEngine : ICodeRunnerEngine
 
     private static string ValidateSecurity(string code)
     {
-        foreach (var keyword in _forbiddenKeywords)
+        if (ExecutionConstraints.ContainsForbiddenKeyword(code, out var matchedKeyword))
         {
-            if (code.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-            {
-                return $"Từ chối thực thi: Mã nguồn chứa từ khóa bị cấm vì lý do an toàn bảo mật ('{keyword}').";
-            }
+            return $"Từ chối thực thi: Mã nguồn chứa từ khóa bị cấm vì lý do an toàn bảo mật ('{matchedKeyword}').";
         }
         return string.Empty;
     }

@@ -4,8 +4,18 @@
     <Project Path="src/UI/Mobile/NET_Tutos.Mobile.csproj" />
   </Folder>
   <Folder Name="/02. Services (Backend Microservices &amp; Server)/">
-    <Project Path="src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj" />
-    <Project Path="src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj" />
+    <Folder Name="/02. Services (Backend Microservices &amp; Server)/CodeRunner/">
+      <Project Path="src/Services/CodeRunner/NET-Tutos.CodeRunner.Domain/NET-Tutos.CodeRunner.Domain.csproj" />
+      <Project Path="src/Services/CodeRunner/NET-Tutos.CodeRunner.Application/NET-Tutos.CodeRunner.Application.csproj" />
+      <Project Path="src/Services/CodeRunner/NET-Tutos.CodeRunner.Infrastructure/NET-Tutos.CodeRunner.Infrastructure.csproj" />
+      <Project Path="src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj" />
+    </Folder>
+    <Folder Name="/02. Services (Backend Microservices &amp; Server)/Gamification/">
+      <Project Path="src/Services/Gamification/NET-Tutos.Gamification.Domain/NET-Tutos.Gamification.Domain.csproj" />
+      <Project Path="src/Services/Gamification/NET-Tutos.Gamification.Application/NET-Tutos.Gamification.Application.csproj" />
+      <Project Path="src/Services/Gamification/NET-Tutos.Gamification.Infrastructure/NET-Tutos.Gamification.Infrastructure.csproj" />
+      <Project Path="src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj" />
+    </Folder>
   </Folder>
   <Folder Name="/03. Infrastructure (Hạ tầng kỹ thuật &amp; EventBus)/">
     <Project Path="src/Infrastructure/Common/NET-Tutos.BuildingBlocks.Common.csproj" />

@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using NET_Tutos.Gamification.API.Domain.Entities;
+using NET_Tutos.Gamification.Application.Common.Interfaces;
+using NET_Tutos.Gamification.Domain.Entities;
 
-namespace NET_Tutos.Gamification.API.Data;
+namespace NET_Tutos.Gamification.Infrastructure.Data;
 
-public class GamificationDbContext : DbContext
+public class GamificationDbContext : DbContext, IGamificationDbContext
 {
     public GamificationDbContext(DbContextOptions<GamificationDbContext> options) : base(options)
     {
@@ -11,9 +12,11 @@ public class GamificationDbContext : DbContext
 
     public DbSet<UserStreak> Streaks => Set<UserStreak>();
     public DbSet<DailyCheckIn> DailyCheckIns => Set<DailyCheckIn>();
+    public DbSet<DailyCheckIn> CheckIns => DailyCheckIns;
     public DbSet<Badge> Badges => Set<Badge>();
     public DbSet<UserBadge> UserBadges => Set<UserBadge>();
     public DbSet<UserXpRecord> UserXpRecords => Set<UserXpRecord>();
+    public DbSet<UserXpRecord> XpRecords => UserXpRecords;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

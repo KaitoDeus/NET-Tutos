@@ -8,15 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MassTransit.RabbitMQ" Version="9.2.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.12" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Infrastructure\Common\NET-Tutos.BuildingBlocks.Common.csproj" />
-    <ProjectReference Include="..\..\..\Infrastructure\EventBus\NET-Tutos.BuildingBlocks.EventBus.csproj" />
+    <ProjectReference Include="..\NET-Tutos.Gamification.Application\NET-Tutos.Gamification.Application.csproj" />
+    <ProjectReference Include="..\NET-Tutos.Gamification.Infrastructure\NET-Tutos.Gamification.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

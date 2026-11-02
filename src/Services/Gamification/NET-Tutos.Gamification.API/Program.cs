@@ -2,10 +2,11 @@ using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NET_Tutos.BuildingBlocks.Common.Models;
-using NET_Tutos.Gamification.API.Consumers;
-using NET_Tutos.Gamification.API.Contracts;
-using NET_Tutos.Gamification.API.Data;
-using NET_Tutos.Gamification.API.Services;
+using NET_Tutos.Gamification.Application.Common.Interfaces;
+using NET_Tutos.Gamification.Application.Contracts;
+using NET_Tutos.Gamification.Application.Services;
+using NET_Tutos.Gamification.Infrastructure.Consumers;
+using NET_Tutos.Gamification.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,8 @@ builder.Services.AddDbContext<GamificationDbContext>(options =>
         options.UseInMemoryDatabase("GamificationDb");
     }
 });
+
+builder.Services.AddScoped<IGamificationDbContext>(sp => sp.GetRequiredService<GamificationDbContext>());
 
 // Configure MassTransit with Consumers
 var rabbitMqHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";

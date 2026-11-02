@@ -1,6 +1,6 @@
-using NET_Tutos.Gamification.API.Contracts;
+using NET_Tutos.Gamification.Application.Contracts;
 
-namespace NET_Tutos.Gamification.API.Services;
+namespace NET_Tutos.Gamification.Application.Services;
 
 public interface IGamificationService
 {

@@ -79,16 +79,38 @@ The platform defines reusable, enterprise-grade building blocks referenced by al
 
 ---
 
-## 3. Microservice Deep-Dive: `CodeRunner.API`
+## 3. Microservice Deep-Dive: `CodeRunner` (Clean Architecture 4-Layer Decomposition)
 
-Encapsulates Roslyn C# script compilation, sandboxed runtime execution, and algorithmic test judging.
+Encapsulates Roslyn C# script compilation, sandboxed runtime execution, and algorithmic test judging following the **Clean Architecture 4-layer pattern**:
 
-### 3.1. Project Metadata & Dependencies
-- **Project File:** [`src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj`](file:///d:/NET-Tutos/src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj)
-- **Target Framework:** `net10.0` (ASP.NET Core Web SDK)
-- **Key Dependencies:**
-  - `Microsoft.CodeAnalysis.CSharp.Scripting` (v5.0.0)
-  - `NET-Tutos.BuildingBlocks.Common` (Project Reference)
+```text
+src/Services/CodeRunner/
+├── 📂 NET-Tutos.CodeRunner.Domain/         # Layer 1: Core constraints, validation rules & execution policies
+│   ├── 📄 ExecutionConstraints.cs          # Pure domain rules, blocked APIs, timeout thresholds
+│   └── 📄 NET-Tutos.CodeRunner.Domain.csproj
+├── 📂 NET-Tutos.CodeRunner.Application/    # Layer 2: Contracts, DTOs & Engine abstraction interface
+│   ├── 📄 ICodeRunnerEngine.cs             # Engine port abstraction
+│   ├── 📂 Contracts/                       # Request/Response models & test evaluation DTOs
+│   │   └── 📄 CodeExecutionContracts.cs
+│   └── 📄 NET-Tutos.CodeRunner.Application.csproj
+├── 📂 NET-Tutos.CodeRunner.Infrastructure/ # Layer 3: Roslyn compilation engine & sandboxed adapter
+│   ├── 📄 RoslynCodeRunnerEngine.cs        # CSharpScript compilation & isolation adapter
+│   └── 📄 NET-Tutos.CodeRunner.Infrastructure.csproj
+└── 📂 NET-Tutos.CodeRunner.API/            # Layer 4: Minimal APIs, endpoint routing & container host
+    ├── 📄 Program.cs                       # Composition root, HTTP pipeline, DI configuration
+    ├── 📄 Dockerfile                       # Multi-stage container build
+    ├── 📄 appsettings.json                 # Service configuration
+    └── 📄 NET-Tutos.CodeRunner.API.csproj
+```
+
+### 3.1. Layer Responsibilities & Dependencies
+
+| Layer | Project | Role & Responsibilities | Upstream Dependencies |
+| :--- | :--- | :--- | :--- |
+| **Domain** | [`NET-Tutos.CodeRunner.Domain`](file:///d:/NET-Tutos/src/Services/CodeRunner/NET-Tutos.CodeRunner.Domain) | Zero external dependencies. Holds execution constraints, forbidden keyword blacklists (`System.IO`, `System.Net`, `System.Diagnostics.Process`), and runtime security policies. | None |
+| **Application** | [`NET-Tutos.CodeRunner.Application`](file:///d:/NET-Tutos/src/Services/CodeRunner/NET-Tutos.CodeRunner.Application) | Defines request/response contracts (`ExecuteScriptRequest`, `EvaluateChallengeRequest`, etc.) and the `ICodeRunnerEngine` interface. | `Domain`, `BuildingBlocks.Common` |
+| **Infrastructure** | [`NET-Tutos.CodeRunner.Infrastructure`](file:///d:/NET-Tutos/src/Services/CodeRunner/NET-Tutos.CodeRunner.Infrastructure) | Implements `ICodeRunnerEngine` using Roslyn (`Microsoft.CodeAnalysis.CSharp.Scripting` v5.0.0). Enforces domain constraints, executes tests, and captures console outputs. | `Application`, `Domain` |
+| **API** | [`NET-Tutos.CodeRunner.API`](file:///d:/NET-Tutos/src/Services/CodeRunner/NET-Tutos.CodeRunner.API) | Host composition root (`Program.cs`). Maps Minimal API endpoints, configures health checks, and exports OpenAPI specifications. | `Application`, `Infrastructure` |
 
 ### 3.2. RESTful API Endpoints
 1. **Execute Arbitrary C# Script:** `POST /api/v1/runner/execute`
@@ -97,29 +119,47 @@ Encapsulates Roslyn C# script compilation, sandboxed runtime execution, and algo
 
 ---
 
-## 4. Microservice Deep-Dive: `Gamification.API`
+## 4. Microservice Deep-Dive: `Gamification` (Clean Architecture 4-Layer Decomposition)
 
-Manages learner motivation mechanics: daily streak tracking, exponential XP leveling curves, achievement badge unlocks, and global leaderboards.
+Manages learner motivation mechanics: daily streak tracking, exponential XP leveling curves, achievement badge unlocks, and global leaderboards following the **Clean Architecture 4-layer pattern**:
 
-### 4.1. Project Metadata & Dependencies
-- **Project File:** [`src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj`](file:///d:/NET-Tutos/src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj)
-- **Target Framework:** `net10.0` (ASP.NET Core Web SDK)
-- **Key Dependencies:**
-  - `MassTransit.RabbitMQ` (v9.2.5)
-  - `Npgsql.EntityFrameworkCore.PostgreSQL` (v10.0.0)
-  - `Microsoft.EntityFrameworkCore.InMemory` (v10.0.0 for isolated tests)
-  - `NET-Tutos.BuildingBlocks.Common` (Project Reference)
-  - `NET-Tutos.BuildingBlocks.EventBus` (Project Reference)
+```text
+src/Services/Gamification/
+├── 📂 NET-Tutos.Gamification.Domain/         # Layer 1: Core domain entities & business rules
+│   ├── 📂 Entities/                         # UserStreak, DailyCheckIn, Badge, UserBadge, UserXpRecord
+│   │   └── 📄 GamificationEntities.cs
+│   └── 📄 NET-Tutos.Gamification.Domain.csproj
+├── 📂 NET-Tutos.Gamification.Application/    # Layer 2: Use cases, DTOs & service interfaces
+│   ├── 📄 IGamificationService.cs           # Gamification business contract
+│   ├── 📄 IGamificationDbContext.cs         # Database abstraction interface
+│   ├── 📄 GamificationService.cs            # Core leveling algorithms, streaks, and badge logic
+│   ├── 📂 Contracts/                        # StreakDto, CheckInResultDto, LeaderboardEntryDto
+│   │   └── 📄 GamificationContracts.cs
+│   └── 📄 NET-Tutos.Gamification.Application.csproj
+├── 📂 NET-Tutos.Gamification.Infrastructure/ # Layer 3: EF Core, PostgreSQL & MassTransit consumers
+│   ├── 📂 Data/                             # GamificationDbContext implementation
+│   │   └── 📄 GamificationDbContext.cs
+│   ├── 📂 Consumers/                        # ChallengeSolved, LessonCompleted, ExamPassed consumers
+│   │   └── 📄 GamificationEventConsumers.cs
+│   └── 📄 NET-Tutos.Gamification.Infrastructure.csproj
+└── 📂 NET-Tutos.Gamification.API/            # Layer 4: Minimal APIs, endpoint routing & container host
+    ├── 📄 Program.cs                        # Composition root, MassTransit RabbitMQ host, DI setup
+    ├── 📄 Dockerfile                        # Multi-stage container build
+    ├── 📄 appsettings.json                  # PostgreSQL & RabbitMQ connection parameters
+    └── 📄 NET-Tutos.Gamification.API.csproj
+```
 
-### 4.2. Domain Models & Relational Schema
-- `UserStreak`: Stores `UserId`, `CurrentStreak`, `LongestStreak`, `LastCheckInDate`, and `UpdatedAt`.
-- `DailyCheckIn`: Records historical check-ins with `CheckInDate`, `StreakDay`, and `XpEarned`.
-- `Badge`: System catalog of achievements with `Code`, `Name`, `Description`, `IconClass`, and `BadgeColor`.
-- `UserBadge`: Unlocked badges per learner with `UnlockedAt`.
-- `UserXpRecord`: Ledger of XP transactions tagged by source (`StreakCheckIn`, `ChallengeSolved`, `LessonCompleted`, `ExamPassed`).
+### 4.1. Layer Responsibilities & Dependencies
 
-### 4.3. Event-Driven Architecture (MassTransit Consumers)
-`Gamification.API` subscribes to integration events emitted over RabbitMQ without requiring synchronous coordination:
+| Layer | Project | Role & Responsibilities | Upstream Dependencies |
+| :--- | :--- | :--- | :--- |
+| **Domain** | [`NET-Tutos.Gamification.Domain`](file:///d:/NET-Tutos/src/Services/Gamification/NET-Tutos.Gamification.Domain) | Pure entity models (`UserStreak`, `DailyCheckIn`, `Badge`, `UserBadge`, `UserXpRecord`). Contains zero database or transport dependencies. | None |
+| **Application** | [`NET-Tutos.Gamification.Application`](file:///d:/NET-Tutos/src/Services/Gamification/NET-Tutos.Gamification.Application) | Implements `IGamificationService` containing business calculations (XP curves, streak calculation, milestone checks) and defines `IGamificationDbContext`. | `Domain`, `BuildingBlocks.Common` |
+| **Infrastructure** | [`NET-Tutos.Gamification.Infrastructure`](file:///d:/NET-Tutos/src/Services/Gamification/NET-Tutos.Gamification.Infrastructure) | Implements `IGamificationDbContext` via `GamificationDbContext` (Npgsql EF Core 10) and hosts MassTransit integration event consumers. | `Application`, `Domain`, `BuildingBlocks.EventBus` |
+| **API** | [`NET-Tutos.Gamification.API`](file:///d:/NET-Tutos/src/Services/Gamification/NET-Tutos.Gamification.API) | Host composition root (`Program.cs`). Configures ASP.NET Core Minimal APIs, connects MassTransit with RabbitMQ, and runs database migrations on startup. | `Application`, `Infrastructure` |
+
+### 4.2. Event-Driven Architecture (MassTransit Consumers)
+`Gamification.Infrastructure` hosts MassTransit consumers that subscribe to integration events emitted over RabbitMQ without requiring synchronous coordination:
 
 ```mermaid
 sequenceDiagram
@@ -127,8 +167,8 @@ sequenceDiagram
     actor Learner as Learner
     participant Web as Web Application
     participant Bus as RabbitMQ / MassTransit
-    participant Gamify as Gamification.API
-    participant DB as Gamification Database
+    participant Gamify as Gamification.API / Consumers
+    participant DB as Gamification Database (PostgreSQL)
 
     Learner->>Web: Complete Lesson / Pass Exam / Solve Challenge
     Web->>Bus: Publish(LessonCompletedIntegrationEvent)
@@ -142,7 +182,7 @@ sequenceDiagram
 - **`LessonCompletedConsumer`:** Awards tutorial XP and unlocks the `"scholar"` badge upon milestone completions.
 - **`ExamPassedConsumer`:** Awards certification XP and unlocks the `"certified-pro"` badge upon achieving $\ge 80\%$ scores.
 
-### 4.4. RESTful API Endpoints
+### 4.3. RESTful API Endpoints
 1. **Get User Streak:** `GET /api/v1/gamification/streak/{userId}`
 2. **Perform Daily Check-In:** `POST /api/v1/gamification/streak/check-in`
 3. **List Badges Catalog & Unlocks:** `GET /api/v1/gamification/badges?userId={userId}`

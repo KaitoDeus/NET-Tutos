@@ -1,4 +1,4 @@
-namespace NET_Tutos.Gamification.API.Domain.Entities;
+namespace NET_Tutos.Gamification.Domain.Entities;
 
 public class UserStreak
 {

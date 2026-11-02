@@ -4,6 +4,9 @@ WORKDIR /src
 
 # Copy project files and restore
 COPY ["src/Infrastructure/Common/NET-Tutos.BuildingBlocks.Common.csproj", "src/Infrastructure/Common/"]
+COPY ["src/Services/CodeRunner/NET-Tutos.CodeRunner.Domain/NET-Tutos.CodeRunner.Domain.csproj", "src/Services/CodeRunner/NET-Tutos.CodeRunner.Domain/"]
+COPY ["src/Services/CodeRunner/NET-Tutos.CodeRunner.Application/NET-Tutos.CodeRunner.Application.csproj", "src/Services/CodeRunner/NET-Tutos.CodeRunner.Application/"]
+COPY ["src/Services/CodeRunner/NET-Tutos.CodeRunner.Infrastructure/NET-Tutos.CodeRunner.Infrastructure.csproj", "src/Services/CodeRunner/NET-Tutos.CodeRunner.Infrastructure/"]
 COPY ["src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj", "src/Services/CodeRunner/NET-Tutos.CodeRunner.API/"]
 
 RUN dotnet restore "src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj"

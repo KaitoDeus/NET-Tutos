@@ -1,16 +1,17 @@
 using Microsoft.EntityFrameworkCore;
-using NET_Tutos.Gamification.API.Contracts;
-using NET_Tutos.Gamification.API.Data;
-using NET_Tutos.Gamification.API.Domain.Entities;
+using Microsoft.Extensions.Logging;
+using NET_Tutos.Gamification.Application.Common.Interfaces;
+using NET_Tutos.Gamification.Application.Contracts;
+using NET_Tutos.Gamification.Domain.Entities;
 
-namespace NET_Tutos.Gamification.API.Services;
+namespace NET_Tutos.Gamification.Application.Services;
 
 public class GamificationService : IGamificationService
 {
-    private readonly GamificationDbContext _context;
+    private readonly IGamificationDbContext _context;
     private readonly ILogger<GamificationService> _logger;
 
-    public GamificationService(GamificationDbContext context, ILogger<GamificationService> logger)
+    public GamificationService(IGamificationDbContext context, ILogger<GamificationService> logger)
     {
         _context = context;
         _logger = logger;
@@ -101,7 +102,7 @@ public class GamificationService : IGamificationService
         int streakBonus = Math.Min(streak.CurrentStreak * 2, 40);
         int totalXpEarned = 10 + streakBonus;
 
-        _context.DailyCheckIns.Add(new DailyCheckIn
+        _context.CheckIns.Add(new DailyCheckIn
         {
             UserId = userId,
             CheckInDate = DateTime.UtcNow,
@@ -163,7 +164,7 @@ public class GamificationService : IGamificationService
 
     public async Task<List<LeaderboardEntryDto>> GetLeaderboardAsync(int top = 50)
     {
-        var records = await _context.UserXpRecords
+        var records = await _context.XpRecords
             .AsNoTracking()
             .OrderByDescending(r => r.TotalXp)
             .Take(top)
@@ -188,7 +189,7 @@ public class GamificationService : IGamificationService
 
     private async Task<UserProgressDto> AwardXpInternalAsync(string userId, int xpAmount)
     {
-        var record = await _context.UserXpRecords.FirstOrDefaultAsync(r => r.UserId == userId);
+        var record = await _context.XpRecords.FirstOrDefaultAsync(r => r.UserId == userId);
         if (record == null)
         {
             record = new UserXpRecord
@@ -198,7 +199,7 @@ public class GamificationService : IGamificationService
                 CurrentLevel = 1,
                 LastUpdated = DateTime.UtcNow
             };
-            _context.UserXpRecords.Add(record);
+            _context.XpRecords.Add(record);
         }
 
         record.TotalXp += xpAmount;

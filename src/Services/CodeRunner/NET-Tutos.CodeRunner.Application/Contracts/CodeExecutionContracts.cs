@@ -1,4 +1,4 @@
-namespace NET_Tutos.CodeRunner.API.Contracts;
+namespace NET_Tutos.CodeRunner.Application.Contracts;
 
 public class ExecuteScriptRequest
 {

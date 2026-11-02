@@ -5,6 +5,9 @@ WORKDIR /src
 # Copy project files and restore
 COPY ["src/Infrastructure/Common/NET-Tutos.BuildingBlocks.Common.csproj", "src/Infrastructure/Common/"]
 COPY ["src/Infrastructure/EventBus/NET-Tutos.BuildingBlocks.EventBus.csproj", "src/Infrastructure/EventBus/"]
+COPY ["src/Services/Gamification/NET-Tutos.Gamification.Domain/NET-Tutos.Gamification.Domain.csproj", "src/Services/Gamification/NET-Tutos.Gamification.Domain/"]
+COPY ["src/Services/Gamification/NET-Tutos.Gamification.Application/NET-Tutos.Gamification.Application.csproj", "src/Services/Gamification/NET-Tutos.Gamification.Application/"]
+COPY ["src/Services/Gamification/NET-Tutos.Gamification.Infrastructure/NET-Tutos.Gamification.Infrastructure.csproj", "src/Services/Gamification/NET-Tutos.Gamification.Infrastructure/"]
 COPY ["src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj", "src/Services/Gamification/NET-Tutos.Gamification.API/"]
 
 RUN dotnet restore "src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj"
