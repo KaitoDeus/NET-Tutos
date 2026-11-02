@@ -11,7 +11,7 @@ Status: Verified & Approved for Production (PostgreSQL 17 & Docker Orchestrated)
 
 ## 1. Tiered Clean Code Directory Architecture
 
-The project is structured according to the modern `.NET 10 Solution` specification (`NET-Tutos.slnx`), establishing clean architectural separation of concerns between **UI Layer (`src/UI/`)**, **Infrastructure Layer (`src/Infrastructure/`)**, **Services Layer (`src/Services/`)**, and **System Specifications (`docs/`)**.
+The project is structured according to the modern `.NET 10 Solution` specification (`NET-Tutos.slnx`), establishing clean architectural separation of concerns between **Presentation Layer (`src/Presentation/`)**, **Infrastructure Layer (`src/Infrastructure/`)**, **Services Layer (`src/Services/`)**, and **System Specifications (`docs/`)**.
 
 ### 1.1. Overall Solution Root Structure
 
@@ -27,7 +27,7 @@ d:\NET-Tutos\
 └── 📂 src/                            # [Source Code Root]
     ├── 📂 Gateways/                   # [Gateways Layer - Ingress Reverse Proxy & Traffic Director]
     │   └── 📂 Gateway/                # Microsoft YARP Reverse Proxy, Rate Limiter & Correlation ID Tracing
-    ├── 📂 UI/                         # [User Interface Layer - Frontends & Clients]
+    ├── 📂 Presentation/               # [Presentation Layer - Frontends & Clients]
     │   ├── 📂 Web/                    # ASP.NET Core 10 MVC + RESTful API + SignalR Hubs + Web Dockerfile
     │   └── 📂 Mobile/                 # Cross-platform .NET MAUI 10 native client application
     ├── 📂 Services/                   # [Services Layer - Decoupled Server Microservices with 4-Layer Clean Architecture]
@@ -48,7 +48,7 @@ d:\NET-Tutos\
 
 ---
 
-### 1.2. Web Subsystem & RESTful API Architecture (`src/UI/Web/`)
+### 1.2. Web Subsystem & RESTful API Architecture (`src/Presentation/Web/`)
 
 The web application follows an N-Tier Clean Architecture pattern, isolating presentation (Controllers and Razor Views), business domain logic (Application Services), data persistence (EF Core `DbContext`), and real-time networking (SignalR Hubs).
 

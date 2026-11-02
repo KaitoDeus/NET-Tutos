@@ -204,7 +204,7 @@ Launch the full-stack ecosystem including ASP.NET Core 10 Web App and PostgreSQL
 3. **Run only PostgreSQL database for local .NET development:**
    ```powershell
    docker compose up -d postgres
-   dotnet run --project src/UI/Web/web.csproj
+   dotnet run --project src/Presentation/Web/web.csproj
    ```
 
 ---
@@ -224,7 +224,7 @@ Launch the full-stack ecosystem including ASP.NET Core 10 Web App and PostgreSQL
 
 3. **Launch the Web Application:**
    ```powershell
-   dotnet run --project src/UI/Web/web.csproj
+   dotnet run --project src/Presentation/Web/web.csproj
    ```
 
 4. **Access the application:**
@@ -241,7 +241,7 @@ To run the .NET MAUI mobile app on an Android emulator:
 2. **Start your Android emulator** (e.g. via Android Studio Device Manager or `emulator -avd Pixel_9a`).
 3. **Build and deploy the app:**
    ```powershell
-   dotnet build src/UI/Mobile/NET_Tutos.Mobile.csproj -t:Run -f net10.0-android
+   dotnet build src/Presentation/Mobile/NET_Tutos.Mobile.csproj -t:Run -f net10.0-android
    ```
 
 ---

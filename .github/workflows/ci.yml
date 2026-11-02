@@ -33,7 +33,7 @@ jobs:
         dotnet restore src/Services/Gamification/NET-Tutos.Gamification.Application/NET-Tutos.Gamification.Application.csproj
         dotnet restore src/Services/Gamification/NET-Tutos.Gamification.Infrastructure/NET-Tutos.Gamification.Infrastructure.csproj
         dotnet restore src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj
-        dotnet restore src/UI/Web/web.csproj
+        dotnet restore src/Presentation/Web/web.csproj
         dotnet restore tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
         dotnet restore tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
         dotnet restore tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj
@@ -53,7 +53,7 @@ jobs:
         dotnet build src/Services/Gamification/NET-Tutos.Gamification.Application/NET-Tutos.Gamification.Application.csproj --configuration Release --no-restore
         dotnet build src/Services/Gamification/NET-Tutos.Gamification.Infrastructure/NET-Tutos.Gamification.Infrastructure.csproj --configuration Release --no-restore
         dotnet build src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj --configuration Release --no-restore
-        dotnet build src/UI/Web/web.csproj --configuration Release --no-restore
+        dotnet build src/Presentation/Web/web.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj --configuration Release --no-restore

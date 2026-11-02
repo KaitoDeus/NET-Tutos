@@ -2,9 +2,9 @@
   <Folder Name="/00. Gateways (API Gateway &amp; Reverse Proxy)/">
     <Project Path="src/Gateways/Gateway/NET-Tutos.YarpGateway.csproj" />
   </Folder>
-  <Folder Name="/01. UI (User Interface &amp; Clients)/">
-    <Project Path="src/UI/Web/web.csproj" />
-    <Project Path="src/UI/Mobile/NET_Tutos.Mobile.csproj" />
+  <Folder Name="/01. Presentation (Web &amp; Mobile Clients)/">
+    <Project Path="src/Presentation/Web/web.csproj" />
+    <Project Path="src/Presentation/Mobile/NET_Tutos.Mobile.csproj" />
   </Folder>
   <Folder Name="/02. Services (Backend Microservices &amp; Server)/">
     <Folder Name="/02. Services (Backend Microservices &amp; Server)/CodeRunner/">

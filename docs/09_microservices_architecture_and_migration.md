@@ -25,7 +25,7 @@ flowchart TD
     Clients["Learners & Mobile Clients\n(Web Browser / .NET MAUI App)"] --> YARP["API Gateway & Reverse Proxy\n(Microsoft YARP / Port 5000)"]
     
     subgraph Frontend_BFF["UI Layer (User Interface & BFF)"]
-        YARP --> WebApp["Web MVC & Razor Frontend\n(src/UI/Web / Port 5000)\n[Fallback: In-Process Roslyn & Local DB]"]
+        YARP --> WebApp["Web MVC & Razor Frontend\n(src/Presentation/Web / Port 5000)\n[Fallback: In-Process Roslyn & Local DB]"]
     end
 
     subgraph Microservices_Ecosystem["Services Layer (Backend Microservices)"]
@@ -269,13 +269,13 @@ sequenceDiagram
 
 ## 5. Resilient Delegation & Strangler Fig Dual-Write Fallback Pattern
 
-Both [`CodeExecutionService.cs`](file:///d:/NET-Tutos/src/UI/Web/Services/CodeExecutionService.cs) and [`StreakService.cs`](file:///d:/NET-Tutos/src/UI/Web/Services/StreakService.cs) implement the **Strangler Fig Pattern**:
+Both [`CodeExecutionService.cs`](file:///d:/NET-Tutos/src/Presentation/Web/Services/CodeExecutionService.cs) and [`StreakService.cs`](file:///d:/NET-Tutos/src/Presentation/Web/Services/StreakService.cs) implement the **Strangler Fig Pattern**:
 
 1. **Intelligent HTTP Client Delegation:** If microservice endpoints are configured in `appsettings.json`, calls are dispatched over HTTP with short timeouts (5s–8s).
 2. **Graceful Fallback:** If the microservice is unreachable, returns an error status code, or experiences a network failure, the call is logged as a warning, and the system seamlessly falls back to local in-process execution (in-process Roslyn execution or local database transaction).
 3. **Zero Learner Disruption:** End-users experience zero downtime or fatal exceptions during microservice restarts, redeployments, or temporary network partitions.
 
-### Configuration (`src/UI/Web/appsettings.json`):
+### Configuration (`src/Presentation/Web/appsettings.json`):
 ```json
 "Services": {
   "CodeRunner": {
@@ -312,7 +312,7 @@ The platform is orchestrated via [`docker-compose.yml`](file:///d:/NET-Tutos/doc
 | Container Name | Service | Image / Dockerfile | Ports | Purpose |
 | :--- | :--- | :--- | :--- | :--- |
 | **`nettutos-gateway`** | `gateway` | `src/Gateways/Gateway/Dockerfile` | `5000:8080` | Microsoft YARP API Gateway (Single External Ingress) |
-| **`nettutos-web`** | `web` | `src/UI/Web/Dockerfile` | `5001:5000` | ASP.NET Core 10 Web Application & BFF Frontend |
+| **`nettutos-web`** | `web` | `src/Presentation/Web/Dockerfile` | `5001:5000` | ASP.NET Core 10 Web Application & BFF Frontend |
 | **`nettutos-coderunner`** | `coderunner` | `src/Services/CodeRunner/NET-Tutos.CodeRunner.API/Dockerfile` | `5002:8080` | Sandboxed Roslyn script compilation & challenge judge |
 | **`nettutos-gamification`** | `gamification` | `src/Services/Gamification/NET-Tutos.Gamification.API/Dockerfile` | `5004:8080` | Gamification microservice with MassTransit consumers |
 | **`nettutos-rabbitmq`** | `rabbitmq` | `rabbitmq:3-management-alpine` | `5672:5672`<br/>`15672:15672` | AMQP Message Broker & Management Web Console |
