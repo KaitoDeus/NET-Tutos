@@ -30,6 +30,7 @@ d:\NET-Tutos\docs\
 ├── 06_architecture_and_design_blueprint.md # Architecture Blueprint, Folder Breakdown, ERD & UI/UX Wireframes
 ├── 07_docker_and_database_setup.md     # PostgreSQL 17, Npgsql EF Core 10 & Docker Compose Architecture
 ├── 08_testing_strategy_and_test_cases.md # Automated Testing Strategy, Test Matrix & Exception Specs
+├── 09_microservices_architecture_and_migration.md # Microservices Architecture, Service Decomposition & Strangler Fig Migration
 └── DESIGN.md                           # Frontend Design System & Anti-AI-Slop Quality Constitution
 ```
 
@@ -95,7 +96,15 @@ d:\NET-Tutos\docs\
    - GitHub Actions CI workflow pipeline configuration (`.github/workflows/ci.yml`) and code coverage quality gates.
    - Local developer CLI execution guide.
 
-9. [**DESIGN. Design System & Anti-AI-Slop Constitution**](file:///d:/NET-Tutos/docs/DESIGN.md)
+9. [**09. Microservices Architecture & Strangler Fig Migration**](file:///d:/NET-Tutos/docs/09_microservices_architecture_and_migration.md)
+   - Distributed system transformation, bounded contexts, and architectural drivers.
+   - Reusable `BuildingBlocks` (`Common` and `EventBus` integration events).
+   - Dedicated `CodeRunner.API` Roslyn C# execution microservice specification and REST endpoints.
+   - Resilient delegation and graceful in-process fallback pattern in `CodeExecutionService`.
+   - Multi-container Docker Compose orchestration (`postgres`, `rabbitmq`, `coderunner`, `web`).
+   - 60/60 automated test execution and GitHub Actions CI quality gates.
+
+10. [**DESIGN. Design System & Anti-AI-Slop Constitution**](file:///d:/NET-Tutos/docs/DESIGN.md)
    - Developer Tool standard inspired by Linear, Raycast, Stripe, and GitHub Primer.
    - Anti-Slop banned patterns (no neon gradients, no cartoonish hover transforms, no card nesting).
    - Grounded Zinc/Slate neutral palettes, disciplined 6px–8px radii, and 1px hairline borders.
@@ -107,17 +116,18 @@ d:\NET-Tutos\docs\
 
 | Business Goal | Functional Module | Implementation Components | Verification Strategy |
 | :--- | :--- | :--- | :--- |
-| **Zero-Friction In-Browser Coding** | `MOD-PLAY` | `PlaygroundController.cs`, `CodeExecutionService.cs`, `Index.cshtml` (Playground) | Unit tests, Roslyn Scripting sandbox, Monaco Editor integration |
+| **Zero-Friction In-Browser Coding** | `MOD-PLAY` | `PlaygroundController.cs`, `CodeExecutionService.cs`, `CodeRunner.API`, `Index.cshtml` | Microservice sandbox tests, Roslyn Scripting isolation, Monaco Editor |
 | **Contextual AI Engineering Feedback** | `MOD-AI` | `AiTutorController.cs`, `AiTutorService.cs`, `AiTutorViewModels.cs` | Big-O analysis, failure diagnostics, dynamic xUnit test generation |
 | **Senior Technical Hiring Readiness** | `MOD-INT` | `InterviewController.cs`, `AiTutorService.cs`, `Mock.cshtml` | 3-dimension rubric evaluation, Speech-to-Text, radar reports |
 | **Continuous Cross-Platform Study** | `MOD-MOB` | `MobileAuthController.cs`, `ApiService.cs` (.NET MAUI), `LoginPage.xaml` | JWT Bearer verification, device storage, progress sync |
 | **Learner Engagement & Retention** | `MOD-GAM` | `StreakService.cs`, `LeaderboardService.cs`, `ActivityFeedService.cs` | Daily check-in tests, Level formula calculation, Hall of Fame |
+| **Microservice High-Compute Isolation** | `MOD-ARCH` | `NET-Tutos.CodeRunner.API`, `BuildingBlocks.Common`, `BuildingBlocks.EventBus` | 60/60 automated tests, Docker multi-container topology, CI pipeline |
 
 ---
 
 ## 4. Role-Based Navigation Guide
 
 - **Product Owners & Business Stakeholders:** Review [01. Business Overview](file:///d:/NET-Tutos/docs/01_business_overview.md) and [03. Functional Requirements (BRD)](file:///d:/NET-Tutos/docs/03_functional_requirements_brd.md) to understand the product roadmap, functional scope, and strategic business goals.
-- **Solution Architects & Engineering Leads:** Review [02. System Architecture Overview](file:///d:/NET-Tutos/docs/02_system_architecture_overview.md) and [05. Data Models & API Specifications](file:///d:/NET-Tutos/docs/05_data_models_and_api_specs.md) to evaluate system topology, data flows, and schema structures.
-- **Software Developers (Web & Mobile):** Refer to [03. Functional Requirements (BRD)](file:///d:/NET-Tutos/docs/03_functional_requirements_brd.md) for acceptance criteria and [05. Data Models & API Specifications](file:///d:/NET-Tutos/docs/05_data_models_and_api_specs.md) for endpoint request/response contracts.
+- **Solution Architects & Engineering Leads:** Review [02. System Architecture Overview](file:///d:/NET-Tutos/docs/02_system_architecture_overview.md), [05. Data Models & API Specifications](file:///d:/NET-Tutos/docs/05_data_models_and_api_specs.md), and [09. Microservices Architecture & Migration](file:///d:/NET-Tutos/docs/09_microservices_architecture_and_migration.md) to evaluate system topology, data flows, microservices boundaries, and event contracts.
+- **Software Developers (Web & Mobile):** Refer to [03. Functional Requirements (BRD)](file:///d:/NET-Tutos/docs/03_functional_requirements_brd.md) for acceptance criteria, [05. Data Models & API Specifications](file:///d:/NET-Tutos/docs/05_data_models_and_api_specs.md) for endpoint request/response contracts, and [09. Microservices Architecture](file:///d:/NET-Tutos/docs/09_microservices_architecture_and_migration.md) for inter-service communication.
 - **QA & Test Automation Engineers:** Leverage the automated test cases matrix and exception catalog in [08. Automated Testing Strategy & Test Cases](file:///d:/NET-Tutos/docs/08_testing_strategy_and_test_cases.md), acceptance criteria in [03. Functional Requirements (BRD)](file:///d:/NET-Tutos/docs/03_functional_requirements_brd.md), and performance benchmarks in [04. Non-Functional Requirements (NFR)](file:///d:/NET-Tutos/docs/04_non_functional_requirements.md) to maintain the CI/CD test suites and regression pipelines.

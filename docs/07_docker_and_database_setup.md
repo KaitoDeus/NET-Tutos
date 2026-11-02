@@ -24,7 +24,15 @@ graph TD
 
     subgraph DockerCompose ["Docker Compose Environment (net-tutos_default)"]
         subgraph WebContainer ["Container: nettutos-web"]
-            WebApp["ASP.NET Core 10 MVC & REST API<br/>Internal Port: 5000"]
+            WebApp["ASP.NET Core 10 Web App & BFF<br/>Internal Port: 5000"]
+        end
+
+        subgraph RunnerContainer ["Container: nettutos-coderunner"]
+            CodeRunner["Roslyn C# Sandbox Microservice<br/>Internal Port: 8080 (Host: 5002)"]
+        end
+
+        subgraph RabbitContainer ["Container: nettutos-rabbitmq"]
+            RabbitMQ["RabbitMQ 3 Management<br/>AMQP: 5672 | Web: 15672"]
         end
 
         subgraph PostgresContainer ["Container: nettutos-postgres (Healthy)"]
@@ -35,6 +43,8 @@ graph TD
     end
 
     Browser -->|Port 5000| WebApp
+    WebApp -->|Port 8080| CodeRunner
+    WebApp -.->|Port 5672| RabbitMQ
     VSCode -->|Port 5432 / Trust Auth| PostgresDB
     DotnetLocal -->|Host=localhost:5432| PostgresDB
     WebApp -->|Host=postgres:5432| PostgresDB
@@ -45,12 +55,14 @@ graph TD
 
 ## 2. Service Specifications in `docker-compose.yml`
 
-The deployment environment orchestrates two tightly integrated services defined in [`docker-compose.yml`](file:///d:/NET-Tutos/docker-compose.yml):
+The deployment environment orchestrates four tightly integrated services defined in [`docker-compose.yml`](file:///d:/NET-Tutos/docker-compose.yml):
 
 | Service Name | Image / Build Target | Port Mapping (Host:Container) | Role & Operational Configuration |
 | :--- | :--- | :--- | :--- |
 | **`postgres`** | `postgres:17-alpine` | `5432:5432` | Core relational persistence engine. Durable storage backed by `postgres_data` volume. Built-in `pg_isready` healthcheck. |
-| **`web`** | `build: . (Dockerfile)` | `5000:5000` | Flagship ASP.NET Core 10 MVC application & Mobile Web APIs. Automatically waits until `postgres` becomes healthy before starting. |
+| **`rabbitmq`** | `rabbitmq:3-management-alpine` | `5672:5672`<br/>`15672:15672` | AMQP Message Broker for Event-Driven Microservices. Includes Web Management UI. |
+| **`coderunner`** | `build: src/Services/CodeRunner/NET-Tutos.CodeRunner.API/Dockerfile` | `5002:8080` | Dedicated Roslyn C# sandbox execution microservice. Completely decoupled from database. |
+| **`web`** | `build: . (Dockerfile)` | `5000:5000` | Flagship ASP.NET Core 10 MVC application & Mobile Web APIs. Proxies to `coderunner:8080`. |
 
 ---
 

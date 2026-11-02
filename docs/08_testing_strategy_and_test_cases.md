@@ -114,6 +114,17 @@ The automated test suite covers all core business services, execution runtimes, 
 
 ---
 
+### 2.7. Microservice Execution Sandbox (`RoslynCodeRunnerEngineTests`)
+
+| Test ID | Test Method | Objective / Scenario | Input Data | Expected Result |
+| :--- | :--- | :--- | :--- | :--- |
+| `TC-MIC-01` | `ExecuteAsync_SimpleConsolePrint_CapturesStandardOutput` | Execute C# script in decoupled microservice sandbox and capture standard output. | `Console.WriteLine("Microservice CodeRunner Active!");` | `IsSuccess = true`, `Output = "Microservice CodeRunner Active!"`, `IsTimeout = false` |
+| `TC-MIC-02` | `ExecuteAsync_BlacklistedKeywords_RejectsWithSecurityError` | Enforce keyword blacklist blocking process creation, file I/O, and process exit. | `Process.Start`, `File.Delete`, `Environment.Exit` | `IsSuccess = false`, `Error` contains security restriction message |
+| `TC-MIC-03` | `EvaluateChallengeAsync_ValidSolution_PassesAllTestCases` | Verify challenge judging across multiple public and hidden test cases. | `Solution.Multiply(a, b)` with inputs `(3, 4) -> 12`, `(-2, 5) -> -10` | `AllPassed = true`, `PassedTestsCount = 2`, `TotalTestsCount = 2` |
+| `TC-MIC-04` | `ExecuteAsync_InfiniteExecution_TimesOutGracefully` | Ensure microservice timeout monitor cancels runaway loops deterministically. | Asynchronous delay exceeding timeout threshold ($300\text{ms}$) | `IsSuccess = false`, `IsTimeout = true`, `Error` contains timeout notice |
+
+---
+
 ## 3. Exceptions & Error Handling Matrix
 
 This matrix catalogs all system exceptions, their triggering scenarios, internal mitigations, and user-facing resolutions.
@@ -169,6 +180,11 @@ Developers can execute and debug the automated testing suite locally using stand
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj --verbosity normal
 ```
 
+### Run Microservice Tests:
+```powershell
+dotnet test tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj --verbosity normal
+```
+
 ### Run Integration Tests:
 ```powershell
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj --verbosity normal
@@ -176,6 +192,7 @@ dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj -
 
 ### Run All Automated Tests with Code Coverage:
 ```powershell
+dotnet test tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj --collect:"XPlat Code Coverage"
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj --collect:"XPlat Code Coverage"
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj --collect:"XPlat Code Coverage"
 ```
