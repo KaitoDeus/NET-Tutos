@@ -79,7 +79,7 @@ public class GeminiAgentService : IAiTutorService
 
         if (!IsLiveGeminiAvailable)
         {
-            _logger.LogInformation("Gemini API key is not configured or disabled. Delegating to local rule engine.");
+            _logger.LogInformation("Atus AI live agent key is not configured or disabled. Delegating to local rule engine.");
             response = await _fallbackEngine.ChatAsync(request, isEnglish);
         }
         else
@@ -90,7 +90,7 @@ public class GeminiAgentService : IAiTutorService
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Gemini Agent failed with error: {Message}. Fallback to local expert rule engine.", ex.Message);
+                _logger.LogWarning("Atus AI Agent encountered an issue: {Message}. Fallback to local expert rule engine.", ex.Message);
                 response = await _fallbackEngine.ChatAsync(request, isEnglish);
 
                 string shortError = "Connection Busy";
@@ -146,7 +146,7 @@ public class GeminiAgentService : IAiTutorService
             catch (Exception ex)
             {
                 lastEx = ex;
-                _logger.LogWarning(ex, "Gemini model {Model} failed with {Message}. Auto-recovering using resilient fallback chain.", currentModel, ex.Message);
+                _logger.LogWarning("AI model {Model} returned non-success ({Message}). Auto-recovering using resilient fallback chain.", currentModel, ex.Message);
             }
         }
 
@@ -217,13 +217,21 @@ public class GeminiAgentService : IAiTutorService
                 }
             };
 
-            var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{modelName}:generateContent?key={_apiKey}";
-            using var response = await _httpClient.PostAsJsonAsync(endpoint, requestBody);
+            var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{modelName}:generateContent";
+            using var reqMsg = new HttpRequestMessage(HttpMethod.Post, endpoint)
+            {
+                Content = JsonContent.Create(requestBody)
+            };
+            if (!string.IsNullOrWhiteSpace(_apiKey))
+            {
+                reqMsg.Headers.TryAddWithoutValidation("x-goog-api-key", _apiKey);
+            }
+            using var response = await _httpClient.SendAsync(reqMsg);
 
             if (!response.IsSuccessStatusCode)
             {
-                var errorText = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"Gemini API HTTP {(int)response.StatusCode}: {errorText}");
+                var errorSummary = $"HTTP {(int)response.StatusCode}";
+                throw new HttpRequestException($"AI Service returned {errorSummary}");
             }
 
             var jsonResult = await response.Content.ReadFromJsonAsync<JsonObject>();
@@ -247,7 +255,7 @@ public class GeminiAgentService : IAiTutorService
                 var functionName = functionCall["name"]?.GetValue<string>() ?? string.Empty;
                 var functionArgs = functionCall["args"]?.AsObject() ?? new JsonObject();
 
-                _logger.LogInformation("Gemini Agent invoked tool: {FunctionName} with args: {Args}", functionName, functionArgs.ToJsonString());
+                _logger.LogInformation("Agent invoked tool: {FunctionName}", functionName);
 
                 // Execute local tool
                 var toolResult = await DispatchToolAsync(functionName, functionArgs);
@@ -659,8 +667,16 @@ Nguyên tắc cốt lõi:
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
-            var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
-            var response = await _httpClient.PostAsJsonAsync(endpoint, pingPayload, cts.Token);
+            var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent";
+            using var pingReq = new HttpRequestMessage(HttpMethod.Post, endpoint)
+            {
+                Content = JsonContent.Create(pingPayload)
+            };
+            if (!string.IsNullOrWhiteSpace(_apiKey))
+            {
+                pingReq.Headers.TryAddWithoutValidation("x-goog-api-key", _apiKey);
+            }
+            var response = await _httpClient.SendAsync(pingReq, cts.Token);
             stopwatch.Stop();
 
             if (response.IsSuccessStatusCode)
@@ -684,8 +700,16 @@ Nguyên tắc cốt lõi:
         try
         {
             using var backupCts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
-            var backupEndpoint = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={_apiKey}";
-            var backupResponse = await _httpClient.PostAsJsonAsync(backupEndpoint, pingPayload, backupCts.Token);
+            var backupEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent";
+            using var backupReq = new HttpRequestMessage(HttpMethod.Post, backupEndpoint)
+            {
+                Content = JsonContent.Create(pingPayload)
+            };
+            if (!string.IsNullOrWhiteSpace(_apiKey))
+            {
+                backupReq.Headers.TryAddWithoutValidation("x-goog-api-key", _apiKey);
+            }
+            var backupResponse = await _httpClient.SendAsync(backupReq, backupCts.Token);
             backupStopwatch.Stop();
 
             if (backupResponse.IsSuccessStatusCode)
@@ -694,25 +718,24 @@ Nguyên tắc cốt lõi:
                 {
                     Success = true,
                     IsLiveGemini = true,
-                    Provider = "Google Gemini Live Agent (Du phong thong minh)",
-                    Model = $"{_model} (tu dong dieu phoi qua gemini-3.5-flash do Google 3.8 dang tai cao)",
+                    Provider = "Atus AI Agent (Dự phòng thông minh)",
+                    Model = "Atus (Hạ tầng dự phòng)",
                     IsAvailable = true,
                     LatencyMs = backupStopwatch.ElapsedMilliseconds,
-                    Message = "Ket noi Google Gemini san sang phuc vu (Dieu phoi tai qua gemini-3.5-flash)!"
+                    Message = "Kết nối Trợ Lý AI Atus sẵn sàng phục vụ!"
                 };
             }
             else
             {
-                var err = await backupResponse.Content.ReadAsStringAsync();
                 return new AiTutorStatusResponse
                 {
                     Success = false,
                     IsLiveGemini = true,
-                    Provider = "Google Gemini Live Agent",
-                    Model = _model,
+                    Provider = "Atus AI Agent",
+                    Model = "Atus",
                     IsAvailable = false,
                     LatencyMs = backupStopwatch.ElapsedMilliseconds,
-                    Message = $"Gemini API returned HTTP {(int)backupResponse.StatusCode}: {err}"
+                    Message = $"AI service returned HTTP {(int)backupResponse.StatusCode}"
                 };
             }
         }
@@ -723,11 +746,10 @@ Nguyên tắc cốt lõi:
             {
                 Success = false,
                 IsLiveGemini = true,
-                Provider = "Google Gemini Live Agent",
-                Model = _model,
+                Provider = "Atus AI Agent",
+                Model = "Atus",
                 IsAvailable = false,
-                LatencyMs = backupStopwatch.ElapsedMilliseconds,
-                Message = $"Loi ket noi Gemini: {ex.Message}"
+                Message = $"Không thể kết nối đến dịch vụ AI: {ex.Message}"
             };
         }
     }

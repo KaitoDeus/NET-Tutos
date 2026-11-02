@@ -78,8 +78,10 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
       - DatabaseProvider=PostgreSql
-      - ConnectionStrings__PostgreSqlConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres;Include Error Detail=true
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres;Include Error Detail=true
+      - ConnectionStrings__PostgreSqlConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres
+      - Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command=Warning
+      - Logging__LogLevel__System.Net.Http.HttpClient=Warning
       - Services__CodeRunner__Url=http://coderunner:8080
       - Services__Gamification__Url=http://gamification:8080
       - Gemini__ApiKey=${GEMINI_API_KEY}
