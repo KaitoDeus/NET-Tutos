@@ -82,6 +82,7 @@ services:
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres;Include Error Detail=true
       - Services__CodeRunner__Url=http://coderunner:8080
       - Services__Gamification__Url=http://gamification:8080
+      - Gemini__ApiKey=${GEMINI_API_KEY:-}
     ports:
       - "5001:5000"
     depends_on:
