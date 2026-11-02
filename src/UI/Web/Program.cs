@@ -101,6 +101,10 @@ builder.Services.AddScoped<ICertificateService, CertificateService>();
 builder.Services.AddScoped<IExamService, ExamService>();
 builder.Services.AddHttpClient("CodeRunner");
 builder.Services.AddHttpClient("Gamification");
+builder.Services.AddHttpClient("Gemini", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
 builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddScoped<IDiscussionService, DiscussionService>();
@@ -111,7 +115,8 @@ builder.Services.AddScoped<ICapstoneProjectService, CapstoneProjectService>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddScoped<ICurriculumService, CurriculumService>();
 builder.Services.AddScoped<IStudyPlannerService, StudyPlannerService>();
-builder.Services.AddScoped<IAiTutorService, AiTutorService>();
+builder.Services.AddScoped<AiTutorService>();
+builder.Services.AddScoped<IAiTutorService, GeminiAgentService>();
 builder.Services.AddScoped<IDeveloperPortfolioService, DeveloperPortfolioService>();
 builder.Services.AddScoped<IMobileAuthService, MobileAuthService>();
 builder.Services.AddSingleton<INavMenuService, NavMenuService>();
