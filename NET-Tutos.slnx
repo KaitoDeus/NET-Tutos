@@ -1,6 +1,18 @@
 <Solution>
-  <Project Path="web/web.csproj" />
-  <Project Path="mobile/NET_Tutos.Mobile.csproj" />
-  <Project Path="tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj" />
-  <Project Path="tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj" />
+  <Folder Name="/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/Common/NET-Tutos.BuildingBlocks.Common.csproj" />
+    <Project Path="src/BuildingBlocks/EventBus/NET-Tutos.BuildingBlocks.EventBus.csproj" />
+  </Folder>
+  <Folder Name="/Services/">
+    <Project Path="src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj" />
+  </Folder>
+  <Folder Name="/Apps/">
+    <Project Path="web/web.csproj" />
+    <Project Path="mobile/NET_Tutos.Mobile.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj" />
+    <Project Path="tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj" />
+    <Project Path="tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj" />
+  </Folder>
 </Solution>

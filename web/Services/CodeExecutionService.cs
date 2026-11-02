@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Net.Http.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -11,6 +13,24 @@ namespace NET_Tutos.Services;
 public class CodeExecutionService : ICodeExecutionService
 {
     private static readonly SemaphoreSlim _executionLock = new(1, 1);
+    private readonly HttpClient? _httpClient;
+    private readonly string? _remoteServiceUrl;
+    private readonly ILogger<CodeExecutionService>? _logger;
+
+    public CodeExecutionService(
+        IHttpClientFactory? httpClientFactory = null,
+        IConfiguration? configuration = null,
+        ILogger<CodeExecutionService>? logger = null)
+    {
+        _logger = logger;
+        _remoteServiceUrl = configuration?["Services:CodeRunner:Url"]?.TrimEnd('/');
+        if (!string.IsNullOrEmpty(_remoteServiceUrl) && httpClientFactory != null)
+        {
+            _httpClient = httpClientFactory.CreateClient("CodeRunner");
+            _httpClient.BaseAddress = new Uri(_remoteServiceUrl);
+            _httpClient.Timeout = TimeSpan.FromSeconds(8);
+        }
+    }
 
     private static readonly ScriptOptions _defaultOptions = ScriptOptions.Default
         .AddImports(
@@ -63,6 +83,36 @@ public class CodeExecutionService : ICodeExecutionService
                 Error = securityError,
                 Output = string.Empty
             };
+        }
+
+        // Microservices Delegation: If remote CodeRunner service is configured, delegate execution
+        if (_httpClient != null && !string.IsNullOrEmpty(_remoteServiceUrl))
+        {
+            try
+            {
+                var payload = new { Code = code, TimeoutMs = timeoutMs };
+                var response = await _httpClient.PostAsJsonAsync("/api/v1/runner/execute", payload);
+                if (response.IsSuccessStatusCode)
+                {
+                    var envelope = await response.Content.ReadFromJsonAsync<JsonNode>();
+                    var data = envelope?["data"] ?? envelope;
+                    if (data != null)
+                    {
+                        return new CodeExecutionResponse
+                        {
+                            IsSuccess = data["isSuccess"]?.GetValue<bool>() ?? false,
+                            Output = data["output"]?.GetValue<string>() ?? string.Empty,
+                            Error = data["error"]?.GetValue<string?>(),
+                            ExecutionTimeMs = data["executionTimeMs"]?.GetValue<long>() ?? 0,
+                            IsTimeout = data["isTimeout"]?.GetValue<bool>() ?? false
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "CodeRunner.API remote execution call failed. Falling back to in-process compiler.");
+            }
         }
 
         var stopwatch = Stopwatch.StartNew();
@@ -220,6 +270,69 @@ public class CodeExecutionService : ICodeExecutionService
         {
             response.AllPassed = true;
             return response;
+        }
+
+        // Microservices Delegation: If remote CodeRunner service is configured, delegate challenge evaluation
+        if (_httpClient != null && !string.IsNullOrEmpty(_remoteServiceUrl))
+        {
+            try
+            {
+                var payload = new
+                {
+                    ChallengeId = challenge.Id,
+                    SolutionCode = userCode,
+                    TestCases = testCases.Select(tc => new
+                    {
+                        Id = tc.Id,
+                        InputParameters = tc.InputParameters,
+                        ExpectedOutput = tc.ExpectedOutput,
+                        IsHidden = tc.IsHidden
+                    }).ToList()
+                };
+
+                var httpResponse = await _httpClient.PostAsJsonAsync("/api/v1/runner/evaluate", payload);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var envelope = await httpResponse.Content.ReadFromJsonAsync<JsonNode>();
+                    var data = envelope?["data"] ?? envelope;
+                    if (data != null)
+                    {
+                        var remoteResult = new ChallengeSubmissionResponse
+                        {
+                            AllPassed = data["allPassed"]?.GetValue<bool>() ?? false,
+                            PassedTestsCount = data["passedTestsCount"]?.GetValue<int>() ?? 0,
+                            TotalTestsCount = data["totalTestsCount"]?.GetValue<int>() ?? 0,
+                            ExecutionTimeMs = data["executionTimeMs"]?.GetValue<long>() ?? 0,
+                            CompileError = data["compileError"]?.GetValue<string?>()
+                        };
+
+                        var detailsArray = data["details"]?.AsArray();
+                        if (detailsArray != null)
+                        {
+                            int idx = 1;
+                            foreach (var item in detailsArray)
+                            {
+                                remoteResult.Details.Add(new TestCaseEvaluationItem
+                                {
+                                    TestIndex = idx++,
+                                    Input = item?["input"]?.GetValue<string>() ?? string.Empty,
+                                    Expected = item?["expected"]?.GetValue<string>() ?? string.Empty,
+                                    Actual = item?["actual"]?.GetValue<string>() ?? string.Empty,
+                                    Passed = item?["passed"]?.GetValue<bool>() ?? false,
+                                    IsHidden = item?["isHidden"]?.GetValue<bool>() ?? false,
+                                    Error = item?["error"]?.GetValue<string?>()
+                                });
+                            }
+                        }
+
+                        return remoteResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "CodeRunner.API remote evaluate call failed. Falling back to in-process compiler.");
+            }
         }
 
         int passedCount = 0;

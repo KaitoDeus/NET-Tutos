@@ -19,7 +19,34 @@ services:
       timeout: 5s
       retries: 5
 
-  # ASP.NET Core 10 Web Application & RESTful API Engine
+  # RabbitMQ Message Broker for Event-Driven Microservices
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: nettutos-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   # AMQP protocol
+      - "15672:15672" # RabbitMQ Management Web Dashboard
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Microservice: Roslyn Sandboxed Code Runner API
+  coderunner:
+    build:
+      context: .
+      dockerfile: src/Services/CodeRunner/NET-Tutos.CodeRunner.API/Dockerfile
+    container_name: nettutos-coderunner
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    ports:
+      - "5002:8080"
+
+  # ASP.NET Core 10 Web Application & BFF Engine
   web:
     build:
       context: .
@@ -32,6 +59,7 @@ services:
       - DatabaseProvider=PostgreSql
       - ConnectionStrings__PostgreSqlConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres;Include Error Detail=true
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres;Include Error Detail=true
+      - Services__CodeRunner__Url=http://coderunner:8080
     ports:
       - "5000:5000"
     depends_on:
