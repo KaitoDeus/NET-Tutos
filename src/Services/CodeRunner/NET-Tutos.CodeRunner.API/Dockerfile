@@ -1,5 +1,5 @@
 # Build Stage
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-preview AS build
 WORKDIR /src
 
 # Copy project files and restore
@@ -17,7 +17,7 @@ WORKDIR "/src/src/Services/CodeRunner/NET-Tutos.CodeRunner.API"
 RUN dotnet publish "NET-Tutos.CodeRunner.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime Stage
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-preview AS final
 WORKDIR /app
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080

@@ -56,7 +56,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__PostgreSqlConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres;Include Error Detail=true
+      - ConnectionStrings__PostgreSqlConnection=Host=postgres;Port=5432;Database=nettutos_gamification_db;Username=postgres;Password=postgres;Include Error Detail=true
       - RabbitMQ__Host=rabbitmq
       - UseInMemoryBus=false
     ports:
