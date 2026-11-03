@@ -1,0 +1,55 @@
+MIT License
+
+Copyright (c) 2026 Khải Võ & NET-Tutos Engineering
+Project: NET-Tutos — Enterprise Distributed .NET 10 & C# 14 Learning Ecosystem
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software, its microservice architectures, educational curricula, and
+associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy,
+modify, merge, publish, distribute, sublicense, and/or sell copies of the
+Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice, the project identification, and this permission
+notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+===============================================================================
+NET-TUTOS PROJECT SCOPE & ATTRIBUTION NOTICE
+===============================================================================
+
+1. Covered Ecosystem & Bounded Contexts
+   This license governs the entirety of the NET-Tutos repository and its
+   20-project .NET 10 / C# 14 distributed architecture (`NET-Tutos.slnx`),
+   specifically including:
+   - API Gateway Layer: `NET-Tutos.YarpGateway` (Microsoft YARP Reverse Proxy,
+     Correlation ID Tracing & Rate Limiting).
+   - Presentation Layer: `NET-Tutos.Web` (ASP.NET Core 10 MVC BFF, SignalR
+     Real-Time Hubs, Bilingual VI/EN Geo-IP & SEO Engine) and
+     `NET-Tutos.Mobile` (.NET MAUI 10 Cross-Platform Client).
+   - CodeRunner Microservice (`NET-Tutos.CodeRunner.*`): Isolated Roslyn C#
+     Compiler Sandbox, Security Guard & Multi-Test-Case Judge.
+   - Gamification Microservice (`NET-Tutos.Gamification.*`): Streak Engine,
+     XP Progression Curves, Badges & Leaderboard Services.
+   - AiTutor Microservice (`NET-Tutos.AiTutor.*`): "Atus" AI Mentor Engine,
+     Big-O Complexity Analyzer, Compiler Diagnostic Explainer, xUnit Test
+     Generator & Technical Interview Simulator.
+   - Shared BuildingBlocks: `NET-Tutos.Common` and `NET-Tutos.EventBus`
+     (MassTransit & RabbitMQ Integration Events).
+   - Documentation & Curriculum Assets: Single Source of Truth (`docs/01`–`09`,
+     `docs/DESIGN.md`) and 101+ Bilingual C# / .NET Engineering Tutorials.
+
+2. Brand & Attribution Preservation
+   When redistributing, forking, or deploying derivative works of NET-Tutos
+   (in source, container image, or binary form), you must retain the copyright
+   notice above (`Copyright (c) 2026 Khải Võ & NET-Tutos Engineering`) in all
+   copies and substantial portions of the Software.
+===============================================================================

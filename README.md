@@ -342,4 +342,6 @@ Detailed architectural blueprints, sequence diagrams, ERDs, and requirements spe
 
 ## 10. License
 
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+**NET-Tutos** (`NET-Tutos.slnx` — 20 Projects across YARP Gateway, ASP.NET Core 10 MVC BFF, .NET MAUI 10 Mobile, `CodeRunner`, `Gamification`, `AiTutor` Microservices, and Shared BuildingBlocks) is licensed under the **MIT License**.
+
+**Copyright © 2026 Khải Võ & NET-Tutos Engineering.** All rights reserved under the terms of the [MIT License](LICENSE).
