@@ -180,5 +180,39 @@ public class SeoAndGeoIpTests : IClassFixture<CustomWebApplicationFactory>
         html.Should().Contain("<meta name=\"twitter:card\" content=\"summary_large_image\"");
         html.Should().Contain("<script type=\"application/ld+json\">");
         html.Should().Contain("\"@type\":\"EducationalOrganization\"");
+        html.Should().Contain("\"@type\":\"BreadcrumbList\"");
+    }
+
+    [Fact]
+    public async Task Get_DynamicOgImages_And_IndexNow_ReturnSuccess()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+
+        // Act & Assert 1: Dynamic Tutorial OG Image
+        var ogTutResponse = await client.GetAsync("/seo/og-image/gioi-thieu-dot-net.svg?lang=vi");
+        ogTutResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        ogTutResponse.Content.Headers.ContentType?.MediaType.Should().Be("image/svg+xml");
+        var svgContent = await ogTutResponse.Content.ReadAsStringAsync();
+        svgContent.Should().Contain("<svg");
+        svgContent.Should().Contain("NET-Tutos");
+
+        // Act & Assert 2: Dynamic Project OG Image
+        var ogProjResponse = await client.GetAsync("/seo/og-project/xay-dung-restful-web-api-quan-ly-thu-vien-sach.svg?lang=en");
+        ogProjResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        ogProjResponse.Content.Headers.ContentType?.MediaType.Should().Be("image/svg+xml");
+
+        // Act & Assert 3: IndexNow verification key
+        var indexNowResponse = await client.GetAsync("/nettutos-indexnow-2026.txt");
+        indexNowResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var keyText = await indexNowResponse.Content.ReadAsStringAsync();
+        keyText.Should().Be("nettutos-indexnow-2026");
+
+        // Act & Assert 4: SEO & Geo-IP Diagnostics API
+        var diagResponse = await client.GetAsync("/api/seo/diagnostics");
+        diagResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var diagJson = await diagResponse.Content.ReadAsStringAsync();
+        diagJson.Should().Contain("\"status\":\"Healthy\"");
+        diagJson.Should().Contain("\"FAQPage\"");
     }
 }

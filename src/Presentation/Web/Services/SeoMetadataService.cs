@@ -93,15 +93,27 @@ public partial class SeoMetadataService : ISeoMetadataService
             ? "noindex, nofollow"
             : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1";
 
-        string ogType = (tutorial != null || project != null ||
-                        (controller.Equals("Tutorials", StringComparison.OrdinalIgnoreCase) && action.Equals("Details", StringComparison.OrdinalIgnoreCase)) ||
-                        (controller.Equals("Project", StringComparison.OrdinalIgnoreCase) && action.Equals("Details", StringComparison.OrdinalIgnoreCase)))
-            ? "article"
-            : "website";
+        bool isTutorialDetail = tutorial != null ||
+            (controller.Equals("Tutorials", StringComparison.OrdinalIgnoreCase) && action.Equals("Details", StringComparison.OrdinalIgnoreCase));
+        bool isProjectDetail = project != null ||
+            (controller.Equals("Project", StringComparison.OrdinalIgnoreCase) && action.Equals("Details", StringComparison.OrdinalIgnoreCase));
 
+        string ogType = (isTutorialDetail || isProjectDetail) ? "article" : "website";
+
+        string langParam = isEn ? "en" : "vi";
         string ogImage = $"{baseUrl}/images/og-banner.svg";
+        if (isTutorialDetail)
+        {
+            string activeSlug = tutorial?.GetSlug(isEn) ?? slug ?? "dotnet-tutorial";
+            ogImage = $"{baseUrl}/seo/og-image/{Uri.EscapeDataString(activeSlug)}.svg?lang={langParam}";
+        }
+        else if (isProjectDetail)
+        {
+            string activeSlug = project?.GetSlug(isEn) ?? slug ?? "dotnet-project";
+            ogImage = $"{baseUrl}/seo/og-project/{Uri.EscapeDataString(activeSlug)}.svg?lang={langParam}";
+        }
 
-        string jsonLd = BuildJsonLd(baseUrl, canonicalUrl, fullTitle, description, isEn, controller, action, tutorial, project);
+        string jsonLd = BuildJsonLd(baseUrl, canonicalUrl, fullTitle, description, isEn, controller, action, tutorial, project, ogImage);
 
         return new SeoPageMetadata
         {
@@ -118,7 +130,7 @@ public partial class SeoMetadataService : ISeoMetadataService
             OgImage = ogImage,
             SiteName = "NET-Tutos",
             DetectedCountry = country,
-            LanguageCode = isEn ? "en" : "vi",
+            LanguageCode = langParam,
             JsonLd = jsonLd
         };
     }
@@ -159,9 +171,7 @@ public partial class SeoMetadataService : ISeoMetadataService
             string viSlug = LocalizationHelper.GetCanonicalSlug(rawSlug);
             string enSlug = tutorial != null
                 ? tutorial.GetSlug(true)
-                : (LocalizationHelper.GetCanonicalSlug(rawSlug) != string.Empty
-                    ? (tutorial?.GetSlug(true) ?? TranslateTutorialSlugToEn(viSlug))
-                    : rawSlug);
+                : (!string.IsNullOrEmpty(viSlug) ? TranslateTutorialSlugToEn(viSlug) : rawSlug);
 
             return ($"/bai-hoc/{viSlug}", $"/lessons/{enSlug}");
         }
@@ -170,7 +180,9 @@ public partial class SeoMetadataService : ISeoMetadataService
         {
             string rawSlug = project?.Slug ?? slug ?? string.Empty;
             string viSlug = LocalizationHelper.GetCanonicalSlug(rawSlug);
-            string enSlug = project != null ? project.GetSlug(true) : ( new CapstoneProject { Slug = viSlug }.GetSlug(true) );
+            string enSlug = project != null
+                ? project.GetSlug(true)
+                : (new CapstoneProject { Slug = viSlug }.GetSlug(true));
             return ($"/do-an/{viSlug}", $"/projects/{enSlug}");
         }
 
@@ -368,7 +380,8 @@ public partial class SeoMetadataService : ISeoMetadataService
         string controller,
         string action,
         Tutorial? tutorial,
-        CapstoneProject? project)
+        CapstoneProject? project,
+        string ogImage)
     {
         string inLanguage = isEn ? "en-US" : "vi-VN";
 
@@ -398,7 +411,12 @@ public partial class SeoMetadataService : ISeoMetadataService
             }
         };
 
-        var graph = new List<object> { organization, website };
+        var graph = new List<object>
+        {
+            organization,
+            website,
+            BuildBreadcrumbList(baseUrl, canonicalUrl, isEn, controller, tutorial, project)
+        };
 
         if (tutorial != null)
         {
@@ -408,6 +426,7 @@ public partial class SeoMetadataService : ISeoMetadataService
                 ["@id"] = $"{canonicalUrl}#article",
                 ["headline"] = tutorial.GetTitle(isEn),
                 ["description"] = description,
+                ["image"] = ogImage,
                 ["url"] = canonicalUrl,
                 ["inLanguage"] = inLanguage,
                 ["datePublished"] = tutorial.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ"),
@@ -419,6 +438,7 @@ public partial class SeoMetadataService : ISeoMetadataService
                 ["mainEntityOfPage"] = canonicalUrl
             };
             graph.Add(article);
+            graph.Add(BuildTutorialFaqSchema(canonicalUrl, tutorial, isEn, description));
         }
         else if (project != null)
         {
@@ -428,9 +448,11 @@ public partial class SeoMetadataService : ISeoMetadataService
                 ["@id"] = $"{canonicalUrl}#course",
                 ["name"] = project.GetProjectTitle(isEn),
                 ["description"] = description,
+                ["image"] = ogImage,
                 ["url"] = canonicalUrl,
                 ["inLanguage"] = inLanguage,
                 ["educationalLevel"] = project.Level.ToString(),
+                ["timeRequired"] = $"PT{Math.Max(1, project.EstimatedHours)}H",
                 ["provider"] = new Dictionary<string, object?> { ["@id"] = $"{baseUrl}/#organization" }
             };
             graph.Add(course);
@@ -443,6 +465,169 @@ public partial class SeoMetadataService : ISeoMetadataService
         };
 
         return JsonSerializer.Serialize(root, JsonLdOptions);
+    }
+
+    private static Dictionary<string, object?> BuildBreadcrumbList(
+        string baseUrl,
+        string canonicalUrl,
+        bool isEn,
+        string controller,
+        Tutorial? tutorial,
+        CapstoneProject? project)
+    {
+        var items = new List<Dictionary<string, object?>>
+        {
+            new()
+            {
+                ["@type"] = "ListItem",
+                ["position"] = 1,
+                ["name"] = isEn ? "Home" : "Trang chủ",
+                ["item"] = baseUrl
+            }
+        };
+
+        if (tutorial != null)
+        {
+            items.Add(new Dictionary<string, object?>
+            {
+                ["@type"] = "ListItem",
+                ["position"] = 2,
+                ["name"] = isEn ? "Tutorials" : "Bài học",
+                ["item"] = $"{baseUrl}/Tutorials"
+            });
+
+            int nextPos = 3;
+            if (tutorial.Category != null)
+            {
+                items.Add(new Dictionary<string, object?>
+                {
+                    ["@type"] = "ListItem",
+                    ["position"] = nextPos++,
+                    ["name"] = tutorial.Category.GetTitle(isEn),
+                    ["item"] = $"{baseUrl}/Tutorials?category={tutorial.Category.GetSlug(isEn)}"
+                });
+            }
+
+            items.Add(new Dictionary<string, object?>
+            {
+                ["@type"] = "ListItem",
+                ["position"] = nextPos,
+                ["name"] = tutorial.GetTitle(isEn),
+                ["item"] = canonicalUrl
+            });
+        }
+        else if (project != null)
+        {
+            items.Add(new Dictionary<string, object?>
+            {
+                ["@type"] = "ListItem",
+                ["position"] = 2,
+                ["name"] = isEn ? "Capstone Projects" : "Đồ án thực chiến",
+                ["item"] = $"{baseUrl}/Project"
+            });
+            items.Add(new Dictionary<string, object?>
+            {
+                ["@type"] = "ListItem",
+                ["position"] = 3,
+                ["name"] = project.GetProjectTitle(isEn),
+                ["item"] = canonicalUrl
+            });
+        }
+        else if (!controller.Equals("Home", StringComparison.OrdinalIgnoreCase))
+        {
+            items.Add(new Dictionary<string, object?>
+            {
+                ["@type"] = "ListItem",
+                ["position"] = 2,
+                ["name"] = controller,
+                ["item"] = canonicalUrl
+            });
+        }
+
+        return new Dictionary<string, object?>
+        {
+            ["@type"] = "BreadcrumbList",
+            ["@id"] = $"{canonicalUrl}#breadcrumb",
+            ["itemListElement"] = items
+        };
+    }
+
+    private static Dictionary<string, object?> BuildTutorialFaqSchema(
+        string canonicalUrl,
+        Tutorial tutorial,
+        bool isEn,
+        string description)
+    {
+        var tutTitle = tutorial.GetTitle(isEn);
+        var levelText = LocalizationHelper.GetDifficultyName(tutorial.Difficulty, isEn);
+        var faqEntities = new List<Dictionary<string, object?>>();
+
+        if (tutorial.QuizQuestions != null && tutorial.QuizQuestions.Count > 0)
+        {
+            foreach (var q in tutorial.QuizQuestions.Take(3))
+            {
+                string correctAnswer = q.CorrectOption.ToUpperInvariant() switch
+                {
+                    "A" => q.OptionA,
+                    "B" => q.OptionB,
+                    "C" => q.OptionC,
+                    "D" => q.OptionD,
+                    _ => q.OptionA
+                };
+                string answerBody = !string.IsNullOrWhiteSpace(q.Explanation)
+                    ? $"{correctAnswer}. {q.Explanation}"
+                    : correctAnswer;
+
+                if (!string.IsNullOrWhiteSpace(q.Question) && !string.IsNullOrWhiteSpace(answerBody))
+                {
+                    faqEntities.Add(new Dictionary<string, object?>
+                    {
+                        ["@type"] = "Question",
+                        ["name"] = q.Question,
+                        ["acceptedAnswer"] = new Dictionary<string, object?>
+                        {
+                            ["@type"] = "Answer",
+                            ["text"] = answerBody
+                        }
+                    });
+                }
+            }
+        }
+
+        faqEntities.Add(new Dictionary<string, object?>
+        {
+            ["@type"] = "Question",
+            ["name"] = isEn
+                ? $"What will I learn in \"{tutTitle}\"?"
+                : $"Bài học \"{tutTitle}\" trang bị những kiến thức gì?",
+            ["acceptedAnswer"] = new Dictionary<string, object?>
+            {
+                ["@type"] = "Answer",
+                ["text"] = description
+            }
+        });
+
+        faqEntities.Add(new Dictionary<string, object?>
+        {
+            ["@type"] = "Question",
+            ["name"] = isEn
+                ? $"What difficulty level and study time are required for \"{tutTitle}\"?"
+                : $"Bài học \"{tutTitle}\" thuộc cấp độ nào và mất bao lâu để hoàn thành?",
+            ["acceptedAnswer"] = new Dictionary<string, object?>
+            {
+                ["@type"] = "Answer",
+                ["text"] = isEn
+                    ? $"This lesson is designed for {levelText} learners and takes approximately {Math.Max(5, tutorial.EstimatedReadingMinutes)} minutes including interactive C# code practice."
+                    : $"Bài học được thiết kế ở cấp độ {levelText}, thời lượng đọc và thực hành code C# trực tiếp khoảng {Math.Max(5, tutorial.EstimatedReadingMinutes)} phút."
+            }
+        });
+
+        return new Dictionary<string, object?>
+        {
+            ["@type"] = "FAQPage",
+            ["@id"] = $"{canonicalUrl}#faq",
+            ["mainEntity"] = faqEntities
+        };
     }
 
     private static string TruncateClean(string input, int maxLength)

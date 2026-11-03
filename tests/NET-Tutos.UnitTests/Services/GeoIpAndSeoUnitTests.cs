@@ -69,6 +69,9 @@ public class GeoIpAndSeoUnitTests
         metadata.AlternateViUrl.Should().Be("https://nettutos.dev/bai-hoc/gioi-thieu-dot-net");
         metadata.AlternateEnUrl.Should().StartWith("https://nettutos.dev/lessons/");
         metadata.JsonLd.Should().Contain("\"@type\":\"TechArticle\"");
+        metadata.JsonLd.Should().Contain("\"@type\":\"BreadcrumbList\"");
+        metadata.JsonLd.Should().Contain("\"@type\":\"FAQPage\"");
         metadata.JsonLd.Should().Contain("\"timeRequired\":\"PT12M\"");
+        metadata.OgImage.Should().Contain("/seo/og-image/gioi-thieu-dot-net.svg?lang=vi");
     }
 }
