@@ -147,7 +147,13 @@ public partial class SeoMetadataService : ISeoMetadataService
             ? proto.ToString().Split(',')[0].Trim()
             : context.Request.Scheme;
 
-        var host = context.Request.Host.HasValue ? context.Request.Host.Value : "localhost:5000";
+        var host = context.Request.Headers.TryGetValue("X-Forwarded-Host", out var fwdHost) && !string.IsNullOrWhiteSpace(fwdHost)
+            ? fwdHost.ToString().Split(',')[0].Trim()
+            : (context.Request.Host.HasValue ? context.Request.Host.Value : "localhost:5000");
+        if (host.Equals("web:5000", StringComparison.OrdinalIgnoreCase))
+        {
+            host = "localhost:5000";
+        }
         return $"{scheme}://{host}";
     }
 

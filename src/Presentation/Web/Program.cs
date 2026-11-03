@@ -165,8 +165,10 @@ builder.Services.AddAntiforgery(options =>
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownIPNetworks.Clear();
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+#pragma warning disable ASPDEPR005
+    options.KnownNetworks.Clear();
+#pragma warning restore ASPDEPR005
     options.KnownProxies.Clear();
 });
 
