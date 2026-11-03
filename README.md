@@ -7,10 +7,11 @@
 [![Event Bus](https://img.shields.io/badge/Event_Bus-MassTransit_%2B_RabbitMQ-FF6600?logo=rabbitmq&logoColor=white)](src/Infrastructure/EventBus)
 [![Database](https://img.shields.io/badge/PostgreSQL-17_Alpine-336791?logo=postgresql&logoColor=white)](docker-compose.yml)
 [![.NET MAUI](https://img.shields.io/badge/.NET_MAUI-Android_%2F_iOS_%2F_Windows-512BD4?logo=dotnet)](src/Presentation/Mobile)
-[![Tests](https://img.shields.io/badge/Tests-112%2F112_Passing-10B981)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-151%2F151_Passing-10B981)](tests/)
+[![Cache](https://img.shields.io/badge/Cache-Hybrid_L1_%2B_Redis_7-DC382D?logo=redis&logoColor=white)](docker-compose.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**NET-Tutos** is an enterprise-grade, distributed educational ecosystem and Learning Management System (LMS) engineered on **.NET 10** and **C# 14**. Built using **Microservices Architecture**, **4-Layer Clean Architecture (DDD + CQRS)**, and the **Strangler Fig Pattern**, the platform unites a **Microsoft YARP API Gateway**, an **ASP.NET Core 10 MVC** web application (BFF), a cross-platform **.NET MAUI 10** mobile client, isolated **Roslyn**, **Gamification**, and **AI Tutor (Atus)** microservices, **MassTransit + RabbitMQ** event-driven messaging, and **PostgreSQL 17** persistence with automatic zero-downtime fallback.
+**NET-Tutos** is an enterprise-grade, distributed educational ecosystem and Learning Management System (LMS) engineered on **.NET 10** and **C# 14**. Built using **Microservices Architecture**, **4-Layer Clean Architecture (DDD + CQRS)**, and the **Strangler Fig Pattern**, the platform unites a **Microsoft YARP API Gateway**, an **ASP.NET Core 10 MVC** web application (BFF) with **Geo-IP Region Language Detection (`VN` -> `vi`, Outside `VN` -> `en`)**, **Automated Technical SEO & Dynamic OG SVG Engine**, **Hybrid L1/L2 Redis 7 Distributed Caching**, a cross-platform **.NET MAUI 10** mobile client, isolated **CodeRunner**, **Gamification**, **AiTutor (Atus)**, and **Catalog & Assessment** microservices, **MassTransit + RabbitMQ** event-driven messaging, and **PostgreSQL 17** persistence with automatic zero-downtime fallback.
 
 ---
 
@@ -56,16 +57,19 @@ flowchart TD
         YARP -- "/api/v1/runner/*\n(Rate Limited: 60 req/min)" --> CodeRunner["CodeRunner.API\n(nettutos-coderunner | Port 5002)\n[Roslyn C# 14 Sandbox & Test Case Judge]"]
         YARP -- "/api/v1/gamification/*" --> Gamification["Gamification.API\n(nettutos-gamification | Port 5004)\n[Streaks, XP Curves, Badges & Leaderboard]"]
         YARP -- "/api/v1/aitutor/*" --> AiTutor["AiTutor.API\n(nettutos-aitutor | Port 5006)\n[Big-O Analysis, Compiler Diagnostics, xUnit Gen & Mock Interview]"]
+        YARP -- "/api/v1/catalog/*" --> Catalog["Catalog.API\n(nettutos-catalog | Port 5008)\n[101+ Curriculum, Exam Grading & Certificate Verification]"]
 
         WebBFF -. "HTTP Delegation + In-Process Fallback" .-> CodeRunner
         WebBFF -. "HTTP Delegation + Local DB Fallback" .-> Gamification
         WebBFF -. "HTTP Delegation + Rule Engine Fallback" .-> AiTutor
     end
 
-    subgraph Infrastructure_Layer["03. Infrastructure Layer (Event Bus & Persistence)"]
+    subgraph Infrastructure_Layer["03. Infrastructure Layer (Event Bus, Redis L2 Cache & Persistence)"]
+        RedisCache[("Redis 7 Alpine\n(nettutos-redis | Port 6379)\n[L2 Distributed Cache: Roslyn SHA-256, Catalog & SEO Sitemap]")]
         RabbitMQ["RabbitMQ 3 Message Broker\n(nettutos-rabbitmq | Port 5672 / 15672)\n[MassTransit Event Bus]"]
         PostgresMain[("PostgreSQL 17 Alpine\n(nettutos-postgres | Port 5432)\nDB: nettutos_db & nettutos_gamification_db")]
 
+        WebBFF -- "L1 Memory + L2 Redis" --> RedisCache
         WebBFF -- "Publish Integration Events" --> RabbitMQ
         RabbitMQ -- "Consume Events (Async)" --> Gamification
         WebBFF --- PostgresMain
@@ -87,8 +91,8 @@ The repository is organized into 5 explicit architectural folders inside `NET-Tu
 
 ```text
 d:\NET-Tutos\
-├── NET-Tutos.slnx                              # .NET 10 XML Solution (20 Projects across 5 Layers)
-├── docker-compose.yml                          # 7-Container Orchestration (Gateway, Web, 3 Microservices, RabbitMQ, PostgreSQL)
+├── NET-Tutos.slnx                              # .NET 10 XML Solution (25 Projects across 5 Layers)
+├── docker-compose.yml                          # 9-Container Orchestration (Gateway, Web, 4 Microservices, Redis 7, RabbitMQ, PostgreSQL)
 ├── README.md                                   # Microservices & Platform Documentation
 ├── docs/                                       # Single Source of Truth (SSOT) Architecture & BRD/NFR Specifications
 │
@@ -297,9 +301,9 @@ The platform automatically seeds all 101 lessons, coding challenges, interview f
 
 ---
 
-## 8. Automated Testing & CI Quality Gates (112/112 Passing)
+## 8. Automated Testing & CI Quality Gates (151/151 Passing)
 
-Every microservice, gateway route, domain value object, and web service is verified by **112 automated tests** across 6 test projects (enforced on every push/PR via [`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
+Every microservice, gateway route, domain value object, hybrid Redis cache, Geo-IP detector, SEO engine, and web service is verified by **151 automated tests** across 7 test projects (enforced on every push/PR via [`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
 
 ```powershell
 # 1. YARP API Gateway routing, topology & X-Correlation-ID tests (4 tests)
@@ -314,10 +318,13 @@ dotnet test tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.cspr
 # 4. AiTutor microservice Big-O rules, 3D rubric value objects & engine tests (16 tests)
 dotnet test tests/NET-Tutos.AiTutor.Tests/NET-Tutos.AiTutor.Tests.csproj
 
-# 5. Web BFF unit tests (Streak, Exam, CodeExecution, AiTutor, Atus Agent) (53 tests)
+# 5. Catalog & Assessment microservice domain & exam certification tests (12 tests)
+dotnet test tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj
+
+# 6. Web BFF unit tests (Hybrid Redis Cache, Geo-IP, SEO Metadata, Streak, Exam, Roslyn, Atus Agent) (68 tests)
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
 
-# 6. End-to-End HTTP integration pipeline & security tests (12 tests)
+# 7. End-to-End HTTP integration pipeline, Geo-IP, Dynamic OG SVG, Sitemap & Security tests (24 tests)
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
 ```
 

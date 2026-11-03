@@ -352,6 +352,8 @@ The platform is orchestrated via [`docker-compose.yml`](file:///d:/NET-Tutos/doc
 | **`nettutos-coderunner`** | `coderunner` | `src/Services/CodeRunner/NET-Tutos.CodeRunner.API/Dockerfile` | `5002:8080` | Sandboxed Roslyn script compilation & challenge judge |
 | **`nettutos-gamification`** | `gamification` | `src/Services/Gamification/NET-Tutos.Gamification.API/Dockerfile` | `5004:8080` | Gamification microservice with MassTransit consumers |
 | **`nettutos-aitutor`** | `aitutor` | `src/Services/AiTutor/NET-Tutos.AiTutor.API/Dockerfile` | `5006:8080` | AI Tutor analysis & technical mock interview microservice |
+| **`nettutos-catalog`** | `catalog` | `src/Services/Catalog/NET-Tutos.Catalog.API/Dockerfile` | `5008:8080` | Catalog, curriculum & exam certification microservice |
+| **`nettutos-redis`** | `redis` | `redis:7-alpine` | `6379:6379` | L2 Distributed Cache (Roslyn SHA-256, Catalog & SEO Sitemap) |
 | **`nettutos-rabbitmq`** | `rabbitmq` | `rabbitmq:3-management-alpine` | `5672:5672`<br/>`15672:15672` | AMQP Message Broker & Management Web Console |
 | **`nettutos-postgres`** | `postgres` | `postgres:17-alpine` | `5432:5432` | Relational storage for Identity, Web, and Gamification |
 
@@ -386,5 +388,5 @@ dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
 ```
 
-**Quality Gate Result:** **136/136 Tests Passing (100% Pass Rate, 0 Failed, 0 Skipped).**  
+**Quality Gate Result:** **151/151 Tests Passing across 7 Test Projects (100% Pass Rate, 0 Failed, 0 Skipped).**  
 All test suites are permanently enforced in GitHub Actions continuous delivery via [`.github/workflows/ci.yml`](file:///d:/NET-Tutos/.github/workflows/ci.yml). For the full phase-by-phase roadmap and AI context memory, see [**10. Master Project Roadmap & AI Context Memory**](file:///d:/NET-Tutos/docs/10_project_roadmap_and_ai_memory.md).

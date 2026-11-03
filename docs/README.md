@@ -104,10 +104,10 @@ d:\NET-Tutos\docs\
    - Decoupled `Gamification.API` microservice with MassTransit RabbitMQ event-driven consumers.
    - Resilient delegation and graceful in-process fallback pattern in `CodeExecutionService` and `StreakService`.
    - Multi-container Docker Compose orchestration (`postgres`, `rabbitmq`, `coderunner`, `gamification`, `web`).
-   - 136/136 automated test execution across 6 test projects (`Gateway`, `CodeRunner`, `Gamification`, `AiTutor`, `UnitTests`, `IntegrationTests`) and GitHub Actions CI quality gates.
+   - 151/151 automated test execution across 7 test projects (`Gateway`, `CodeRunner`, `Gamification`, `AiTutor`, `Catalog`, `UnitTests`, `IntegrationTests`) and GitHub Actions CI quality gates.
 
 10. [**10. Master Project Roadmap & AI Context Memory**](file:///d:/NET-Tutos/docs/10_project_roadmap_and_ai_memory.md)
-   - Persistent AI Context Memory and Single Source of Truth (SSOT) for completed phases (Phase 1 through Phase 8) and upcoming strategic backlog (Phase 6, Phase 7, Phase 9).
+   - Persistent AI Context Memory and Single Source of Truth (SSOT) for all 9 completed phases (Phase 1 through Phase 9), Hybrid L1/L2 Redis 7 Caching, and Catalog Microservice.
    - Standing engineering rules (Pure .NET 10 / C# 14, Auto-Commit workflow, Geo-IP Region Detection `VN` -> `vi` / Outside `VN` -> `en`, and Continuous SEO).
 
 11. [**DESIGN. Design System & Anti-AI-Slop Constitution**](file:///d:/NET-Tutos/docs/DESIGN.md)
