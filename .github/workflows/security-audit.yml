@@ -1,0 +1,44 @@
+name: Automated Security Audit & NuGet CVE Scanner
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "0 2 * * 1" # Every Monday at 09:00 Asia/Ho_Chi_Minh (02:00 UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  nuget-vulnerability-scan:
+    name: NuGet Package CVE & Transitive Dependency Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore & Audit All Microservices for Known CVEs
+        run: |
+          projects=(
+            "src/Gateways/Gateway/NET-Tutos.YarpGateway.csproj"
+            "src/Presentation/Web/web.csproj"
+            "src/Services/CodeRunner/NET-Tutos.CodeRunner.API/NET-Tutos.CodeRunner.API.csproj"
+            "src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj"
+            "src/Services/AiTutor/NET-Tutos.AiTutor.API/NET-Tutos.AiTutor.API.csproj"
+            "src/Services/Catalog/NET-Tutos.Catalog.API/NET-Tutos.Catalog.API.csproj"
+          )
+          for proj in "${projects[@]}"; do
+            echo "=== Auditing $proj ==="
+            dotnet restore "$proj"
+            dotnet list "$proj" package --vulnerable --include-transitive
+          done

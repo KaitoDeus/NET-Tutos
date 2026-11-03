@@ -1,0 +1,25 @@
+# =============================================================================
+# NET-Tutos Code Ownership & Automatic PR Reviewer Assignment
+# =============================================================================
+
+# Global Default Owner
+*                                   @KaitoDeus
+
+# 00. API Gateway Layer (Microsoft YARP)
+/src/Gateways/                      @KaitoDeus
+
+# 01. Presentation Layer (ASP.NET Core 10 MVC BFF, Geo-IP/SEO & .NET MAUI 10)
+/src/Presentation/Web/              @KaitoDeus
+/src/Presentation/Mobile/           @KaitoDeus
+
+# 02. Microservices Layer (4-Layer Clean Architecture DDD)
+/src/Services/CodeRunner/           @KaitoDeus
+/src/Services/Gamification/         @KaitoDeus
+/src/Services/AiTutor/              @KaitoDeus
+/src/Services/Catalog/              @KaitoDeus
+
+# 03. Shared BuildingBlocks & CI/CD Infrastructure
+/src/Infrastructure/                @KaitoDeus
+/docker-compose.yml                 @KaitoDeus
+/.github/                           @KaitoDeus
+/docs/                              @KaitoDeus

@@ -1,0 +1,51 @@
+name: Automated Docker GHCR Build & Publish Pipeline
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push-ghcr:
+    name: Build & Push Microservice Images (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: gateway
+            dockerfile: src/Gateways/Gateway/Dockerfile
+          - service: web
+            dockerfile: src/Presentation/Web/Dockerfile
+          - service: coderunner
+            dockerfile: src/Services/CodeRunner/NET-Tutos.CodeRunner.API/Dockerfile
+          - service: gamification
+            dockerfile: src/Services/Gamification/NET-Tutos.Gamification.API/Dockerfile
+          - service: aitutor
+            dockerfile: src/Services/AiTutor/NET-Tutos.AiTutor.API/Dockerfile
+          - service: catalog
+            dockerfile: src/Services/Catalog/NET-Tutos.Catalog.API/Dockerfile
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry (ghcr.io)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push Image to GHCR
+        run: |
+          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_URI="ghcr.io/${OWNER_LC}/net-tutos-${{ matrix.service }}"
+          docker build -f "${{ matrix.dockerfile }}" -t "${IMAGE_URI}:latest" -t "${IMAGE_URI}:${{ github.sha }}" .
+          docker push "${IMAGE_URI}:latest"
+          docker push "${IMAGE_URI}:${{ github.sha }}"
