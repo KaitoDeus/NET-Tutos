@@ -2,7 +2,7 @@
 
 Document Type: Master Roadmap, Phase History & AI Context Memory  
 System: **NET-Tutos** — Enterprise Distributed .NET 10 & C# 14 Learning Ecosystem  
-License: [MIT License](../LICENSE) (`Copyright (c) 2026 Khải Võ & NET-Tutos Engineering`)  
+License: [MIT License](../LICENSE) (`Copyright (c) 2026 Khải Võ (NET-Tutos)`)  
 Current Test Suite Status: **151/151 Automated Tests Passing (100% Pass Rate across 7 Test Projects)**  
 
 ---
