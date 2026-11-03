@@ -1,0 +1,39 @@
+version: 2
+updates:
+  # Tự động tạo Pull Request cập nhật các gói NuGet (.NET 10) hàng tuần
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "dotnet-10"
+      - "auto-pr"
+
+  # Tự động tạo Pull Request cập nhật Docker base images (PostgreSQL, Redis, RabbitMQ, .NET SDK)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:30"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+      - "auto-pr"
+
+  # Tự động tạo Pull Request cập nhật GitHub Actions workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "auto-pr"
