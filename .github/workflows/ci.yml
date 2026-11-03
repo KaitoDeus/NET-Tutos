@@ -37,12 +37,17 @@ jobs:
         dotnet restore src/Services/AiTutor/NET-Tutos.AiTutor.Application/NET-Tutos.AiTutor.Application.csproj
         dotnet restore src/Services/AiTutor/NET-Tutos.AiTutor.Infrastructure/NET-Tutos.AiTutor.Infrastructure.csproj
         dotnet restore src/Services/AiTutor/NET-Tutos.AiTutor.API/NET-Tutos.AiTutor.API.csproj
+        dotnet restore src/Services/Catalog/NET-Tutos.Catalog.Domain/NET-Tutos.Catalog.Domain.csproj
+        dotnet restore src/Services/Catalog/NET-Tutos.Catalog.Application/NET-Tutos.Catalog.Application.csproj
+        dotnet restore src/Services/Catalog/NET-Tutos.Catalog.Infrastructure/NET-Tutos.Catalog.Infrastructure.csproj
+        dotnet restore src/Services/Catalog/NET-Tutos.Catalog.API/NET-Tutos.Catalog.API.csproj
         dotnet restore src/Presentation/Web/web.csproj
         dotnet restore tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
         dotnet restore tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
         dotnet restore tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj
         dotnet restore tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.csproj
         dotnet restore tests/NET-Tutos.AiTutor.Tests/NET-Tutos.AiTutor.Tests.csproj
+        dotnet restore tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj
         dotnet restore tests/NET-Tutos.Gateway.Tests/NET-Tutos.Gateway.Tests.csproj
 
     - name: Build Projects
@@ -62,12 +67,17 @@ jobs:
         dotnet build src/Services/AiTutor/NET-Tutos.AiTutor.Application/NET-Tutos.AiTutor.Application.csproj --configuration Release --no-restore
         dotnet build src/Services/AiTutor/NET-Tutos.AiTutor.Infrastructure/NET-Tutos.AiTutor.Infrastructure.csproj --configuration Release --no-restore
         dotnet build src/Services/AiTutor/NET-Tutos.AiTutor.API/NET-Tutos.AiTutor.API.csproj --configuration Release --no-restore
+        dotnet build src/Services/Catalog/NET-Tutos.Catalog.Domain/NET-Tutos.Catalog.Domain.csproj --configuration Release --no-restore
+        dotnet build src/Services/Catalog/NET-Tutos.Catalog.Application/NET-Tutos.Catalog.Application.csproj --configuration Release --no-restore
+        dotnet build src/Services/Catalog/NET-Tutos.Catalog.Infrastructure/NET-Tutos.Catalog.Infrastructure.csproj --configuration Release --no-restore
+        dotnet build src/Services/Catalog/NET-Tutos.Catalog.API/NET-Tutos.Catalog.API.csproj --configuration Release --no-restore
         dotnet build src/Presentation/Web/web.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.AiTutor.Tests/NET-Tutos.AiTutor.Tests.csproj --configuration Release --no-restore
+        dotnet build tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.Gateway.Tests/NET-Tutos.Gateway.Tests.csproj --configuration Release --no-restore
 
     - name: Run API Gateway Tests

@@ -25,6 +25,12 @@
       <Project Path="src/Services/AiTutor/NET-Tutos.AiTutor.Infrastructure/NET-Tutos.AiTutor.Infrastructure.csproj" />
       <Project Path="src/Services/AiTutor/NET-Tutos.AiTutor.API/NET-Tutos.AiTutor.API.csproj" />
     </Folder>
+    <Folder Name="/02. Services (Backend Microservices &amp; Server)/Catalog/">
+      <Project Path="src/Services/Catalog/NET-Tutos.Catalog.Domain/NET-Tutos.Catalog.Domain.csproj" />
+      <Project Path="src/Services/Catalog/NET-Tutos.Catalog.Application/NET-Tutos.Catalog.Application.csproj" />
+      <Project Path="src/Services/Catalog/NET-Tutos.Catalog.Infrastructure/NET-Tutos.Catalog.Infrastructure.csproj" />
+      <Project Path="src/Services/Catalog/NET-Tutos.Catalog.API/NET-Tutos.Catalog.API.csproj" />
+    </Folder>
   </Folder>
   <Folder Name="/03. Infrastructure (Hạ tầng kỹ thuật &amp; EventBus)/">
     <Project Path="src/Infrastructure/Common/NET-Tutos.BuildingBlocks.Common.csproj" />
@@ -36,6 +42,7 @@
     <Project Path="tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj" />
     <Project Path="tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.csproj" />
     <Project Path="tests/NET-Tutos.AiTutor.Tests/NET-Tutos.AiTutor.Tests.csproj" />
+    <Project Path="tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj" />
     <Project Path="tests/NET-Tutos.Gateway.Tests/NET-Tutos.Gateway.Tests.csproj" />
   </Folder>
 </Solution>
