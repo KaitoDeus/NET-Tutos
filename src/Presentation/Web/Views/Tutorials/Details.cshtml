@@ -2,6 +2,7 @@
 @{
     bool isEn = Context.IsEnglish();
     ViewData["Title"] = Model.Tutorial.GetTitle(isEn);
+    ViewData["SeoTutorial"] = Model.Tutorial;
 }
 
 <div class="container py-4">

@@ -5,6 +5,7 @@
     var projectTitle = Model.Project.GetProjectTitle(isEn);
     var projectDesc = Model.Project.GetProjectShortDesc(isEn);
     ViewData["Title"] = isEn ? $"{projectTitle} - Capstone Project" : $"{projectTitle} - Đồ Án Thực Chiến";
+    ViewData["SeoProject"] = Model.Project;
     var levelBadgeClass = Model.Project.Level switch
     {
         DifficultyLevel.Beginner => "bg-success bg-opacity-10 text-success border-success border-opacity-25",

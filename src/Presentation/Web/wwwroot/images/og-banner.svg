@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="55%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#312e81"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="60" y="60" width="1080" height="510" rx="28" fill="#0f172a" fill-opacity="0.55" stroke="#4f46e5" stroke-opacity="0.45" stroke-width="2"/>
+  <rect x="110" y="120" width="180" height="44" rx="22" fill="#4f46e5" fill-opacity="0.25" stroke="#818cf8" stroke-width="1.5"/>
+  <text x="200" y="148" fill="#a5b4fc" font-family="Inter, Segoe UI, system-ui, sans-serif" font-size="18" font-weight="700" text-anchor="middle">.NET 10 &amp; C# 13</text>
+  <text x="110" y="255" fill="#ffffff" font-family="Inter, Segoe UI, system-ui, sans-serif" font-size="68" font-weight="800">NET-Tutos</text>
+  <text x="110" y="330" fill="#cbd5e1" font-family="Inter, Segoe UI, system-ui, sans-serif" font-size="32" font-weight="500">Modern .NET &amp; C# Engineering Platform</text>
+  <text x="110" y="385" fill="#94a3b8" font-family="Inter, Segoe UI, system-ui, sans-serif" font-size="24">101+ Interactive Tutorials • Roslyn Playground • AI Tutor • Microservices</text>
+  <rect x="110" y="445" width="380" height="6" rx="3" fill="url(#accent)"/>
+</svg>

@@ -1,4 +1,5 @@
 @inject NET_Tutos.Services.INavMenuService NavMenuService
+@inject NET_Tutos.Services.ISeoMetadataService SeoService
 @using Microsoft.AspNetCore.Localization
 @using NET_Tutos.Services
 @{
@@ -7,6 +8,7 @@
     var currentLangText = isEn ? "English" : "Tiếng Việt";
     var returnUrl = Context.Request.Path + Context.Request.QueryString;
 
+    var seo = SeoService.BuildMetadata(Context, ViewData);
     var navCategories = NavMenuService.GetNavCategories();
     var searchDataJson = NavMenuService.GetSearchDataJson(isEn);
 
@@ -24,7 +26,39 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#6366f1" />
-    <title>@(string.IsNullOrWhiteSpace(ViewData["Title"]?.ToString()) || ViewData["Title"]?.ToString() == "Trang chủ" ? (isEn ? "Home | NET-Tutos" : "Trang chủ | NET-Tutos") : $"{ViewData["Title"]} | NET-Tutos")</title>
+    <title>@seo.Title</title>
+    <meta name="description" content="@seo.Description" />
+    <meta name="keywords" content="@seo.Keywords" />
+    <meta name="author" content="NET-Tutos" />
+    <meta name="robots" content="@seo.Robots" />
+    <meta name="geo.region" content="@seo.DetectedCountry" />
+    <meta name="content-language" content="@seo.LanguageCode" />
+
+    <!-- Canonical & Bilingual Hreflang SEO -->
+    <link rel="canonical" href="@seo.CanonicalUrl" />
+    <link rel="alternate" hreflang="vi" href="@seo.AlternateViUrl" />
+    <link rel="alternate" hreflang="en" href="@seo.AlternateEnUrl" />
+    <link rel="alternate" hreflang="x-default" href="@seo.AlternateEnUrl" />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+
+    <!-- OpenGraph Metadata -->
+    <meta property="og:type" content="@seo.OgType" />
+    <meta property="og:site_name" content="@seo.SiteName" />
+    <meta property="og:title" content="@seo.Title" />
+    <meta property="og:description" content="@seo.Description" />
+    <meta property="og:url" content="@seo.CanonicalUrl" />
+    <meta property="og:locale" content="@seo.OgLocale" />
+    <meta property="og:locale:alternate" content="@seo.OgLocaleAlternate" />
+    <meta property="og:image" content="@seo.OgImage" />
+
+    <!-- Twitter Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@seo.Title" />
+    <meta name="twitter:description" content="@seo.Description" />
+    <meta name="twitter:image" content="@seo.OgImage" />
+
+    <!-- Schema.org Structured Data (JSON-LD) -->
+    @Html.Raw($"<script type=\"application/ld+json\">{seo.JsonLd}</script>")
 
     <!-- PWA Web App Manifest -->
     <link rel="manifest" href="/manifest.json" />

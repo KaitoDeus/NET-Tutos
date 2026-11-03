@@ -473,7 +473,7 @@ public static class LocalizationHelper
     {
         if (context == null)
         {
-            return System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("en", StringComparison.OrdinalIgnoreCase);
+        return System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("en", StringComparison.OrdinalIgnoreCase);
         }
 
         if (context.Request.Query.TryGetValue("culture", out var queryCulture))
@@ -495,13 +495,22 @@ public static class LocalizationHelper
             }
         }
 
+        var countryCode = GeoIpService.ResolveCountryCodeStatic(context);
+        if (!countryCode.Equals("VN", StringComparison.OrdinalIgnoreCase)) return true;
         var feature = context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>();
         if (feature != null)
         {
             return feature.RequestCulture.UICulture.TwoLetterISOLanguageName.Equals("en", StringComparison.OrdinalIgnoreCase);
         }
 
-        return System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("en", StringComparison.OrdinalIgnoreCase);
+        return false;
+    }
+
+    public static string GetDetectedCountry(this Microsoft.AspNetCore.Http.HttpContext? context) => GeoIpService.ResolveCountryCodeStatic(context);
+
+    private static bool UnusedCultureFallback()
+    {
+        return false;
     }
 
     public static string GetStepTitle(int stepNumber, bool isEn, string fallback)

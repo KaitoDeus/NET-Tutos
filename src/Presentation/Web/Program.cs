@@ -126,8 +126,9 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     options.SupportedUICultures = supportedCultures;
     options.RequestCultureProviders = new List<IRequestCultureProvider>
     {
-        new CookieRequestCultureProvider(),
         new QueryStringRequestCultureProvider(),
+        new CookieRequestCultureProvider(),
+        new GeoIpRequestCultureProvider(),
         new AcceptLanguageHeaderRequestCultureProvider()
     };
 });
@@ -182,6 +183,8 @@ builder.Services.AddScoped<IAiConversationService, AiConversationService>();
 builder.Services.AddScoped<IDeveloperPortfolioService, DeveloperPortfolioService>();
 builder.Services.AddScoped<IMobileAuthService, MobileAuthService>();
 builder.Services.AddSingleton<INavMenuService, NavMenuService>();
+builder.Services.AddSingleton<IGeoIpService, GeoIpService>();
+builder.Services.AddSingleton<ISeoMetadataService, SeoMetadataService>();
 
 // Determine Database Provider
 var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "PostgreSql";
@@ -338,6 +341,18 @@ app.UseStaticFiles();
 
 var locOptions = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<RequestLocalizationOptions>>();
 app.UseRequestLocalization(locOptions.Value);
+app.Use(async (context, next) =>
+{
+    var country = context.GetDetectedCountry();
+    var isEn = context.IsEnglish();
+    context.Response.OnStarting(() =>
+    {
+        context.Response.Headers["X-Detected-Country"] = country;
+        context.Response.Headers["Content-Language"] = isEn ? "en-US" : "vi-VN";
+        return Task.CompletedTask;
+    });
+    await next();
+});
 
 app.UseRouting();
 
