@@ -16,13 +16,16 @@ public class CodeExecutionService : ICodeExecutionService
     private readonly HttpClient? _httpClient;
     private readonly string? _remoteServiceUrl;
     private readonly ILogger<CodeExecutionService>? _logger;
+    private readonly IAppCacheService? _cacheService;
 
     public CodeExecutionService(
         IHttpClientFactory? httpClientFactory = null,
         IConfiguration? configuration = null,
-        ILogger<CodeExecutionService>? logger = null)
+        ILogger<CodeExecutionService>? logger = null,
+        IAppCacheService? cacheService = null)
     {
         _logger = logger;
+        _cacheService = cacheService;
         _remoteServiceUrl = configuration?["Services:CodeRunner:Url"]?.TrimEnd('/');
         if (!string.IsNullOrEmpty(_remoteServiceUrl) && httpClientFactory != null)
         {
@@ -75,6 +78,15 @@ public class CodeExecutionService : ICodeExecutionService
         }
 
         var securityError = ValidateSecurity(code);
+        bool isDeterministic = string.IsNullOrEmpty(securityError) && IsDeterministicCode(code);
+        string? cacheKey = isDeterministic && _cacheService != null
+            ? $"coderunner:exec:{HybridRedisCacheService.ComputeSha256Hash(code)}"
+            : null;
+        if (cacheKey != null && _cacheService != null)
+        {
+            var cachedExec = await _cacheService.GetAsync<CodeExecutionResponse>(cacheKey);
+            if (cachedExec != null) return cachedExec;
+        }
         if (!string.IsNullOrEmpty(securityError))
         {
             return new CodeExecutionResponse
@@ -98,7 +110,7 @@ public class CodeExecutionService : ICodeExecutionService
                     var data = envelope?["data"] ?? envelope;
                     if (data != null)
                     {
-                        return new CodeExecutionResponse
+                        var remoteResult = new CodeExecutionResponse
                         {
                             IsSuccess = data["isSuccess"]?.GetValue<bool>() ?? false,
                             Output = data["output"]?.GetValue<string>() ?? string.Empty,
@@ -106,6 +118,11 @@ public class CodeExecutionService : ICodeExecutionService
                             ExecutionTimeMs = data["executionTimeMs"]?.GetValue<long>() ?? 0,
                             IsTimeout = data["isTimeout"]?.GetValue<bool>() ?? false
                         };
+                        if (remoteResult.IsSuccess && !remoteResult.IsTimeout && cacheKey != null && _cacheService != null)
+                        {
+                            await _cacheService.SetAsync(cacheKey, remoteResult, TimeSpan.FromMinutes(30), TimeSpan.FromMinutes(5));
+                        }
+                        return remoteResult;
                     }
                 }
             }
@@ -199,12 +216,17 @@ public class CodeExecutionService : ICodeExecutionService
                 output = state.ReturnValue.ToString() ?? string.Empty;
             }
 
-            return new CodeExecutionResponse
+            var finalResult = new CodeExecutionResponse
             {
                 IsSuccess = true,
                 Output = string.IsNullOrWhiteSpace(output) ? "[Chương trình kết thúc thành công - Không có dữ liệu in ra màn hình]" : output,
                 ExecutionTimeMs = stopwatch.ElapsedMilliseconds
             };
+            if (cacheKey != null && _cacheService != null)
+            {
+                await _cacheService.SetAsync(cacheKey, finalResult, TimeSpan.FromMinutes(30), TimeSpan.FromMinutes(5));
+            }
+            return finalResult;
         }
         catch (OperationCanceledException)
         {
@@ -381,6 +403,16 @@ public class CodeExecutionService : ICodeExecutionService
         response.ExecutionTimeMs = stopwatch.ElapsedMilliseconds;
 
         return response;
+    }
+
+    private static bool IsDeterministicCode(string code)
+    {
+        string[] nonDeterministicTokens = ["DateTime.", "DateTimeOffset.", "Random", "Guid.NewGuid", "Stopwatch", "Environment.TickCount", "Console.Read"];
+        foreach (var token in nonDeterministicTokens)
+        {
+            if (code.Contains(token, StringComparison.Ordinal)) return false;
+        }
+        return true;
     }
 
     private static string ValidateSecurity(string code)

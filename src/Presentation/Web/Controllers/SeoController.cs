@@ -13,10 +13,23 @@ public class SeoController : Controller
 {
     public const string IndexNowKey = "nettutos-indexnow-2026";
     private readonly AppDbContext _db;
+    private readonly IAppCacheService? _cache;
 
-    public SeoController(AppDbContext db)
+    public SeoController(AppDbContext db, IAppCacheService? cache = null)
     {
         _db = db;
+        _cache = cache;
+    }
+
+    [HttpGet("/api/cache/diagnostics")]
+    public async Task<IActionResult> CacheDiagnostics()
+    {
+        if (_cache == null)
+        {
+            return Ok(new { activeProvider = "None" });
+        }
+        var snapshot = await _cache.GetDiagnosticsAsync();
+        return Ok(snapshot);
     }
 
     [HttpGet("/robots.txt")]
@@ -175,6 +188,15 @@ public class SeoController : Controller
     public async Task<IActionResult> SitemapXml()
     {
         var baseUrl = SeoMetadataService.GetBaseUrl(HttpContext);
+        string cacheKey = $"seo:sitemap:{baseUrl}";
+        if (_cache != null)
+        {
+            var cachedXml = await _cache.GetAsync<string>(cacheKey);
+            if (!string.IsNullOrEmpty(cachedXml))
+            {
+                return Content(cachedXml, "application/xml", Encoding.UTF8);
+            }
+        }
         XNamespace ns = "http://www.sitemaps.org/schemas/sitemap/0.9";
         XNamespace xhtml = "http://www.w3.org/1999/xhtml";
 
@@ -262,7 +284,12 @@ public class SeoController : Controller
         using var sw = new Utf8StringWriter();
         doc.Save(sw);
 
-        return Content(sw.ToString(), "application/xml", Encoding.UTF8);
+        var xmlString = sw.ToString();
+        if (_cache != null)
+        {
+            await _cache.SetAsync(cacheKey, xmlString, TimeSpan.FromMinutes(30), TimeSpan.FromMinutes(5));
+        }
+        return Content(xmlString, "application/xml", Encoding.UTF8);
     }
 
     [HttpGet("/manifest.webmanifest")]

@@ -1,4 +1,4 @@
-﻿using NET_Tutos.Data;
+using NET_Tutos.Data;
 using NET_Tutos.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,10 +7,12 @@ namespace NET_Tutos.Services;
 public class TutorialService : ITutorialService
 {
     private readonly AppDbContext _context;
+    private readonly IAppCacheService? _cache;
 
-    public TutorialService(AppDbContext context)
+    public TutorialService(AppDbContext context, IAppCacheService? cache = null)
     {
         _context = context;
+        _cache = cache;
     }
 
     public async Task<IEnumerable<Category>> GetCategoriesWithTutorialsAsync()
@@ -22,7 +24,12 @@ public class TutorialService : ITutorialService
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Tutorial>> GetFeaturedTutorialsAsync(int count = 6)
+    public async Task<IEnumerable<Tutorial>> GetFeaturedTutorialsAsync(int count = 6) =>
+        _cache != null
+            ? (await _cache.GetOrCreateAsync($"catalog:tutorials:featured:{count}", async _ => await QueryFeaturedTutorialsAsync(count), TimeSpan.FromMinutes(15), TimeSpan.FromMinutes(3))) ?? []
+            : await QueryFeaturedTutorialsAsync(count);
+
+    private async Task<List<Tutorial>> QueryFeaturedTutorialsAsync(int count = 6)
     {
         return await _context.Tutorials
             .Include(t => t.Category)

@@ -63,6 +63,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 builder.Services.AddMemoryCache();
+var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection")
+    ?? Environment.GetEnvironmentVariable("REDIS_CONNECTION");
+if (!string.IsNullOrWhiteSpace(redisConnectionString))
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnectionString;
+        options.InstanceName = "nettutos:";
+    });
+}
+else
+{
+    builder.Services.AddDistributedMemoryCache();
+}
+builder.Services.AddSingleton<IAppCacheService, HybridRedisCacheService>();
 
 // CORS configuration for Web MVC & Mobile (.NET MAUI) clients
 builder.Services.AddCors(options =>

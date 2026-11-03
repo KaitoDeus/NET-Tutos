@@ -3,7 +3,7 @@
 Document Type: Master Roadmap, Phase History & AI Context Memory  
 System: **NET-Tutos** — Enterprise Distributed .NET 10 & C# 14 Learning Ecosystem  
 License: [MIT License](../LICENSE) (`Copyright (c) 2026 Khải Võ & NET-Tutos Engineering`)  
-Current Test Suite Status: **136/136 Automated Tests Passing (100% Pass Rate across 6 Test Projects)**  
+Current Test Suite Status: **139/139 Automated Tests Passing (100% Pass Rate across 6 Test Projects)**  
 
 ---
 
@@ -42,6 +42,7 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 | **Phase 4** | **Gamification Microservice & YARP API Gateway** | ✅ Completed | `src/Services/Gamification/NET-Tutos.Gamification.{Domain,Application,Infrastructure,API}` (Port `5004`) with MassTransit consumers & dedicated PostgreSQL DB (`nettutos_gamification_db`). `src/Gateways/Gateway` (`NET-Tutos.YarpGateway`, Port `5000`) with `CorrelationIdMiddleware` & Rate Limiting. |
 | **Phase 5** | **AiTutor ("Atus") Microservice Extraction** | ✅ Completed | `src/Services/AiTutor/NET-Tutos.AiTutor.{Domain,Application,Infrastructure,API}` (Port `5006`). Decouples Big-O complexity analysis, compiler error diagnostics, xUnit test synthesis, code reviews, and 3D rubric technical mock interviews (`/api/v1/aitutor/*`). |
 | **Phase 5.5** | **Cross-Platform .NET MAUI 10 Mobile App** | ✅ Completed | `src/Presentation/Mobile/NET-Tutos.Mobile.csproj` targeting Android, iOS, macOS Catalyst, and Windows with JWT auth, curriculum sync, and bilingual UI. |
+| **Phase 6** | **Hybrid L1/L2 Redis 7 Distributed Caching** | ✅ Completed | `nettutos-redis` (`redis:7-alpine`, Port `6379`, AOF persistence + `allkeys-lru`), `HybridRedisCacheService.cs` (L1 `IMemoryCache` + L2 `StackExchange.Redis`, per-key `SemaphoreSlim` Cache Stampede protection, 30s Circuit-Breaker fallback), deterministic SHA-256 Roslyn C# execution cache, catalog cache, sitemap cache, and `/api/cache/diagnostics`. |
 | **Phase 8** | **Geo-IP Region Detection & Advanced SEO Engine** | ✅ Completed | `GeoIpService.cs` & `GeoIpRequestCultureProvider` (`VN` -> `vi`, Outside `VN` -> `en`), `SeoMetadataService.cs`, `SeoController.cs` (`/robots.txt`, `/sitemap.xml`, `/seo/og-image/{slug}.svg`, `/seo/og-project/{slug}.svg`, `/nettutos-indexnow-2026.txt`, `/api/seo/diagnostics`), `BreadcrumbList` & `FAQPage` Schema.org JSON-LD. |
 
 ---
@@ -54,7 +55,7 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 | **`NET-Tutos.CodeRunner.Tests`** | `tests/NET-Tutos.CodeRunner.Tests` | 11 | Roslyn C# compilation, security guard blocking (`System.Diagnostics.Process`, `System.IO.File`), test case judge. |
 | **`NET-Tutos.Gamification.Tests`** | `tests/NET-Tutos.Gamification.Tests` | 16 | Domain value objects (`XpValue`, `StreakCount`), streak check-in rules, MassTransit event consumers. |
 | **`NET-Tutos.AiTutor.Tests`** | `tests/NET-Tutos.AiTutor.Tests` | 16 | `EfficiencyScore`, `InterviewRubricScore` (50/25/25), Big-O detection, compiler diagnostics, xUnit generator, mock interview. |
-| **`NET-Tutos.UnitTests`** | `tests/NET-Tutos.UnitTests` | 65 | Web services, `GeoIpService` CIDR blocks (VNPT/Viettel/FPT/VNNIC IPv4 & IPv6 vs International), `SeoMetadataService` (`TechArticle`, `BreadcrumbList`, `FAQPage`). |
+| **`NET-Tutos.UnitTests`** | `tests/NET-Tutos.UnitTests` | 68 | Web services, `HybridRedisCacheService` (L1/L2 backfill, stampede lock, deterministic Roslyn cache), `GeoIpService`, `SeoMetadataService`. |
 | **`NET-Tutos.IntegrationTests`** | `tests/NET-Tutos.IntegrationTests` | 24 | Full HTTP pipeline, Geo-IP headers & public IP language switching, `/robots.txt`, `/sitemap.xml`, dynamic OG SVG endpoints, IndexNow, security & Roslyn endpoints. |
 
 ---

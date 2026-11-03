@@ -19,6 +19,22 @@ services:
       timeout: 5s
       retries: 5
 
+  # Redis 7 Distributed Cache (L2 Cache for Roslyn Sandbox, Catalog & SEO Sitemap)
+  redis:
+    image: redis:7-alpine
+    container_name: nettutos-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   # RabbitMQ Message Broker for Event-Driven Microservices
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -93,6 +109,7 @@ services:
       - DatabaseProvider=PostgreSql
       - ConnectionStrings__PostgreSqlConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres
+      - ConnectionStrings__RedisConnection=redis:6379,abortConnect=false,connectTimeout=1500,syncTimeout=1000
       - Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command=Warning
       - Logging__LogLevel__System.Net.Http.HttpClient=Warning
       - Logging__LogLevel__Microsoft.AspNetCore.Antiforgery=Critical
@@ -134,4 +151,6 @@ volumes:
   postgres_data:
     driver: local
   dataprotection_keys:
+    driver: local
+  redis_data:
     driver: local
