@@ -31,6 +31,7 @@ d:\NET-Tutos\docs\
 ├── 07_docker_and_database_setup.md     # PostgreSQL 17, Npgsql EF Core 10 & Docker Compose Architecture
 ├── 08_testing_strategy_and_test_cases.md # Automated Testing Strategy, Test Matrix & Exception Specs
 ├── 09_microservices_architecture_and_migration.md # Microservices Architecture, Service Decomposition & Strangler Fig Migration
+├── 10_project_roadmap_and_ai_memory.md # Master Roadmap, Phase 1–8 History & AI Context Memory (SSOT)
 └── DESIGN.md                           # Frontend Design System & Anti-AI-Slop Quality Constitution
 ```
 
@@ -103,9 +104,13 @@ d:\NET-Tutos\docs\
    - Decoupled `Gamification.API` microservice with MassTransit RabbitMQ event-driven consumers.
    - Resilient delegation and graceful in-process fallback pattern in `CodeExecutionService` and `StreakService`.
    - Multi-container Docker Compose orchestration (`postgres`, `rabbitmq`, `coderunner`, `gamification`, `web`).
-   - 67/67 automated test execution and GitHub Actions CI quality gates.
+   - 136/136 automated test execution across 6 test projects (`Gateway`, `CodeRunner`, `Gamification`, `AiTutor`, `UnitTests`, `IntegrationTests`) and GitHub Actions CI quality gates.
 
-10. [**DESIGN. Design System & Anti-AI-Slop Constitution**](file:///d:/NET-Tutos/docs/DESIGN.md)
+10. [**10. Master Project Roadmap & AI Context Memory**](file:///d:/NET-Tutos/docs/10_project_roadmap_and_ai_memory.md)
+   - Persistent AI Context Memory and Single Source of Truth (SSOT) for completed phases (Phase 1 through Phase 8) and upcoming strategic backlog (Phase 6, Phase 7, Phase 9).
+   - Standing engineering rules (Pure .NET 10 / C# 14, Auto-Commit workflow, Geo-IP Region Detection `VN` -> `vi` / Outside `VN` -> `en`, and Continuous SEO).
+
+11. [**DESIGN. Design System & Anti-AI-Slop Constitution**](file:///d:/NET-Tutos/docs/DESIGN.md)
    - Developer Tool standard inspired by Linear, Raycast, Stripe, and GitHub Primer.
    - Anti-Slop banned patterns (no neon gradients, no cartoonish hover transforms, no card nesting).
    - Grounded Zinc/Slate neutral palettes, disciplined 6px–8px radii, and 1px hairline borders.
@@ -122,7 +127,8 @@ d:\NET-Tutos\docs\
 | **Senior Technical Hiring Readiness** | `MOD-INT` | `InterviewController.cs`, `AiTutorService.cs`, `Mock.cshtml` | 3-dimension rubric evaluation, Speech-to-Text, radar reports |
 | **Continuous Cross-Platform Study** | `MOD-MOB` | `MobileAuthController.cs`, `ApiService.cs` (.NET MAUI), `LoginPage.xaml` | JWT Bearer verification, device storage, progress sync |
 | **Learner Engagement & Retention** | `MOD-GAM` | `StreakService.cs`, `LeaderboardService.cs`, `NET-Tutos.Gamification.API` | Daily check-in tests, Level formula calculation, Gamification microservice tests |
-| **Microservice High-Compute Isolation** | `MOD-ARCH` | `NET-Tutos.CodeRunner.API`, `NET-Tutos.Gamification.API`, `BuildingBlocks` | 67/67 automated tests, Docker multi-container topology, CI pipeline |
+| **Microservice High-Compute Isolation** | `MOD-ARCH` | `NET-Tutos.CodeRunner.API`, `NET-Tutos.Gamification.API`, `NET-Tutos.AiTutor.API`, `NET-Tutos.YarpGateway` | 136/136 automated tests, 7-container Docker topology, CI pipeline |
+| **Geo-IP Localization & Technical SEO** | `MOD-SEO` | `GeoIpService.cs`, `SeoMetadataService.cs`, `SeoController.cs` | VN -> `vi` / INTL -> `en`, Dynamic OG SVG, `BreadcrumbList`, `FAQPage`, IndexNow |
 
 ---
 
