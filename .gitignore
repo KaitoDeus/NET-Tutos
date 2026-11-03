@@ -9,6 +9,7 @@
 !.env.example
 *.env
 appsettings.Local.json
+.keys/
 
 # User-specific files
 *.rsuser

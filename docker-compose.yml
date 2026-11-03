@@ -95,6 +95,9 @@ services:
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres
       - Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command=Warning
       - Logging__LogLevel__System.Net.Http.HttpClient=Warning
+      - Logging__LogLevel__Microsoft.AspNetCore.Antiforgery=Critical
+      - Logging__LogLevel__Microsoft.AspNetCore.DataProtection=Error
+      - DATAPROTECTION_KEYS_PATH=/app/.keys
       - Services__CodeRunner__Url=http://coderunner:8080
       - Services__Gamification__Url=http://gamification:8080
       - Services__AiTutor__Url=http://aitutor:8080
@@ -103,6 +106,8 @@ services:
       - Gemini__Enabled=${GEMINI_ENABLED:-true}
     ports:
       - "5001:5000"
+    volumes:
+      - dataprotection_keys:/app/.keys
     depends_on:
       postgres:
         condition: service_healthy
@@ -127,4 +132,6 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  dataprotection_keys:
     driver: local

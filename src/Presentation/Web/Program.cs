@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Data.SqlClient;
@@ -130,10 +132,26 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     };
 });
 
+// Persist DataProtection keys so container restarts/rebuilds do not invalidate Antiforgery or Auth cookies
+var keysFolder = Environment.GetEnvironmentVariable("DATAPROTECTION_KEYS_PATH")
+    ?? Path.Combine(builder.Environment.ContentRootPath, ".keys");
+Directory.CreateDirectory(keysFolder);
+builder.Services.AddDataProtection()
+    .SetApplicationName("NET-Tutos")
+    .PersistKeysToFileSystem(new DirectoryInfo(keysFolder));
+
 // Antiforgery Configuration for AJAX & Fetch requests
 builder.Services.AddAntiforgery(options =>
 {
     options.HeaderName = "RequestVerificationToken";
+    options.Cookie.Name = "NetTutos.Antiforgery";
+});
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
 });
 
 builder.Services.AddSingleton<IMarkdownService, MarkdownService>();
@@ -307,7 +325,15 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+app.UseForwardedHeaders();
+
+var configuredUrls = Environment.GetEnvironmentVariable("ASPNETCORE_URLS") ?? string.Empty;
+if (configuredUrls.Contains("https://", StringComparison.OrdinalIgnoreCase) ||
+    !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_HTTPS_PORT")))
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseStaticFiles();
 
 var locOptions = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<RequestLocalizationOptions>>();
