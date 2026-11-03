@@ -247,6 +247,97 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const isEnUi = @(isEn ? "true" : "false");
+            const codeBlocks = document.querySelectorAll('.markdown-body pre > code');
+            codeBlocks.forEach((codeEl, idx) => {
+                const rawCode = (codeEl.textContent || '').trim();
+                if (!rawCode || rawCode.length < 12) return;
+                const preEl = codeEl.parentElement;
+                if (!preEl || preEl.dataset.inlineLabBound === '1') return;
+                preEl.dataset.inlineLabBound = '1';
+
+                const labContainer = document.createElement('div');
+                labContainer.className = 'inline-code-lab border rounded-3 bg-body-tertiary p-2 mb-4 mt-1';
+                labContainer.innerHTML = `
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace">
+                            <i class="bi bi-terminal-fill me-1"></i>C# 14 Inline Sandbox #${idx + 1}
+                        </span>
+                        <div class="d-flex flex-wrap gap-1.5">
+                            <button type="button" class="btn btn-xs btn-primary px-2.5 py-1 fw-semibold btn-run-inline">
+                                <i class="bi bi-play-fill"></i> ${isEnUi ? 'Run Code' : 'Chạy thử'}
+                            </button>
+                            <button type="button" class="btn btn-xs btn-outline-secondary px-2.5 py-1 btn-edit-inline">
+                                <i class="bi bi-pencil-square"></i> ${isEnUi ? 'Edit Inline' : 'Sửa code'}
+                            </button>
+                            <button type="button" class="btn btn-xs btn-outline-info px-2.5 py-1 btn-analyze-inline">
+                                <i class="bi bi-cpu"></i> ${isEnUi ? 'Big-O AI' : 'Phân tích Big-O'}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="inline-editor-wrap d-none mt-2">
+                        <textarea class="form-control font-monospace small bg-dark text-light border-secondary" rows="6" spellcheck="false"></textarea>
+                    </div>
+                    <div class="inline-output-wrap d-none mt-2 p-2.5 rounded-2 bg-dark text-light font-monospace small"></div>
+                `;
+                preEl.insertAdjacentElement('afterend', labContainer);
+
+                const editorWrap = labContainer.querySelector('.inline-editor-wrap');
+                const textarea = labContainer.querySelector('textarea');
+                const outputWrap = labContainer.querySelector('.inline-output-wrap');
+                const btnRun = labContainer.querySelector('.btn-run-inline');
+                const btnEdit = labContainer.querySelector('.btn-edit-inline');
+                const btnAnalyze = labContainer.querySelector('.btn-analyze-inline');
+                textarea.value = rawCode;
+
+                btnEdit.addEventListener('click', () => {
+                    editorWrap.classList.toggle('d-none');
+                });
+
+                btnRun.addEventListener('click', async () => {
+                    const sourceToRun = editorWrap.classList.contains('d-none') ? rawCode : textarea.value;
+                    outputWrap.classList.remove('d-none');
+                    outputWrap.innerHTML = `<span class="text-info"><span class="spinner-border spinner-border-sm me-1"></span>${isEnUi ? 'Compiling & running in Roslyn Sandbox...' : 'Đang biên dịch & chạy trên Roslyn Sandbox...'}</span>`;
+                    btnRun.disabled = true;
+                    try {
+                        const resp = await fetch('/Playground/Execute', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ code: sourceToRun })
+                        });
+                        const data = await resp.json();
+                        if (data.isSuccess) {
+                            outputWrap.innerHTML = `<div class="d-flex justify-content-between text-success border-bottom border-secondary pb-1 mb-1"><span>✓ ${isEnUi ? 'Execution Succeeded' : 'Thực thi thành công'}</span><span>${data.executionTimeMs || 0} ms</span></div><pre class="mb-0 text-light" style="white-space:pre-wrap;">${(data.output || '').replace(/</g, '&lt;')}</pre>`;
+                        } else {
+                            outputWrap.innerHTML = `<div class="text-danger fw-bold mb-1">✗ ${isEnUi ? 'Compilation / Runtime Error' : 'Lỗi biên dịch / thực thi'}</div><pre class="mb-0 text-warning" style="white-space:pre-wrap;">${(data.error || '').replace(/</g, '&lt;')}</pre>`;
+                        }
+                    } catch (err) {
+                        outputWrap.innerHTML = `<span class="text-danger">${isEnUi ? 'Sandbox connection error.' : 'Lỗi kết nối máy chủ Sandbox.'}</span>`;
+                    } finally {
+                        btnRun.disabled = false;
+                    }
+                });
+
+                btnAnalyze.addEventListener('click', async () => {
+                    const sourceToAnalyze = editorWrap.classList.contains('d-none') ? rawCode : textarea.value;
+                    outputWrap.classList.remove('d-none');
+                    outputWrap.innerHTML = `<span class="text-info"><span class="spinner-border spinner-border-sm me-1"></span>${isEnUi ? 'Atus AI analyzing Big-O complexity...' : 'Trợ lý AI Atus đang phân tích độ phức tạp Big-O...'}</span>`;
+                    btnAnalyze.disabled = true;
+                    try {
+                        const resp = await fetch('/AiTutor/AnalyzeComplexity', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ code: sourceToAnalyze, language: isEnUi ? 'en' : 'vi' })
+                        });
+                        const data = await resp.json();
+                        outputWrap.innerHTML = `<div class="d-flex flex-wrap gap-2 align-items-center border-bottom border-secondary pb-1 mb-1"><span class="badge bg-info text-dark">Time: ${data.timeComplexity || 'O(1)'}</span><span class="badge bg-secondary">Space: ${data.spaceComplexity || 'O(1)'}</span><span class="badge bg-success">Score: ${data.efficiencyScore ?? 95}/100</span></div><div class="text-light">${(data.explanation || '').replace(/</g, '&lt;')}</div>`;
+                    } catch (err) {
+                        outputWrap.innerHTML = `<span class="text-danger">${isEnUi ? 'AI Tutor service unavailable.' : 'Không thể kết nối dịch vụ AI Tutor.'}</span>`;
+                    } finally {
+                        btnAnalyze.disabled = false;
+                    }
+                });
+            });
             const btn = document.getElementById('btnToggleComplete');
             if (!btn) return;
 
