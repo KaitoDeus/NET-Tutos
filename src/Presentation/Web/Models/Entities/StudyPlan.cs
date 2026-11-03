@@ -5,17 +5,17 @@ namespace NET_Tutos.Models.Entities;
 
 public enum StudyPlanTrack
 {
-    FastTrack = 1,        // Cấp tốc (1 tháng, ~3-4 bài/ngày)
-    Standard = 2,         // Chuẩn mực (3 tháng, ~1-2 bài/ngày)
-    SteadyPartTime = 3,   // Vừa học vừa làm (6 tháng, ~3-4 bài/tuần)
-    Custom = 4            // Tùy chỉnh cá nhân
+    FastTrack = 1,        // Intensive pace (1 month, ~3-4 lessons/day)
+    Standard = 2,         // Standard pace (3 months, ~1-2 lessons/day)
+    SteadyPartTime = 3,   // Part-time steady pace (6 months, ~3-4 lessons/week)
+    Custom = 4            // Custom personalized schedule
 }
 
 public enum StudyPlanFocus
 {
-    All101Lessons = 1,          // Toàn diện 101 bài học C# & .NET Core
-    BackendApiSpecialist = 2,   // Chuyên sâu Backend Web API & EF Core
-    FundamentalsOnly = 3        // Nền tảng C# Core & OOP (Phần 1 & 2)
+    All101Lessons = 1,          // Comprehensive 101 C# & .NET Core lessons
+    BackendApiSpecialist = 2,   // Deep-dive Backend Web API & EF Core track
+    FundamentalsOnly = 3        // C# Core & OOP Fundamentals (Parts 1 & 2)
 }
 
 public class StudyPlan

@@ -4,10 +4,10 @@ namespace NET_Tutos.Models.Entities;
 
 public enum ProjectSubmissionStatus
 {
-    Submitted = 0,        // Đã nộp, chờ giảng viên chấm
-    UnderReview = 1,      // Giảng viên đang xem xét
-    Approved = 2,         // Đạt chuẩn - Đã duyệt thành công
-    NeedsImprovement = 3  // Cần bổ sung / chỉnh sửa lại theo góp ý
+    Submitted = 0,        // Submitted and awaiting instructor review
+    UnderReview = 1,      // Currently under review by an instructor
+    Approved = 2,         // Approved and meets quality standards
+    NeedsImprovement = 3  // Requires revision based on review feedback
 }
 
 public class CapstoneProject

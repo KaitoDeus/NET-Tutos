@@ -32,11 +32,11 @@
       <Project Path="src/Services/Catalog/NET-Tutos.Catalog.API/NET-Tutos.Catalog.API.csproj" />
     </Folder>
   </Folder>
-  <Folder Name="/03. Infrastructure (Hạ tầng kỹ thuật &amp; EventBus)/">
+  <Folder Name="/03. Infrastructure (Shared BuildingBlocks &amp; EventBus)/">
     <Project Path="src/Infrastructure/Common/NET-Tutos.BuildingBlocks.Common.csproj" />
     <Project Path="src/Infrastructure/EventBus/NET-Tutos.BuildingBlocks.EventBus.csproj" />
   </Folder>
-  <Folder Name="/04. Tests (Kiểm thử tự động)/">
+  <Folder Name="/04. Tests (Automated Quality Gates)/">
     <Project Path="tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj" />
     <Project Path="tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj" />
     <Project Path="tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj" />

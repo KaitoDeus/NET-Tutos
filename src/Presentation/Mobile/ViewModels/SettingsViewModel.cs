@@ -141,7 +141,7 @@ public partial class SettingsViewModel : BaseViewModel
     [RelayCommand]
     private async Task ClearCacheAsync()
     {
-        // Xóa preferences tạm thời nếu cần
+        // Clear temporary preferences cache if needed
         ShowStatus("Đang dọn dẹp bộ nhớ đệm...");
         await Task.Delay(300);
         ShowStatus("Đã làm sạch bộ nhớ đệm ứng dụng thành công.");

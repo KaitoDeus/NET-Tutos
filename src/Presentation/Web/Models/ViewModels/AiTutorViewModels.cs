@@ -1,4 +1,4 @@
-﻿namespace NET_Tutos.Models.ViewModels;
+namespace NET_Tutos.Models.ViewModels;
 
 public class AiTutorChatRequest
 {
@@ -255,7 +255,7 @@ public class AiChatMessageDto
 {
     public long Id { get; set; }
     public Guid ConversationId { get; set; }
-    public string Role { get; set; } = "user"; // "user" hoặc "model"
+    public string Role { get; set; } = "user"; // "user" or "model"
     public string Content { get; set; } = string.Empty;
     public string? CodeSnippet { get; set; }
     public List<string> SuggestedFollowUps { get; set; } = new();

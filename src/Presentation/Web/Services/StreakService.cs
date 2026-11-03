@@ -414,9 +414,9 @@ public class StreakService : IStreakService
             4 => 20,
             5 => 25,
             6 => 25,
-            7 => 50, // 1 tuần liên tục
-            14 => 100, // 2 tuần
-            30 => 250, // 1 tháng
+            7 => 50, // 1-week consecutive streak
+            14 => 100, // 2-week consecutive streak
+            30 => 250, // 1-month consecutive streak
             _ => streakDay % 7 == 0 ? 50 : 20
         };
     }

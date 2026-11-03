@@ -1,5 +1,5 @@
 ## 🎯 Mục tiêu thay đổi (Summary)
-<!-- Mô tả ngắn gọn tính năng, bản vá lỗi hoặc nâng cấp kiến trúc trong Pull Request này -->
+<!-- Briefly describe the feature, bug fix, or architectural upgrade in this Pull Request -->
 
 ## 🏗️ Tầng kiến trúc / Microservice bị ảnh hưởng (Bounded Contexts)
 - [ ] **00. API Gateway** (`src/Gateways/Gateway` — Microsoft YARP)

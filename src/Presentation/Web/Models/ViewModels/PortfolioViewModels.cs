@@ -81,7 +81,7 @@ public class SkillCompetencyItem
     public string SkillName { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
     public int ProficiencyPercentage { get; set; }
-    public string MasteryLevel { get; set; } = string.Empty; // e.g. "Thành thạo (Advanced)", "Nền tảng (Fundamental)"
+    public string MasteryLevel { get; set; } = string.Empty; // e.g., "Advanced", "Intermediate", "Fundamental"
     public string IconClass { get; set; } = "bi-code-square";
     public string ColorClass { get; set; } = "primary";
 }

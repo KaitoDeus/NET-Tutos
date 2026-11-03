@@ -232,7 +232,7 @@ public class SeoController : Controller
             }
         }
 
-        // 1. Các trang tĩnh cốt lõi (Song ngữ VI / EN)
+        // 1. Core static routes (Bilingual VI / EN)
         AddBilingualEntry("/?culture=vi", "/?culture=en", "1.0", "daily");
         AddBilingualEntry("/Tutorials?culture=vi", "/Tutorials?culture=en", "0.9", "daily");
         AddBilingualEntry("/chuong-trinh-csharp-toan-dien", "/csharp-full-curriculum", "0.9", "weekly");
@@ -244,7 +244,7 @@ public class SeoController : Controller
         AddBilingualEntry("/Leaderboard?culture=vi", "/Leaderboard?culture=en", "0.7", "daily");
         AddBilingualEntry("/ke-hoach-hoc-tap", "/study-planner", "0.7", "weekly");
 
-        // 2. Danh mục bài học (Categories)
+        // 2. Tutorial categories
         var categories = await _db.Categories.AsNoTracking().OrderBy(c => c.OrderIndex).ToListAsync();
         foreach (var cat in categories)
         {
@@ -253,7 +253,7 @@ public class SeoController : Controller
             AddBilingualEntry($"/Tutorials?category={viSlug}", $"/Tutorials?category={enSlug}&culture=en", "0.8", "weekly");
         }
 
-        // 3. Toàn bộ bài học (Tutorials: /bai-hoc/{slug} & /lessons/{enSlug})
+        // 3. All tutorials (/bai-hoc/{slug} & /lessons/{enSlug})
         var tutorials = await _db.Tutorials
             .AsNoTracking()
             .OrderBy(t => t.OrderIndex)
@@ -266,7 +266,7 @@ public class SeoController : Controller
             AddBilingualEntry($"/bai-hoc/{viSlug}", $"/lessons/{enSlug}", "0.8", "weekly", tut.UpdatedAt);
         }
 
-        // 4. Toàn bộ đồ án thực chiến (Capstone Projects: /do-an/{slug} & /projects/{enSlug})
+        // 4. All published Capstone Projects (/do-an/{slug} & /projects/{enSlug})
         var projects = await _db.CapstoneProjects
             .AsNoTracking()
             .Where(p => p.IsPublished)

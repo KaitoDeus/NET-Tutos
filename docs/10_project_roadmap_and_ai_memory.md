@@ -29,6 +29,8 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
    - Visitors from **Vietnam (`VN`)** default to **Vietnamese (`vi`, `vi-VN`)**.
    - Visitors from **outside Vietnam (`INTL`, `US`, `SG`, `JP`, etc.)** default to **English (`en`, `en-US`)**.
    - All public routes must maintain automatic canonical URLs, bilingual `hreflang` (`vi`, `en`, `x-default`), dynamic OpenGraph SVG images, and Schema.org JSON-LD (`EducationalOrganization`, `WebSite`, `BreadcrumbList`, `TechArticle`, `FAQPage`, `Course`).
+5. **English-Only Code Comments Standard**:
+   - All source code comments (`//`, `/// <summary>`, `/* */`, `#`, `<!-- -->`) across the entire project must be written strictly in **English**.
 
 ---
 

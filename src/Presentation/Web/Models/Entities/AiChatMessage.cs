@@ -16,7 +16,7 @@ public class AiChatMessage
 
     [Required]
     [MaxLength(20)]
-    public string Role { get; set; } = "user"; // "user" hoặc "model"
+    public string Role { get; set; } = "user"; // "user" or "model"
 
     [Required]
     public string Content { get; set; } = string.Empty;

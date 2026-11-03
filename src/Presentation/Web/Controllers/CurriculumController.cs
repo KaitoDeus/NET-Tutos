@@ -13,7 +13,7 @@ public class CurriculumController : Controller
         _curriculumService = curriculumService;
     }
 
-    // GET: /chuong-trinh-csharp-toan-dien hoặc /Curriculum
+    // GET: /chuong-trinh-csharp-toan-dien or /Curriculum
     public async Task<IActionResult> Index(int? section, DifficultyLevel? level, string? search)
     {
         var model = await _curriculumService.GetCurriculumOverviewAsync(section, level, search);

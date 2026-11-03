@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # Tự động tạo Pull Request cập nhật các gói NuGet (.NET 10) hàng tuần
+  # Automatically open weekly Pull Requests for .NET 10 NuGet package updates
   - package-ecosystem: "nuget"
     directory: "/"
     schedule:
@@ -14,7 +14,7 @@ updates:
       - "dotnet-10"
       - "auto-pr"
 
-  # Tự động tạo Pull Request cập nhật Docker base images (PostgreSQL, Redis, RabbitMQ, .NET SDK)
+  # Automatically open weekly Pull Requests for Docker base image updates (PostgreSQL, Redis, RabbitMQ, .NET SDK)
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
@@ -28,7 +28,7 @@ updates:
       - "docker"
       - "auto-pr"
 
-  # Tự động tạo Pull Request cập nhật GitHub Actions workflows
+  # Automatically open weekly Pull Requests for GitHub Actions workflow updates
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

@@ -14,10 +14,10 @@ public enum FlashcardTopic
 
 public enum FlashcardRating
 {
-    Again = 1,   // Quên / Cần học lại (Next review: 1 day, Box 1)
-    Hard = 2,    // Khó / Hơi nhớ (Next review: 3 days, Box 2)
-    Good = 3,    // Tốt / Nhớ được (Next review: 7 days, Box 3)
-    Mastered = 4 // Nắm vững / Rất thuộc (Next review: 14+ days, Box 4-5)
+    Again = 1,   // Forgot / Review again (Next review: 1 day, Box 1)
+    Hard = 2,    // Difficult / Partial recall (Next review: 3 days, Box 2)
+    Good = 3,    // Solid recall (Next review: 7 days, Box 3)
+    Mastered = 4 // Fully mastered (Next review: 14+ days, Box 4-5)
 }
 
 public class InterviewFlashcard

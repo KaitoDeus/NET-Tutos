@@ -15,7 +15,7 @@ public class PlannerController : Controller
         _plannerService = plannerService;
     }
 
-    // GET: /ke-hoach-hoc-tap hoặc /study-planner
+    // GET: /ke-hoach-hoc-tap or /study-planner
     public async Task<IActionResult> Index()
     {
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

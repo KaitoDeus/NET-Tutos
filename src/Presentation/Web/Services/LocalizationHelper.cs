@@ -915,7 +915,7 @@ Write a method `Fibonacci(int n)` returning the $n$-th Fibonacci number.
 
         var desc = item.Description ?? string.Empty;
 
-        // 1. Challenge descriptions (e.g. "2. Đảo ngược chuỗi ký tự (40 XP)", "1. Tính tổng hai số nguyên (30 XP)", "Hai Con Số (Two Sum)...")
+        // 1. Coding challenge activity descriptions (e.g., "2. Reverse String (40 XP)", "1. Sum of Two Integers (30 XP)", "Two Sum...")
         if (item.Type == ActivityType.ChallengeSolved || desc.Contains("Đảo ngược chuỗi") || desc.Contains("Tính tổng hai số") || desc.Contains("Fibonacci") || desc.Contains("số nguyên tố") || desc.Contains("LINQ"))
         {
             string xpSuffix = "";
@@ -933,7 +933,7 @@ Write a method `Fibonacci(int n)` returning the $n$-th Fibonacci number.
             if (desc.Contains("Hai Con Số") || desc.Contains("Two Sum")) return "Two Sum - C# Algorithmic Mastery" + xpSuffix;
         }
 
-        // 2. Lesson descriptions (e.g. "Bài 7: Lập trình Bất đồng bộ (Async / Await) trong .NET", "Bài 6: LINQ...", "Bài 1: ...")
+        // 2. Lesson completion activity descriptions (e.g., "Lesson 7: Asynchronous Programming (Async / Await) in .NET")
         if (item.Type == ActivityType.LessonCompleted || desc.StartsWith("Bài "))
         {
             if (desc.StartsWith("Bài 1:") || desc.Contains("Tổng quan hệ sinh thái"))
@@ -960,7 +960,7 @@ Write a method `Fibonacci(int n)` returning the $n$-th Fibonacci number.
                 return "Lesson 11: Dependency Injection & SOLID Principles in ASP.NET Core";
         }
 
-        // 3. Badges (e.g. "Thợ Săn Thuật Toán C# 🏆", "Huyền Thoại Bất Bại (30 ngày kiên trì học tập)")
+        // 3. Badge award activity descriptions (e.g., "C# Algorithm Hunter", "Unstoppable Legend (30-day streak)")
         if (item.Type == ActivityType.BadgeEarned || !string.IsNullOrEmpty(item.BadgeCode) || desc.Contains("Thợ Săn") || desc.Contains("Huyền Thoại"))
         {
             if (item.BadgeCode != null && BadgeTranslations.TryGetValue(item.BadgeCode, out var bTrans))
@@ -980,7 +980,7 @@ Write a method `Fibonacci(int n)` returning the $n$-th Fibonacci number.
             if (desc.Contains("Kiến Trúc Sư .NET")) return ".NET Architect";
         }
 
-        // 4. Streak (e.g. "5 ngày học tập liên tục không ngắt quãng 🔥", "5 ngày kiên trì liên tục 🔥", "Chuỗi 5 ngày...")
+        // 4. Learning streak activity descriptions (e.g., "5-day continuous learning streak")
         if (item.Type == ActivityType.StreakAchieved || desc.Contains("ngày kiên trì") || desc.Contains("ngày học tập liên tục") || desc.Contains("ngày học liên tục"))
         {
             var matchDays = System.Text.RegularExpressions.Regex.Match(desc, @"(\d+)\s*ngày");
@@ -1096,7 +1096,7 @@ Write a method `Fibonacci(int n)` returning the $n$-th Fibonacci number.
     {
         if (string.IsNullOrWhiteSpace(message) || !isEn) return message ?? string.Empty;
 
-        // Match: "Bạn đã duy trì chuỗi 6 ngày liên tiếp (+25 XP)!"
+        // Match Vietnamese streak notification messages and translate to English (e.g., "You maintained a streak of 6 consecutive days (+25 XP)!")
         var streakMatch = System.Text.RegularExpressions.Regex.Match(message, @"(?:chuỗi|streak)\s*(\d+)\s*(?:ngày|days?)?\s*(?:liên tiếp|consecutive)?\s*(?:\(\+?(\d+)\s*XP\))?", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
         if (streakMatch.Success && streakMatch.Groups[1].Success)
         {

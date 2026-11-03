@@ -273,28 +273,28 @@ public class LeaderboardService : ILeaderboardService
             }
         }
 
-        // 1. Tân Binh .NET: Completed at least 1 lesson
+        // 1. .NET Newbie: Completed at least 1 lesson
         int completedLessons = user.LessonProgresses.Count(p => p.IsCompleted);
         TryAward("NEWBIE", completedLessons >= 1);
 
-        // 2. Học Giả Chăm Chỉ: Completed at least 5 lessons
+        // 2. Diligent Scholar: Completed at least 5 lessons
         TryAward("SCHOLAR", completedLessons >= 5);
 
-        // 3. Thợ Săn Thuật Toán: Passed at least 1 coding challenge
+        // 3. Algorithm Hunter: Passed at least 1 coding challenge
         int passedChallenges = user.Submissions.Where(s => s.IsPassed).Select(s => s.CodingChallengeId).Distinct().Count();
         TryAward("CODER", passedChallenges >= 1);
 
-        // 4. Cao Thủ Thuật Toán: Passed at least 3 coding challenges
+        // 4. Algorithm Master: Passed at least 3 coding challenges
         TryAward("ALGO_MASTER", passedChallenges >= 3);
 
-        // 5. Bậc Thầy Chứng Chỉ: At least 1 certificate
+        // 5. Certified Master: Earned at least 1 certificate
         TryAward("CERTIFIED", user.Certificates.Any());
 
-        // 6. Người Truyền Lửa: Has best answer or 3+ comments
+        // 6. Community Hero: Has at least 1 best answer or 3+ comments
         bool isHero = user.Comments.Any(c => c.IsBestAnswer) || user.Comments.Count >= 3;
         TryAward("COMMUNITY_HERO", isHero);
 
-        // 7. Kiến Trúc Sư .NET: Has at least 1 approved capstone project
+        // 7. .NET Architect: Has at least 1 approved capstone project
         bool hasApprovedProject = await _context.ProjectSubmissions
             .AnyAsync(s => s.UserId == userId && s.Status == ProjectSubmissionStatus.Approved);
         TryAward("ARCHITECT", hasApprovedProject);

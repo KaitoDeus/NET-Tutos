@@ -128,7 +128,7 @@ public class CurriculumService : ICurriculumService
         var sections = new List<CurriculumSectionViewModel>();
 
         // ----------------------------------------------------
-        // PHẦN 1: NHẬP MÔN C# (Bài 1 -> Bài 21)
+        // SECTION 1: INTRODUCTION TO C# (Lessons 1 -> 21)
         // ----------------------------------------------------
         var s1 = new CurriculumSectionViewModel
         {
@@ -677,7 +677,7 @@ public class Circle(double radius) : IShape
         sections.Add(s1);
 
         // ----------------------------------------------------
-        // PHẦN 2: C# NÂNG CAO (Bài 22 -> Bài 43)
+        // SECTION 2: ADVANCED C# (Lessons 22 -> 43)
         // ----------------------------------------------------
         var s2 = new CurriculumSectionViewModel
         {
@@ -1250,7 +1250,7 @@ Console.WriteLine($""Đã xử lý song song: {primes}"");",
         sections.Add(s2);
 
         // ----------------------------------------------------
-        // PHẦN 3: NETWORKING (Bài 44 -> Bài 48)
+        // SECTION 3: NETWORKING (Lessons 44 -> 48)
         // ----------------------------------------------------
         var s3 = new CurriculumSectionViewModel
         {
@@ -1395,7 +1395,7 @@ listener.Start();
         sections.Add(s3);
 
         // ----------------------------------------------------
-        // PHẦN 4: DATABASE & EF CORE (Bài 49 -> Bài 57)
+        // SECTION 4: DATABASE & EF CORE (Lessons 49 -> 57)
         // ----------------------------------------------------
         var s4 = new CurriculumSectionViewModel
         {
@@ -1638,7 +1638,7 @@ dotnet ef database update",
         sections.Add(s4);
 
         // ----------------------------------------------------
-        // PHẦN 5: ASP.NET CORE NỀN TẢNG (Bài 58 -> Bài 66)
+        // SECTION 5: ASP.NET CORE FUNDAMENTALS (Lessons 58 -> 66)
         // ----------------------------------------------------
         var s5 = new CurriculumSectionViewModel
         {
@@ -1753,7 +1753,7 @@ app.Run();",
                 KeyTags = new() { "MapWhen", "Pipeline Branching", "IServiceCollection" },
                 SampleCode = @"app.MapWhen(ctx => ctx.Request.Path.StartsWithSegments(""/admin""), adminApp => {
     adminApp.Use(async (ctx, next) => {
-        // Kiểm tra quyền Admin trước khi đi tiếp
+        // Verify Admin authorization before continuing
         await next();
     });
 });",
@@ -1892,7 +1892,7 @@ gulp.task('sass', function() {
         sections.Add(s5);
 
         // ----------------------------------------------------
-        // PHẦN 6: ASP.NET RAZOR PAGES & IDENTITY (Bài 67 -> Bài 89)
+        // SECTION 6: ASP.NET RAZOR PAGES & IDENTITY (Lessons 67 -> 89)
         // ----------------------------------------------------
         var s6 = new CurriculumSectionViewModel
         {
@@ -2474,7 +2474,7 @@ public class AdminDashboardModel : PageModel
         sections.Add(s6);
 
         // ----------------------------------------------------
-        // PHẦN 7: ASP.NET CORE MVC & DỰ ÁN THỰC TẾ (Bài 90 -> Bài 101)
+        // SECTION 7: ASP.NET CORE MVC & REAL-WORLD PROJECTS (Lessons 90 -> 101)
         // ----------------------------------------------------
         var s7 = new CurriculumSectionViewModel
         {

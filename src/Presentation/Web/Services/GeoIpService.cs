@@ -12,9 +12,9 @@ public interface IGeoIpService
 }
 
 /// <summary>
-/// Tự động xác định khu vực địa lý theo IP / Reverse Proxy Header:
-/// - Khu vực Việt Nam (VN) -> Tiếng Việt (vi)
-/// - Ngoài Việt Nam (International) -> Tiếng Anh (en)
+/// Automatically resolves visitor geographic region from IP or reverse-proxy headers:
+/// - Vietnam region (VN) -> Vietnamese ("vi")
+/// - Outside Vietnam (International) -> English ("en")
 /// </summary>
 public class GeoIpService : IGeoIpService
 {
@@ -30,7 +30,7 @@ public class GeoIpService : IGeoIpService
         "X-Vercel-IP-Country"
     ];
 
-    // Danh sách dải IPv4 APNIC/VNNIC cấp phát cho Việt Nam (VNPT, Viettel, FPT, Mobifone, CMC, NetNam, VNG...)
+    // APNIC/VNNIC IPv4 CIDR allocations for Vietnam ISPs (VNPT, Viettel, FPT, Mobifone, CMC, NetNam, VNG...)
     private static readonly (uint Network, uint Mask)[] VietnamIpv4Ranges = BuildVietnamIpv4Ranges(
     [
         "1.52.0.0/14",
@@ -82,7 +82,7 @@ public class GeoIpService : IGeoIpService
         "222.252.0.0/14"
     ]);
 
-    // Các tiền tố IPv6 VNNIC Việt Nam phổ biến
+    // Common VNNIC IPv6 prefixes allocated to Vietnam networks
     private static readonly string[] VietnamIpv6Prefixes =
     [
         "2001:ee0:",
@@ -117,7 +117,7 @@ public class GeoIpService : IGeoIpService
             return cachedCountry;
         }
 
-        // 1. Hỗ trợ query param ?country=VN / ?country=US để kiểm thử hoặc điều hướng vùng trực tiếp
+        // 1. Support explicit ?country=VN / ?country=US query parameter for testing or direct region preview
         if (context.Request.Query.TryGetValue("country", out var queryCountry))
         {
             var qc = queryCountry.ToString().Trim().ToUpperInvariant();
@@ -128,7 +128,7 @@ public class GeoIpService : IGeoIpService
             }
         }
 
-        // 2. Kiểm tra các Header định tuyến địa lý chuẩn từ Cloudflare / CloudFront / Nginx / Proxy
+        // 2. Inspect standard Geo-IP headers from Cloudflare, CloudFront, Nginx, Envoy, or Reverse Proxy
         foreach (var headerName in CountryHeaderNames)
         {
             if (context.Request.Headers.TryGetValue(headerName, out var headerVal))
@@ -146,13 +146,13 @@ public class GeoIpService : IGeoIpService
             }
         }
 
-        // 3. Trích xuất địa chỉ IP của Client (hỗ trợ X-Forwarded-For, X-Real-IP, CF-Connecting-IP)
+        // 3. Extract client IP address (supports CF-Connecting-IP, X-Forwarded-For, X-Real-IP)
         var clientIp = ExtractClientIp(context);
         if (clientIp == null || IsPrivateOrLoopbackIp(clientIp))
         {
-            // Môi trường local/loopback/Docker bridge:
-            // Nếu trình duyệt gửi Accept-Language ưu tiên tiếng Anh (và không có 'vi') thì coi là vùng quốc tế (US),
-            // ngược lại mặc định là VN cho môi trường dev nội bộ tại Việt Nam.
+            // Local/loopback/Docker bridge environment:
+            // If browser sends an English primary Accept-Language (without 'vi'), treat as US/International;
+            // otherwise default to VN for local development in Vietnam.
             if (context.Request.Headers.TryGetValue("Accept-Language", out var acceptLang))
             {
                 var langStr = acceptLang.ToString().Trim();
@@ -301,10 +301,10 @@ public class GeoIpService : IGeoIpService
 }
 
 /// <summary>
-/// RequestCultureProvider tự động thiết lập ngôn ngữ theo vùng IP:
-/// - IP Việt Nam (VN) -> "vi"
-/// - IP ngoài Việt Nam -> "en"
-/// Chỉ kích hoạt khi người dùng chưa chỉ định ?culture= hoặc Cookie ngôn ngữ riêng.
+/// RequestCultureProvider that automatically selects culture based on IP geo-region:
+/// - Vietnam IP (VN) -> "vi"
+/// - International IP (outside VN) -> "en"
+/// Activated only when no explicit ?culture= query or language cookie is present.
 /// </summary>
 public class GeoIpRequestCultureProvider : RequestCultureProvider
 {

@@ -159,7 +159,7 @@
 
                 <div class="collapse navbar-collapse" id="navbarContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-2 gap-1 gap-xl-1 align-items-lg-center">
-                        <!-- 1. Trang chủ -->
+                        <!-- 1. Home -->
                         <li class="nav-item">
                             <a class="nav-link text-nowrap @(isHomeActive ? "active fw-semibold" : "")"
                                asp-controller="Home" asp-action="Index">
@@ -167,7 +167,7 @@
                             </a>
                         </li>
 
-                        <!-- 2. Danh mục Khóa học & Lộ trình (Dropdown) -->
+                        <!-- 2. Courses & Roadmap (Mega Dropdown) -->
                         <li class="nav-item dropdown nav-category-dropdown">
                             <a class="nav-link dropdown-toggle text-nowrap @(isCoursesActive ? "active fw-semibold" : "")"
                                href="#" id="navCoursesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -175,7 +175,7 @@
                             </a>
                             <div class="dropdown-menu dropdown-menu-start border rounded-3 p-3 mt-0 nav-mega-dropdown" aria-labelledby="navCoursesDropdown">
                                 <div class="mega-menu-grid">
-                                    <!-- Cột 1: Danh mục chuyên đề -->
+                                    <!-- Column 1: Topic Categories -->
                                     <div class="mega-menu-col mega-menu-divider">
                                         <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                                             <span class="section-label">
@@ -217,7 +217,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Cột 2: Lối tắt học tập & Tra cứu -->
+                                    <!-- Column 2: Quick Learning & Reference Shortcuts -->
                                     <div class="mega-menu-col">
                                         <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                                             <span class="section-label">
@@ -297,7 +297,7 @@
                             </div>
                         </li>
 
-                        <!-- 3. Thực hành & Thi đấu (Dropdown) -->
+                        <!-- 3. Practice & Arena (Dropdown) -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle text-nowrap @(isPracticeActive ? "active fw-semibold" : "")"
                                href="#" id="navPracticeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -379,7 +379,7 @@
                             </ul>
                         </li>
 
-                        <!-- 4. Cộng đồng (Dropdown) -->
+                        <!-- 4. Community (Dropdown) -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle text-nowrap @(isCommunityActive ? "active fw-semibold" : "")"
                                href="#" id="navCommunityDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">

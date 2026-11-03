@@ -37,11 +37,11 @@ public interface IAppCacheService
 }
 
 /// <summary>
-/// Kiến trúc Hybrid Cache 2 tầng (Two-Tier L1 In-Memory + L2 Redis Distributed Cache):
-/// - L1 (IMemoryCache): Truy xuất cực nhanh trong RAM của tiến trình (~0.005ms).
-/// - L2 (IDistributedCache / Redis 7): Chia sẻ bộ nhớ đệm phân tán giữa nhiều container Web/Microservices (~0.5-1ms).
-/// - Chống Cache Stampede (Thundering Herd) bằng khóa SemaphoreSlim theo từng Key (Double-Checked Locking).
-/// - Tự động Circuit-Breaker Fallback về L1 nếu Redis container tạm ngắt kết nối.
+/// Two-Tier Hybrid Cache Architecture (L1 In-Memory + L2 Redis 7 Distributed Cache):
+/// - L1 (IMemoryCache): Ultra-fast in-process RAM lookup (~0.005ms).
+/// - L2 (IDistributedCache / Redis 7): Shared distributed cache across Web/Microservice containers (~0.5-1ms).
+/// - Protects against Cache Stampede (Thundering Herd) using per-key SemaphoreSlim locks (Double-Checked Locking).
+/// - Automatic 30s Circuit-Breaker fallback to L1 if the Redis container becomes temporarily unreachable.
 /// </summary>
 public class HybridRedisCacheService : IAppCacheService
 {
@@ -87,14 +87,14 @@ public class HybridRedisCacheService : IAppCacheService
         TimeSpan? l1Expiration = null,
         CancellationToken cancellationToken = default)
     {
-        // Bước 1: Kiểm tra tầng L1 (In-Memory Cache)
+        // Step 1: Check L1 In-Memory Cache
         if (_l1MemoryCache.TryGetValue(key, out T? l1Value) && l1Value is not null)
         {
             Interlocked.Increment(ref _l1Hits);
             return l1Value;
         }
 
-        // Bước 2: Kiểm tra tầng L2 (Redis Distributed Cache)
+        // Step 2: Check L2 Redis Distributed Cache
         var l2Value = await TryGetFromL2Async<T>(key, cancellationToken);
         if (l2Value is not null)
         {
@@ -104,12 +104,12 @@ public class HybridRedisCacheService : IAppCacheService
             return l2Value;
         }
 
-        // Bước 3: Chống Cache Stampede (chỉ 1 luồng truy vấn DB/Roslyn cho cùng 1 key)
+        // Step 3: Cache Stampede protection (only 1 thread queries DB/Roslyn per cache key)
         var keyLock = KeyLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
         await keyLock.WaitAsync(cancellationToken);
         try
         {
-            // Double-checked locking: kiểm tra lại L1 sau khi giành được khóa
+            // Double-checked locking: re-verify L1 after acquiring the per-key lock
             if (_l1MemoryCache.TryGetValue(key, out l1Value) && l1Value is not null)
             {
                 Interlocked.Increment(ref _l1Hits);

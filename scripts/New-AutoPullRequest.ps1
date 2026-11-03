@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
-    Tự động tạo nhánh (Branch), Commit, Push lên GitHub và kích hoạt tạo Pull Request tự động cho dự án NET-Tutos.
+    Automatically creates a feature branch, commits pending changes, pushes to GitHub, and triggers automated Pull Request creation for NET-Tutos.
 .DESCRIPTION
-    1. Nếu đang ở nhánh 'main', script tự động chuyển sang nhánh mới (ví dụ: feat/auto-pr-20261103-2010).
-    2. Tự động git add -A và git commit nếu còn thay đổi chưa commit.
-    3. Tự động git push -u origin <branchName>.
-    4. Ngay khi push lên GitHub, workflow '.github/workflows/auto-pr.yml' sẽ tự động khởi tạo Pull Request vào 'main',
-       gắn nhãn (labels) theo microservice và kích hoạt bộ 151/151 bài test CI!
-    5. Nếu có biến môi trường $env:GITHUB_TOKEN, script sẽ gọi thẳng GitHub REST API để tạo PR ngay lập tức từ máy local.
+    1. If currently on 'main', automatically creates and switches to a timestamped feature branch (e.g. feat/update-20261103-2010).
+    2. Automatically runs git add -A and git commit if uncommitted changes exist.
+    3. Automatically runs git push -u origin <branchName>.
+    4. Pushing to GitHub triggers '.github/workflows/auto-pr.yml' to open/update the Pull Request into 'main',
+       attach bounded-context labels, and run the 151/151 CI test suite.
+    5. If $env:GITHUB_TOKEN is set, calls the GitHub REST API directly from the local machine to open the PR immediately.
 .EXAMPLE
     .\scripts\New-AutoPullRequest.ps1 -BranchName "feat/seo-and-redis-upgrade" -Title "feat: upgrade SEO & Redis L2 caching"
 #>
