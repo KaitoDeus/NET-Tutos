@@ -5,8 +5,8 @@ Author: Senior Principal Solution Architect & Lead Distributed Systems Engineer
 System: **.NET Tutos - Comprehensive .NET Learning & Assessment Platform**  
 Target Framework: **.NET 10 (`net10.0`), C# 14, ASP.NET Core**  
 Architecture Pattern: **Strangler Fig Migration, Domain-Driven Design (DDD), Clean Architecture, Event-Driven Architecture (EDA)**  
-Container Orchestration: **Docker Compose (PostgreSQL 17, RabbitMQ 3, CodeRunner.API, Gamification.API, Web BFF)**  
-Status: **Phase 1, Phase 2, Phase 3 & Phase 4 (YARP API Gateway) Implemented & Verified in CI Pipeline (85/85 Tests Passing)**  
+Container Orchestration: **Docker Compose (PostgreSQL 17, RabbitMQ 3, CodeRunner.API, Gamification.API, AiTutor.API, Web BFF, YARP Gateway)**  
+Status: **Phase 1, Phase 2, Phase 3, Phase 4 (YARP API Gateway) & Phase 5 (AiTutor.API) Implemented & Verified in CI Pipeline (112/112 Tests Passing)**  
 
 ---
 
@@ -31,7 +31,7 @@ flowchart TD
     subgraph Microservices_Ecosystem["Services Layer (Backend Microservices)"]
         WebApp -- "HTTP (Resilient Delegation)\nPort 5002" --> SvcRunner["CodeRunner.API\n(src/Services/CodeRunner)\n[Roslyn C# 14, Test Case Judge]"]
         WebApp -- "HTTP / Sync Delegation\nPort 5004" --> SvcGamify["Gamification.API\n(src/Services/Gamification)\n[Streak, XP, Badges, Leaderboard]"]
-        YARP -. "Planned" .-> SvcAI["AiTutor.API\n(Complexity, Test Gen, Voice Mock Interview)"]
+        WebApp -- "HTTP (Resilient Delegation)\nPort 5006" --> SvcAI["AiTutor.API\n(src/Services/AiTutor)\n[Complexity, Test Gen, Mock Interview]"]
         YARP -. "Planned" .-> SvcCurriculum["Curriculum.API\n(101 Lessons, Quizzes, Certificates)"]
         YARP -. "Planned" .-> SvcIdentity["Identity.API\n(Auth, JWT Tokens, Profiles)"]
     end
@@ -267,12 +267,44 @@ sequenceDiagram
 
 ---
 
+## 4.5. Microservice Deep-Dive: `AiTutor` (Enterprise Clean Architecture 4-Layer Structure)
+
+Decouples algorithmic Big-O complexity analysis, C# compiler error diagnostics, xUnit test suite synthesis, code reviews, and 3-dimensional technical mock interview evaluation into an isolated microservice ([`src/Services/AiTutor/`](file:///d:/NET-Tutos/src/Services/AiTutor)):
+
+```text
+src/Services/AiTutor/
+├── 📂 NET-Tutos.AiTutor.Domain/            # Layer 1: Value Objects, Enums, AST/Complexity Rules & Exceptions
+│   ├── 📂 Common/                          # ValueObject base abstraction
+│   ├── 📂 Enums/                           # ComplexityTier, InterviewReadinessTier
+│   ├── 📂 ValueObjects/                    # EfficiencyScore, InterviewRubricScore (50/25/25 weighted rubric)
+│   ├── 📂 Rules/                           # AiAnalysisRules (Big-O detection & space allocation rules)
+│   └── 📂 Exceptions/                      # AiTutorDomainException, EmptySourceCodeException, InvalidRubricScoreException
+│
+├── 📂 NET-Tutos.AiTutor.Application/       # Layer 2: Contracts, CQRS Commands & IAiTutorEngine port
+│   ├── 📂 Common/Exceptions/               # AiTutorValidationException
+│   ├── 📂 Contracts/                       # AiTutorContracts.cs (Chat, Complexity, Error, UnitTest, Interview DTOs)
+│   ├── 📂 Features/                        # CQRS Commands & Handlers (Analysis & Interview)
+│   └── 📂 Services/                        # IAiTutorEngine interface
+│
+├── 📂 NET-Tutos.AiTutor.Infrastructure/    # Layer 3: Deterministic & AI Agent Engine implementation
+│   └── 📂 Engines/                         # DeterministicAiTutorEngine.cs
+│
+└── 📂 NET-Tutos.AiTutor.API/               # Layer 4: Minimal APIs, endpoint routing & container host
+    ├── 📂 Endpoints/                       # AiAnalysisEndpoints.cs & AiInterviewEndpoints.cs (/api/v1/aitutor/*)
+    ├── 📂 Middlewares/                     # GlobalExceptionHandlerMiddleware.cs (RFC 7807 ProblemDetails)
+    ├── 📂 Extensions/                      # AiTutorServiceExtensions.cs
+    ├── 📄 Program.cs                       # Clean composition root
+    └── 📄 Dockerfile                       # Multi-stage container build
+```
+
+---
+
 ## 5. Resilient Delegation & Strangler Fig Dual-Write Fallback Pattern
 
-Both [`CodeExecutionService.cs`](file:///d:/NET-Tutos/src/Presentation/Web/Services/CodeExecutionService.cs) and [`StreakService.cs`](file:///d:/NET-Tutos/src/Presentation/Web/Services/StreakService.cs) implement the **Strangler Fig Pattern**:
+[`CodeExecutionService.cs`](file:///d:/NET-Tutos/src/Presentation/Web/Services/CodeExecutionService.cs), [`StreakService.cs`](file:///d:/NET-Tutos/src/Presentation/Web/Services/StreakService.cs), and [`AiTutorService.cs`](file:///d:/NET-Tutos/src/Presentation/Web/Services/AiTutorService.cs) implement the **Strangler Fig Pattern**:
 
 1. **Intelligent HTTP Client Delegation:** If microservice endpoints are configured in `appsettings.json`, calls are dispatched over HTTP with short timeouts (5s–8s).
-2. **Graceful Fallback:** If the microservice is unreachable, returns an error status code, or experiences a network failure, the call is logged as a warning, and the system seamlessly falls back to local in-process execution (in-process Roslyn execution or local database transaction).
+2. **Graceful Fallback:** If the microservice is unreachable, returns an error status code, or experiences a network failure, the call is logged as a warning, and the system seamlessly falls back to local in-process execution.
 3. **Zero Learner Disruption:** End-users experience zero downtime or fatal exceptions during microservice restarts, redeployments, or temporary network partitions.
 
 ### Configuration (`src/Presentation/Web/appsettings.json`):
@@ -283,6 +315,9 @@ Both [`CodeExecutionService.cs`](file:///d:/NET-Tutos/src/Presentation/Web/Servi
   },
   "Gamification": {
     "Url": "http://localhost:5004"
+  },
+  "AiTutor": {
+    "Url": "http://localhost:5006"
   }
 }
 ```
@@ -298,6 +333,7 @@ To provide unified access control, TLS termination, distributed tracing, and rat
 2. **Reverse Proxy & Route Mapping:**
    - `/api/v1/runner/{**catch-all}` -> Routed to `coderunner-cluster` (`http://coderunner:8080`).
    - `/api/v1/gamification/{**catch-all}` -> Routed to `gamification-cluster` (`http://gamification:8080`).
+   - `/api/v1/aitutor/{**catch-all}` -> Routed to `aitutor-cluster` (`http://aitutor:8080`).
    - `/{**catch-all}` -> Routed to `web-cluster` (`http://web:5000`).
 3. **Correlation ID Middleware:** Automatically inspects incoming HTTP requests for `X-Correlation-ID`. If missing, generates a new unique `Guid` and stamps it onto both response headers and forwarded upstream requests for distributed tracing.
 4. **Endpoint Rate Limiting:** Enforces ASP.NET Core Fixed-Window Rate Limiter (`runner-policy`: 60 requests/minute per client IP) on compute-intensive Roslyn execution endpoints to defend against denial-of-service abuse.
@@ -315,6 +351,7 @@ The platform is orchestrated via [`docker-compose.yml`](file:///d:/NET-Tutos/doc
 | **`nettutos-web`** | `web` | `src/Presentation/Web/Dockerfile` | `5001:5000` | ASP.NET Core 10 Web Application & BFF Frontend |
 | **`nettutos-coderunner`** | `coderunner` | `src/Services/CodeRunner/NET-Tutos.CodeRunner.API/Dockerfile` | `5002:8080` | Sandboxed Roslyn script compilation & challenge judge |
 | **`nettutos-gamification`** | `gamification` | `src/Services/Gamification/NET-Tutos.Gamification.API/Dockerfile` | `5004:8080` | Gamification microservice with MassTransit consumers |
+| **`nettutos-aitutor`** | `aitutor` | `src/Services/AiTutor/NET-Tutos.AiTutor.API/Dockerfile` | `5006:8080` | AI Tutor analysis & technical mock interview microservice |
 | **`nettutos-rabbitmq`** | `rabbitmq` | `rabbitmq:3-management-alpine` | `5672:5672`<br/>`15672:15672` | AMQP Message Broker & Management Web Console |
 | **`nettutos-postgres`** | `postgres` | `postgres:17-alpine` | `5432:5432` | Relational storage for Identity, Web, and Gamification |
 
@@ -327,7 +364,7 @@ docker compose up -d --build
 
 ## 7. Verification & Automated Quality Gates
 
-The distributed microservices architecture is verified by an 85-test automated suite executed across all projects:
+The distributed microservices architecture is verified by a 112-test automated suite executed across all projects:
 
 ```powershell
 # 1. Run API Gateway routing and correlation ID tests (4 tests)
@@ -339,12 +376,15 @@ dotnet test tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.cspr
 # 3. Run CodeRunner microservice Roslyn sandbox tests (11 tests)
 dotnet test tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj
 
-# 4. Run Web application unit & service tests (42 tests)
+# 4. Run AiTutor microservice domain & engine tests (16 tests)
+dotnet test tests/NET-Tutos.AiTutor.Tests/NET-Tutos.AiTutor.Tests.csproj
+
+# 5. Run Web application unit & service tests (53 tests)
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
 
-# 5. Run HTTP integration pipeline tests (12 tests)
+# 6. Run HTTP integration pipeline tests (12 tests)
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
 ```
 
-**Quality Gate Result:** **85/85 Tests Passing (100% Pass Rate, 0 Failed, 0 Skipped).**  
+**Quality Gate Result:** **112/112 Tests Passing (100% Pass Rate, 0 Failed, 0 Skipped).**  
 All test suites are permanently enforced in GitHub Actions continuous delivery via [`.github/workflows/ci.yml`](file:///d:/NET-Tutos/.github/workflows/ci.yml).

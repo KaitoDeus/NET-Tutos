@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+using System.Net.Http.Json;
+using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using NET_Tutos.Data;
 using NET_Tutos.Models.ViewModels;
@@ -9,9 +11,25 @@ public class AiTutorService : IAiTutorService
 {
     private readonly AppDbContext _context;
 
-    public AiTutorService(AppDbContext context)
+    private readonly HttpClient? _httpClient;
+    private readonly string? _remoteServiceUrl;
+    private readonly ILogger<AiTutorService>? _logger;
+
+    public AiTutorService(
+        AppDbContext context,
+        IHttpClientFactory? httpClientFactory = null,
+        IConfiguration? configuration = null,
+        ILogger<AiTutorService>? logger = null)
     {
         _context = context;
+        _logger = logger;
+        _remoteServiceUrl = configuration?["Services:AiTutor:Url"]?.TrimEnd('/');
+        if (!string.IsNullOrEmpty(_remoteServiceUrl) && httpClientFactory != null)
+        {
+            _httpClient = httpClientFactory.CreateClient("AiTutor");
+            _httpClient.BaseAddress = new Uri(_remoteServiceUrl);
+            _httpClient.Timeout = TimeSpan.FromSeconds(5);
+        }
     }
 
     public async Task<AiTutorChatResponse> ChatAsync(AiTutorChatRequest request, bool isEnglish)
@@ -185,6 +203,43 @@ public class AiTutorService : IAiTutorService
 
     public async Task<AiExplainErrorResponse> ExplainErrorAsync(AiExplainErrorRequest request, bool isEnglish)
     {
+        if (_httpClient != null && !string.IsNullOrEmpty(_remoteServiceUrl))
+        {
+            try
+            {
+                var payload = new
+                {
+                    ErrorMessage = request.ErrorMessage,
+                    SourceCode = request.SourceCode,
+                    IsEnglish = isEnglish
+                };
+                var response = await _httpClient.PostAsJsonAsync("/api/v1/aitutor/explain-error", payload);
+                if (response.IsSuccessStatusCode)
+                {
+                    var envelope = await response.Content.ReadFromJsonAsync<JsonNode>();
+                    var data = envelope?["data"] ?? envelope;
+                    if (data != null)
+                    {
+                        return new AiExplainErrorResponse
+                        {
+                            Success = data["success"]?.GetValue<bool>() ?? true,
+                            ErrorCode = data["errorCode"]?.GetValue<string?>(),
+                            LineNumber = data["lineNumber"]?.GetValue<int?>(),
+                            ErrorTitle = data["errorTitle"]?.GetValue<string>() ?? string.Empty,
+                            Explanation = data["explanation"]?.GetValue<string>() ?? string.Empty,
+                            HowToFix = data["howToFix"]?.GetValue<string>() ?? string.Empty,
+                            SuggestedFixCode = data["suggestedFixCode"]?.GetValue<string?>(),
+                            ProTip = data["proTip"]?.GetValue<string?>()
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "AiTutor.API remote ExplainError call failed. Falling back to in-process rule engine.");
+            }
+        }
+
         await Task.CompletedTask; // Keep async signature
 
         var error = request.ErrorMessage ?? string.Empty;
@@ -543,6 +598,43 @@ public class AiTutorService : IAiTutorService
         await Task.CompletedTask;
         var code = request.SourceCode ?? string.Empty;
 
+        if (_httpClient != null && !string.IsNullOrEmpty(_remoteServiceUrl))
+        {
+            try
+            {
+                var payload = new
+                {
+                    SourceCode = request.SourceCode,
+                    ChallengeTitle = request.ChallengeTitle,
+                    IsEnglish = isEnglish
+                };
+                var response = await _httpClient.PostAsJsonAsync("/api/v1/aitutor/analyze-complexity", payload);
+                if (response.IsSuccessStatusCode)
+                {
+                    var envelope = await response.Content.ReadFromJsonAsync<JsonNode>();
+                    var data = envelope?["data"] ?? envelope;
+                    if (data != null)
+                    {
+                        return new AiComplexityResponse
+                        {
+                            Success = data["success"]?.GetValue<bool>() ?? true,
+                            TimeComplexity = data["timeComplexity"]?.GetValue<string>() ?? "O(N)",
+                            SpaceComplexity = data["spaceComplexity"]?.GetValue<string>() ?? "O(1)",
+                            EfficiencyScore = data["efficiencyScore"]?.GetValue<int>() ?? 85,
+                            Summary = data["summary"]?.GetValue<string>() ?? string.Empty,
+                            DetailedExplanation = data["detailedExplanation"]?.GetValue<string>() ?? string.Empty,
+                            OptimizationTip = data["optimizationTip"]?.GetValue<string?>(),
+                            OptimalComparison = data["optimalComparison"]?.GetValue<string?>()
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "AiTutor.API remote AnalyzeComplexity call failed. Falling back to in-process rule engine.");
+            }
+        }
+
         // Detect loops, nesting, sorting, recursion
         int loopCount = Regex.Matches(code, @"\b(for|while|foreach)\b").Count;
         bool hasNestedLoop = Regex.IsMatch(code, @"(for|while|foreach)[^{]*\{[^{}]*(for|while|foreach)");
@@ -753,6 +845,41 @@ public class AiTutorService : IAiTutorService
     {
         await Task.CompletedTask;
         var code = request.SourceCode ?? string.Empty;
+
+        if (_httpClient != null && !string.IsNullOrEmpty(_remoteServiceUrl))
+        {
+            try
+            {
+                var payload = new
+                {
+                    SourceCode = request.SourceCode,
+                    MethodOrClassName = request.MethodOrClassName,
+                    IsEnglish = isEnglish
+                };
+                var response = await _httpClient.PostAsJsonAsync("/api/v1/aitutor/generate-unit-test", payload);
+                if (response.IsSuccessStatusCode)
+                {
+                    var envelope = await response.Content.ReadFromJsonAsync<JsonNode>();
+                    var data = envelope?["data"] ?? envelope;
+                    if (data != null)
+                    {
+                        var remoteScenarios = data["coveredScenarios"]?.AsArray()?.Select(s => s?.GetValue<string>() ?? string.Empty).ToList() ?? [];
+                        return new AiGenerateUnitTestResponse
+                        {
+                            Success = data["success"]?.GetValue<bool>() ?? true,
+                            TestFramework = data["testFramework"]?.GetValue<string>() ?? "xUnit (.NET 10)",
+                            TestCode = data["testCode"]?.GetValue<string>() ?? string.Empty,
+                            Explanation = data["explanation"]?.GetValue<string>() ?? string.Empty,
+                            CoveredScenarios = remoteScenarios
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "AiTutor.API remote GenerateUnitTest call failed. Falling back to in-process rule engine.");
+            }
+        }
 
         // Extract method name
         var methodMatch = Regex.Match(code, @"(?:public|private|protected|internal|static|\s)+\s+([a-zA-Z0-9_<>]+)\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)");

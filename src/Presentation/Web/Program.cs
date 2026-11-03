@@ -62,15 +62,15 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 builder.Services.AddMemoryCache();
 
-// CORS configuration for Frontend (Next.js) and other clients
+// CORS configuration for Web MVC & Mobile (.NET MAUI) clients
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
         policy.WithOrigins(
-                "http://localhost:3000",
-                "http://127.0.0.1:3000",
-                "https://localhost:3000"
+                "http://localhost:5000",
+                "http://127.0.0.1:5000",
+                "https://localhost:5001"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -86,7 +86,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = ".NET Tutos RESTful API Engine",
         Version = "v1",
-        Description = "Hệ thống RESTful Web API chuẩn hóa phục vụ Web Frontend (Next.js) và Mobile App (.NET MAUI)."
+        Description = "Hệ thống RESTful Web API chuẩn hóa phục vụ Web App (ASP.NET Core 10 MVC) và Mobile App (.NET MAUI 10)."
     });
 
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.OpenApiSecurityScheme
@@ -143,6 +143,7 @@ builder.Services.AddScoped<ICertificateService, CertificateService>();
 builder.Services.AddScoped<IExamService, ExamService>();
 builder.Services.AddHttpClient("CodeRunner");
 builder.Services.AddHttpClient("Gamification");
+builder.Services.AddHttpClient("AiTutor");
 builder.Services.AddHttpClient("Gemini", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(30);

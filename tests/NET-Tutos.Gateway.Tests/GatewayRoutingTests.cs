@@ -77,6 +77,7 @@ public class GatewayRoutingTests : IClassFixture<WebApplicationFactory<Program>>
         var content = await response.Content.ReadAsStringAsync();
         content.Should().Contain("coderunner-cluster");
         content.Should().Contain("gamification-cluster");
+        content.Should().Contain("aitutor-cluster");
         content.Should().Contain("web-cluster");
     }
 }

@@ -19,6 +19,12 @@
       <Project Path="src/Services/Gamification/NET-Tutos.Gamification.Infrastructure/NET-Tutos.Gamification.Infrastructure.csproj" />
       <Project Path="src/Services/Gamification/NET-Tutos.Gamification.API/NET-Tutos.Gamification.API.csproj" />
     </Folder>
+    <Folder Name="/02. Services (Backend Microservices &amp; Server)/AiTutor/">
+      <Project Path="src/Services/AiTutor/NET-Tutos.AiTutor.Domain/NET-Tutos.AiTutor.Domain.csproj" />
+      <Project Path="src/Services/AiTutor/NET-Tutos.AiTutor.Application/NET-Tutos.AiTutor.Application.csproj" />
+      <Project Path="src/Services/AiTutor/NET-Tutos.AiTutor.Infrastructure/NET-Tutos.AiTutor.Infrastructure.csproj" />
+      <Project Path="src/Services/AiTutor/NET-Tutos.AiTutor.API/NET-Tutos.AiTutor.API.csproj" />
+    </Folder>
   </Folder>
   <Folder Name="/03. Infrastructure (Hạ tầng kỹ thuật &amp; EventBus)/">
     <Project Path="src/Infrastructure/Common/NET-Tutos.BuildingBlocks.Common.csproj" />
@@ -29,6 +35,7 @@
     <Project Path="tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj" />
     <Project Path="tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj" />
     <Project Path="tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.csproj" />
+    <Project Path="tests/NET-Tutos.AiTutor.Tests/NET-Tutos.AiTutor.Tests.csproj" />
     <Project Path="tests/NET-Tutos.Gateway.Tests/NET-Tutos.Gateway.Tests.csproj" />
   </Folder>
 </Solution>

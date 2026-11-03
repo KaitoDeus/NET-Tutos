@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>NET_Tutos.AiTutor.API</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NET-Tutos.AiTutor.Application\NET-Tutos.AiTutor.Application.csproj" />
+    <ProjectReference Include="..\NET-Tutos.AiTutor.Infrastructure\NET-Tutos.AiTutor.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
