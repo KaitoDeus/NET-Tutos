@@ -26,6 +26,8 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
     [InlineData("/AiTutor")]
     [InlineData("/Exam")]
     [InlineData("/Leaderboard")]
+    [InlineData("/coding-arena")]
+    [InlineData("/dau-truong-code")]
     public async Task Get_PublicEndpoints_ReturnSuccessAndCorrectContentType(string url)
     {
         // Act

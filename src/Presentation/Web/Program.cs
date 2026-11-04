@@ -211,6 +211,7 @@ builder.Services.AddScoped<IMobileAuthService, MobileAuthService>();
 builder.Services.AddSingleton<INavMenuService, NavMenuService>();
 builder.Services.AddSingleton<IGeoIpService, GeoIpService>();
 builder.Services.AddSingleton<ISeoMetadataService, SeoMetadataService>();
+builder.Services.AddSingleton<ICodingArenaService, CodingArenaService>();
 
 // Determine Database Provider
 var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "PostgreSql";
@@ -646,6 +647,16 @@ app.MapControllerRoute(
     pattern: "study-planner",
     defaults: new { controller = "Planner", action = "Index" });
 
+app.MapControllerRoute(
+    name: "arena-vi",
+    pattern: "dau-truong-code",
+    defaults: new { controller = "Arena", action = "Index" });
+
+app.MapControllerRoute(
+    name: "arena-en",
+    pattern: "coding-arena",
+    defaults: new { controller = "Arena", action = "Index" });
+
 // Friendly certificate verify route: /verify-certificate/{code}
 app.MapControllerRoute(
     name: "certificate-verify",
@@ -655,6 +666,7 @@ app.MapControllerRoute(
 // SignalR Hub endpoints
 app.MapHub<DiscussionHub>("/hubs/discussion");
 app.MapHub<NotificationHub>("/hubs/notifications");
+app.MapHub<CodingArenaHub>("/hubs/arena");
 
 // Default route
 app.MapControllerRoute(

@@ -1,0 +1,128 @@
+@model IReadOnlyList<NET_Tutos.Services.ArenaRoomViewModel>
+@{
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "1v1 C# Coding Arena" : "Đấu Trường Thuật Toán C# 1v1";
+    string selectedCode = ViewBag.SelectedRoomCode as string ?? "ARENA-LINQ-01";
+    var activeRoom = Model.FirstOrDefault(r => r.RoomCode == selectedCode) ?? Model.First();
+    string defaultPlayer = User.Identity?.IsAuthenticated == true ? (User.Identity.Name ?? "DotNetWarrior") : "DotNetChallenger";
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <span class="badge bg-dark text-white mb-2">
+                <i class="bi bi-broadcast me-1"></i> @(isEn ? "REAL-TIME SIGNALR ARENA" : "ĐẤU TRƯỜNG THỜI GIAN THỰC SIGNALR")
+            </span>
+            <h1 class="h3 fw-bold mb-1">@(isEn ? "1v1 C# 14 Algorithmic Coding Arena" : "Đấu Trường Thuật Toán C# 14 (1v1 Live)")</h1>
+            <p class="text-muted mb-0">@(isEn ? "Compete in real-time C# coding rooms, solve algorithmic challenges with Roslyn, and climb the ELO rating ladder." : "Tranh tài giải thuật C# trực tiếp theo thời gian thực qua SignalR, chấm bài tự động với Roslyn và tích lũy điểm ELO + XP.")</p>
+        </div>
+        <div class="d-flex gap-2">
+            @foreach (var room in Model)
+            {
+                <a href="?room=@room.RoomCode" class="btn btn-sm @(room.RoomCode == activeRoom.RoomCode ? "btn-primary" : "btn-outline-secondary")">
+                    @room.RoomCode (@room.Difficulty)
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card border shadow-sm h-100">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3">
+                    <span class="fw-bold"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> @(isEn ? activeRoom.TitleEn : activeRoom.TitleVi)</span>
+                    <span class="badge bg-success">+@activeRoom.RewardXp XP</span>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">@(isEn ? activeRoom.DescriptionEn : activeRoom.DescriptionVi)</p>
+                    <div class="p-2 rounded bg-light border mb-3 small font-monospace">
+                        <strong>@(isEn ? "Expected Console Output:" : "Kết quả Console kỳ vọng:")</strong> <span class="text-primary fw-bold">@activeRoom.ExpectedOutput</span>
+                    </div>
+
+                    <h6 class="fw-bold mb-2">@(isEn ? "Live Contenders in Room" : "Đấu thủ đang trong phòng") (<span id="arenaRoomCodeLabel">@activeRoom.RoomCode</span>)</h6>
+                    <div id="arenaPlayersList" class="d-flex flex-column gap-2 mb-3">
+                        @if (activeRoom.Players.Count == 0)
+                        {
+                            <div class="text-muted small">@(isEn ? "No contenders joined yet. Click Join or Run Solution below!" : "Chưa có đấu thủ nào. Bấm Tham gia hoặc Nộp bài bên phải!")</div>
+                        }
+                        else
+                        {
+                            @foreach (var p in activeRoom.Players)
+                            {
+                                <div class="border rounded p-2">
+                                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                        <span>@p.PlayerName (ELO: @p.EloRating)</span>
+                                        <span>@(p.HasSolved ? "SOLVED (100%)" : $"{p.ProgressPercent}%")</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar @(p.HasSolved ? "bg-success" : "bg-primary")" style="width: @p.ProgressPercent%"></div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card border shadow-sm">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold"><i class="bi bi-code-slash me-1"></i> C# 14 Arena Sandbox</span>
+                        <input type="text" id="arenaPlayerInput" class="form-control form-control-sm" style="width: 170px;" value="@defaultPlayer" placeholder="Coder Handle" />
+                    </div>
+                    <button type="button" id="btnSubmitArena" class="btn btn-primary btn-sm">
+                        <i class="bi bi-play-fill me-1"></i> @(isEn ? "Execute & Submit" : "Chạy & Nộp Bài Đấu")
+                    </button>
+                </div>
+                <div class="card-body">
+                    <textarea id="arenaCodeEditor" class="form-control font-monospace mb-3" rows="9" spellcheck="false">@activeRoom.StarterCode</textarea>
+                    <div id="arenaResultBox" class="p-3 rounded bg-dark text-light font-monospace small">
+                        @(isEn ? "// Ready. Click 'Execute & Submit' to compile and compete." : "// Sẵn sàng. Nhấn 'Chạy & Nộp Bài Đấu' để biên dịch Roslyn và so tài.")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const roomCode = "@activeRoom.RoomCode";
+            const btn = document.getElementById("btnSubmitArena");
+            const editor = document.getElementById("arenaCodeEditor");
+            const playerInput = document.getElementById("arenaPlayerInput");
+            const resultBox = document.getElementById("arenaResultBox");
+
+            if (btn) {
+                btn.addEventListener("click", async function () {
+                    btn.disabled = true;
+                    resultBox.textContent = "Compiling & evaluating C# 14 solution...";
+                    try {
+                        const res = await fetch("/api/arena/submit", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                roomCode: roomCode,
+                                playerName: playerInput.value || "DotNetChallenger",
+                                sourceCode: editor.value
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.isCorrectOutput) {
+                            resultBox.textContent = `[VICTORY] Output: ${data.actualOutput} (${data.executionTimeMs}ms) | +${data.awardedXp} XP | ELO: ${data.newEloRating} (${data.eloDelta >= 0 ? "+" : ""}${data.eloDelta})`;
+                        } else {
+                            resultBox.textContent = `[MISMATCH] Expected: ${data.expectedOutput}, Actual: ${data.actualOutput || data.errorMessage || "Error"} | ELO: ${data.newEloRating}`;
+                        }
+                    } catch (e) {
+                        resultBox.textContent = "Submission error.";
+                    } finally {
+                        btn.disabled = false;
+                    }
+                });
+            }
+        })();
+    </script>
+}
