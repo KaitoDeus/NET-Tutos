@@ -195,20 +195,27 @@ public class ExamService : IExamService
 
     public async Task<ExamResultViewModel> EvaluateExamAsync(string userId, ExamSubmissionViewModel submission, string hostUrl)
     {
-        var questionIds = submission.Answers.Keys.ToList();
+        // Determine all question IDs evaluated in this exam session
+        var allQuestionIds = (submission.QuestionIds != null && submission.QuestionIds.Any())
+            ? submission.QuestionIds.Distinct().ToList()
+            : submission.Answers.Keys.ToList();
+
         var questionsFromDb = await _context.QuizQuestions
-            .Where(q => questionIds.Contains(q.Id))
+            .Where(q => allQuestionIds.Contains(q.Id))
             .ToDictionaryAsync(q => q.Id);
 
-        int totalQuestions = questionIds.Count;
+        int totalQuestions = allQuestionIds.Count;
         int correctCount = 0;
         var resultItems = new List<ExamQuestionResultItem>();
 
-        foreach (var (qId, selectedOpt) in submission.Answers)
+        foreach (var qId in allQuestionIds)
         {
             if (questionsFromDb.TryGetValue(qId, out var q))
             {
-                bool isCorrect = q.CorrectOption.Equals(selectedOpt, StringComparison.OrdinalIgnoreCase);
+                submission.Answers.TryGetValue(qId, out var selectedOpt);
+                selectedOpt ??= string.Empty;
+
+                bool isCorrect = !string.IsNullOrEmpty(selectedOpt) && q.CorrectOption.Equals(selectedOpt, StringComparison.OrdinalIgnoreCase);
                 if (isCorrect) correctCount++;
 
                 resultItems.Add(new ExamQuestionResultItem

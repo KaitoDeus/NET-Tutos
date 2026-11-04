@@ -55,10 +55,13 @@ public class ExamController : Controller
     [Authorize]
     public async Task<IActionResult> Submit([FromBody] ExamSubmissionViewModel model)
     {
-        if (model == null || model.Answers == null || !model.Answers.Any())
+        if (model == null)
         {
             return BadRequest(new { success = false, message = "Dữ liệu bài nộp không hợp lệ." });
         }
+
+        model.Answers ??= new();
+        model.QuestionIds ??= new();
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var hostUrl = $"{Request.Scheme}://{Request.Host}";

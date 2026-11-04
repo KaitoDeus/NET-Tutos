@@ -56,6 +56,7 @@ public class ExamSubmissionViewModel
     public int? CategoryId { get; set; }
     public string ExamTitle { get; set; } = string.Empty;
     public int ElapsedSeconds { get; set; }
+    public List<int> QuestionIds { get; set; } = new();
     public Dictionary<int, string> Answers { get; set; } = new();
 }
 

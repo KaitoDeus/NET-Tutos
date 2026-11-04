@@ -231,6 +231,10 @@
                 btnConfirmSubmit.disabled = true;
                 if (submitSpinner) submitSpinner.classList.remove('d-none');
 
+                const allQuestionIds = Array.from(new Set(
+                    Array.from(document.querySelectorAll('.answer-radio')).map(r => parseInt(r.getAttribute('data-question-id')))
+                ));
+
                 const answers = {};
                 document.querySelectorAll('.answer-radio:checked').forEach(r => {
                     const qId = parseInt(r.getAttribute('data-question-id'));
@@ -242,6 +246,7 @@
                     categoryId: @(Model.CategoryId.HasValue ? Model.CategoryId.Value.ToString() : "null"),
                     examTitle: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ExamTitle)),
                     elapsedSeconds: elapsedSeconds,
+                    questionIds: allQuestionIds,
                     answers: answers
                 };
 
