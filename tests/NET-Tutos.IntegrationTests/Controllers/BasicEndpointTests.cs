@@ -111,4 +111,25 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
         // Assert: Unauthenticated access requires signing in before chatting with agent
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task Get_LoginPage_DoesNotShowDemoAccountsAndContainsGitHubAndGoogleExternalLoginForms()
+    {
+        // Act
+        var loginHtml = await (await _client.GetAsync("/Account/Login")).Content.ReadAsStringAsync();
+        var registerHtml = await (await _client.GetAsync("/Account/Register")).Content.ReadAsStringAsync();
+
+        // Assert: No demo account buttons or credentials displayed
+        loginHtml.Should().NotContain("student@nettutos.com");
+        loginHtml.Should().NotContain("fillDemoCredentials");
+
+        // Assert: Real GitHub & Google OAuth forms are present
+        loginHtml.Should().Contain("/Account/ExternalLogin");
+        loginHtml.Should().Contain("value=\"GitHub\"");
+        loginHtml.Should().Contain("value=\"Google\"");
+
+        registerHtml.Should().Contain("/Account/ExternalLogin");
+        registerHtml.Should().Contain("value=\"GitHub\"");
+        registerHtml.Should().Contain("value=\"Google\"");
+    }
 }

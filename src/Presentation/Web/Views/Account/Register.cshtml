@@ -14,7 +14,6 @@
                         <div class="d-flex align-items-center gap-2">
                             <img src="~/images/csharp-logo.png" alt="C# Logo" width="28" height="32" style="object-fit: contain;" />
                             <span class="fw-bold fs-5 tracking-wide text-body">.NET Tutos</span>
-                            <span class="badge bg-primary-subtle text-primary fw-semibold" style="font-size: 0.7rem;">.NET 10</span>
                         </div>
                         <a asp-controller="Home" asp-action="Index" class="btn btn-sm btn-link text-decoration-none text-muted p-0 small">
                             <i class="bi bi-house-door me-1"></i>@(isEn ? "Home" : "Trang chủ")
@@ -35,10 +34,7 @@
 
                     <!-- Register Header -->
                     <div class="text-center mb-4">
-                        <h3 class="fw-bold mb-1">@(isEn ? "Create Learner Account" : "Đăng Ký Tài Khoản Mới")</h3>
-                        <p class="text-muted small mb-0">
-                            @(isEn ? "Fill in your details to create your free account and get +50 XP bonus." : "Điền thông tin bên dưới để bắt đầu học tập và nhận ngay +50 XP khởi đầu.")
-                        </p>
+                        <h3 class="fw-bold mb-0">@(isEn ? "Create Account" : "Đăng Ký Tài Khoản")</h3>
                     </div>
 
                     <!-- Register Form -->
@@ -157,19 +153,27 @@
                         <hr class="flex-grow-1 my-0 opacity-25" />
                     </div>
 
-                    <!-- Social Buttons -->
+                    <!-- Social OAuth 2.0 Buttons (GitHub & Google) -->
                     <div class="row g-2 mb-4">
                         <div class="col-6">
-                            <button type="button" class="btn btn-outline-secondary w-100 py-2 rounded-3 small fw-semibold social-auth-btn d-flex align-items-center justify-content-center gap-2" onclick="showSocialNotice('GitHub')">
-                                <i class="bi bi-github fs-6"></i>
-                                <span>GitHub</span>
-                            </button>
+                            <form method="post" asp-controller="Account" asp-action="ExternalLogin">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="provider" value="GitHub" />
+                                <button type="submit" class="btn btn-outline-secondary w-100 py-2 rounded-3 small fw-semibold social-auth-btn d-flex align-items-center justify-content-center gap-2">
+                                    <i class="bi bi-github fs-6"></i>
+                                    <span>GitHub</span>
+                                </button>
+                            </form>
                         </div>
                         <div class="col-6">
-                            <button type="button" class="btn btn-outline-secondary w-100 py-2 rounded-3 small fw-semibold social-auth-btn d-flex align-items-center justify-content-center gap-2" onclick="showSocialNotice('Google')">
-                                <i class="bi bi-google text-danger fs-6"></i>
-                                <span>Google</span>
-                            </button>
+                            <form method="post" asp-controller="Account" asp-action="ExternalLogin">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="provider" value="Google" />
+                                <button type="submit" class="btn btn-outline-secondary w-100 py-2 rounded-3 small fw-semibold social-auth-btn d-flex align-items-center justify-content-center gap-2">
+                                    <i class="bi bi-google text-danger fs-6"></i>
+                                    <span>Google</span>
+                                </button>
+                            </form>
                         </div>
                     </div>
 
@@ -309,7 +313,7 @@
                 seg1.style.backgroundColor = 'var(--bs-info)';
                 seg2.style.backgroundColor = 'var(--bs-info)';
                 seg3.style.backgroundColor = 'var(--bs-info)';
-                meterLabel.textContent = isEnglish ? 'Good' : 'Khá tốt';
+                meterLabel.textContent = isEnglish ? 'Good' : 'Khá mạnh';
                 meterLabel.className = 'fw-bold text-info';
             } else {
                 segments.forEach(s => s.style.backgroundColor = 'var(--bs-success)');
@@ -320,18 +324,18 @@
             checkConfirmMatch();
         });
 
-        regConfirmPassword.addEventListener('input', checkConfirmMatch);
-
-        function updateCheck(el, isValid) {
+        function updateCheck(el, passed) {
             const icon = el.querySelector('i');
-            if (isValid) {
+            if (passed) {
                 el.classList.add('valid');
-                icon.className = 'bi bi-check-circle-fill text-success';
+                icon.className = 'bi bi-check-circle-fill';
             } else {
                 el.classList.remove('valid');
-                icon.className = 'bi bi-circle text-muted';
+                icon.className = 'bi bi-circle';
             }
         }
+
+        regConfirmPassword.addEventListener('input', checkConfirmMatch);
 
         function checkConfirmMatch() {
             const p1 = regPassword.value;
@@ -350,13 +354,6 @@
                 confirmMatchBadge.textContent = isEnglish ? '✕ Passwords do not match' : '✕ Mật khẩu chưa khớp';
                 confirmMatchBadge.className = 'small text-danger fw-bold';
             }
-        }
-
-        function showSocialNotice(provider) {
-            const msg = @(Html.Raw(System.Text.Json.JsonSerializer.Serialize(isEn 
-                ? "OAuth integration with {0} is coming soon. Please complete the registration form above to get your +50 XP bonus!"
-                : "Tính năng liên kết tài khoản {0} đang chuẩn bị ra mắt. Hãy đăng ký qua biểu mẫu bên trên để nhận ngay phần thưởng +50 XP!")));
-            alert(msg.replace('{0}', provider));
         }
     </script>
 }

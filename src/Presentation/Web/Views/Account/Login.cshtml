@@ -14,7 +14,6 @@
                         <div class="d-flex align-items-center gap-2">
                             <img src="~/images/csharp-logo.png" alt="C# Logo" width="28" height="32" style="object-fit: contain;" />
                             <span class="fw-bold fs-5 tracking-wide text-body">.NET Tutos</span>
-                            <span class="badge bg-primary-subtle text-primary fw-semibold" style="font-size: 0.7rem;">.NET 10</span>
                         </div>
                         <a asp-controller="Home" asp-action="Index" class="btn btn-sm btn-link text-decoration-none text-muted p-0 small">
                             <i class="bi bi-house-door me-1"></i>@(isEn ? "Home" : "Trang chủ")
@@ -33,33 +32,18 @@
                         </div>
                     </div>
 
-                    <!-- Welcome Header -->
+                    <!-- Login Header -->
                     <div class="text-center mb-4">
-                        <h3 class="fw-bold mb-1">@(isEn ? "Welcome Back!" : "Chào Mừng Quay Lại!")</h3>
-                        <p class="text-muted small mb-0">
-                            @(isEn ? "Enter your account credentials to continue your lessons." : "Nhập thông tin tài khoản để tiếp tục bài học và chuỗi Streak của bạn.")
-                        </p>
+                        <h3 class="fw-bold mb-0">@(isEn ? "Sign In" : "Đăng Nhập")</h3>
                     </div>
 
-                    <!-- 1-Click Quick Demo Accounts Bar -->
-                    <div class="p-3 mb-4 rounded-3 border bg-body-tertiary">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="small fw-bold text-primary">
-                                <i class="bi bi-lightning-charge-fill text-warning me-1"></i>@(isEn ? "1-Click Demo Login:" : "Đăng nhập thử nghiệm 1 chạm:")
-                            </span>
-                            <span class="text-muted" style="font-size: 0.72rem;">@(isEn ? "Click to auto-fill" : "Bấm để điền mẫu")</span>
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger py-2 small mb-3 rounded-3 d-flex align-items-center gap-2">
+                            <i class="bi bi-exclamation-triangle-fill fs-6 flex-shrink-0"></i>
+                            <div>@TempData["ErrorMessage"]</div>
                         </div>
-                        <div class="d-flex flex-wrap gap-2">
-                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 demo-account-chip student-chip d-flex align-items-center gap-1.5 shadow-none" onclick="fillDemoCredentials('student@nettutos.com', 'StudentPassword@123')">
-                                <i class="bi bi-mortarboard-fill"></i>
-                                <span class="fw-semibold">@(isEn ? "Demo Student" : "Học viên Demo")</span>
-                            </button>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 demo-account-chip admin-chip d-flex align-items-center gap-1.5 shadow-none" onclick="fillDemoCredentials('admin@nettutos.com', 'AdminPassword@123')">
-                                <i class="bi bi-shield-lock-fill"></i>
-                                <span class="fw-semibold">@(isEn ? "System Admin" : "Quản trị viên")</span>
-                            </button>
-                        </div>
-                    </div>
+                    }
 
                     <!-- Login Form -->
                     <form method="post" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl" id="loginForm">
@@ -122,19 +106,27 @@
                         <hr class="flex-grow-1 my-0 opacity-25" />
                     </div>
 
-                    <!-- Social Buttons -->
+                    <!-- Social OAuth 2.0 Buttons (GitHub & Google) -->
                     <div class="row g-2 mb-4">
                         <div class="col-6">
-                            <button type="button" class="btn btn-outline-secondary w-100 py-2 rounded-3 small fw-semibold social-auth-btn d-flex align-items-center justify-content-center gap-2" onclick="showSocialNotice('GitHub')">
-                                <i class="bi bi-github fs-6"></i>
-                                <span>GitHub</span>
-                            </button>
+                            <form method="post" asp-controller="Account" asp-action="ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="provider" value="GitHub" />
+                                <button type="submit" class="btn btn-outline-secondary w-100 py-2 rounded-3 small fw-semibold social-auth-btn d-flex align-items-center justify-content-center gap-2">
+                                    <i class="bi bi-github fs-6"></i>
+                                    <span>GitHub</span>
+                                </button>
+                            </form>
                         </div>
                         <div class="col-6">
-                            <button type="button" class="btn btn-outline-secondary w-100 py-2 rounded-3 small fw-semibold social-auth-btn d-flex align-items-center justify-content-center gap-2" onclick="showSocialNotice('Google')">
-                                <i class="bi bi-google text-danger fs-6"></i>
-                                <span>Google</span>
-                            </button>
+                            <form method="post" asp-controller="Account" asp-action="ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="provider" value="Google" />
+                                <button type="submit" class="btn btn-outline-secondary w-100 py-2 rounded-3 small fw-semibold social-auth-btn d-flex align-items-center justify-content-center gap-2">
+                                    <i class="bi bi-google text-danger fs-6"></i>
+                                    <span>Google</span>
+                                </button>
+                            </form>
                         </div>
                     </div>
 
@@ -168,30 +160,5 @@
                 icon.classList.add('bi-eye');
             }
         });
-
-        // 1-Click Demo Fill
-        function fillDemoCredentials(email, password) {
-            const emailInput = document.getElementById('inputEmail');
-            const passInput = document.getElementById('inputPassword');
-            emailInput.value = email;
-            passInput.value = password;
-
-            // Highlight animation
-            emailInput.classList.add('is-valid');
-            passInput.classList.add('is-valid');
-            setTimeout(() => {
-                emailInput.classList.remove('is-valid');
-                passInput.classList.remove('is-valid');
-            }, 1200);
-
-            passInput.focus();
-        }
-
-        function showSocialNotice(provider) {
-            const msg = @(Html.Raw(System.Text.Json.JsonSerializer.Serialize(isEn 
-                ? "OAuth integration with {0} will be linked in the next deployment. You can sign in using Demo accounts or Email right now!"
-                : "Tính năng đăng nhập qua {0} đang chuẩn bị kết nối SSO. Bạn có thể sử dụng tính năng Đăng nhập 1 chạm hoặc Email ngay bây giờ!")));
-            alert(msg.replace('{0}', provider));
-        }
     </script>
 }

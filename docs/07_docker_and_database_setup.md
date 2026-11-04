@@ -136,3 +136,43 @@ dotnet run --project src/UI/Web/web.csproj
 
 ### Built-In VS Code Pre-Configuration
 The workspace includes pre-configured settings in [`.vscode/settings.json`](file:///d:/NET-Tutos/.vscode/settings.json) for the `SQLTools` extension under the profile **`NET-Tutos PostgreSQL (Docker)`**. Developers can connect with a single click from the VS Code Activity Bar.
+
+---
+
+## 6. Configuring Live GitHub & Google OAuth 2.0 SSO Credentials
+
+By default, if `GITHUB_CLIENT_ID` or `GOOGLE_CLIENT_ID` are not set in `.env`, NET-Tutos automatically falls back to the built-in **Interactive OAuth 2.0 Dev/Sandbox Consent Screen** (`/Account/ExternalLoginSandbox`). Once you add your live OAuth keys below, clicking **GitHub** or **Google** on `/Account/Login` or `/Account/Register` will redirect directly to GitHub/Google OAuth 2.0 servers.
+
+### 6.1. How to Get GitHub OAuth 2.0 Keys (`GITHUB_CLIENT_ID` & `GITHUB_CLIENT_SECRET`)
+1. Sign in to GitHub and navigate to **[GitHub Developer Settings → OAuth Apps](https://github.com/settings/developers)**.
+2. Click **"New OAuth App"** and fill in:
+   - **Application name**: `NET-Tutos Learning Platform`
+   - **Homepage URL**: `http://localhost:5000` (or your production domain `https://your-domain.com`)
+   - **Authorization callback URL**: `http://localhost:5000/signin-github` (or `https://your-domain.com/signin-github`)
+3. Click **"Register application"**.
+4. Copy the **Client ID** (`GITHUB_CLIENT_ID`), then click **"Generate a new client secret"** and copy the **Client Secret** (`GITHUB_CLIENT_SECRET`).
+
+### 6.2. How to Get Google OAuth 2.0 Keys (`GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET`)
+1. Open **[Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials)**.
+2. Create or select a project (e.g., `NET-Tutos`).
+3. Go to **OAuth consent screen**:
+   - Choose **External**, enter App name `NET-Tutos`, user support email, and developer contact email.
+   - Add scopes: `openid`, `.../auth/userinfo.email`, `.../auth/userinfo.profile`.
+4. Go to **Credentials** → **Create Credentials** → **OAuth client ID**:
+   - **Application type**: `Web application`
+   - **Authorized JavaScript origins**: `http://localhost:5000`
+   - **Authorized redirect URIs**: `http://localhost:5000/signin-google` (and `http://localhost:5001/signin-google` if testing direct Web container port)
+5. Click **Create** and copy the **Client ID** (`GOOGLE_CLIENT_ID`) and **Client Secret** (`GOOGLE_CLIENT_SECRET`).
+
+### 6.3. Apply Keys in `.env` & Restart Docker
+Create or edit `.env` in the repository root (`cp .env.example .env`):
+```env
+GITHUB_CLIENT_ID=<your-github-client-id>
+GITHUB_CLIENT_SECRET=<your-github-client-secret>
+GOOGLE_CLIENT_ID=<your-google-client-id>
+GOOGLE_CLIENT_SECRET=<your-google-client-secret>
+```
+Then restart the Web container:
+```bash
+docker compose up -d web
+```

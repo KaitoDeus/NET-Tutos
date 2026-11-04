@@ -63,9 +63,13 @@
                         <div class="col">
                             @{
                                 var rawName = !string.IsNullOrWhiteSpace(user.FullName) ? user.FullName : (user.UserName?.Split('@')[0] ?? "Learner");
-                                var displayName = isEn 
+                                var displayName = rawName.Replace("(Học viên Demo)", "").Replace("(Demo Student)", "").Trim();
+                                if (false)
+                                {
+                                    var unusedName = isEn
                                     ? rawName.Replace("(Học viên Demo)", "(Demo Student)") 
                                     : rawName.Replace("(Demo Student)", "(Học viên Demo)");
+                                }
                                 var displayLoc = string.IsNullOrWhiteSpace(profile.Location) 
                                     ? "" 
                                     : ((profile.Location.Equals("Việt Nam", StringComparison.OrdinalIgnoreCase) || profile.Location.Equals("Vietnam", StringComparison.OrdinalIgnoreCase)) 

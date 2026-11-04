@@ -134,6 +134,10 @@ services:
       - Gemini__ApiKey=${GEMINI_API_KEY}
       - Gemini__Model=${GEMINI_MODEL:-gemini-3.8-flash}
       - Gemini__Enabled=${GEMINI_ENABLED:-true}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
     ports:
       - "5001:5000"
     volumes:

@@ -96,4 +96,15 @@ public class StudentProfileViewModel
     public Tutorial? LastAccessedTutorial { get; set; }
     public List<Certificate> Certificates { get; set; } = new();
     public List<QuizAttempt> RecentQuizAttempts { get; set; } = new();
+    public List<string> LinkedExternalProviders { get; set; } = new();
+}
+
+public class ExternalOAuthConfig
+{
+    public bool IsGitHubConfigured { get; init; }
+    public bool IsGoogleConfigured { get; init; }
+
+    public bool IsProviderConfigured(string provider) =>
+        provider.Equals("GitHub", StringComparison.OrdinalIgnoreCase) ? IsGitHubConfigured :
+        provider.Equals("Google", StringComparison.OrdinalIgnoreCase) ? IsGoogleConfigured : false;
 }

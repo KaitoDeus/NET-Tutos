@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using NET_Tutos.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -75,7 +75,18 @@ public static class DbInitializer
         }
 
         // Seed Default Demo Student User for 1-Click Login Testing
-        var studentEmail = "student@nettutos.com";
+        // Remove legacy demo student accounts if present in database
+        foreach (var demoEmail in new[] { "student@nettutos.com", "github.dev@nettutos.com", "google.learner@nettutos.com" })
+        {
+            var legacyDemo = await userManager.FindByEmailAsync(demoEmail);
+            if (legacyDemo != null)
+            {
+                await userManager.DeleteAsync(legacyDemo);
+            }
+        }
+        if (false)
+        {
+            var studentEmail = "student@nettutos.com";
         var existingStudent = await userManager.FindByEmailAsync(studentEmail);
         if (existingStudent == null)
         {
@@ -97,6 +108,7 @@ public static class DbInitializer
             if (createStudentResult.Succeeded)
             {
                 await userManager.AddToRoleAsync(studentUser, "Student");
+        }
             }
         }
 

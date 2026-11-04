@@ -441,9 +441,9 @@ async function setupNotificationHubConnection() {
         });
 
         await notificationHubConn.start();
-        console.log('[SignalR] Notification Hub connected successfully.');
+        // SignalR Hub connected silently without leaking state to browser console
     } catch (err) {
-        console.warn('[SignalR] Notification Hub connection failed:', err);
+        // Ignore transient SignalR connection error without logging raw exception details
     }
 }
 
@@ -456,7 +456,7 @@ async function loadNotifications() {
         updateNotificationBadges(data.unreadCount || 0);
         renderNotificationItems(data.items || []);
     } catch (err) {
-        console.warn('Error loading notifications:', err);
+        // Ignore transient notification fetch error
     }
 }
 
@@ -847,14 +847,14 @@ function initPwaAndServiceWorker() {
                         if (installingWorker) {
                             installingWorker.onstatechange = () => {
                                 if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    console.log('NET-Tutos: Service Worker updated.');
+                                    // Service worker updated silently
                                 }
                             };
                         }
                     };
                 })
                 .catch(err => {
-                    console.warn('ServiceWorker registration error:', err);
+                    // Ignore service worker registration error
                 });
         });
     }

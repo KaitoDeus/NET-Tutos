@@ -46,10 +46,12 @@ public class GeminiAgentService : IAiTutorService
         _logger = logger;
         _conversationService = conversationService;
 
-        var rawKey = (_configuration["Gemini:ApiKey"] 
-            ?? _configuration["GEMINI_API_KEY"] 
-            ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY") 
-            ?? string.Empty).Trim();
+        var rawKey = (new[]
+        {
+            Environment.GetEnvironmentVariable("GEMINI_API_KEY"),
+            _configuration["GEMINI_API_KEY"],
+            _configuration["Gemini:ApiKey"]
+        }.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v)) ?? string.Empty).Trim();
         if (rawKey.StartsWith("${") && rawKey.EndsWith("}"))
         {
             rawKey = rawKey.Substring(2, rawKey.Length - 3).Trim();

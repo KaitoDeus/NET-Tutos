@@ -14,17 +14,20 @@ public class AccountController : Controller
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly ILearningProgressService _progressService;
     private readonly INotificationService _notificationService;
+    private readonly ExternalOAuthConfig _oauthConfig;
 
     public AccountController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         ILearningProgressService progressService,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        ExternalOAuthConfig? oauthConfig = null)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _progressService = progressService;
         _notificationService = notificationService;
+        _oauthConfig = oauthConfig ?? new ExternalOAuthConfig();
     }
 
     // GET: /Account/Register
@@ -262,6 +265,11 @@ public class AccountController : Controller
         }
 
         var viewModel = await _progressService.GetStudentProfileAsync(userId);
+        if (viewModel.User != null)
+        {
+            var logins = await _userManager.GetLoginsAsync(viewModel.User);
+            viewModel.LinkedExternalProviders = logins.Select(l => l.LoginProvider).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        }
         return View(viewModel);
     }
 
@@ -297,5 +305,181 @@ public class AccountController : Controller
 
         bool isCompleted = await _progressService.ToggleLessonCompletedAsync(userId, targetId);
         return Json(new { success = true, isCompleted = isCompleted });
+    }
+
+    // POST: /Account/ExternalLogin
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public IActionResult ExternalLogin(string provider, string? returnUrl = null)
+    {
+        var normalizedProvider = NormalizeProviderName(provider);
+        if (normalizedProvider == null)
+        {
+            return RedirectToAction("Login", new { returnUrl });
+        }
+
+        var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { returnUrl });
+        var properties = _signInManager.ConfigureExternalAuthenticationProperties(normalizedProvider, redirectUrl);
+        return Challenge(properties, normalizedProvider);
+    }
+
+    // GET: /Account/ExternalLoginCallback
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> ExternalLoginCallback(string? returnUrl = null, string? remoteError = null)
+    {
+        bool isEn = HttpContext.IsEnglish();
+        returnUrl ??= Url.Content("~/Account/Profile");
+
+        if (!string.IsNullOrEmpty(remoteError))
+        {
+            TempData["ErrorMessage"] = isEn
+                ? $"External OAuth provider error: {remoteError}"
+                : $"Lỗi xác thực từ nhà cung cấp OAuth: {remoteError}";
+            return RedirectToAction(nameof(Login), new { returnUrl });
+        }
+
+        var info = await _signInManager.GetExternalLoginInfoAsync();
+        if (info == null)
+        {
+            TempData["ErrorMessage"] = isEn
+                ? "Unable to load external login information."
+                : "Không thể tải thông tin xác thực từ nhà cung cấp OAuth.";
+            return RedirectToAction(nameof(Login), new { returnUrl });
+        }
+
+        var provider = NormalizeProviderName(info.LoginProvider) ?? info.LoginProvider;
+        var providerKey = info.ProviderKey;
+        var email = info.Principal.FindFirstValue(ClaimTypes.Email)
+            ?? info.Principal.FindFirstValue("urn:github:login") + "@users.noreply.github.com";
+        var fullName = info.Principal.FindFirstValue(ClaimTypes.Name)
+            ?? info.Principal.FindFirstValue("urn:github:login")
+            ?? email.Split('@')[0];
+        var avatarUrl = info.Principal.FindFirstValue("urn:oauth:avatar");
+
+        return await ProvisionAndSignInExternalUserAsync(provider, providerKey, email, fullName, avatarUrl, returnUrl);
+    }
+
+    private async Task<IActionResult> ProvisionAndSignInExternalUserAsync(
+        string provider,
+        string providerKey,
+        string email,
+        string fullName,
+        string? avatarUrl,
+        string? returnUrl)
+    {
+        bool isEn = HttpContext.IsEnglish();
+
+        // 1. Check if this external login is already linked to a user
+        var signInResult = await _signInManager.ExternalLoginSignInAsync(
+            provider,
+            providerKey,
+            isPersistent: true,
+            bypassTwoFactor: true);
+
+        if (signInResult.Succeeded)
+        {
+            var existingLinkedUser = await _userManager.FindByLoginAsync(provider, providerKey);
+            TempData["SuccessMessage"] = isEn
+                ? $"Signed in via {provider} as {existingLinkedUser?.FullName ?? fullName}!"
+                : $"Đăng nhập qua {provider} thành công! Chào mừng {existingLinkedUser?.FullName ?? fullName} quay trở lại.";
+
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+            return RedirectToAction(nameof(Profile));
+        }
+
+        // 2. Find existing user by email or create a new ApplicationUser
+        var user = await _userManager.FindByEmailAsync(email);
+        bool isNewUser = false;
+
+        if (user == null)
+        {
+            isNewUser = true;
+            user = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                FullName = fullName,
+                EmailConfirmed = true,
+                AvatarUrl = avatarUrl,
+                Bio = provider.Equals("GitHub", StringComparison.OrdinalIgnoreCase)
+                    ? "Full-Stack C# & .NET 10 Developer connected via GitHub OAuth."
+                    : "Modern .NET 10 Learner connected via Google SSO.",
+                ExperiencePoints = 50, // +50 XP welcome bonus
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var createResult = await _userManager.CreateAsync(user);
+            if (!createResult.Succeeded)
+            {
+                TempData["ErrorMessage"] = string.Join("; ", createResult.Errors.Select(e => e.Description));
+                return RedirectToAction(nameof(Login), new { returnUrl });
+            }
+
+            await _userManager.AddToRoleAsync(user, "Student");
+        }
+        else if (string.IsNullOrEmpty(user.AvatarUrl) && !string.IsNullOrEmpty(avatarUrl))
+        {
+            user.AvatarUrl = avatarUrl;
+            await _userManager.UpdateAsync(user);
+        }
+
+        // 3. Link external login in AspNetUserLogins if not already linked
+        var currentLogins = await _userManager.GetLoginsAsync(user);
+        if (!currentLogins.Any(l => l.LoginProvider.Equals(provider, StringComparison.OrdinalIgnoreCase)))
+        {
+            await _userManager.AddLoginAsync(user, new UserLoginInfo(provider, providerKey, provider));
+        }
+
+        // 4. Sign in user
+        await _signInManager.SignInAsync(user, isPersistent: true);
+
+        if (isNewUser)
+        {
+            try
+            {
+                await _notificationService.CreateNotificationAsync(
+                    user.Id,
+                    isEn ? $"Welcome via {provider} SSO! 🚀" : $"Chào mừng bạn đăng nhập qua {provider} SSO! 🚀",
+                    isEn
+                        ? $"Hi {user.FullName}, your {provider} account is linked and you received +50 XP bonus!"
+                        : $"Xin chào {user.FullName}, tài khoản {provider} của bạn đã được kết nối thành công kèm +50 XP khởi đầu!",
+                    NotificationType.BonusXpAwarded,
+                    "/Tutorials",
+                    provider.Equals("GitHub", StringComparison.OrdinalIgnoreCase) ? "bi-github" : "bi-google",
+                    "primary");
+            }
+            catch
+            {
+                // Ignore non-critical notification error
+            }
+        }
+
+        TempData["SuccessMessage"] = isNewUser
+            ? (isEn
+                ? $"Account created & linked with {provider} (+50 XP bonus)! Welcome, {user.FullName}!"
+                : $"Kết nối {provider} thành công (+50 XP khởi đầu)! Chào mừng {user.FullName} gia nhập NET-Tutos.")
+            : (isEn
+                ? $"Signed in via {provider}! Welcome back, {user.FullName}!"
+                : $"Đăng nhập qua {provider} thành công! Chào mừng {user.FullName} quay trở lại.");
+
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
+        return RedirectToAction(nameof(Profile));
+    }
+
+    private static string? NormalizeProviderName(string? provider)
+    {
+        if (string.IsNullOrWhiteSpace(provider)) return null;
+        if (provider.Equals("GitHub", StringComparison.OrdinalIgnoreCase)) return "GitHub";
+        if (provider.Equals("Google", StringComparison.OrdinalIgnoreCase)) return "Google";
+        return null;
     }
 }

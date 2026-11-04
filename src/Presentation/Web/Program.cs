@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
@@ -8,9 +10,13 @@ using NET_Tutos.Data;
 using NET_Tutos.Hubs;
 using NET_Tutos.Models;
 using NET_Tutos.Models.Entities;
+using NET_Tutos.Models.ViewModels;
 using NET_Tutos.Services;
 using Npgsql;
 using System.Globalization;
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Text.Json;
 
 // Enable Npgsql legacy timestamp behavior for seamless DateTime compatibility
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -310,6 +316,156 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LogoutPath = "/Account/Logout";
     options.AccessDeniedPath = "/Account/Login";
     options.ExpireTimeSpan = TimeSpan.FromDays(30);
+});
+
+// Configure OAuth 2.0 External Authentication Providers (GitHub & Google)
+static string FirstNonEmpty(params string?[] values) =>
+    values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v))?.Trim() ?? string.Empty;
+
+var githubClientId = FirstNonEmpty(
+    Environment.GetEnvironmentVariable("GITHUB_CLIENT_ID"),
+    builder.Configuration["GITHUB_CLIENT_ID"],
+    builder.Configuration["Authentication:GitHub:ClientId"]);
+var githubClientSecret = FirstNonEmpty(
+    Environment.GetEnvironmentVariable("GITHUB_CLIENT_SECRET"),
+    builder.Configuration["GITHUB_CLIENT_SECRET"],
+    builder.Configuration["Authentication:GitHub:ClientSecret"]);
+var googleClientId = FirstNonEmpty(
+    Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID"),
+    builder.Configuration["GOOGLE_CLIENT_ID"],
+    builder.Configuration["Authentication:Google:ClientId"]);
+var googleClientSecret = FirstNonEmpty(
+    Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET"),
+    builder.Configuration["GOOGLE_CLIENT_SECRET"],
+    builder.Configuration["Authentication:Google:ClientSecret"]);
+
+static bool IsValidOAuthCredential(string id, string secret) =>
+    !string.IsNullOrWhiteSpace(id) &&
+    !string.IsNullOrWhiteSpace(secret) &&
+    !id.StartsWith("your_", StringComparison.OrdinalIgnoreCase) &&
+    !secret.StartsWith("your_", StringComparison.OrdinalIgnoreCase);
+
+bool isGitHubOAuthConfigured = IsValidOAuthCredential(githubClientId, githubClientSecret);
+bool isGoogleOAuthConfigured = IsValidOAuthCredential(googleClientId, googleClientSecret);
+
+builder.Services.AddSingleton(new ExternalOAuthConfig
+{
+    IsGitHubConfigured = isGitHubOAuthConfigured,
+    IsGoogleConfigured = isGoogleOAuthConfigured
+});
+
+var authBuilder = builder.Services.AddAuthentication();
+
+authBuilder.AddOAuth("GitHub", "GitHub", options =>
+{
+    options.ClientId = isGitHubOAuthConfigured ? githubClientId : "unconfigured-github-client-id";
+    options.ClientSecret = isGitHubOAuthConfigured ? githubClientSecret : "unconfigured-github-client-secret";
+    options.CallbackPath = new PathString("/signin-github");
+    options.AuthorizationEndpoint = "https://github.com/login/oauth/authorize";
+    options.TokenEndpoint = "https://github.com/login/oauth/access_token";
+    options.UserInformationEndpoint = "https://api.github.com/user";
+    options.SignInScheme = IdentityConstants.ExternalScheme;
+    options.SaveTokens = true;
+    options.CorrelationCookie.SameSite = SameSiteMode.Lax;
+    options.Scope.Add("read:user");
+    options.Scope.Add("user:email");
+
+    options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
+    options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
+    options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+    options.ClaimActions.MapJsonKey("urn:github:login", "login");
+    options.ClaimActions.MapJsonKey("urn:oauth:avatar", "avatar_url");
+
+    options.Events = new OAuthEvents
+    {
+        OnRemoteFailure = context =>
+        {
+            context.Response.Redirect("/Account/ExternalLoginCallback?remoteError=github_auth_cancelled");
+            context.HandleResponse();
+            return Task.CompletedTask;
+        },
+        OnCreatingTicket = async context =>
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.UserAgent.ParseAdd("NET-Tutos-OAuth/1.0");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+
+            using var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+            response.EnsureSuccessStatusCode();
+
+            using var userJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync(context.HttpContext.RequestAborted));
+            context.RunClaimActions(userJson.RootElement);
+
+            // If primary email is private on GitHub, fetch verified primary email from /user/emails
+            if (string.IsNullOrEmpty(context.Identity?.FindFirst(ClaimTypes.Email)?.Value))
+            {
+                using var emailReq = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/user/emails");
+                emailReq.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                emailReq.Headers.UserAgent.ParseAdd("NET-Tutos-OAuth/1.0");
+                emailReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+
+                using var emailRes = await context.Backchannel.SendAsync(emailReq, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+                if (emailRes.IsSuccessStatusCode)
+                {
+                    using var emailsDoc = JsonDocument.Parse(await emailRes.Content.ReadAsStringAsync(context.HttpContext.RequestAborted));
+                    foreach (var element in emailsDoc.RootElement.EnumerateArray())
+                    {
+                        var isPrimary = element.TryGetProperty("primary", out var p) && p.GetBoolean();
+                        var emailVal = element.TryGetProperty("email", out var e) ? e.GetString() : null;
+                        if (isPrimary && !string.IsNullOrWhiteSpace(emailVal))
+                        {
+                            context.Identity?.AddClaim(new Claim(ClaimTypes.Email, emailVal));
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    };
+});
+
+authBuilder.AddOAuth("Google", "Google", options =>
+{
+    options.ClientId = isGoogleOAuthConfigured ? googleClientId : "unconfigured-google-client-id";
+    options.ClientSecret = isGoogleOAuthConfigured ? googleClientSecret : "unconfigured-google-client-secret";
+    options.CallbackPath = new PathString("/signin-google");
+    options.AuthorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
+    options.TokenEndpoint = "https://oauth2.googleapis.com/token";
+    options.UserInformationEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
+    options.SignInScheme = IdentityConstants.ExternalScheme;
+    options.SaveTokens = true;
+    options.CorrelationCookie.SameSite = SameSiteMode.Lax;
+    options.Scope.Add("openid");
+    options.Scope.Add("profile");
+    options.Scope.Add("email");
+
+    options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "sub");
+    options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
+    options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+    options.ClaimActions.MapJsonKey("urn:oauth:avatar", "picture");
+
+    options.Events = new OAuthEvents
+    {
+        OnRemoteFailure = context =>
+        {
+            context.Response.Redirect("/Account/ExternalLoginCallback?remoteError=google_auth_cancelled");
+            context.HandleResponse();
+            return Task.CompletedTask;
+        },
+        OnCreatingTicket = async context =>
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+
+            using var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+            response.EnsureSuccessStatusCode();
+
+            using var userJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync(context.HttpContext.RequestAborted));
+            context.RunClaimActions(userJson.RootElement);
+        }
+    };
 });
 
 builder.Services.AddSingleton(new DatabaseProviderInfo { Name = activeProvider, NameEn = activeProviderEn });

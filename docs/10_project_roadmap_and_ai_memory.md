@@ -3,7 +3,7 @@
 Document Type: Master Roadmap, Phase History & AI Context Memory  
 System: **NET-Tutos** — Enterprise Distributed .NET 10 & C# 14 Learning Ecosystem  
 License: [MIT License](../LICENSE) (`Copyright (c) 2026 Khải Võ (NET-Tutos)`)  
-Current Test Suite Status: **151/151 Automated Tests Passing (100% Pass Rate across 7 Test Projects)**  
+Current Test Suite Status: **152/152 Automated Tests Passing (100% Pass Rate across 7 Test Projects)**  
 
 ---
 
@@ -49,10 +49,11 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 | **Phase 8** | **Geo-IP Region Detection & Advanced SEO Engine** | ✅ Completed | `GeoIpService.cs` & `GeoIpRequestCultureProvider` (`VN` -> `vi`, Outside `VN` -> `en`), `SeoMetadataService.cs`, `SeoController.cs` (`/robots.txt`, `/sitemap.xml`, `/seo/og-image/{slug}.svg`, `/seo/og-project/{slug}.svg`, `/nettutos-indexnow-2026.txt`, `/api/seo/diagnostics`), `BreadcrumbList` & `FAQPage` Schema.org JSON-LD. |
 | **Phase 9** | **Interactive In-Lesson Code Lab & AI Big-O Sandbox** | ✅ Completed | Inline executable C# 14 Sandbox & live AI Big-O Complexity Analyzer embedded directly into every code block inside `Views/Tutorials/Details.cshtml`. |
 | **Phase 10** | **Full GitHub GitOps & DevSecOps Automation Suite** | ✅ Completed | `.github/workflows/auto-pr.yml` (Auto-PR & Labeler), `auto-merge.yml` (Auto Squash-Merge & branch cleanup on CI pass), `auto-release.yml` (Semantic Release & Changelog), `security-audit.yml` (NuGet CVE scanner), `docker-ghcr.yml` (GHCR multi-container publisher), `.github/dependabot.yml`, `.github/CODEOWNERS`, `.github/ISSUE_TEMPLATE/`, `SECURITY.md`, and `scripts/New-AutoPullRequest.ps1`. |
+| **Phase 11** | **GitHub & Google OAuth 2.0 External SSO Authentication** | ✅ Completed | `Program.cs` (`AddOAuth("GitHub")` & `AddOAuth("Google")` with `/signin-github` & `/signin-google` callbacks), `AccountController.cs` (`ExternalLogin`, `ExternalLoginCallback`), `Login.cshtml`, `Register.cshtml`, and `Profile.cshtml` external login account linking (+50 XP bonus on first SSO sign-in). Removed all legacy demo accounts & sandbox UI. |
 
 ---
 
-## 4. Automated Test Suite Breakdown (151/151 Passing)
+## 4. Automated Test Suite Breakdown (152/152 Passing)
 
 | Test Project | Path | Tests Count | Scope Covered |
 | :--- | :--- | :---: | :--- |
@@ -62,7 +63,7 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 | **`NET-Tutos.AiTutor.Tests`** | `tests/NET-Tutos.AiTutor.Tests` | 16 | `EfficiencyScore`, `InterviewRubricScore` (50/25/25), Big-O detection, compiler diagnostics, xUnit generator, mock interview. |
 | **`NET-Tutos.Catalog.Tests`** | `tests/NET-Tutos.Catalog.Tests` | 12 | `ReadingDuration`, `ExamScore` (80% threshold, Distinction/Merit/Pass/Fail tiers), `GetCatalogOverviewQueryHandler`, `EvaluateExamSubmissionCommandHandler`. |
 | **`NET-Tutos.UnitTests`** | `tests/NET-Tutos.UnitTests` | 68 | Web services, `HybridRedisCacheService` (L1/L2 backfill, stampede lock, deterministic Roslyn cache), `GeoIpService`, `SeoMetadataService`. |
-| **`NET-Tutos.IntegrationTests`** | `tests/NET-Tutos.IntegrationTests` | 24 | Full HTTP pipeline, Geo-IP headers & public IP language switching, `/robots.txt`, `/sitemap.xml`, dynamic OG SVG endpoints, IndexNow, security & Roslyn endpoints. |
+| **`NET-Tutos.IntegrationTests`** | `tests/NET-Tutos.IntegrationTests` | 25 | Full HTTP pipeline, GitHub & Google OAuth 2.0 SSO endpoints, Geo-IP headers & public IP language switching, `/robots.txt`, `/sitemap.xml`, dynamic OG SVG endpoints, IndexNow, security & Roslyn endpoints. |
 
 ---
 
