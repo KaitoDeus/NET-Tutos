@@ -195,7 +195,7 @@
 
                 if (timeRemaining <= 0) {
                     clearInterval(timerInterval);
-                    alert('@(isEn ? "Time is up! The system will automatically submit your exam." : "Hết giờ làm bài! Hệ thống sẽ tự động nộp bài của bạn.")');
+                    alert('@Html.Raw(isEn ? "Time is up! The system will automatically submit your exam." : "Hết giờ làm bài! Hệ thống sẽ tự động nộp bài của bạn.")');
                     doSubmitExam();
                 }
             }, 1000);
@@ -266,13 +266,13 @@
                     if (res.success && res.redirectUrl) {
                         window.location.href = res.redirectUrl;
                     } else {
-                        alert(res.message || '@(isEn ? "An error occurred while submitting your exam." : "Có lỗi khi nộp bài thi.")');
+                        alert(res.message || '@Html.Raw(isEn ? "An error occurred while submitting your exam." : "Có lỗi khi nộp bài thi.")');
                         btnConfirmSubmit.disabled = false;
                         if (submitSpinner) submitSpinner.classList.add('d-none');
                     }
                 } catch (e) {
                     console.error(e);
-                    alert('@(isEn ? "Server connection error while submitting your exam." : "Lỗi kết nối máy chủ khi nộp bài.")');
+                    alert('@Html.Raw(isEn ? "Server connection error while submitting your exam." : "Lỗi kết nối máy chủ khi nộp bài.")');
                     btnConfirmSubmit.disabled = false;
                     if (submitSpinner) submitSpinner.classList.add('d-none');
                 }

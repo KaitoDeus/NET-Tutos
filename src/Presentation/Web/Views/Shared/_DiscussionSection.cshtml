@@ -350,11 +350,11 @@
                 }
             } else {
                 const err = await response.json();
-                alert(err.message || '@(isEn ? "Unable to post comment." : "Không thể gửi bình luận.")');
+                alert(err.message || '@Html.Raw(isEn ? "Unable to post comment." : "Không thể gửi bình luận.")');
             }
         } catch (e) {
             console.error(e);
-            alert('@(isEn ? "Connection error while submitting comment." : "Lỗi kết nối khi gửi bình luận.")');
+            alert('@Html.Raw(isEn ? "Connection error while submitting comment." : "Lỗi kết nối khi gửi bình luận.")');
         } finally {
             if (spinner) spinner.classList.add("d-none");
             if (btn) btn.disabled = false;
@@ -402,7 +402,7 @@
     }
 
     async function markBestAnswer(commentId) {
-        if (!confirm('@(isEn ? "Are you sure you want to mark this comment as the accepted solution (+15 XP)?" : "Bạn có chắc chắn muốn đánh dấu bình luận này là giải pháp chính xác (+15 XP)?")')) return;
+        if (!confirm('@Html.Raw(isEn ? "Are you sure you want to mark this comment as the accepted solution (+15 XP)?" : "Bạn có chắc chắn muốn đánh dấu bình luận này là giải pháp chính xác (+15 XP)?")')) return;
 
         try {
             const response = await fetch(`/api/discussion/mark-best-answer?topicType=${encodeURIComponent(topicType)}&topicId=${topicId}`, {
@@ -415,7 +415,7 @@
                 location.reload();
             } else {
                 const err = await response.json();
-                alert(err.message || '@(isEn ? "Unable to mark solution." : "Không thể đánh dấu giải pháp.")');
+                alert(err.message || '@Html.Raw(isEn ? "Unable to mark solution." : "Không thể đánh dấu giải pháp.")');
             }
         } catch (e) {
             console.error(e);
@@ -423,7 +423,7 @@
     }
 
     async function deleteComment(commentId) {
-        if (!confirm('@(isEn ? "Are you sure you want to delete this comment?" : "Bạn có chắc chắn muốn xóa bình luận này không?")')) return;
+        if (!confirm('@Html.Raw(isEn ? "Are you sure you want to delete this comment?" : "Bạn có chắc chắn muốn xóa bình luận này không?")')) return;
 
         try {
             const response = await fetch(`/api/discussion/delete-comment?topicType=${encodeURIComponent(topicType)}&topicId=${topicId}`, {
@@ -437,7 +437,7 @@
                 if (el) el.remove();
             } else {
                 const err = await response.json();
-                alert(err.message || '@(isEn ? "Unable to delete comment." : "Không thể xóa bình luận.")');
+                alert(err.message || '@Html.Raw(isEn ? "Unable to delete comment." : "Không thể xóa bình luận.")');
             }
         } catch (e) {
             console.error(e);

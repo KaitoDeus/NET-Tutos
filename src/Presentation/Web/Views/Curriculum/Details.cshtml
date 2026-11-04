@@ -187,7 +187,7 @@
     function copyCodeSnippet() {
         const text = document.getElementById('sampleCodeBlock').innerText;
         navigator.clipboard.writeText(text).then(() => {
-            alert('@(isEn ? "Code copied to clipboard!" : "Đã sao chép mã nguồn vào bộ nhớ tạm!")');
+            alert('@Html.Raw(isEn ? "Code copied to clipboard!" : "Đã sao chép mã nguồn vào bộ nhớ tạm!")');
         });
     }
 

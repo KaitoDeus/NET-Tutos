@@ -681,11 +681,11 @@
                     if (res.success) {
                         window.location.reload();
                     } else {
-                        alert(res.message || '@(isEn ? "Error updating profile!" : "Lỗi khi cập nhật hồ sơ!")');
+                        alert(res.message || '@Html.Raw(isEn ? "Error updating profile!" : "Lỗi khi cập nhật hồ sơ!")');
                     }
                 } catch (err) {
                     console.error(err);
-                    alert('@(isEn ? "Server connection error!" : "Lỗi kết nối máy chủ!")');
+                    alert('@Html.Raw(isEn ? "Server connection error!" : "Lỗi kết nối máy chủ!")');
                 } finally {
                     btnSave.disabled = false;
                     if (spinner) spinner.classList.add('d-none');

@@ -36,7 +36,7 @@
                     <div class="small text-muted">@(isEn ? "Time Remaining" : "Thời gian còn lại")</div>
                     <div id="mockCountdownTimer" class="fs-3 fw-bold font-monospace text-danger">10:00</div>
                 </div>
-                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3 py-2 small" onclick="return confirm('@(isEn ? "Are you sure you want to quit this mock interview?" : "Bạn có chắc chắn muốn thoát phiên phỏng vấn thử?")');">
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3 py-2 small" onclick="return confirm('@Html.Raw(isEn ? "Are you sure you want to quit this mock interview?" : "Bạn có chắc chắn muốn thoát phiên phỏng vấn thử?")');">
                     <i class="bi bi-box-arrow-left me-1"></i> @(isEn ? "Quit" : "Thoát")
                 </a>
             </div>

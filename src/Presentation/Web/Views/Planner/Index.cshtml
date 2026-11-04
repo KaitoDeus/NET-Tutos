@@ -288,7 +288,7 @@
                         </form>
                     }
 
-                    <form asp-action="Reset" method="post" class="d-inline" onsubmit="return confirm('@(isEn ? "Are you sure you want to reset and start a new plan?" : "Bạn có chắc muốn làm mới và tạo kế hoạch khác không?")');">
+                    <form asp-action="Reset" method="post" class="d-inline" onsubmit="return confirm('@Html.Raw(isEn ? "Are you sure you want to reset and start a new plan?" : "Bạn có chắc muốn làm mới và tạo kế hoạch khác không?")');">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2">
                             <i class="bi bi-gear me-1"></i>@(isEn ? "New Plan" : "Lập kế hoạch mới")

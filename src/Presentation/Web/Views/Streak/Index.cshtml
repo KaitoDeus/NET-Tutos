@@ -289,7 +289,7 @@
                         // Reload page to reflect new streak status and 7-day progress
                         window.location.reload();
                     } else {
-                        alert(data.message || '@(isEn ? "Check-in failed" : "Điểm danh không thành công")');
+                        alert(data.message || '@Html.Raw(isEn ? "Check-in failed" : "Điểm danh không thành công")');
                         btn.disabled = false;
                         spinner.classList.add('d-none');
                         icon.classList.remove('d-none');
@@ -298,7 +298,7 @@
                 } else if (response.status === 401) {
                     window.location.href = '/Account/Login?returnUrl=/Streak';
                 } else {
-                    alert('@(isEn ? "Network error. Please try again." : "Lỗi kết nối. Vui lòng thử lại.")');
+                    alert('@Html.Raw(isEn ? "Network error. Please try again." : "Lỗi kết nối. Vui lòng thử lại.")');
                     btn.disabled = false;
                     spinner.classList.add('d-none');
                     icon.classList.remove('d-none');
@@ -306,7 +306,7 @@
                 }
             } catch (err) {
                 console.error(err);
-                alert('@(isEn ? "Network error. Please try again." : "Lỗi kết nối. Vui lòng thử lại.")');
+                alert('@Html.Raw(isEn ? "Network error. Please try again." : "Lỗi kết nối. Vui lòng thử lại.")');
                 btn.disabled = false;
                 spinner.classList.add('d-none');
                 icon.classList.remove('d-none');
