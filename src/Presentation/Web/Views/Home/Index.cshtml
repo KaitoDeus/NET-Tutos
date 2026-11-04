@@ -8,51 +8,39 @@
 
 @section Styles {
     <style>
-        .curriculum-scroll-list::-webkit-scrollbar {
-            width: 4px;
-        }
-        .curriculum-scroll-list::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .curriculum-scroll-list::-webkit-scrollbar-thumb {
-            background-color: var(--bs-border-color);
-            border-radius: 4px;
-        }
-        .curriculum-scroll-list::-webkit-scrollbar-thumb:hover {
-            background-color: var(--bs-primary);
-        }
-        .featured-card {
+        .track-card, .featured-card {
             transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
-        .featured-card:hover {
-            transform: translateY(-2px);
+        .track-card:hover, .featured-card:hover {
+            transform: translateY(-3px);
             border-color: var(--bs-primary) !important;
-            box-shadow: 0 4px 14px rgba(13, 110, 253, 0.08) !important;
-        }
-        .curriculum-item {
-            transition: all 0.15s ease;
-        }
-        .curriculum-item:hover {
-            border-color: var(--bs-primary) !important;
-            background-color: var(--bs-primary-bg-subtle) !important;
+            box-shadow: 0 6px 18px rgba(13, 110, 253, 0.09) !important;
         }
     </style>
 }
 
-<!-- Minimalist Hero Section with Prominent Video Showcase -->
+<!-- Minimalist Hero Section with Prominent Cinematic Video Showcase -->
 <section class="py-4 py-md-5 border-bottom">
     <div class="container">
         <!-- Punchy, Direct Header (Strict Typographic Standard) -->
         <div class="text-center mb-4">
-            <h1 class="hero-title mb-0">
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary-subtle text-primary border border-primary-subtle small fw-semibold mb-2">
+                <i class="bi bi-patch-check-fill"></i> .NET 10 & C# 13 Enterprise Engineering
+            </div>
+            <h1 class="hero-title mb-2">
                 @(isEn ? "Modern .NET & C# Engineering" : "Lập Trình .NET & C# Hiện Đại")
             </h1>
+            <p class="text-muted mx-auto mb-0" style="max-width: 720px; font-size: var(--text-base);">
+                @(isEn 
+                    ? "From C# core fundamentals to Senior Software Architecture, Distributed Microservices, and High-Performance .NET Systems."
+                    : "Lộ trình chuẩn hóa từ nền tảng C# vững chắc đến kiến trúc Microservices phân tán, tối ưu hiệu năng cao và luyện thi phỏng vấn Senior Engineer.")
+            </p>
         </div>
 
         @if (User.Identity?.IsAuthenticated == true)
         {
             <div class="row justify-content-center mb-3">
-                <div class="col-xl-11">
+                <div class="col-xl-10">
                     <div class="d-flex align-items-center justify-content-between p-2.5 px-3 rounded-2 border bg-body-tertiary">
                         <div class="d-flex align-items-center gap-2">
                             <span class="status-indicator-dot"></span>
@@ -71,80 +59,47 @@
             </div>
         }
 
-        <!-- Video Player & Roadmap Showcase (Video Front and Center, Minimal Text) -->
+        <!-- Cinematic Video Showcase Card (Full Center Video Front and Center) -->
         <div class="row justify-content-center">
-            <div class="col-xl-11">
-                <div class="card border rounded-3 p-3 p-md-3.5 bg-body shadow-sm">
-                    <div class="row g-3 g-lg-4 align-items-stretch">
-                        <!-- Left: Embedded YouTube Video Player + Highlights -->
-                        <div class="col-lg-7 d-flex flex-column justify-content-between">
-                            <div class="ratio ratio-16x9 rounded-2 overflow-hidden border bg-dark">
-                                <iframe src="https://www.youtube-nocookie.com/embed/6BcPIvVfVAw" 
-                                        title="@(isEn ? "What is .NET? (Microsoft Official Guide)" : ".NET là gì? (Tài liệu Microsoft)")" 
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                        allowfullscreen></iframe>
-                            </div>
+            <div class="col-xl-10">
+                <div class="card border rounded-4 p-3 p-md-4 bg-body shadow-sm">
+                    <!-- Embedded YouTube Video Player Covering Main Area -->
+                    <div class="ratio ratio-16x9 rounded-3 overflow-hidden border bg-dark shadow-xs mb-3">
+                        <iframe src="https://www.youtube-nocookie.com/embed/6BcPIvVfVAw" 
+                                title="@(isEn ? "What is .NET? (Microsoft Official Guide)" : ".NET là gì? (Tài liệu Microsoft)")" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen></iframe>
+                    </div>
 
-                            <div class="row g-2 mt-2.5">
-                                <div class="col-4">
-                                    <div class="p-2 rounded-2 border bg-body-tertiary text-center">
-                                        <div class="fw-bold text-primary font-monospace" style="font-size: var(--text-xs);">.NET 10 & C# 13</div>
-                                        <div class="text-muted text-truncate" style="font-size: 0.68rem;">@(isEn ? "Modern Standard" : "Chuẩn công nghệ")</div>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="p-2 rounded-2 border bg-body-tertiary text-center">
-                                        <div class="fw-bold text-success font-monospace" style="font-size: var(--text-xs);">@(Model.TotalTutorials) @(isEn ? "Lessons" : "Bài học")</div>
-                                        <div class="text-muted text-truncate" style="font-size: 0.68rem;">@(isEn ? $"{Model.TotalCategories} Senior Tracks" : $"{Model.TotalCategories} Chặng chuyên sâu")</div>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="p-2 rounded-2 border bg-body-tertiary text-center">
-                                        <div class="fw-bold text-info font-monospace" style="font-size: var(--text-xs);">AI Copilot</div>
-                                        <div class="text-muted text-truncate" style="font-size: 0.68rem;">@(isEn ? "Interactive Runner" : "Gợi ý code & Chấm điểm")</div>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Bottom Bar: Highlights & Action CTAs -->
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 pt-2">
+                        <!-- Key Stats / Highlights -->
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="badge bg-body-tertiary text-body border rounded-pill px-3 py-2 font-monospace small">
+                                <i class="bi bi-cpu text-primary me-1"></i> .NET 10 LTS
+                            </span>
+                            <span class="badge bg-body-tertiary text-body border rounded-pill px-3 py-2 font-monospace small">
+                                <i class="bi bi-layers text-success me-1"></i> @(Model.TotalCategories) @(isEn ? "Senior Tracks" : "Chặng chuyên sâu")
+                            </span>
+                            <span class="badge bg-body-tertiary text-body border rounded-pill px-3 py-2 font-monospace small">
+                                <i class="bi bi-book text-info me-1"></i> @(Model.TotalTutorials) @(isEn ? "Curated Lessons" : "Bài học chuẩn")
+                            </span>
+                            <span class="badge bg-body-tertiary text-body border rounded-pill px-3 py-2 font-monospace small">
+                                <i class="bi bi-stars text-warning me-1"></i> AI Copilot
+                            </span>
                         </div>
 
-                        <!-- Right: Clean, Direct Curriculum Navigation (Standardized Type Scale) -->
-                        <div class="col-lg-5 d-flex flex-column justify-content-between">
-                            <div>
-                                <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                                    <span class="section-label fw-bold text-primary text-uppercase" style="font-size: var(--text-xs); letter-spacing: 0.04em;">
-                                        <i class="bi bi-compass me-1"></i>@(isEn ? $"Curriculum Roadmap ({Model.TotalCategories} Tracks)" : $"Lộ Trình {Model.TotalCategories} Chặng Chuyên Sâu")
-                                    </span>
-                                    <a asp-controller="Roadmap" asp-action="Index" class="text-muted text-decoration-none fw-medium d-flex align-items-center gap-1" style="font-size: var(--text-xs);">
-                                        @(isEn ? "Full roadmap" : "Chi tiết") <i class="bi bi-chevron-right"></i>
-                                    </a>
-                                </div>
-
-                                <div class="d-flex flex-column gap-1.5 mb-3 curriculum-scroll-list pe-1" style="max-height: 295px; overflow-y: auto;">
-                                    @foreach (var cat in Model.Categories)
-                                    {
-                                        <a asp-controller="Tutorials" asp-action="Index" asp-route-category="@cat.GetSlug(isEn)" 
-                                           class="d-flex align-items-center justify-content-between p-2 px-2.5 rounded-2 border bg-body-tertiary text-decoration-none curriculum-item gap-2"
-                                           title="@cat.GetTitle(isEn)">
-                                            <div class="d-flex align-items-center gap-2 min-w-0" style="flex: 1 1 0%;">
-                                                <i class="bi @cat.IconClass text-primary flex-shrink-0" style="font-size: 0.92rem;"></i>
-                                                <span class="fw-semibold text-body-emphasis text-truncate" style="font-size: var(--text-sm);">@cat.GetTitle(isEn)</span>
-                                            </div>
-                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill font-monospace flex-shrink-0" style="font-size: var(--text-2xs);">
-                                                @(cat.Tutorials?.Count ?? 0) @(isEn ? "lessons" : "bài")
-                                            </span>
-                                        </a>
-                                    }
-                                </div>
-                            </div>
-
-                            <div class="d-flex gap-2 pt-2 border-top mt-auto">
-                                <a asp-controller="Tutorials" asp-action="Index" class="btn btn-sm btn-primary rounded-2 px-3 py-2 fw-semibold flex-grow-1 d-flex align-items-center justify-content-center gap-1" style="font-size: var(--text-nav);">
-                                    <span>@(isEn ? "Start Learning" : "Bắt đầu học ngay")</span> <i class="bi bi-arrow-right"></i>
-                                </a>
-                                <a asp-controller="Playground" asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-2 px-3 py-2 fw-semibold font-monospace d-flex align-items-center gap-1" style="font-size: var(--text-nav);">
-                                    <i class="bi bi-terminal"></i> <span>Playground</span>
-                                </a>
-                            </div>
+                        <!-- Main CTAs -->
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <a asp-controller="Roadmap" asp-action="Index" class="btn btn-outline-primary rounded-pill px-3.5 py-2 fw-semibold d-flex align-items-center gap-1.5" style="font-size: var(--text-nav);">
+                                <i class="bi bi-compass"></i> <span>@(isEn ? "Roadmap" : "Lộ trình")</span>
+                            </a>
+                            <a asp-controller="Playground" asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3.5 py-2 fw-semibold font-monospace d-flex align-items-center gap-1.5" style="font-size: var(--text-nav);">
+                                <i class="bi bi-terminal"></i> <span>Playground</span>
+                            </a>
+                            <a asp-controller="Tutorials" asp-action="Index" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-xs d-flex align-items-center gap-1.5" style="font-size: var(--text-nav);">
+                                <span>@(isEn ? "Start Learning" : "Bắt đầu học ngay")</span> <i class="bi bi-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -153,18 +108,71 @@
     </div>
 </section>
 
-<!-- Featured Technical Guides (Strict Typographic Scale) -->
+<!-- Comprehensive Curriculum Tracks (8 Senior Tracks Showcase) -->
 <section class="container py-4 my-2">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center justify-content-between mb-3.5">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="section-label fw-bold text-primary text-uppercase" style="font-size: var(--text-xs); letter-spacing: 0.05em;">
+                    <i class="bi bi-compass me-1"></i>@(isEn ? "Learning Tracks" : "Chuyên Đề Đào Tạo")
+                </span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-monospace" style="font-size: var(--text-2xs);">
+                    @(Model.TotalCategories) @(isEn ? "Tracks" : "Chặng")
+                </span>
+            </div>
+            <h2 class="h4 fw-bold mb-0 text-body-emphasis">
+                @(isEn ? "Senior .NET Engineer Curriculum" : "Lộ Trình 8 Chặng Chuyên Sâu")
+            </h2>
+        </div>
+        <a asp-controller="Roadmap" asp-action="Index" class="text-muted text-decoration-none fw-medium d-flex align-items-center gap-1" style="font-size: var(--text-xs);">
+            @(isEn ? "View full visual roadmap" : "Xem toàn bộ lộ trình chi tiết") <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+
+    <!-- 8 Tracks Grid (4 columns on lg, 2 on md/sm, 1 on xs) -->
+    <div class="row g-3 mb-4">
+        @foreach (var cat in Model.Categories)
+        {
+            <div class="col-12 col-sm-6 col-lg-3">
+                <a asp-controller="Tutorials" asp-action="Index" asp-route-category="@cat.GetSlug(isEn)" 
+                   class="card h-100 rounded-3 border bg-body shadow-xs p-3 text-decoration-none track-card d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-2.5">
+                            <div class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; font-size: 1.15rem;">
+                                <i class="bi @cat.IconClass"></i>
+                            </div>
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill font-monospace" style="font-size: var(--text-2xs);">
+                                @(cat.Tutorials?.Count ?? 0) @(isEn ? "lessons" : "bài học")
+                            </span>
+                        </div>
+                        <h3 class="h6 fw-bold mb-1.5 text-body-emphasis" style="font-size: var(--text-sm); line-height: 1.45; min-height: 2.5rem;">
+                            @cat.GetTitle(isEn)
+                        </h3>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top text-primary small fw-semibold" style="font-size: var(--text-xs);">
+                        <span>@(isEn ? "Explore track" : "Khám phá chặng")</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Featured Technical Guides (Handpicked Lessons) -->
+<section class="container py-4 my-2 border-top">
+    <div class="d-flex align-items-center justify-content-between mb-3.5">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="section-label fw-bold text-success text-uppercase" style="font-size: var(--text-xs); letter-spacing: 0.05em;">
+                    <i class="bi bi-stars me-1"></i>@(isEn ? "Recommended" : "Tuyển Chọn")
+                </span>
+            </div>
             <h2 class="h4 fw-bold mb-0 text-body-emphasis">
                 @(isEn ? "Featured Lessons" : "Bài Học Tiêu Biểu")
             </h2>
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-monospace" style="font-size: var(--text-2xs);">
-                @(isEn ? "Handpicked" : "Tuyển chọn")
-            </span>
         </div>
-        <a asp-controller="Tutorials" asp-action="Index" class="text-muted text-decoration-none fw-medium" style="font-size: var(--text-xs);">
+        <a asp-controller="Tutorials" asp-action="Index" class="text-muted text-decoration-none fw-medium d-flex align-items-center gap-1" style="font-size: var(--text-xs);">
             @(isEn ? $"All {Model.TotalTutorials} lessons" : $"Tất cả {Model.TotalTutorials} bài") <i class="bi bi-chevron-right"></i>
         </a>
     </div>
@@ -174,7 +182,7 @@
         {
             <div class="col-md-6 col-lg-4">
                 <div class="card h-100 rounded-3 border bg-body shadow-xs featured-card d-flex flex-column">
-                    <div class="p-3 d-flex flex-column flex-grow-1">
+                    <div class="p-3.5 d-flex flex-column flex-grow-1">
                         <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-monospace fw-semibold text-truncate" style="max-width: 65%; font-size: var(--text-2xs);" title="@(item.Category?.GetTitle(isEn) ?? "")">
                                 <i class="bi @(item.Category?.IconClass ?? "bi-journal-code") me-1"></i>@(item.Category?.GetTitle(isEn) ?? "")
@@ -184,7 +192,7 @@
                             </span>
                         </div>
                         <h3 class="h6 fw-bold mb-2 text-body-emphasis" style="font-size: var(--text-base); line-height: 1.45; min-height: 2.8rem;">
-                            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.GetSlug(isEn)" class="text-body-emphasis text-decoration-none">
+                            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.GetSlug(isEn)" class="text-body-emphasis text-decoration-none hover-text-primary">
                                 @item.GetTitle(isEn)
                             </a>
                         </h3>
