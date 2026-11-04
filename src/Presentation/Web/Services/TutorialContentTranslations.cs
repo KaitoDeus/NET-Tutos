@@ -180,7 +180,7 @@ while (count < 3)
 ## 1. Fixed Arrays vs Dynamic Collections (`List<T>`)
 
 ### Static Arrays (Array):
-Arrays have a fixed size upon initialization and provide $O(1)$ indexed access:
+Arrays have a fixed size upon initialization and provide `O(1)` indexed access:
 ```csharp
 int[] numbers = new int[3] { 10, 20, 30 };
 Console.WriteLine(numbers[0]); // 10
@@ -208,7 +208,7 @@ Console.WriteLine($""Total students: {studentNames.Count}"");
 ```
 
 ## 2. Key-Value Dictionaries (`Dictionary<TKey, TValue>`)
-Store key-value pairs utilizing an underlying Hash Table with an average lookup complexity of $O(1)$:
+Store key-value pairs utilizing an underlying Hash Table with an average lookup complexity of `O(1)`:
 ```csharp
 Dictionary<string, string> glossary = new Dictionary<string, string>
 {

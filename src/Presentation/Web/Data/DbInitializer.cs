@@ -447,7 +447,7 @@ while (dem < 3)
 ## 1. Mảng (Array) vs Danh sách động (`List<T>`)
 
 ### Mảng tĩnh (Array):
-Mảng có kích thước cố định khi khởi tạo, truy xuất phần tử theo chỉ số (Index) với độ phức tạp $O(1)$.
+Mảng có kích thước cố định khi khởi tạo, truy xuất phần tử theo chỉ số (Index) với độ phức tạp `O(1)`.
 ```csharp
 int[] soNguyen = new int[3] { 10, 20, 30 };
 Console.WriteLine(soNguyen[0]); // 10
@@ -475,7 +475,7 @@ Console.WriteLine($""Số lượng học viên: {danhSachTen.Count}"");
 ```
 
 ## 2. Từ điển (`Dictionary<TKey, TValue>`)
-Lưu trữ cặp khóa-giá trị (Key-Value) dựa trên bảng băm (Hash Table). Tìm kiếm cực nhanh theo Key với độ phức tạp trung bình $O(1)$.
+Lưu trữ cặp khóa-giá trị (Key-Value) dựa trên bảng băm (Hash Table). Tìm kiếm cực nhanh theo Key với độ phức tạp trung bình `O(1)`.
 ```csharp
 Dictionary<string, string> tuDien = new Dictionary<string, string>
 {

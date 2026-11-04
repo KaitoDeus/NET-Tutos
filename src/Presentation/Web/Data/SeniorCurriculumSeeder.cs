@@ -287,12 +287,12 @@ Trong kỹ thuật phần mềm cấp cao (Senior Engineer), việc lựa chọn
 
 | Cấu trúc dữ liệu | Truy cập ngẫu nhiên | Tìm kiếm (Search) | Thêm (Insert) | Xóa (Delete) | Cơ chế mở rộng ngầm |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`Array T[]`** | $O(1)$ | $O(N)$ | N/A (Cố định) | N/A | Không thể mở rộng |
-| **`List<T>`** | $O(1)$ | $O(N)$ | $O(1)$ Amortized | $O(N)$ | Tự động nhân đôi kích thước $(\times 2)$ |
-| **`Dictionary<TKey, TValue>`** | N/A | $O(1)$ Average | $O(1)$ Average | $O(1)$ Average | Mở rộng bảng băm đến số nguyên tố kế tiếp |
-| **`HashSet<T>`** | N/A | $O(1)$ Average | $O(1)$ Average | $O(1)$ Average | Bảng băm không lưu Value |
-| **`LinkedList<T>`** | $O(N)$ | $O(N)$ | $O(1)$ khi có Node | $O(1)$ khi có Node | Node riêng lẻ trên Managed Heap |
-| **`Queue<T>` / `Stack<T>`** | N/A | $O(N)$ | $O(1)$ Push/Enqueue | $O(1)$ Pop/Dequeue | Vòng lặp đệm circular buffer $(\times 2)$ |
+| **`Array T[]`** | `O(1)` | `O(N)` | N/A (Cố định) | N/A | Không thể mở rộng |
+| **`List<T>`** | `O(1)` | `O(N)` | `O(1)` Amortized | `O(N)` | Tự động nhân đôi kích thước (x2) |
+| **`Dictionary<TKey, TValue>`** | N/A | `O(1)` Average | `O(1)` Average | `O(1)` Average | Mở rộng bảng băm đến số nguyên tố kế tiếp |
+| **`HashSet<T>`** | N/A | `O(1)` Average | `O(1)` Average | `O(1)` Average | Bảng băm không lưu Value |
+| **`LinkedList<T>`** | `O(N)` | `O(N)` | `O(1)` khi có Node | `O(1)` khi có Node | Node riêng lẻ trên Managed Heap |
+| **`Queue<T>` / `Stack<T>`** | N/A | `O(N)` | `O(1)` Push/Enqueue | `O(1)` Pop/Dequeue | Vòng lặp đệm circular buffer (x2) |
 
 ---
 
@@ -302,7 +302,7 @@ Trong kỹ thuật phần mềm cấp cao (Senior Engineer), việc lựa chọn
 Khi bạn gọi `list.Add(item)` và `_size == _items.Length`:
 
 1. CLR sẽ cấp phát một mảng mới trên Managed Heap với dung lượng gấp đôi:
-   $$\text{NewCapacity} = \text{Capacity} == 0 \ ? \ 4 : \text{Capacity} \times 2$$
+   `NewCapacity = (Capacity == 0) ? 4 : Capacity * 2;`
 2. Gọi hàm nội tại `Array.Copy` để chuyển toàn bộ phần tử sang mảng mới.
 3. Mảng cũ trở thành rác (Garbage), chờ GC thu gom.
 
@@ -399,8 +399,8 @@ public static int[] TwoSumSorted(int[] numbers, int target)
     return [];
 }
 ```
-* **Time Complexity:** $O(N)$
-* **Space Complexity:** $O(1)$
+* **Time Complexity:** `O(N)`
+* **Space Complexity:** `O(1)`
 
 ---
 
@@ -442,10 +442,10 @@ public static int LengthOfLongestSubstring(string s)
 
 ## 3. Kỹ thuật Mảng Tiền Tố (Prefix Sum)
 
-Prefix Sum cho phép bạn truy vấn tổng các phần tử trong khoảng $[L, R]$ với thời gian $O(1)$ sau khi tiền xử lý $O(N)$.
+Prefix Sum cho phép bạn truy vấn tổng các phần tử trong khoảng $[L, R]$ với thời gian `O(1)` sau khi tiền xử lý `O(N)`.
 
-$$\text{Prefix}[i] = \text{arr}[0] + \text{arr}[1] + \dots + \text{arr}[i-1]$$
-$$\text{Sum}(L, R) = \text{Prefix}[R + 1] - \text{Prefix}[L]$$
+`Prefix[i] = arr[0] + arr[1] + ... + arr[i-1]`
+`Sum(L, R) = Prefix[R + 1] - Prefix[L]`
 "
             });
         }
@@ -611,9 +611,9 @@ public static List<List<T>> LevelOrderTraversal<T>(TreeNode<T>? root)
 ## 3. Duyệt Cây theo Chiều sâu (Depth-First Search - DFS)
 
 DFS đi sâu đến các node lá trước khi quay lui (Backtracking). Có 3 thứ tự duyệt chính:
-* **Pre-order:** Root $\rightarrow$ Left $\rightarrow$ Right
-* **In-order (quan trọng cho Binary Search Tree):** Left $\rightarrow$ Root $\rightarrow$ Right (cho ra dãy tăng dần!)
-* **Post-order:** Left $\rightarrow$ Right $\rightarrow$ Root
+* **Pre-order:** Root → Left → Right
+* **In-order (quan trọng cho Binary Search Tree):** Left → Root → Right (cho ra dãy tăng dần!)
+* **Post-order:** Left → Right → Root
 "
             });
         }
@@ -677,8 +677,8 @@ public static int CoinChange(int[] coins, int amount)
     return dp[amount] > amount ? -1 : dp[amount];
 }
 ```
-* **Time Complexity:** $O(N \times \text{amount})$ với $N$ là số đồng xu.
-* **Space Complexity:** $O(\text{amount})$.
+* **Time Complexity:** `O(N * amount)` với N là số đồng xu.
+* **Space Complexity:** `O(amount)`.
 "
             });
         }
@@ -709,7 +709,7 @@ Trong C# doanh nghiệp, cách phổ biến nhất để biểu diễn đồ th�
 
 ## 2. Thuật toán Dijkstra tìm Đường đi ngắn nhất
 
-Sử dụng `PriorityQueue<int, int>` của .NET 10 giúp giảm độ phức tạp xuống $O((E + V) \log V)$.
+Sử dụng `PriorityQueue<int, int>` của .NET 10 giúp giảm độ phức tạp xuống `O((E + V) * log V)`.
 
 ```csharp
 public static int[] Dijkstra(int totalNodes, List<(int U, int V, int Weight)> edges, int startNode)
@@ -1296,8 +1296,8 @@ Khi quy mô hệ thống tăng lên hàng triệu người dùng và hàng tri�
 ## 1. Vấn Đề Dual-Write trong Hệ Thống Phân Tán
 
 Khi thực hiện thao tác lưu dữ liệu vào Database và bắn Event lên Message Broker:
-* Nếu DB ghi thành công nhưng Broker sập $\rightarrow$ Mất Event!
-* Nếu bắn Event thành công nhưng DB lỗi $\rightarrow$ Dữ liệu không nhất quán!
+* Nếu DB ghi thành công nhưng Broker sập → Mất Event!
+* Nếu bắn Event thành công nhưng DB lỗi → Dữ liệu không nhất quán!
 
 ## 2. Giải Pháp: Transactional Outbox Pattern
 
@@ -1382,7 +1382,7 @@ Outbox Pattern lưu Message vào bảng `OutboxMessages` ngay trong cùng một 
 
 ## 1. Khung Tiêu Chuẩn Giám Sát Phân Tán
 
-* **Tracing:** Theo dõi vòng đời của một Request đi xuyên qua YARP Gateway $\rightarrow$ Microservices $\rightarrow$ Database $\rightarrow$ Message Broker bằng một `TraceId` duy nhất.
+* **Tracing:** Theo dõi vòng đời của một Request đi xuyên qua YARP Gateway → Microservices → Database → Message Broker bằng một `TraceId` duy nhất.
 * **Metrics:** Đo lường các chỉ số định lượng: Requests Per Second, Error Rate, GC Pauses, Queue Depth.
 * **Logging:** Nhật ký có cấu trúc (Structured Logging) với Serilog gắn kèm TraceId.
 "
@@ -1418,7 +1418,7 @@ Outbox Pattern lưu Message vào bảng `OutboxMessages` ngay trong cùng một 
 * **Generation 0 (Gen 0):** Chứa các đối tượng sống ngắn hạn mới được cấp phát (biến cục bộ hàm, chuỗi tạm). Thu gom siêu nhanh (< 1ms).
 * **Generation 1 (Gen 1):** Vùng đệm chứa các đối tượng sống sót sau lần dọn rác của Gen 0.
 * **Generation 2 (Gen 2):** Chứa các đối tượng sống lâu dài (Singletons, App caches, DbContext pools). Thu gom tốn kém nhất (Full GC).
-* **Large Object Heap (LOH):** Chứa các mảng/đối tượng có dung lượng $\ge 85.000$ bytes. Mặc định không được dồn nén bộ nhớ (Compaction) để tránh tốn CPU.
+* **Large Object Heap (LOH):** Chứa các mảng/đối tượng có dung lượng ≥ 85.000 bytes. Mặc định không được dồn nén bộ nhớ (Compaction) để tránh tốn CPU.
 "
             });
         }
