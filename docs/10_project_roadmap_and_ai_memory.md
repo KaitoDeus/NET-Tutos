@@ -39,7 +39,7 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 
 ---
 
-## 3. Completed Roadmap History (Phase 1 – Phase 11)
+## 3. Completed Roadmap History (Phase 1 – Phase 12)
 
 | Phase | Milestone Name | Status | Key Deliverables & Architecture Components |
 | :--- | :--- | :---: | :--- |
@@ -55,6 +55,7 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 | **Phase 9** | **Interactive In-Lesson Code Lab & AI Big-O Sandbox** | ✅ Completed | Inline executable C# 14 Sandbox (`Run Code`, `Edit Inline`) & live AI Big-O Complexity Analyzer (`Big-O AI`) embedded directly into every code block inside `Views/Tutorials/Details.cshtml`. |
 | **Phase 10** | **Full GitHub GitOps & DevSecOps Automation Suite** | ✅ Completed | `.github/workflows/auto-pr.yml` (Auto-PR & Labeler), `auto-merge.yml` (Auto Squash-Merge & branch cleanup on CI pass), `auto-release.yml` (Semantic Release & Changelog), `security-audit.yml` (NuGet CVE scanner), `docker-ghcr.yml` (GHCR multi-container publisher), `.github/dependabot.yml`, `.github/CODEOWNERS`, `.github/ISSUE_TEMPLATE/`, `SECURITY.md`, and `scripts/New-AutoPullRequest.ps1`. |
 | **Phase 11** | **Live GitHub & Google OAuth 2.0 SSO & Secret Hardening** | ✅ Completed | `Program.cs` (`AddOAuth("GitHub")` & `AddOAuth("Google")` with `/signin-github` & `/signin-google` callbacks), `AccountController.cs` (`ExternalLogin`, `ExternalLoginCallback`), `Login.cshtml`, `Register.cshtml`, and `Profile.cshtml` external login account linking (+50 XP bonus on first SSO sign-in). Removed all demo accounts/UI and hardened `.dockerignore` & console logging. |
+| **Phase 12** | **Catalog Microservice Containerization & Live BFF Delegation** | ✅ Completed | Expanded `NET-Tutos.Catalog.API` (`:5008`) with `/api/v1/catalog/sections`, `/api/v1/catalog/sections/{sectionNumber}`, and `/api/v1/catalog/tracks/estimate`. Wired `Services__Catalog__Url=http://catalog:8080` in `docker-compose.yml` & `appsettings.json`, and enabled live HTTP delegation with Hybrid L1/L2 Redis 7 caching & Strangler Fig fallback in `CurriculumService.cs`, `ExamService.cs`, and `CertificateService.cs`. |
 
 ---
 
@@ -74,7 +75,7 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 
 ---
 
-## 5. Automated Test Suite Breakdown (152/152 Passing)
+## 5. Automated Test Suite Breakdown (158/158 Passing)
 
 | Test Project | Path | Tests Count | Scope Covered |
 | :--- | :--- | :---: | :--- |
@@ -82,23 +83,20 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 | **`NET-Tutos.CodeRunner.Tests`** | `tests/NET-Tutos.CodeRunner.Tests` | 11 | Roslyn C# compilation, security guard blocking (`System.Diagnostics.Process`, `System.IO.File`), test case judge. |
 | **`NET-Tutos.Gamification.Tests`** | `tests/NET-Tutos.Gamification.Tests` | 16 | Domain value objects (`XpValue`, `StreakCount`), streak check-in rules, MassTransit event consumers. |
 | **`NET-Tutos.AiTutor.Tests`** | `tests/NET-Tutos.AiTutor.Tests` | 16 | `EfficiencyScore`, `InterviewRubricScore` (50/25/25), Big-O detection, compiler diagnostics, xUnit generator, mock interview. |
-| **`NET-Tutos.Catalog.Tests`** | `tests/NET-Tutos.Catalog.Tests` | 12 | `ReadingDuration`, `ExamScore` (80% threshold, Distinction/Merit/Pass/Fail tiers), `GetCatalogOverviewQueryHandler`, `EvaluateExamSubmissionCommandHandler`. |
-| **`NET-Tutos.UnitTests`** | `tests/NET-Tutos.UnitTests` | 68 | Web services, `HybridRedisCacheService` (L1/L2 backfill, stampede lock, deterministic Roslyn cache), `GeoIpService`, `SeoMetadataService`. |
+| **`NET-Tutos.Catalog.Tests`** | `tests/NET-Tutos.Catalog.Tests` | 17 | `ReadingDuration`, `ExamScore`, 7-stage bilingual `GetCatalogSectionsQueryHandler`, `EstimateLearningTrackQueryHandler`, and dual-format certificate verification (`NT-CERT-*` & `NET-2026-*`). |
+| **`NET-Tutos.UnitTests`** | `tests/NET-Tutos.UnitTests` | 69 | Web services, `CurriculumService` Redis cache & BFF delegation, `HybridRedisCacheService` (L1/L2 backfill, stampede lock, deterministic Roslyn cache), `GeoIpService`, `SeoMetadataService`. |
 | **`NET-Tutos.IntegrationTests`** | `tests/NET-Tutos.IntegrationTests` | 25 | Full HTTP pipeline, GitHub & Google OAuth 2.0 SSO forms, Geo-IP headers & public IP language switching, `/robots.txt`, `/sitemap.xml`, dynamic OG SVG endpoints, IndexNow, security & Roslyn endpoints. |
 
 ---
 
-## 6. Upcoming Strategic Roadmap Phases (Phase 12 – Phase 15 Backlog)
+## 6. Upcoming Strategic Roadmap Phases (Phase 13 – Phase 15 Backlog)
 
-### Phase 12: Cloud-Native Observability & HTTP Resilience (`OpenTelemetry` + `Polly v8`)
+### Phase 13: Cloud-Native Observability & HTTP Resilience (`OpenTelemetry` + `Polly v8`)
 - **Standard Resilience Handler (`Microsoft.Extensions.Http.Resilience`)**: Configure Circuit Breaker, Exponential Backoff Retry, hedging, and timeout pipelines on `CodeRunner`, `Gamification`, `AiTutor`, and `Catalog` HTTP clients.
 - **OpenTelemetry Instrumentation**: End-to-end distributed tracing (`ActivitySource`) and Prometheus metrics across `YarpGateway`, `Web`, `CodeRunner`, `Gamification`, `AiTutor`, and `Catalog`.
 
-### Phase 13: Real-Time Multiplayer Coding Arena (`SignalR` 1v1 Algorithmic Battles)
+### Phase 14: Real-Time Multiplayer Coding Arena (`SignalR` 1v1 Algorithmic Battles)
 - **Live Coding Duels (`CodingArenaHub`)**: Real-time 1v1 algorithmic rooms where two developers compete on the same C# 14 challenge with live test-case progress bars, countdown timers, ELO rating updates, and bonus XP rewards.
 
-### Phase 14: RAG Vector Knowledge Base (`pgvector` + Semantic Curriculum Search)
-- **Semantic Lesson Retrieval**: Index all 101+ bilingual lessons and flashcards using vector embeddings so Atus AI Mentor cites exact lesson sections and code examples with sub-millisecond vector similarity search.
-
-### Phase 15: Kubernetes (`Helm` / `.NET Aspire`) Production Cloud Orchestration
-- **Cloud-Native Deployment Manifests**: Kubernetes Helm charts / `.NET Aspire` AppHost with Horizontal Pod Autoscaling (HPA) for `CodeRunner.API`, liveness/readiness probes, and secret management.
+### Phase 15: RAG Vector Knowledge Base (`pgvector` + Semantic Curriculum Search) & Cloud Orchestration
+- **Semantic Lesson Retrieval & Helm Manifests**: Index all 101+ bilingual lessons using vector embeddings for sub-millisecond similarity search, paired with Kubernetes Helm charts / `.NET Aspire` AppHost manifests.

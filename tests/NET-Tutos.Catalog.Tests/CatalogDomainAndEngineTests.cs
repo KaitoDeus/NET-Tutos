@@ -87,4 +87,53 @@ public class CatalogDomainAndEngineTests
         var verify = engine.VerifyCertificate(result.CertificateCode, "en");
         verify.IsValid.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task GetCatalogSectionsQueryHandler_Returns7BilingualStagesWith101TotalLessons()
+    {
+        var engine = new CatalogAssessmentEngine();
+        var handler = new GetCatalogSectionsQueryHandler(engine);
+
+        var viSections = await handler.HandleAsync(new GetCatalogSectionsQuery("vi"));
+        var enSections = await handler.HandleAsync(new GetCatalogSectionsQuery("en"));
+
+        viSections.Should().HaveCount(7);
+        viSections.Sum(s => s.LessonCount).Should().Be(101);
+        viSections[0].Title.Should().Contain("Phần 1");
+
+        enSections.Should().HaveCount(7);
+        enSections.Sum(s => s.LessonCount).Should().Be(101);
+        enSections[0].Title.Should().Contain("Part 1");
+
+        var section6 = engine.GetSectionByNumber(6, "en");
+        section6.Should().NotBeNull();
+        section6!.DifficultyLevel.Should().Be("Advanced");
+    }
+
+    [Fact]
+    public async Task EstimateLearningTrackQueryHandler_CalculatesCompletionDaysAndWeeks()
+    {
+        var engine = new CatalogAssessmentEngine();
+        var handler = new EstimateLearningTrackQueryHandler(engine);
+
+        var estimate = await handler.HandleAsync(new EstimateLearningTrackQuery("DOTNET10", 60, "en"));
+
+        estimate.TrackCode.Should().Be("DOTNET10");
+        estimate.TotalHours.Should().Be(129);
+        estimate.DailyStudyMinutes.Should().Be(60);
+        estimate.EstimatedDays.Should().Be(129);
+        estimate.PaceCategory.Should().Be("Deep-Dive Architecture");
+    }
+
+    [Theory]
+    [InlineData("NT-CERT-2026-ABCDEF12", true)]
+    [InlineData("NET-2026-98AF12", true)]
+    [InlineData("INVALID-CODE", false)]
+    public void VerifyCertificate_RecognizesBothMicroserviceAndBffCertificateFormats(string code, bool expectedValid)
+    {
+        var engine = new CatalogAssessmentEngine();
+        var result = engine.VerifyCertificate(code, "vi");
+        result.IsValid.Should().Be(expectedValid);
+    }
 }
+

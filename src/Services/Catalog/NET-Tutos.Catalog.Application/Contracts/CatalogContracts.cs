@@ -8,6 +8,25 @@ public record CatalogCategoryDto(
     int LessonCount,
     int OrderIndex);
 
+public record CatalogSectionDto(
+    int SectionNumber,
+    string Title,
+    string Description,
+    string BadgeColor,
+    string Icon,
+    string DifficultyLevel,
+    int LessonCount,
+    int EstimatedHours);
+
+public record LearningTrackEstimateDto(
+    string TrackCode,
+    int TotalHours,
+    int DailyStudyMinutes,
+    string PaceCategory,
+    int EstimatedDays,
+    int EstimatedWeeks,
+    string Recommendation);
+
 public record CatalogOverviewDto(
     string ServiceName,
     string Language,
@@ -41,3 +60,4 @@ public record VerifyCertificateDto(
     string TrackName,
     string IssuedBy,
     string VerificationMessage);
+

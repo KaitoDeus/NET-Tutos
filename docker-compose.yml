@@ -131,6 +131,7 @@ services:
       - Services__CodeRunner__Url=http://coderunner:8080
       - Services__Gamification__Url=http://gamification:8080
       - Services__AiTutor__Url=http://aitutor:8080
+      - Services__Catalog__Url=http://catalog:8080
       - Gemini__ApiKey=${GEMINI_API_KEY}
       - Gemini__Model=${GEMINI_MODEL:-gemini-3.8-flash}
       - Gemini__Enabled=${GEMINI_ENABLED:-true}
@@ -163,6 +164,7 @@ services:
       - coderunner
       - gamification
       - aitutor
+      - catalog
 
 volumes:
   postgres_data:

@@ -20,6 +20,40 @@ public sealed class GetCatalogOverviewQueryHandler
     }
 }
 
+public record GetCatalogSectionsQuery(string Language = "vi");
+
+public sealed class GetCatalogSectionsQueryHandler
+{
+    private readonly ICatalogEngine _engine;
+
+    public GetCatalogSectionsQueryHandler(ICatalogEngine engine)
+    {
+        _engine = engine;
+    }
+
+    public Task<IReadOnlyList<CatalogSectionDto>> HandleAsync(GetCatalogSectionsQuery query, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(_engine.GetSections(query.Language));
+    }
+}
+
+public record EstimateLearningTrackQuery(string TrackCode = "DOTNET10", int DailyStudyMinutes = 45, string Language = "vi");
+
+public sealed class EstimateLearningTrackQueryHandler
+{
+    private readonly ICatalogEngine _engine;
+
+    public EstimateLearningTrackQueryHandler(ICatalogEngine engine)
+    {
+        _engine = engine;
+    }
+
+    public Task<LearningTrackEstimateDto> HandleAsync(EstimateLearningTrackQuery query, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(_engine.EstimateLearningTrack(query.TrackCode, query.DailyStudyMinutes, query.Language));
+    }
+}
+
 public record EvaluateExamSubmissionCommand(GradeExamRequest Request);
 
 public sealed class EvaluateExamSubmissionCommandHandler
@@ -36,3 +70,4 @@ public sealed class EvaluateExamSubmissionCommandHandler
         return Task.FromResult(_engine.EvaluateExam(command.Request));
     }
 }
+

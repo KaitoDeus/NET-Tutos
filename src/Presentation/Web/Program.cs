@@ -186,6 +186,7 @@ builder.Services.AddScoped<IExamService, ExamService>();
 builder.Services.AddHttpClient("CodeRunner");
 builder.Services.AddHttpClient("Gamification");
 builder.Services.AddHttpClient("AiTutor");
+builder.Services.AddHttpClient("Catalog");
 builder.Services.AddHttpClient("Gemini", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(30);

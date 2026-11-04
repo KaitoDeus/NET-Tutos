@@ -1,3 +1,5 @@
+using System.Net.Http.Json;
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NET_Tutos.Data;
@@ -11,15 +13,30 @@ public class ExamService : IExamService
     private readonly AppDbContext _context;
     private readonly ICertificateService _certificateService;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly HttpClient? _catalogClient;
+    private readonly string? _catalogUrl;
+    private readonly ILogger<ExamService>? _logger;
 
     public ExamService(
         AppDbContext context, 
         ICertificateService certificateService,
-        UserManager<ApplicationUser> userManager)
+        UserManager<ApplicationUser> userManager,
+        IHttpClientFactory? httpClientFactory = null,
+        IConfiguration? configuration = null,
+        ILogger<ExamService>? logger = null)
     {
         _context = context;
         _certificateService = certificateService;
         _userManager = userManager;
+        _logger = logger;
+
+        _catalogUrl = configuration?["Services:Catalog:Url"]?.TrimEnd('/');
+        if (!string.IsNullOrEmpty(_catalogUrl) && httpClientFactory != null)
+        {
+            _catalogClient = httpClientFactory.CreateClient("Catalog");
+            _catalogClient.BaseAddress = new Uri(_catalogUrl);
+            _catalogClient.Timeout = TimeSpan.FromSeconds(5);
+        }
     }
 
     public async Task<ExamListViewModel> GetExamListAsync(string? userId)
@@ -214,6 +231,40 @@ public class ExamService : IExamService
             : 0;
 
         bool isPassed = scorePercentage >= 80.0;
+
+        // Microservices Delegation: Evaluate exam submission via Catalog.API when configured
+        if (_catalogClient != null && !string.IsNullOrEmpty(_catalogUrl) && totalQuestions > 0)
+        {
+            try
+            {
+                var trackCode = submission.CategoryId.HasValue ? $"CAT-{submission.CategoryId.Value}" : "DOTNET10";
+                var payload = new
+                {
+                    UserId = userId,
+                    TrackCode = trackCode,
+                    CorrectAnswers = correctCount,
+                    TotalQuestions = totalQuestions,
+                    Language = "vi"
+                };
+
+                using var response = await _catalogClient.PostAsJsonAsync("/api/v1/catalog/assessment/grade-exam", payload);
+                if (response.IsSuccessStatusCode)
+                {
+                    var envelope = await response.Content.ReadFromJsonAsync<JsonNode>();
+                    var data = envelope?["data"] ?? envelope;
+                    if (data != null)
+                    {
+                        scorePercentage = Math.Round(data["percentageScore"]?.GetValue<double>() ?? scorePercentage, 1);
+                        isPassed = data["isPassed"]?.GetValue<bool>() ?? isPassed;
+                        _logger?.LogInformation("Delegated exam evaluation for user {UserId} to Catalog.API ({Score}%, Passed: {IsPassed}).", userId, scorePercentage, isPassed);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Catalog.API remote grade-exam call failed for user {UserId}. Falling back to local scoring.", userId);
+            }
+        }
 
         var attempt = new QuizAttempt
         {

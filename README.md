@@ -7,7 +7,7 @@
 [![Event Bus](https://img.shields.io/badge/Event_Bus-MassTransit_%2B_RabbitMQ-FF6600?logo=rabbitmq&logoColor=white)](src/Infrastructure/EventBus)
 [![Database](https://img.shields.io/badge/PostgreSQL-17_Alpine-336791?logo=postgresql&logoColor=white)](docker-compose.yml)
 [![.NET MAUI](https://img.shields.io/badge/.NET_MAUI-Android_%2F_iOS_%2F_Windows-512BD4?logo=dotnet)](src/Presentation/Mobile)
-[![Tests](https://img.shields.io/badge/Tests-152%2F152_Passing-10B981)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-158%2F158_Passing-10B981)](tests/)
 [![Cache](https://img.shields.io/badge/Cache-Hybrid_L1_%2B_Redis_7-DC382D?logo=redis&logoColor=white)](docker-compose.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -298,9 +298,9 @@ Learners can sign in or register directly via **GitHub OAuth 2.0** (`/signin-git
 
 ---
 
-## 8. Automated Testing & CI Quality Gates (152/152 Passing)
+## 8. Automated Testing & CI Quality Gates (158/158 Passing)
 
-Every microservice, gateway route, domain value object, hybrid Redis cache, Geo-IP detector, SEO engine, OAuth 2.0 SSO flow, and web service is verified by **152 automated tests** across 7 test projects (enforced on every push/PR via [`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
+Every microservice, gateway route, domain value object, hybrid Redis cache, Geo-IP detector, SEO engine, OAuth 2.0 SSO flow, and web service is verified by **158 automated tests** across 7 test projects (enforced on every push/PR via [`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
 
 ```powershell
 # 1. YARP API Gateway routing, topology & X-Correlation-ID tests (4 tests)
@@ -315,10 +315,10 @@ dotnet test tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.cspr
 # 4. AiTutor microservice Big-O rules, 3D rubric value objects & engine tests (16 tests)
 dotnet test tests/NET-Tutos.AiTutor.Tests/NET-Tutos.AiTutor.Tests.csproj
 
-# 5. Catalog & Assessment microservice domain & exam certification tests (12 tests)
+# 5. Catalog & Assessment microservice domain, 7-stage curriculum & certification tests (17 tests)
 dotnet test tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj
 
-# 6. Web BFF unit tests (Hybrid Redis Cache, Geo-IP, SEO Metadata, Streak, Exam, Roslyn, Atus Agent) (68 tests)
+# 6. Web BFF unit tests (Hybrid Redis Cache, Geo-IP, SEO Metadata, Curriculum, Streak, Exam, Roslyn, Atus Agent) (69 tests)
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
 
 # 7. End-to-End HTTP integration pipeline, OAuth 2.0 SSO, Geo-IP, Dynamic OG SVG, Sitemap & Security tests (25 tests)

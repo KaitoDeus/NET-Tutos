@@ -73,4 +73,36 @@ public class ExamServiceTests
         topic.HasPassed.Should().BeTrue();
         topic.BestScore.Should().Be(90);
     }
+
+    [Fact]
+    public async Task CurriculumService_GetCurriculumOverviewAsync_UsesHybridCacheAndReturns7Sections()
+    {
+        // Arrange
+        using var context = MockHelpers.CreateInMemoryDbContext();
+        var mockCache = new Mock<IAppCacheService>();
+        mockCache
+            .Setup(c => c.GetOrCreateAsync(
+                "catalog:curriculum:tutorial-slugs",
+                It.IsAny<Func<CancellationToken, Task<List<string>>>>(),
+                It.IsAny<TimeSpan?>(),
+                It.IsAny<TimeSpan?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<string> { "tong-quan-he-sinh-thai-dotnet-cai-dat-moi-truong" });
+
+        var curriculumService = new CurriculumService(context, mockCache.Object);
+
+        // Act
+        var overview = await curriculumService.GetCurriculumOverviewAsync(null, null, null);
+
+        // Assert
+        overview.TotalSectionsCount.Should().Be(7);
+        overview.TotalLessonsCount.Should().Be(101);
+        mockCache.Verify(c => c.GetOrCreateAsync(
+            "catalog:curriculum:tutorial-slugs",
+            It.IsAny<Func<CancellationToken, Task<List<string>>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
 }
+

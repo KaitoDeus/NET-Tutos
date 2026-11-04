@@ -78,6 +78,8 @@ public class GatewayRoutingTests : IClassFixture<WebApplicationFactory<Program>>
         content.Should().Contain("coderunner-cluster");
         content.Should().Contain("gamification-cluster");
         content.Should().Contain("aitutor-cluster");
+        content.Should().Contain("catalog-cluster");
+        content.Should().Contain("catalog-route");
         content.Should().Contain("web-cluster");
     }
 }

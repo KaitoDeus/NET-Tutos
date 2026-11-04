@@ -1,3 +1,5 @@
+using System.Net.Http.Json;
+using System.Text.Json.Nodes;
 using NET_Tutos.Data;
 using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
@@ -8,18 +10,36 @@ namespace NET_Tutos.Services;
 public class CurriculumService : ICurriculumService
 {
     private readonly AppDbContext _context;
+    private readonly IAppCacheService? _cache;
+    private readonly HttpClient? _catalogClient;
+    private readonly string? _catalogUrl;
+    private readonly ILogger<CurriculumService>? _logger;
     private static readonly Lazy<List<CurriculumSectionViewModel>> _sectionsCache = new(BuildAllSections);
     private static readonly Lazy<List<CurriculumLessonViewModel>> _lessonsCache = new(() => 
         _sectionsCache.Value.SelectMany(s => s.Lessons).OrderBy(l => l.LessonNumber).ToList());
 
-    public CurriculumService(AppDbContext context)
+    public CurriculumService(
+        AppDbContext context,
+        IAppCacheService? cache = null,
+        IHttpClientFactory? httpClientFactory = null,
+        IConfiguration? configuration = null,
+        ILogger<CurriculumService>? logger = null)
     {
         _context = context;
+        _cache = cache;
+        _logger = logger;
+        _catalogUrl = configuration?["Services:Catalog:Url"]?.TrimEnd('/');
+        if (!string.IsNullOrEmpty(_catalogUrl) && httpClientFactory != null)
+        {
+            _catalogClient = httpClientFactory.CreateClient("Catalog");
+            _catalogClient.BaseAddress = new Uri(_catalogUrl);
+            _catalogClient.Timeout = TimeSpan.FromSeconds(5);
+        }
     }
 
     public async Task<CurriculumIndexViewModel> GetCurriculumOverviewAsync(int? sectionNumber, DifficultyLevel? difficulty, string? search)
     {
-        var sections = _sectionsCache.Value;
+        var sections = await GetAllSectionsAsync();
         var allLessons = _lessonsCache.Value;
 
         var query = allLessons.AsEnumerable();
@@ -48,10 +68,14 @@ public class CurriculumService : ICurriculumService
 
         var filteredLessons = query.ToList();
 
-        // Check matching tutorials in DB to wire direct links
-        var dbSlugs = await _context.Tutorials
-            .Select(t => t.Slug)
-            .ToListAsync();
+        // Check matching tutorials in DB (cached via HybridRedisCacheService when available)
+        var dbSlugs = _cache != null
+            ? (await _cache.GetOrCreateAsync(
+                "catalog:curriculum:tutorial-slugs",
+                async ct => await _context.Tutorials.Select(t => t.Slug).ToListAsync(ct),
+                TimeSpan.FromMinutes(15),
+                TimeSpan.FromMinutes(3))) ?? []
+            : await _context.Tutorials.Select(t => t.Slug).ToListAsync();
 
         var slugSet = new HashSet<string>(dbSlugs, StringComparer.OrdinalIgnoreCase);
         foreach (var item in filteredLessons)
@@ -75,9 +99,52 @@ public class CurriculumService : ICurriculumService
         };
     }
 
-    public Task<List<CurriculumSectionViewModel>> GetAllSectionsAsync()
+    public async Task<List<CurriculumSectionViewModel>> GetAllSectionsAsync()
     {
-        return Task.FromResult(_sectionsCache.Value);
+        var sections = _sectionsCache.Value;
+
+        // If Catalog microservice is configured, synchronize remote section metadata with Redis caching
+        if (_catalogClient != null && !string.IsNullOrEmpty(_catalogUrl))
+        {
+            try
+            {
+                const string remoteCacheKey = "catalog:remote:sections:synced";
+                bool alreadySynced = _cache != null && await _cache.GetAsync<bool?>(remoteCacheKey) == true;
+                if (!alreadySynced)
+                {
+                    using var response = await _catalogClient.GetAsync("/api/v1/catalog/sections?lang=vi");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var envelope = await response.Content.ReadFromJsonAsync<JsonNode>();
+                        var dataArray = (envelope?["data"] ?? envelope)?.AsArray();
+                        if (dataArray != null)
+                        {
+                            foreach (var item in dataArray)
+                            {
+                                int secNum = item?["sectionNumber"]?.GetValue<int>() ?? 0;
+                                int estHours = item?["estimatedHours"]?.GetValue<int>() ?? 0;
+                                var localSection = sections.FirstOrDefault(s => s.SectionNumber == secNum);
+                                if (localSection != null && estHours > 0)
+                                {
+                                    localSection.TotalEstimatedHours = estHours;
+                                }
+                            }
+                        }
+
+                        if (_cache != null)
+                        {
+                            await _cache.SetAsync(remoteCacheKey, true, TimeSpan.FromMinutes(30), TimeSpan.FromMinutes(5));
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Catalog.API remote sections call failed. Using in-process curriculum cache.");
+            }
+        }
+
+        return sections;
     }
 
     public Task<CurriculumLessonViewModel?> GetLessonByNumberAsync(int lessonNumber)
