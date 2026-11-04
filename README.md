@@ -7,7 +7,7 @@
 [![Event Bus](https://img.shields.io/badge/Event_Bus-MassTransit_%2B_RabbitMQ-FF6600?logo=rabbitmq&logoColor=white)](src/Infrastructure/EventBus)
 [![Database](https://img.shields.io/badge/PostgreSQL-17_Alpine-336791?logo=postgresql&logoColor=white)](docker-compose.yml)
 [![.NET MAUI](https://img.shields.io/badge/.NET_MAUI-Android_%2F_iOS_%2F_Windows-512BD4?logo=dotnet)](src/Presentation/Mobile)
-[![Tests](https://img.shields.io/badge/Tests-158%2F158_Passing-10B981)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-172%2F172_Passing-10B981)](tests/)
 [![Cache](https://img.shields.io/badge/Cache-Hybrid_L1_%2B_Redis_7-DC382D?logo=redis&logoColor=white)](docker-compose.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -34,8 +34,7 @@
   - [Option A: Run Full Microservices Ecosystem via Docker Compose (Recommended)](#option-a-run-full-microservices-ecosystem-via-docker-compose-recommended)
   - [Option B: Run Standalone Web App with Automatic Resilient Fallback](#option-b-run-standalone-web-app-with-automatic-resilient-fallback)
   - [Option C: Run the .NET MAUI Mobile Application](#option-c-run-the-net-maui-mobile-application)
-  - [Pre-Seeded Demo Accounts](#pre-seeded-demo-accounts)
-- [8. Automated Testing & CI Quality Gates (112/112 Passing)](#8-automated-testing--ci-quality-gates-112112-passing)
+- [8. Automated Testing & CI Quality Gates (172/172 Passing)](#8-automated-testing--ci-quality-gates-172172-passing)
 - [9. Enterprise Documentation Suite (`docs/`)](#9-enterprise-documentation-suite-docs)
 - [10. License](#10-license)
 
@@ -298,12 +297,12 @@ Learners can sign in or register directly via **GitHub OAuth 2.0** (`/signin-git
 
 ---
 
-## 8. Automated Testing & CI Quality Gates (158/158 Passing)
+## 8. Automated Testing & CI Quality Gates (172/172 Passing)
 
-Every microservice, gateway route, domain value object, hybrid Redis cache, Geo-IP detector, SEO engine, OAuth 2.0 SSO flow, and web service is verified by **158 automated tests** across 7 test projects (enforced on every push/PR via [`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
+Every microservice, gateway route, domain value object, hybrid Redis cache, Geo-IP detector, SEO engine, OAuth 2.0 SSO flow, OpenTelemetry metrics, HTTP resilience circuit breaker, SignalR coding arena, and RAG vector search engine is verified by **172 automated tests** across 7 test projects (enforced on every push/PR via [`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
 
 ```powershell
-# 1. YARP API Gateway routing, topology & X-Correlation-ID tests (4 tests)
+# 1. YARP API Gateway routing, topology, telemetry & X-Correlation-ID tests (5 tests)
 dotnet test tests/NET-Tutos.Gateway.Tests/NET-Tutos.Gateway.Tests.csproj
 
 # 2. CodeRunner microservice domain rules & Roslyn sandbox tests (11 tests)
@@ -318,10 +317,10 @@ dotnet test tests/NET-Tutos.AiTutor.Tests/NET-Tutos.AiTutor.Tests.csproj
 # 5. Catalog & Assessment microservice domain, 7-stage curriculum & certification tests (17 tests)
 dotnet test tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj
 
-# 6. Web BFF unit tests (Hybrid Redis Cache, Geo-IP, SEO Metadata, Curriculum, Streak, Exam, Roslyn, Atus Agent) (69 tests)
+# 6. Web BFF unit tests (Hybrid Redis Cache, Geo-IP, SEO, Curriculum, Observability, Coding Arena, RAG Search) (80 tests)
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
 
-# 7. End-to-End HTTP integration pipeline, OAuth 2.0 SSO, Geo-IP, Dynamic OG SVG, Sitemap & Security tests (25 tests)
+# 7. End-to-End HTTP integration pipeline, OAuth 2.0 SSO, Coding Arena, Geo-IP, Dynamic OG SVG, Sitemap & Security (27 tests)
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
 ```
 

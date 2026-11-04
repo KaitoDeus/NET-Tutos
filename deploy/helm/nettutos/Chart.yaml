@@ -1,0 +1,11 @@
+apiVersion: v2
+name: nettutos
+description: NET-Tutos .NET 10 microservices platform (YARP Gateway, Web BFF, CodeRunner, Gamification, AiTutor, Catalog, Redis, RabbitMQ, PostgreSQL)
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - dotnet
+  - microservices
+  - yarp
+  - lms

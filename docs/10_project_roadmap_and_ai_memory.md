@@ -39,7 +39,7 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 
 ---
 
-## 3. Completed Roadmap History (Phase 1 – Phase 12)
+## 3. Completed Roadmap History (Phase 1 – Phase 15)
 
 | Phase | Milestone Name | Status | Key Deliverables & Architecture Components |
 | :--- | :--- | :---: | :--- |
@@ -56,6 +56,9 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 | **Phase 10** | **Full GitHub GitOps & DevSecOps Automation Suite** | ✅ Completed | `.github/workflows/auto-pr.yml` (Auto-PR & Labeler), `auto-merge.yml` (Auto Squash-Merge & branch cleanup on CI pass), `auto-release.yml` (Semantic Release & Changelog), `security-audit.yml` (NuGet CVE scanner), `docker-ghcr.yml` (GHCR multi-container publisher), `.github/dependabot.yml`, `.github/CODEOWNERS`, `.github/ISSUE_TEMPLATE/`, `SECURITY.md`, and `scripts/New-AutoPullRequest.ps1`. |
 | **Phase 11** | **Live GitHub & Google OAuth 2.0 SSO & Secret Hardening** | ✅ Completed | `Program.cs` (`AddOAuth("GitHub")` & `AddOAuth("Google")` with `/signin-github` & `/signin-google` callbacks), `AccountController.cs` (`ExternalLogin`, `ExternalLoginCallback`), `Login.cshtml`, `Register.cshtml`, and `Profile.cshtml` external login account linking (+50 XP bonus on first SSO sign-in). Removed all demo accounts/UI and hardened `.dockerignore` & console logging. |
 | **Phase 12** | **Catalog Microservice Containerization & Live BFF Delegation** | ✅ Completed | Expanded `NET-Tutos.Catalog.API` (`:5008`) with `/api/v1/catalog/sections`, `/api/v1/catalog/sections/{sectionNumber}`, and `/api/v1/catalog/tracks/estimate`. Wired `Services__Catalog__Url=http://catalog:8080` in `docker-compose.yml` & `appsettings.json`, and enabled live HTTP delegation with Hybrid L1/L2 Redis 7 caching & Strangler Fig fallback in `CurriculumService.cs`, `ExamService.cs`, and `CertificateService.cs`. |
+| **Phase 13** | **Cloud-Native Observability & HTTP Resilience** | ✅ Completed | `src/Infrastructure/Common/Telemetry/ServiceTelemetry.cs` (shared `ActivitySource` + `Meter`), `ObservabilityService.cs` (W3C tracing, HTTP counters/histograms, downstream microservice health), `ResilientMicroserviceHandler` (exponential backoff retry on 5xx/transient errors, circuit breaker: 3 consecutive failures -> 20s open, `X-Correlation-ID` propagation) attached to all 4 microservice `HttpClient`s. Endpoints: `/api/telemetry/diagnostics` (Web BFF) and `/api/v1/gateway/telemetry` (YARP). Implemented with built-in `System.Diagnostics` APIs (OTLP exporter wiring deferred to backlog). |
+| **Phase 14** | **Real-Time 1v1 C# Coding Arena (SignalR)** | ✅ Completed | `CodingArenaService.cs` (3 seeded battle rooms, Roslyn-validated submissions, ELO +25 winner / +10 runner-up / -5 wrong, XP rewards), `CodingArenaHub` (`/hubs/arena`), `ArenaController.cs` (`/api/arena/rooms`, `/api/arena/join`, `/api/arena/submit`), bilingual routes `/coding-arena` & `/dau-truong-code`, and `Views/Arena/Index.cshtml`. Room/ELO state is in-memory (resets on restart). |
+| **Phase 15** | **RAG Semantic Curriculum Search & Kubernetes Helm Chart** | ✅ Completed | `SemanticCurriculumSearchService.cs`: in-process vector index over all 101 lessons using hashed TF-IDF sparse vectors (4096 dims, FNV-1a feature hashing, word + bi-gram + char tri-gram features, Vietnamese diacritic folding, cosine ranking) with `BuildRagContextAsync` for cited lesson context. Endpoint `/api/search/semantic?q=`. `deploy/helm/nettutos` chart: Deployments + Services for 6 .NET services, HPA (gateway, web, coderunner), PostgreSQL StatefulSet, Redis, RabbitMQ, NGINX Ingress, secrets via `existingSecret` only. Verified with `helm lint` + `helm template`. |
 
 ---
 
@@ -75,28 +78,30 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 
 ---
 
-## 5. Automated Test Suite Breakdown (158/158 Passing)
+## 5. Automated Test Suite Breakdown (172/172 Passing)
 
 | Test Project | Path | Tests Count | Scope Covered |
 | :--- | :--- | :---: | :--- |
-| **`NET-Tutos.Gateway.Tests`** | `tests/NET-Tutos.Gateway.Tests` | 4 | YARP reverse proxy config, `/healthz`, `/api/v1/gateway/status`, `X-Correlation-ID` propagation. |
+| **`NET-Tutos.Gateway.Tests`** | `tests/NET-Tutos.Gateway.Tests` | 5 | YARP reverse proxy config, `/healthz`, `/api/v1/gateway/status`, `/api/v1/gateway/telemetry`, `X-Correlation-ID` propagation. |
 | **`NET-Tutos.CodeRunner.Tests`** | `tests/NET-Tutos.CodeRunner.Tests` | 11 | Roslyn C# compilation, security guard blocking (`System.Diagnostics.Process`, `System.IO.File`), test case judge. |
 | **`NET-Tutos.Gamification.Tests`** | `tests/NET-Tutos.Gamification.Tests` | 16 | Domain value objects (`XpValue`, `StreakCount`), streak check-in rules, MassTransit event consumers. |
 | **`NET-Tutos.AiTutor.Tests`** | `tests/NET-Tutos.AiTutor.Tests` | 16 | `EfficiencyScore`, `InterviewRubricScore` (50/25/25), Big-O detection, compiler diagnostics, xUnit generator, mock interview. |
 | **`NET-Tutos.Catalog.Tests`** | `tests/NET-Tutos.Catalog.Tests` | 17 | `ReadingDuration`, `ExamScore`, 7-stage bilingual `GetCatalogSectionsQueryHandler`, `EstimateLearningTrackQueryHandler`, and dual-format certificate verification (`NT-CERT-*` & `NET-2026-*`). |
-| **`NET-Tutos.UnitTests`** | `tests/NET-Tutos.UnitTests` | 69 | Web services, `CurriculumService` Redis cache & BFF delegation, `HybridRedisCacheService` (L1/L2 backfill, stampede lock, deterministic Roslyn cache), `GeoIpService`, `SeoMetadataService`. |
-| **`NET-Tutos.IntegrationTests`** | `tests/NET-Tutos.IntegrationTests` | 25 | Full HTTP pipeline, GitHub & Google OAuth 2.0 SSO forms, Geo-IP headers & public IP language switching, `/robots.txt`, `/sitemap.xml`, dynamic OG SVG endpoints, IndexNow, security & Roslyn endpoints. |
+| **`NET-Tutos.UnitTests`** | `tests/NET-Tutos.UnitTests` | 80 | Web services, `CurriculumService` Redis cache & BFF delegation, `HybridRedisCacheService`, `ObservabilityService` & `ResilientMicroserviceHandler` (retry + circuit breaker), `CodingArenaService` (ELO/XP), `SemanticCurriculumSearchService` (ranking, diacritic folding, RAG context), `GeoIpService`, `SeoMetadataService`. |
+| **`NET-Tutos.IntegrationTests`** | `tests/NET-Tutos.IntegrationTests` | 27 | Full HTTP pipeline, `/coding-arena` & `/dau-truong-code`, GitHub & Google OAuth 2.0 SSO forms, Geo-IP headers & public IP language switching, `/robots.txt`, `/sitemap.xml`, dynamic OG SVG endpoints, IndexNow, security & Roslyn endpoints. |
 
 ---
 
-## 6. Upcoming Strategic Roadmap Phases (Phase 13 – Phase 15 Backlog)
+## 6. Upcoming Strategic Roadmap Phases (Phase 16+ Backlog)
 
-### Phase 13: Cloud-Native Observability & HTTP Resilience (`OpenTelemetry` + `Polly v8`)
-- **Standard Resilience Handler (`Microsoft.Extensions.Http.Resilience`)**: Configure Circuit Breaker, Exponential Backoff Retry, hedging, and timeout pipelines on `CodeRunner`, `Gamification`, `AiTutor`, and `Catalog` HTTP clients.
-- **OpenTelemetry Instrumentation**: End-to-end distributed tracing (`ActivitySource`) and Prometheus metrics across `YarpGateway`, `Web`, `CodeRunner`, `Gamification`, `AiTutor`, and `Catalog`.
+### Phase 16: OTLP Export & Grafana Dashboards
+- Wire `OpenTelemetry.Extensions.Hosting` + OTLP exporter to ship existing `ActivitySource`/`Meter` data to Jaeger/Tempo + Prometheus, and add Grafana dashboards (Roslyn latency, cache hit ratio, circuit breaker state).
 
-### Phase 14: Real-Time Multiplayer Coding Arena (`SignalR` 1v1 Algorithmic Battles)
-- **Live Coding Duels (`CodingArenaHub`)**: Real-time 1v1 algorithmic rooms where two developers compete on the same C# 14 challenge with live test-case progress bars, countdown timers, ELO rating updates, and bonus XP rewards.
+### Phase 17: Persistent Arena & Live Arena UI
+- Persist arena rooms, matches, and ELO history in PostgreSQL; connect `Views/Arena/Index.cshtml` to `/hubs/arena` via the SignalR JS client for live opponent progress bars and countdown timers.
 
-### Phase 15: RAG Vector Knowledge Base (`pgvector` + Semantic Curriculum Search) & Cloud Orchestration
-- **Semantic Lesson Retrieval & Helm Manifests**: Index all 101+ bilingual lessons using vector embeddings for sub-millisecond similarity search, paired with Kubernetes Helm charts / `.NET Aspire` AppHost manifests.
+### Phase 18: Neural Embeddings with `pgvector`
+- Replace hashed TF-IDF vectors with neural embeddings (e.g. Gemini embedding API) stored in PostgreSQL `pgvector`, and inject `BuildRagContextAsync` output into the Atus AI Mentor prompt.
+
+### Phase 19: `.NET Aspire` AppHost & CI Helm Deployment
+- Add a `.NET Aspire` AppHost for local orchestration and a GitHub Actions workflow that runs `helm lint` and deploys the chart to a staging cluster.

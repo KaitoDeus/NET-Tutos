@@ -1,0 +1,102 @@
+# Global image registry settings (images published by .github/workflows/docker-ghcr.yml)
+image:
+  registry: ghcr.io
+  repository: khaivo/net-tutos
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Name of a pre-created Kubernetes Secret holding sensitive values.
+# Never commit real credentials to this file. Create the secret out-of-band, e.g.:
+#   kubectl create secret generic nettutos-secrets \
+#     --from-literal=POSTGRES_PASSWORD=<value> \
+#     --from-literal=GEMINI_API_KEY=<value> \
+#     --from-literal=GITHUB_CLIENT_ID=<value> --from-literal=GITHUB_CLIENT_SECRET=<value> \
+#     --from-literal=GOOGLE_CLIENT_ID=<value> --from-literal=GOOGLE_CLIENT_SECRET=<value>
+existingSecret: nettutos-secrets
+
+# .NET microservices (all listen on port 8080 except the Web BFF on 5000)
+services:
+  gateway:
+    enabled: true
+    imageName: gateway
+    port: 8080
+    replicas: 2
+    environment: Production
+    resources:
+      requests: { cpu: 100m, memory: 128Mi }
+      limits: { cpu: 500m, memory: 256Mi }
+    autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 6, targetCPUUtilizationPercentage: 70 }
+  web:
+    enabled: true
+    imageName: web
+    port: 5000
+    replicas: 2
+    environment: Production
+    resources:
+      requests: { cpu: 250m, memory: 384Mi }
+      limits: { cpu: "1", memory: 768Mi }
+    autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 8, targetCPUUtilizationPercentage: 70 }
+  coderunner:
+    enabled: true
+    imageName: coderunner
+    port: 8080
+    replicas: 2
+    environment: Production
+    resources:
+      requests: { cpu: 250m, memory: 256Mi }
+      limits: { cpu: "1", memory: 512Mi }
+    # Roslyn compilation is CPU-bound, so CodeRunner scales most aggressively
+    autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 10, targetCPUUtilizationPercentage: 60 }
+  gamification:
+    enabled: true
+    imageName: gamification
+    port: 8080
+    replicas: 1
+    environment: Production
+    resources:
+      requests: { cpu: 100m, memory: 192Mi }
+      limits: { cpu: 500m, memory: 384Mi }
+    autoscaling: { enabled: false }
+  aitutor:
+    enabled: true
+    imageName: aitutor
+    port: 8080
+    replicas: 1
+    environment: Production
+    resources:
+      requests: { cpu: 100m, memory: 192Mi }
+      limits: { cpu: 500m, memory: 384Mi }
+    autoscaling: { enabled: false }
+  catalog:
+    enabled: true
+    imageName: catalog
+    port: 8080
+    replicas: 1
+    environment: Production
+    resources:
+      requests: { cpu: 100m, memory: 128Mi }
+      limits: { cpu: 500m, memory: 256Mi }
+    autoscaling: { enabled: false }
+
+# Backing infrastructure (single-replica StatefulSets; use managed cloud services in production if available)
+postgres:
+  enabled: true
+  image: postgres:17-alpine
+  database: nettutos_db
+  user: postgres
+  storage: 10Gi
+redis:
+  enabled: true
+  image: redis:7-alpine
+  maxMemory: 256mb
+rabbitmq:
+  enabled: true
+  image: rabbitmq:3-management-alpine
+
+ingress:
+  enabled: true
+  className: nginx
+  host: nettutos.local
+  tls:
+    enabled: false
+    secretName: nettutos-tls

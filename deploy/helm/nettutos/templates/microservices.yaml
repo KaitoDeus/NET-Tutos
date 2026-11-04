@@ -1,0 +1,127 @@
+{{- $root := . -}}
+{{- range $name, $svc := .Values.services }}
+{{- if $svc.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nettutos-{{ $name }}
+  labels:
+    {{- include "nettutos.labels" $root | nindent 4 }}
+    app.kubernetes.io/name: nettutos-{{ $name }}
+spec:
+  replicas: {{ $svc.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nettutos-{{ $name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nettutos-{{ $name }}
+    spec:
+      containers:
+        - name: {{ $name }}
+          image: {{ include "nettutos.image" (dict "root" $root "svc" $svc) }}
+          imagePullPolicy: {{ $root.Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ $svc.port }}
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: {{ $svc.environment | quote }}
+            - name: ASPNETCORE_URLS
+              value: "http://+:{{ $svc.port }}"
+            {{- if eq $name "gateway" }}
+            # Override YARP cluster destinations from appsettings.json to Kubernetes service DNS names
+            - { name: ReverseProxy__Clusters__web-cluster__Destinations__destination1__Address, value: "http://nettutos-web:5000" }
+            - { name: ReverseProxy__Clusters__coderunner-cluster__Destinations__destination1__Address, value: "http://nettutos-coderunner:8080" }
+            - { name: ReverseProxy__Clusters__gamification-cluster__Destinations__destination1__Address, value: "http://nettutos-gamification:8080" }
+            - { name: ReverseProxy__Clusters__aitutor-cluster__Destinations__destination1__Address, value: "http://nettutos-aitutor:8080" }
+            - { name: ReverseProxy__Clusters__catalog-cluster__Destinations__destination1__Address, value: "http://nettutos-catalog:8080" }
+            {{- end }}
+            {{- if eq $name "web" }}
+            - name: DatabaseProvider
+              value: PostgreSql
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: {{ $root.Values.existingSecret }}, key: POSTGRES_PASSWORD, optional: true }
+            - name: ConnectionStrings__PostgreSqlConnection
+              value: "Host=nettutos-postgres;Port=5432;Database={{ $root.Values.postgres.database }};Username={{ $root.Values.postgres.user }};Password=$(POSTGRES_PASSWORD)"
+            - name: ConnectionStrings__RedisConnection
+              value: "nettutos-redis:6379,abortConnect=false"
+            - name: DATAPROTECTION_KEYS_PATH
+              value: /app/.keys
+            - name: Services__CodeRunner__Url
+              value: http://nettutos-coderunner:8080
+            - name: Services__Gamification__Url
+              value: http://nettutos-gamification:8080
+            - name: Services__AiTutor__Url
+              value: http://nettutos-aitutor:8080
+            - name: Services__Catalog__Url
+              value: http://nettutos-catalog:8080
+            {{- include "nettutos.secretEnv" (dict "name" "GEMINI_API_KEY" "secret" $root.Values.existingSecret) | nindent 12 }}
+            {{- include "nettutos.secretEnv" (dict "name" "GITHUB_CLIENT_ID" "secret" $root.Values.existingSecret) | nindent 12 }}
+            {{- include "nettutos.secretEnv" (dict "name" "GITHUB_CLIENT_SECRET" "secret" $root.Values.existingSecret) | nindent 12 }}
+            {{- include "nettutos.secretEnv" (dict "name" "GOOGLE_CLIENT_ID" "secret" $root.Values.existingSecret) | nindent 12 }}
+            {{- include "nettutos.secretEnv" (dict "name" "GOOGLE_CLIENT_SECRET" "secret" $root.Values.existingSecret) | nindent 12 }}
+            {{- end }}
+            {{- if eq $name "gamification" }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: {{ $root.Values.existingSecret }}, key: POSTGRES_PASSWORD, optional: true }
+            - name: ConnectionStrings__PostgreSqlConnection
+              value: "Host=nettutos-postgres;Port=5432;Database=nettutos_gamification_db;Username={{ $root.Values.postgres.user }};Password=$(POSTGRES_PASSWORD)"
+            - name: RabbitMQ__Host
+              value: nettutos-rabbitmq
+            - name: UseInMemoryBus
+              value: "false"
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: {{ if eq $name "web" }}/robots.txt{{ else }}/healthz{{ end }}
+              port: {{ $svc.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: {{ if eq $name "web" }}/robots.txt{{ else }}/healthz{{ end }}
+              port: {{ $svc.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            {{- toYaml $svc.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nettutos-{{ $name }}
+  labels:
+    {{- include "nettutos.labels" $root | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/name: nettutos-{{ $name }}
+  ports:
+    - port: {{ $svc.port }}
+      targetPort: {{ $svc.port }}
+{{- if and $svc.autoscaling $svc.autoscaling.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nettutos-{{ $name }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nettutos-{{ $name }}
+  minReplicas: {{ $svc.autoscaling.minReplicas }}
+  maxReplicas: {{ $svc.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $svc.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -104,10 +104,10 @@ d:\NET-Tutos\docs\
    - Decoupled `Gamification.API` microservice with MassTransit RabbitMQ event-driven consumers.
    - Resilient delegation and graceful in-process fallback pattern in `CodeExecutionService` and `StreakService`.
    - Multi-container Docker Compose orchestration (`gateway`, `web`, `coderunner`, `gamification`, `aitutor`, `catalog`, `redis`, `rabbitmq`, `postgres`).
-   - 158/158 automated test execution across 7 test projects (`Gateway`, `CodeRunner`, `Gamification`, `AiTutor`, `Catalog`, `UnitTests`, `IntegrationTests`) and GitHub Actions CI quality gates.
+   - 172/172 automated test execution across 7 test projects (`Gateway`, `CodeRunner`, `Gamification`, `AiTutor`, `Catalog`, `UnitTests`, `IntegrationTests`) and GitHub Actions CI quality gates.
 
 10. [**10. Master Project Roadmap & AI Context Memory**](file:///d:/NET-Tutos/docs/10_project_roadmap_and_ai_memory.md)
-   - Persistent AI Context Memory and Single Source of Truth (SSOT) for all 12 completed phases (Phase 1 through Phase 12), Hybrid L1/L2 Redis 7 Caching, Catalog Microservice Containerization & Live BFF Delegation, GitOps Automation Suite, and Live GitHub/Google OAuth 2.0 SSO.
+   - Persistent AI Context Memory and Single Source of Truth (SSOT) for all 15 completed phases (Phase 1 through Phase 15), Hybrid L1/L2 Redis 7 Caching, Catalog Microservice, OpenTelemetry Tracing & HTTP Resilience, Real-Time 1v1 SignalR Coding Arena, RAG Semantic Vector Search & Kubernetes Helm Deployment.
    - Standing engineering rules (Pure .NET 10 / C# 14, Auto-Commit workflow, English-Only Code Comments, Zero Secret/Demo Leakage, Geo-IP Region Detection `VN` -> `vi` / Outside `VN` -> `en`, and Continuous SEO).
 
 11. [**DESIGN. Design System & Anti-AI-Slop Constitution**](file:///d:/NET-Tutos/docs/DESIGN.md)
@@ -127,10 +127,13 @@ d:\NET-Tutos\docs\
 | **Senior Technical Hiring Readiness** | `MOD-INT` | `InterviewController.cs`, `AiTutorService.cs`, `Mock.cshtml` | 3-dimension rubric evaluation, Speech-to-Text, radar reports |
 | **Continuous Cross-Platform Study** | `MOD-MOB` | `MobileAuthController.cs`, `ApiService.cs` (.NET MAUI), `LoginPage.xaml` | JWT Bearer verification, device storage, progress sync |
 | **Learner Engagement & Retention** | `MOD-GAM` | `StreakService.cs`, `LeaderboardService.cs`, `NET-Tutos.Gamification.API` | Daily check-in tests, Level formula calculation, Gamification microservice tests |
-| **Microservice High-Compute Isolation** | `MOD-ARCH` | `NET-Tutos.CodeRunner.API`, `NET-Tutos.Gamification.API`, `NET-Tutos.AiTutor.API`, `NET-Tutos.Catalog.API`, `NET-Tutos.YarpGateway` | 158/158 automated tests, 9-container Docker topology, CI pipeline |
+| **Microservice High-Compute Isolation** | `MOD-ARCH` | `NET-Tutos.CodeRunner.API`, `NET-Tutos.Gamification.API`, `NET-Tutos.AiTutor.API`, `NET-Tutos.Catalog.API`, `NET-Tutos.YarpGateway` | 172/172 automated tests, 9-container Docker topology, CI pipeline |
 | **Geo-IP Localization & Technical SEO** | `MOD-SEO` | `GeoIpService.cs`, `SeoMetadataService.cs`, `SeoController.cs` | VN -> `vi` / INTL -> `en`, Dynamic OG SVG, `BreadcrumbList`, `FAQPage`, IndexNow |
 | **Hybrid L1/L2 Redis 7 Caching** | `MOD-CACHE` | `HybridRedisCacheService.cs`, `CodeExecutionService.cs`, `TutorialService.cs`, `CurriculumService.cs` | L1 Memory + L2 Redis 7, Stampede Semaphore Lock, 30s Circuit Breaker |
 | **Live OAuth 2.0 SSO Authentication** | `MOD-AUTH` | `Program.cs`, `AccountController.cs`, `Login.cshtml`, `Register.cshtml`, `Profile.cshtml` | Live GitHub (`/signin-github`) & Google (`/signin-google`) OAuth 2.0 SSO |
+| **Observability & HTTP Resilience** | `MOD-OBS` | `ServiceTelemetry.cs`, `ObservabilityService.cs`, `ResilientMicroserviceHandler.cs` | W3C ActivitySource, System.Diagnostics.Metrics, Exponential Backoff & Circuit Breaker |
+| **Real-Time 1v1 Coding Arena** | `MOD-ARENA` | `CodingArenaHub.cs`, `CodingArenaService.cs`, `ArenaController.cs`, `Arena/Index.cshtml` | SignalR real-time broadcast, Roslyn submission validation, ELO ladder updates |
+| **RAG Semantic Search & Cloud Deploy** | `MOD-RAG` | `SemanticCurriculumSearchService.cs`, `/api/search/semantic`, `deploy/helm/nettutos` | 4096-dim hashed TF-IDF vector ranking, diacritic folding, Helm chart deployment |
 
 ---
 

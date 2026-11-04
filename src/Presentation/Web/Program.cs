@@ -202,6 +202,7 @@ builder.Services.AddScoped<IActivityFeedService, ActivityFeedService>();
 builder.Services.AddScoped<ICapstoneProjectService, CapstoneProjectService>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddScoped<ICurriculumService, CurriculumService>();
+builder.Services.AddScoped<ISemanticCurriculumSearchService, SemanticCurriculumSearchService>();
 builder.Services.AddScoped<IStudyPlannerService, StudyPlannerService>();
 builder.Services.AddScoped<AiTutorService>();
 builder.Services.AddScoped<IAiTutorService, GeminiAgentService>();
@@ -560,6 +561,13 @@ app.MapGet("/api/telemetry/diagnostics", async (IObservabilityService observabil
 {
     var snapshot = await observability.GetDiagnosticsAsync(ct);
     return Results.Ok(snapshot);
+});
+
+// RAG Semantic Curriculum Search Endpoint (hashed TF-IDF vector index + cosine similarity)
+app.MapGet("/api/search/semantic", async (string? q, int? top, HttpContext http, ISemanticCurriculumSearchService search, CancellationToken ct) =>
+{
+    var result = await search.SearchAsync(q ?? string.Empty, http.IsEnglish(), top ?? 5, ct);
+    return Results.Ok(result);
 });
 
 // Seed/Sync additional tutorials endpoint
