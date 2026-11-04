@@ -1,0 +1,126 @@
+<!-- Global App Confirm & Alert Modal -->
+<div class="modal fade" id="appDialogModal" tabindex="-1" aria-labelledby="appDialogModalTitle" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+        <div class="modal-content rounded-4 border-0 shadow-lg p-3 p-md-4 bg-body">
+            <div class="d-flex align-items-start gap-3 mb-3">
+                <div id="appDialogIconWrapper" class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 bg-danger-subtle text-danger" style="width: 48px; height: 48px; font-size: 1.4rem;">
+                    <i id="appDialogIcon" class="bi bi-trash3-fill"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="modal-title fw-bold mb-1" id="appDialogModalTitle">Xác nhận</h5>
+                    <p class="text-body-secondary small mb-0 lh-base" id="appDialogModalMessage">Bạn có chắc chắn muốn thực hiện hành động này không?</p>
+                </div>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close" id="appDialogCloseX"></button>
+            </div>
+            <div class="d-flex align-items-center justify-content-end gap-2 pt-3 border-top">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-3.5 py-1.5 small fw-semibold" data-bs-dismiss="modal" id="appDialogCancelBtn">Hủy</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4 py-1.5 small fw-semibold" id="appDialogConfirmBtn">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        let dialogResolve = null;
+        let dialogModalInstance = null;
+
+        function getModal() {
+            const el = document.getElementById('appDialogModal');
+            if (!el) return null;
+            if (!dialogModalInstance && window.bootstrap && window.bootstrap.Modal) {
+                dialogModalInstance = new bootstrap.Modal(el);
+            }
+            return dialogModalInstance;
+        }
+
+        window.appConfirm = function (options = {}) {
+            return new Promise((resolve) => {
+                const modal = getModal();
+                if (!modal) {
+                    const fallbackConfirm = window.confirm(options.message || "Xác nhận?");
+                    return resolve(fallbackConfirm);
+                }
+
+                dialogResolve = resolve;
+
+                const isEn = document.documentElement.lang === 'en';
+                const titleEl = document.getElementById('appDialogModalTitle');
+                const msgEl = document.getElementById('appDialogModalMessage');
+                const confirmBtn = document.getElementById('appDialogConfirmBtn');
+                const cancelBtn = document.getElementById('appDialogCancelBtn');
+                const iconWrapper = document.getElementById('appDialogIconWrapper');
+                const iconEl = document.getElementById('appDialogIcon');
+
+                if (titleEl) titleEl.innerText = options.title || (isEn ? 'Confirm Action' : 'Xác nhận thao tác');
+                if (msgEl) msgEl.innerText = options.message || '';
+
+                if (confirmBtn) {
+                    confirmBtn.innerText = options.confirmText || (isEn ? 'Confirm' : 'Đồng ý');
+                    confirmBtn.className = `btn rounded-pill px-4 py-1.5 small fw-semibold ${options.confirmBtnClass || 'btn-danger'}`;
+                    confirmBtn.style.display = 'inline-block';
+                }
+
+                if (cancelBtn) {
+                    cancelBtn.innerText = options.cancelText || (isEn ? 'Cancel' : 'Hủy');
+                    cancelBtn.style.display = options.isAlert ? 'none' : 'inline-block';
+                }
+
+                if (iconWrapper && iconEl) {
+                    iconWrapper.className = `rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 ${options.iconWrapperClass || 'bg-danger-subtle text-danger'}`;
+                    iconEl.className = `bi ${options.icon || 'bi-exclamation-triangle-fill'}`;
+                }
+
+                modal.show();
+            });
+        };
+
+        window.appAlert = function (titleOrMsg, message, type = 'info') {
+            const isTwoArgs = typeof message === 'string';
+            const isEn = document.documentElement.lang === 'en';
+            const title = isTwoArgs ? titleOrMsg : (isEn ? 'Notice' : 'Thông báo');
+            const msg = isTwoArgs ? message : titleOrMsg;
+            const icon = type === 'success' ? 'bi-check-circle-fill' : (type === 'danger' ? 'bi-exclamation-circle-fill' : 'bi-info-circle-fill');
+            const wrapperClass = type === 'success' ? 'bg-success-subtle text-success' : (type === 'danger' ? 'bg-danger-subtle text-danger' : 'bg-primary-subtle text-primary');
+            const btnClass = type === 'success' ? 'btn-success' : (type === 'danger' ? 'btn-danger' : 'btn-primary');
+
+            return window.appConfirm({
+                title: title,
+                message: msg,
+                confirmText: isEn ? 'OK' : 'Đã hiểu',
+                confirmBtnClass: btnClass,
+                isAlert: true,
+                icon: icon,
+                iconWrapperClass: wrapperClass
+            });
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const confirmBtn = document.getElementById('appDialogConfirmBtn');
+            const cancelBtn = document.getElementById('appDialogCancelBtn');
+            const closeX = document.getElementById('appDialogCloseX');
+            const modalEl = document.getElementById('appDialogModal');
+
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', () => {
+                    if (dialogResolve) {
+                        dialogResolve(true);
+                        dialogResolve = null;
+                    }
+                    if (dialogModalInstance) dialogModalInstance.hide();
+                });
+            }
+
+            const handleCancel = () => {
+                if (dialogResolve) {
+                    dialogResolve(false);
+                    dialogResolve = null;
+                }
+            };
+
+            if (cancelBtn) cancelBtn.addEventListener('click', handleCancel);
+            if (closeX) closeX.addEventListener('click', handleCancel);
+            if (modalEl) modalEl.addEventListener('hidden.bs.modal', handleCancel);
+        });
+    })();
+</script>
