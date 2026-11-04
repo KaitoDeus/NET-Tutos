@@ -22,24 +22,23 @@
                 max-height: 980px;
                 display: flex;
                 align-items: stretch;
-                gap: 1rem;
-                transition: gap 0.2s ease;
+                gap: 0;
             }
 
             .playground-main-area {
                 flex: 1 1 0%;
                 min-width: 0;
                 height: 100%;
-                transition: flex 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             }
 
             /* Integrated Docked AI Tutor Split Pane */
             .playground-ai-panel {
                 width: 390px;
+                min-width: 280px;
+                max-width: 600px;
                 flex: 0 0 390px;
                 height: 100%;
                 display: none;
-                transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             }
 
             .playground-workbench-container.ai-open .playground-ai-panel {
@@ -47,6 +46,103 @@
                 flex-direction: column;
                 animation: aiDockSlideIn 0.2s ease-out;
             }
+
+            .playground-workbench-container.ai-open .playground-resizer-ai {
+                display: flex !important;
+            }
+        }
+
+        /* Split Panes & Drag Resizers */
+        .playground-split-row {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            position: relative;
+        }
+
+        @@media (min-width: 992px) {
+            .playground-editor-pane {
+                width: 58%;
+                min-width: 280px;
+                max-width: calc(100% - 220px);
+                flex: 0 0 auto;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+            .playground-terminal-pane {
+                flex: 1 1 0%;
+                min-width: 220px;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+        }
+
+        @@media (max-width: 991.98px) {
+            .playground-split-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .playground-editor-pane,
+            .playground-terminal-pane {
+                width: 100% !important;
+                flex: 0 0 auto;
+            }
+            .playground-resizer-editor-terminal {
+                display: none !important;
+            }
+        }
+
+        /* Sleek Draggable Resizer Bar */
+        .playground-resizer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 12px;
+            width: 12px;
+            cursor: col-resize;
+            position: relative;
+            z-index: 10;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            background: transparent;
+            transition: background-color 0.15s ease;
+        }
+
+        .playground-resizer:hover,
+        .playground-resizer.is-dragging {
+            background-color: rgba(13, 110, 253, 0.08);
+        }
+
+        .playground-resizer .resizer-handle {
+            width: 4px;
+            height: 38px;
+            border-radius: 4px;
+            background-color: var(--bs-border-color);
+            transition: background-color 0.15s ease, height 0.15s ease, width 0.15s ease;
+        }
+
+        .playground-resizer:hover .resizer-handle,
+        .playground-resizer.is-dragging .resizer-handle {
+            background-color: var(--bs-primary);
+            height: 60px;
+            width: 4px;
+            box-shadow: 0 0 8px rgba(13, 110, 253, 0.35);
+        }
+
+        /* Prevent text selection and cursor jitter during drag */
+        body.is-resizing-pane {
+            cursor: col-resize !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+        }
+        body.is-resizing-pane iframe,
+        body.is-resizing-pane .monaco-container,
+        body.is-resizing-pane .console-terminal {
+            pointer-events: none !important;
         }
 
         @@media (max-width: 1199.98px) {
@@ -233,12 +329,12 @@
     }
 
     <!-- IDE Workbench Container (Responsive Flex Layout with Docked AI Split Pane) -->
-    <div class="playground-workbench-container d-flex flex-column flex-xl-row gap-3" id="playgroundContainer">
+    <div class="playground-workbench-container d-flex flex-column flex-xl-row gap-0" id="playgroundContainer">
         <!-- Main Area: Monaco Editor + Output Console -->
         <div class="playground-main-area flex-grow-1 min-w-0" id="playgroundMainArea">
-            <div class="row g-3 h-100">
+            <div class="playground-split-row h-100" id="playgroundSplitRow">
                 <!-- Monaco Editor Column -->
-                <div class="col-12 col-lg-7 h-100 d-flex flex-column" id="colEditor">
+                <div class="playground-pane playground-editor-pane h-100 d-flex flex-column" id="colEditor">
                     <div class="card border rounded-3 bg-body shadow-sm h-100 d-flex flex-column overflow-hidden">
                         <div class="card-header bg-transparent border-bottom py-2.5 px-3">
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
@@ -409,8 +505,13 @@
                     </div>
                 </div>
 
+                <!-- Resizer between Editor and Terminal -->
+                <div class="playground-resizer playground-resizer-editor-terminal d-none d-lg-flex" id="resizerEditorTerminal" title="@(isEn ? "Drag to resize Editor and Terminal" : "Kéo để thay đổi độ rộng Khung Code và Terminal")">
+                    <div class="resizer-handle"></div>
+                </div>
+
                 <!-- Terminal & Test Results Column -->
-                <div class="col-12 col-lg-5 h-100 d-flex flex-column" id="colTerminal">
+                <div class="playground-pane playground-terminal-pane h-100 d-flex flex-column" id="colTerminal">
                     <div class="card border rounded-3 bg-body shadow-sm h-100 d-flex flex-column overflow-hidden">
                         <div class="card-header bg-transparent border-bottom py-2.5 px-3">
                             <div class="d-flex justify-content-between align-items-center">
@@ -476,6 +577,11 @@
             </div>
         </div>
 
+        <!-- Resizer between Main Area and AI Assistant Drawer (Integrated Docked Pane on >= 1200px) -->
+        <div class="playground-resizer playground-resizer-ai d-none" id="resizerMainAi" title="@(isEn ? "Drag to resize AI Assistant" : "Kéo để thay đổi độ rộng Trợ lý AI")">
+            <div class="resizer-handle"></div>
+        </div>
+
         <!-- AI Tutor Panel: Integrated Docked Split Pane on >= 1200px, Offcanvas Drawer on < 1200px -->
         <div class="card border rounded-3 bg-body shadow-sm playground-ai-panel d-flex flex-column overflow-hidden" id="offcanvasAiTutor" tabindex="-1">
             <div class="card-header border-bottom bg-body-tertiary p-2.5 px-3 d-flex align-items-center justify-content-between">
@@ -503,19 +609,7 @@
                 </div>
 
                 <!-- Dynamic AI Content Output (Scrollable) -->
-                <div id="aiTutorResponseBox" class="flex-grow-1 overflow-y-auto mb-2.5 pe-1" style="max-height: 100%;">
-                    <div class="p-3 rounded-2 bg-body-tertiary border text-body small" id="aiDefaultBox">
-                        <div class="fw-bold text-primary mb-1 d-flex align-items-center gap-1.5" style="font-size: var(--text-sm);">
-                            <i class="bi bi-info-circle-fill"></i>
-                            <span>@(isEn ? "AI Assistant Ready" : "Trợ lý AI sẵn sàng hỗ trợ")</span>
-                        </div>
-                        <p class="text-muted mb-0" style="font-size: var(--text-xs);">
-                            @(isEn
-                                ? "Run your code to test. If you encounter errors, I will analyze them and suggest fixes. You can also request hints or code optimization anytime!"
-                                : "Hãy chạy thử code của bạn. Nếu gặp lỗi, tôi sẽ phân tích và hướng dẫn sửa chi tiết. Bạn cũng có thể yêu cầu gợi ý thuật toán hoặc tối ưu code bất cứ lúc nào!")
-                        </p>
-                    </div>
-                </div>
+                <div id="aiTutorResponseBox" class="flex-grow-1 overflow-y-auto mb-2.5 pe-1" style="max-height: 100%;"></div>
 
                 <!-- Mini Question Input Bar in AI Panel -->
                 <div class="pt-2 border-top mt-auto">
@@ -620,6 +714,294 @@
                 defaultCode = templates['hello-world'] || (isEn ? '// Enter C# code here\nConsole.WriteLine("Hello C#!");' : '// Nhập mã C# tại đây\nConsole.WriteLine("Xin chào C#!");');
             }
 
+            // Autocomplete & Tab Completion Provider for C#
+            monaco.languages.registerCompletionItemProvider('csharp', {
+                triggerCharacters: ['.', ' ', '<', '(', '"'],
+                provideCompletionItems: function (model, position) {
+                    const word = model.getWordUntilPosition(position);
+                    const range = {
+                        startLineNumber: position.lineNumber,
+                        endLineNumber: position.lineNumber,
+                        startColumn: word.startColumn,
+                        endColumn: word.endColumn
+                    };
+
+                    const suggestions = [
+                        // C# Snippets (Press Tab to expand)
+                        {
+                            label: 'cw',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'Console.WriteLine(${1:\"\"});$0',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Console.WriteLine(); (Nhấn Tab để chèn)',
+                            detail: 'C# Snippet (Tab to complete)'
+                        },
+                        {
+                            label: 'cr',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'Console.ReadLine();$0',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Console.ReadLine();',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'for',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'for (int ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++)\n{\n\t$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'for loop statement',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'foreach',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'foreach (var ${1:item} in ${2:collection})\n{\n\t$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'foreach loop statement',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'forr',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'for (int ${1:i} = ${2:length} - 1; ${1:i} >= 0; ${1:i}--)\n{\n\t$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Reverse for loop statement',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'while',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'while (${1:condition})\n{\n\t$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'while loop statement',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'do',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'do\n{\n\t$0\n} while (${1:condition});',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'do-while loop statement',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'if',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'if (${1:condition})\n{\n\t$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'if statement',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'ifelse',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'if (${1:condition})\n{\n\t$1\n}\nelse\n{\n\t$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'if-else statement',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'switch',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'switch (${1:value})\n{\n\tcase ${2:pattern}:\n\t\t$0\n\t\tbreak;\n\tdefault:\n\t\tbreak;\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'switch statement',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'try',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'try\n{\n\t$1\n}\ncatch (Exception ex)\n{\n\tConsole.WriteLine($\"Error: {ex.Message}\");$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'try-catch block',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'tryf',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'try\n{\n\t$1\n}\ncatch (Exception ex)\n{\n\tConsole.WriteLine($\"Error: {ex.Message}\");\n}\nfinally\n{\n\t$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'try-catch-finally block',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'prop',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'public ${1:int} ${2:MyProperty} { get; set; }$0',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Auto-implemented property',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'propg',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'public ${1:int} ${2:MyProperty} { get; private set; }$0',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Property with private setter',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'ctor',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'public ${1:ClassName}(${2})\n{\n\t$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Constructor',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'class',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'public class ${1:MyClass}\n{\n\t$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Class declaration',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'record',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'public record ${1:MyRecord}(${2:params});$0',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Positional Record declaration',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'interface',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'public interface I${1:MyInterface}\n{\n\t$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Interface declaration',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'struct',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'public struct ${1:MyStruct}\n{\n\t$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Struct declaration',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'enum',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'public enum ${1:MyEnum}\n{\n\t${2:FirstOption} = 1,\n\t${0:SecondOption} = 2\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Enum declaration',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'method',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'public ${1:void} ${2:MyMethod}(${3})\n{\n\t$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Method declaration',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'asyncmethod',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'public async Task<${1:int}> ${2:MyMethodAsync}(${3})\n{\n\t$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Async Task method declaration',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'using',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'using var ${1:resource} = ${2:expr};$0',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'using declaration statement',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'lock',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'lock (${1:syncRoot})\n{\n\t$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'lock statement block',
+                            detail: 'C# Snippet'
+                        },
+                        {
+                            label: 'main',
+                            kind: monaco.languages.CompletionItemKind.Snippet,
+                            insertText: 'public static void Main(string[] args)\n{\n\t$0\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Main entry point method',
+                            detail: 'C# Snippet'
+                        },
+
+                        // Common Types & Classes
+                        { label: 'Console', kind: monaco.languages.CompletionItemKind.Class, insertText: 'Console', detail: 'System.Console' },
+                        { label: 'Console.WriteLine', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Console.WriteLine(${1:\"\"});$0', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'void Console.WriteLine()' },
+                        { label: 'Console.Write', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Console.Write(${1:\"\"});$0', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'void Console.Write()' },
+                        { label: 'Console.ReadLine', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Console.ReadLine()', detail: 'string? Console.ReadLine()' },
+                        { label: 'List', kind: monaco.languages.CompletionItemKind.Class, insertText: 'List<${1:int}>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'List<T>' },
+                        { label: 'Dictionary', kind: monaco.languages.CompletionItemKind.Class, insertText: 'Dictionary<${1:string}, ${2:int}>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Dictionary<TKey, TValue>' },
+                        { label: 'HashSet', kind: monaco.languages.CompletionItemKind.Class, insertText: 'HashSet<${1:int}>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'HashSet<T>' },
+                        { label: 'Queue', kind: monaco.languages.CompletionItemKind.Class, insertText: 'Queue<${1:int}>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Queue<T>' },
+                        { label: 'Stack', kind: monaco.languages.CompletionItemKind.Class, insertText: 'Stack<${1:int}>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Stack<T>' },
+                        { label: 'PriorityQueue', kind: monaco.languages.CompletionItemKind.Class, insertText: 'PriorityQueue<${1:string}, ${2:int}>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'PriorityQueue<TElement, TPriority>' },
+                        { label: 'StringBuilder', kind: monaco.languages.CompletionItemKind.Class, insertText: 'StringBuilder', detail: 'System.Text.StringBuilder' },
+                        { label: 'Math', kind: monaco.languages.CompletionItemKind.Class, insertText: 'Math', detail: 'System.Math' },
+                        { label: 'Task', kind: monaco.languages.CompletionItemKind.Class, insertText: 'Task', detail: 'System.Threading.Tasks.Task' },
+                        { label: 'Span', kind: monaco.languages.CompletionItemKind.Struct, insertText: 'Span<${1:int}>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Span<T>' },
+                        { label: 'ReadOnlySpan', kind: monaco.languages.CompletionItemKind.Struct, insertText: 'ReadOnlySpan<${1:char}>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'ReadOnlySpan<T>' },
+                        { label: 'DateTime', kind: monaco.languages.CompletionItemKind.Struct, insertText: 'DateTime', detail: 'System.DateTime' },
+                        { label: 'TimeSpan', kind: monaco.languages.CompletionItemKind.Struct, insertText: 'TimeSpan', detail: 'System.TimeSpan' },
+                        { label: 'Guid', kind: monaco.languages.CompletionItemKind.Struct, insertText: 'Guid', detail: 'System.Guid' },
+                        { label: 'Convert', kind: monaco.languages.CompletionItemKind.Class, insertText: 'Convert', detail: 'System.Convert' },
+                        { label: 'Enumerable', kind: monaco.languages.CompletionItemKind.Class, insertText: 'Enumerable', detail: 'System.Linq.Enumerable' },
+                        { label: 'Array', kind: monaco.languages.CompletionItemKind.Class, insertText: 'Array', detail: 'System.Array' },
+                        { label: 'String', kind: monaco.languages.CompletionItemKind.Class, insertText: 'string', detail: 'System.String' },
+
+                        // LINQ Methods
+                        { label: 'Where', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Where(${1:x} => ${2})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Filter elements' },
+                        { label: 'Select', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Select(${1:x} => ${2})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Project elements' },
+                        { label: 'SelectMany', kind: monaco.languages.CompletionItemKind.Method, insertText: 'SelectMany(${1:x} => ${2})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Flatten projections' },
+                        { label: 'OrderBy', kind: monaco.languages.CompletionItemKind.Method, insertText: 'OrderBy(${1:x} => ${2})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Sort ascending' },
+                        { label: 'OrderByDescending', kind: monaco.languages.CompletionItemKind.Method, insertText: 'OrderByDescending(${1:x} => ${2})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Sort descending' },
+                        { label: 'ThenBy', kind: monaco.languages.CompletionItemKind.Method, insertText: 'ThenBy(${1:x} => ${2})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Subsequent ordering' },
+                        { label: 'GroupBy', kind: monaco.languages.CompletionItemKind.Method, insertText: 'GroupBy(${1:x} => ${2})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Group elements' },
+                        { label: 'Distinct', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Distinct()', detail: 'LINQ: Unique elements' },
+                        { label: 'DistinctBy', kind: monaco.languages.CompletionItemKind.Method, insertText: 'DistinctBy(${1:x} => ${2})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Unique elements by key (.NET 6+)' },
+                        { label: 'ToList', kind: monaco.languages.CompletionItemKind.Method, insertText: 'ToList()', detail: 'LINQ: Convert to List<T>' },
+                        { label: 'ToArray', kind: monaco.languages.CompletionItemKind.Method, insertText: 'ToArray()', detail: 'LINQ: Convert to Array' },
+                        { label: 'ToDictionary', kind: monaco.languages.CompletionItemKind.Method, insertText: 'ToDictionary(${1:x} => ${2:x.Key}, ${3:x} => ${4:x.Value})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Convert to Dictionary' },
+                        { label: 'ToHashSet', kind: monaco.languages.CompletionItemKind.Method, insertText: 'ToHashSet()', detail: 'LINQ: Convert to HashSet<T>' },
+                        { label: 'First', kind: monaco.languages.CompletionItemKind.Method, insertText: 'First(${1})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Return first element' },
+                        { label: 'FirstOrDefault', kind: monaco.languages.CompletionItemKind.Method, insertText: 'FirstOrDefault(${1})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Return first element or default' },
+                        { label: 'Single', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Single(${1})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Return single element' },
+                        { label: 'SingleOrDefault', kind: monaco.languages.CompletionItemKind.Method, insertText: 'SingleOrDefault(${1})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Return single element or default' },
+                        { label: 'Any', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Any(${1})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Check if any element satisfies' },
+                        { label: 'All', kind: monaco.languages.CompletionItemKind.Method, insertText: 'All(${1:x} => ${2})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Check if all elements satisfy' },
+                        { label: 'Count', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Count(${1})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Count elements' },
+                        { label: 'Sum', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Sum(${1})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Calculate sum' },
+                        { label: 'Min', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Min(${1})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Minimum element' },
+                        { label: 'Max', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Max(${1})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Maximum element' },
+                        { label: 'Average', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Average(${1})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Average value' },
+                        { label: 'Take', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Take(${1:count})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Take count elements' },
+                        { label: 'Skip', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Skip(${1:count})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Skip count elements' },
+                        { label: 'Chunk', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Chunk(${1:size})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Split into chunks (.NET 6+)' },
+                        { label: 'Zip', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Zip(${1:secondCollection})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Zip pairs' },
+                        { label: 'Aggregate', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Aggregate((${1:acc}, ${2:curr}) => ${3})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'LINQ: Fold/Reduce aggregate' },
+
+                        // Common Keywords
+                        { label: 'var', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'var ', detail: 'Implicitly typed local variable' },
+                        { label: 'async', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'async ', detail: 'Asynchronous method modifier' },
+                        { label: 'await', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'await ', detail: 'Await asynchronous task' },
+                        { label: 'return', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'return ', detail: 'Return statement' },
+                        { label: 'yield return', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'yield return ${1};$0', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Yield return iterator' },
+                        { label: 'throw new', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'throw new ${1:ArgumentException}(\"${2:error}\");$0', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Throw exception' }
+                    ];
+
+                    return {
+                        suggestions: suggestions.map(s => ({
+                            ...s,
+                            range: range
+                        }))
+                    };
+                }
+            });
+
             editorInstance = monaco.editor.create(document.getElementById('monacoEditor'), {
                 value: defaultCode,
                 language: 'csharp',
@@ -634,7 +1016,22 @@
                 scrollBeyondLastLine: false,
                 lineNumbers: 'on',
                 roundedSelection: true,
-                padding: { top: 12, bottom: 12 }
+                padding: { top: 12, bottom: 12 },
+                tabCompletion: 'on',
+                quickSuggestions: { other: true, comments: false, strings: true },
+                suggestOnTriggerCharacters: true,
+                acceptSuggestionOnEnter: 'on',
+                acceptSuggestionOnCommitCharacter: true,
+                snippetSuggestions: 'top',
+                suggestSelection: 'first',
+                suggest: {
+                    insertMode: 'insert',
+                    filterGraceful: true,
+                    snippetsPreventQuickSuggestions: false,
+                    localityBonus: true,
+                    shareSuggestSelections: true,
+                    showIcons: true
+                }
             });
 
             // Keyboard shortcut Ctrl + Enter to run code
@@ -733,6 +1130,8 @@
         });
 
         document.addEventListener('DOMContentLoaded', function () {
+            initDraggableResizers();
+
             const templateSelector = document.getElementById('templateSelector');
             const btnResetCode = document.getElementById('btnResetCode');
             const btnRunCode = document.getElementById('btnRunCode');
@@ -942,6 +1341,11 @@
                 if (container) {
                     container.classList.add('ai-open');
                 }
+                const savedAiWidth = localStorage.getItem('nettutos_ai_panel_width');
+                if (savedAiWidth && panel) {
+                    panel.style.width = savedAiWidth + 'px';
+                    panel.style.flex = `0 0 ${savedAiWidth}px`;
+                }
             } else {
                 if (panel) {
                     panel.classList.add('show-mobile');
@@ -987,7 +1391,163 @@
             }
         }
 
+        function initDraggableResizers() {
+            // 1. Resizer between Monaco Editor and Output Terminal
+            const resizerET = document.getElementById('resizerEditorTerminal');
+            const colEditor = document.getElementById('colEditor');
+            const splitRow = document.getElementById('playgroundSplitRow');
+
+            if (resizerET && colEditor && splitRow) {
+                const savedEditorWidth = localStorage.getItem('nettutos_editor_pane_width');
+                if (savedEditorWidth && window.innerWidth >= 992) {
+                    colEditor.style.width = savedEditorWidth + 'px';
+                    colEditor.style.flex = `0 0 ${savedEditorWidth}px`;
+                }
+
+                let isDraggingET = false;
+                let startX = 0;
+                let startWidth = 0;
+
+                const onPointerDownET = (e) => {
+                    if (window.innerWidth < 992) return;
+                    isDraggingET = true;
+                    startX = e.clientX;
+                    startWidth = colEditor.getBoundingClientRect().width;
+                    resizerET.classList.add('is-dragging');
+                    document.body.classList.add('is-resizing-pane');
+                    window.addEventListener('pointermove', onPointerMoveET);
+                    window.addEventListener('pointerup', onPointerUpET);
+                    window.addEventListener('pointercancel', onPointerUpET);
+                    e.preventDefault();
+                };
+
+                const onPointerMoveET = (e) => {
+                    if (!isDraggingET) return;
+                    const deltaX = e.clientX - startX;
+                    const containerWidth = splitRow.getBoundingClientRect().width;
+                    const minW = 280;
+                    const maxW = Math.max(minW, containerWidth - 230);
+                    let newWidth = Math.max(minW, Math.min(maxW, startWidth + deltaX));
+
+                    colEditor.style.width = newWidth + 'px';
+                    colEditor.style.flex = `0 0 ${newWidth}px`;
+
+                    if (editorInstance) {
+                        editorInstance.layout();
+                    }
+                };
+
+                const onPointerUpET = () => {
+                    if (!isDraggingET) return;
+                    isDraggingET = false;
+                    resizerET.classList.remove('is-dragging');
+                    document.body.classList.remove('is-resizing-pane');
+                    window.removeEventListener('pointermove', onPointerMoveET);
+                    window.removeEventListener('pointerup', onPointerUpET);
+                    window.removeEventListener('pointercancel', onPointerUpET);
+
+                    const finalWidth = Math.round(colEditor.getBoundingClientRect().width);
+                    localStorage.setItem('nettutos_editor_pane_width', finalWidth);
+
+                    if (editorInstance) {
+                        editorInstance.layout();
+                    }
+                };
+
+                resizerET.addEventListener('pointerdown', onPointerDownET);
+            }
+
+            // 2. Resizer between Main Area and AI Assistant Drawer
+            const resizerAi = document.getElementById('resizerMainAi');
+            const aiPanel = document.getElementById('offcanvasAiTutor');
+            const container = document.getElementById('playgroundContainer');
+
+            if (resizerAi && aiPanel && container) {
+                const savedAiWidth = localStorage.getItem('nettutos_ai_panel_width');
+                if (savedAiWidth && window.innerWidth >= 1200) {
+                    aiPanel.style.width = savedAiWidth + 'px';
+                    aiPanel.style.flex = `0 0 ${savedAiWidth}px`;
+                }
+
+                let isDraggingAi = false;
+                let startX = 0;
+                let startWidth = 0;
+
+                const onPointerDownAi = (e) => {
+                    if (window.innerWidth < 1200) return;
+                    isDraggingAi = true;
+                    startX = e.clientX;
+                    startWidth = aiPanel.getBoundingClientRect().width;
+                    resizerAi.classList.add('is-dragging');
+                    document.body.classList.add('is-resizing-pane');
+                    window.addEventListener('pointermove', onPointerMoveAi);
+                    window.addEventListener('pointerup', onPointerUpAi);
+                    window.addEventListener('pointercancel', onPointerUpAi);
+                    e.preventDefault();
+                };
+
+                const onPointerMoveAi = (e) => {
+                    if (!isDraggingAi) return;
+                    const deltaX = e.clientX - startX;
+                    const containerWidth = container.getBoundingClientRect().width;
+                    const minW = 280;
+                    const maxW = Math.min(620, Math.max(minW, containerWidth - 480));
+                    let newWidth = Math.max(minW, Math.min(maxW, startWidth - deltaX));
+
+                    aiPanel.style.width = newWidth + 'px';
+                    aiPanel.style.flex = `0 0 ${newWidth}px`;
+
+                    if (editorInstance) {
+                        editorInstance.layout();
+                    }
+                };
+
+                const onPointerUpAi = () => {
+                    if (!isDraggingAi) return;
+                    isDraggingAi = false;
+                    resizerAi.classList.remove('is-dragging');
+                    document.body.classList.remove('is-resizing-pane');
+                    window.removeEventListener('pointermove', onPointerMoveAi);
+                    window.removeEventListener('pointerup', onPointerUpAi);
+                    window.removeEventListener('pointercancel', onPointerUpAi);
+
+                    const finalWidth = Math.round(aiPanel.getBoundingClientRect().width);
+                    localStorage.setItem('nettutos_ai_panel_width', finalWidth);
+
+                    if (editorInstance) {
+                        editorInstance.layout();
+                    }
+                };
+
+                resizerAi.addEventListener('pointerdown', onPointerDownAi);
+            }
+        }
+
         window.addEventListener('resize', () => {
+            const colEditor = document.getElementById('colEditor');
+            const aiPanel = document.getElementById('offcanvasAiTutor');
+            if (window.innerWidth < 992 && colEditor) {
+                colEditor.style.width = '';
+                colEditor.style.flex = '';
+            } else if (window.innerWidth >= 992 && colEditor) {
+                const savedEditorWidth = localStorage.getItem('nettutos_editor_pane_width');
+                if (savedEditorWidth) {
+                    colEditor.style.width = savedEditorWidth + 'px';
+                    colEditor.style.flex = `0 0 ${savedEditorWidth}px`;
+                }
+            }
+
+            if (window.innerWidth < 1200 && aiPanel) {
+                aiPanel.style.width = '';
+                aiPanel.style.flex = '';
+            } else if (window.innerWidth >= 1200 && aiPanel) {
+                const savedAiWidth = localStorage.getItem('nettutos_ai_panel_width');
+                if (savedAiWidth) {
+                    aiPanel.style.width = savedAiWidth + 'px';
+                    aiPanel.style.flex = `0 0 ${savedAiWidth}px`;
+                }
+            }
+
             if (editorInstance) {
                 editorInstance.layout();
             }
