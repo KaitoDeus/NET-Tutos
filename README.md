@@ -7,7 +7,7 @@
 [![Event Bus](https://img.shields.io/badge/Event_Bus-MassTransit_%2B_RabbitMQ-FF6600?logo=rabbitmq&logoColor=white)](src/Infrastructure/EventBus)
 [![Database](https://img.shields.io/badge/PostgreSQL-17_Alpine-336791?logo=postgresql&logoColor=white)](docker-compose.yml)
 [![.NET MAUI](https://img.shields.io/badge/.NET_MAUI-Android_%2F_iOS_%2F_Windows-512BD4?logo=dotnet)](src/Presentation/Mobile)
-[![Tests](https://img.shields.io/badge/Tests-151%2F151_Passing-10B981)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-152%2F152_Passing-10B981)](tests/)
 [![Cache](https://img.shields.io/badge/Cache-Hybrid_L1_%2B_Redis_7-DC382D?logo=redis&logoColor=white)](docker-compose.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -255,10 +255,12 @@ docker compose up -d --build
 | Container Name | Service Role | Host Port | Internal URL |
 | :--- | :--- | :---: | :--- |
 | **`nettutos-gateway`** | **YARP API Gateway (Main Entry Point)** | **`http://localhost:5000`** | `http://gateway:8080` |
-| **`nettutos-web`** | ASP.NET Core 10 MVC Web App & Swagger UI | `http://localhost:5001` | `http://web:5000` |
+| **`nettutos-web`** | ASP.NET Core 10 MVC Web App, OAuth 2.0 SSO & Swagger UI | `http://localhost:5001` | `http://web:5000` |
 | **`nettutos-coderunner`** | Roslyn Code Execution & Judge Microservice | `http://localhost:5002` | `http://coderunner:8080` |
 | **`nettutos-gamification`** | Streaks, XP, Badges & Leaderboard Microservice | `http://localhost:5004` | `http://gamification:8080` |
 | **`nettutos-aitutor`** | AI Complexity, Diagnostics & Interview Microservice | `http://localhost:5006` | `http://aitutor:8080` |
+| **`nettutos-catalog`** | Catalog, Curriculum, Exam Grading & Certificate Microservice | `http://localhost:5008` | `http://catalog:8080` |
+| **`nettutos-redis`** | Redis 7 Alpine L2 Distributed Cache (`allkeys-lru` + AOF) | `localhost:6379` | `redis:6379` |
 | **`nettutos-rabbitmq`** | RabbitMQ 3 Broker & Management Dashboard | `http://localhost:15672` | `amqp://rabbitmq:5672` |
 | **`nettutos-postgres`** | PostgreSQL 17 Database Server | `localhost:5432` | `postgres:5432` |
 
@@ -290,20 +292,15 @@ Then open **`http://localhost:5000`** (or **`http://localhost:5262`**) and explo
 
 ---
 
-### Pre-Seeded Demo Accounts
+### Authentication & OAuth 2.0 SSO (`GitHub` & `Google`)
 
-The platform automatically seeds all 101 lessons, coding challenges, interview flashcards, and demo accounts on startup (`DbInitializer.cs`):
-
-| Role | Email | Password | Highlights |
-| :--- | :--- | :--- | :--- |
-| **Administrator** | `admin@nettutos.com` | `AdminPassword@123` | Full access to LMS Admin CMS Studio, analytics, quiz manager, capstone grading & user moderation. |
-| **Demo Student** | `student@nettutos.com` | `StudentPassword@123` | Pre-enrolled learner with 350 XP, 5-day active streak, badges, and progress history. |
+Learners can sign in or register directly via **GitHub OAuth 2.0** (`/signin-github`), **Google OAuth 2.0** (`/signin-google`), or standard Email/Password authentication (receiving a **+50 XP** welcome bonus upon first registration). System administrators can manage the LMS via the seeded administrator account (`admin@nettutos.com`).
 
 ---
 
-## 8. Automated Testing & CI Quality Gates (151/151 Passing)
+## 8. Automated Testing & CI Quality Gates (152/152 Passing)
 
-Every microservice, gateway route, domain value object, hybrid Redis cache, Geo-IP detector, SEO engine, and web service is verified by **151 automated tests** across 7 test projects (enforced on every push/PR via [`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
+Every microservice, gateway route, domain value object, hybrid Redis cache, Geo-IP detector, SEO engine, OAuth 2.0 SSO flow, and web service is verified by **152 automated tests** across 7 test projects (enforced on every push/PR via [`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
 
 ```powershell
 # 1. YARP API Gateway routing, topology & X-Correlation-ID tests (4 tests)
@@ -324,7 +321,7 @@ dotnet test tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj
 # 6. Web BFF unit tests (Hybrid Redis Cache, Geo-IP, SEO Metadata, Streak, Exam, Roslyn, Atus Agent) (68 tests)
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
 
-# 7. End-to-End HTTP integration pipeline, Geo-IP, Dynamic OG SVG, Sitemap & Security tests (24 tests)
+# 7. End-to-End HTTP integration pipeline, OAuth 2.0 SSO, Geo-IP, Dynamic OG SVG, Sitemap & Security tests (25 tests)
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
 ```
 
