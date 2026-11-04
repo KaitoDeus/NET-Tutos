@@ -63,10 +63,11 @@ public class CatalogDomainAndEngineTests
 
         viOverview.TotalLessons.Should().Be(101);
         viOverview.TotalModules.Should().Be(18);
-        viOverview.Categories.Should().HaveCount(4);
+        viOverview.Categories.Should().HaveCount(8);
         viOverview.Categories[0].Slug.Should().Be("dot-net-co-ban");
 
         enOverview.Language.Should().Be("en");
+        enOverview.Categories.Should().HaveCount(8);
         enOverview.Categories[0].Slug.Should().Be("dotnet-fundamentals");
     }
 

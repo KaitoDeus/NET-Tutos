@@ -1911,5 +1911,8 @@ app.MapGet(""/api/tin-tuc"", () => LayTinTucMoiNhat())
             context.Tutorials.AddRange(newTutorials);
             await context.SaveChangesAsync();
         }
+
+        // Seed comprehensive Senior .NET 8-stage curriculum, catalogs, and tutorials
+        await SeniorCurriculumSeeder.SeedSeniorCurriculumAsync(context);
     }
 }

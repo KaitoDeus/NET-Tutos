@@ -1,4 +1,4 @@
-﻿using NET_Tutos.Models.Entities;
+using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
 using NET_Tutos.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -16,57 +16,105 @@ public class RoadmapController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var allCategories = await _tutorialService.GetCategoriesWithTutorialsAsync();
+        var allCategories = (await _tutorialService.GetCategoriesWithTutorialsAsync()).ToList();
 
         var steps = new List<RoadmapStep>
         {
             new RoadmapStep
             {
                 StepNumber = 1,
-                Title = "Giai đoạn 1: Nền tảng .NET & Cú pháp C#",
-                Subtitle = "Cơ bản cho người mới bắt đầu",
-                Description = "Hiểu rõ về .NET runtime (CLR), cách viết code C#, kiểu dữ liệu, cấu trúc rẽ nhánh, vòng lặp và xử lý chuỗi / collections cơ bản.",
+                Title = "Giai đoạn 1: Nền tảng .NET & C# Chuyên sâu",
+                Subtitle = "Làm chủ CLR Runtime, Memory Stack vs Heap & Cú pháp C# 14",
+                Description = "Hiểu sâu cơ chế thực thi của .NET CLR, JIT compiler, kiểu dữ liệu nguyên thủy, quản lý bộ nhớ Stack vs Heap, Nullable Reference Types, luồng điều khiển và xử lý ngoại lệ kiên cố.",
                 Level = DifficultyLevel.Beginner,
                 BadgeColor = "success",
-                Icon = "bi-mortarboard",
-                KeyTopics = new List<string> { ".NET SDK & CLI", "Variables & Types", "Control Flows", "Array & List<T>", "Dictionary", "StringBuilder" },
-                RelatedTutorials = allCategories.FirstOrDefault(c => c.Level == DifficultyLevel.Beginner)?.Tutorials.ToList() ?? new()
+                Icon = "bi-terminal",
+                KeyTopics = new List<string> { ".NET 10 CLR & JIT", "Value vs Reference Types", "Stack vs Heap Memory", "Nullable References", "Methods & params", "Custom Exceptions" },
+                RelatedTutorials = allCategories.FirstOrDefault(c => c.Slug == "csharp-co-ban")?.Tutorials.OrderBy(t => t.OrderIndex).ToList() ?? new()
             },
             new RoadmapStep
             {
                 StepNumber = 2,
-                Title = "Giai đoạn 2: Lập trình Hướng đối tượng (OOP) & C# Nâng cao",
-                Subtitle = "Tư duy thiết kế phần mềm chuyên nghiệp",
-                Description = "Làm chủ 4 trụ cột OOP, làm việc với Interface, Generic Types, viết truy vấn dữ liệu mạnh mẽ với LINQ và xử lý đa luồng non-blocking bằng Async/Await.",
+                Title = "Giai đoạn 2: Lập trình Hướng đối tượng (OOP) & Kỹ thuật C# Nâng cao",
+                Subtitle = "Tư duy thiết kế phần mềm hướng đối tượng thực chiến & Bất đồng bộ",
+                Description = "Làm chủ 4 trụ cột OOP, Interface Segregation, Generics Nâng cao, Delegate, Event, LINQ & Lambda internals và Lập trình Bất đồng bộ Async/Await, TPL song song.",
                 Level = DifficultyLevel.Intermediate,
                 BadgeColor = "info",
                 Icon = "bi-layers",
-                KeyTopics = new List<string> { "4 Trụ cột OOP", "Interface & Abstract Class", "Generics", "LINQ & Lambda", "Task & Async/Await" },
-                RelatedTutorials = allCategories.FirstOrDefault(c => c.Level == DifficultyLevel.Intermediate)?.Tutorials.ToList() ?? new()
+                KeyTopics = new List<string> { "4 OOP Pillars", "Interface & Generics", "Delegates & Events", "LINQ Deferred Execution", "Async / Await Internals", "TPL & Channels", "Modern C# Records" },
+                RelatedTutorials = allCategories.FirstOrDefault(c => c.Slug == "oop-csharp-nang-cao")?.Tutorials.OrderBy(t => t.OrderIndex).ToList() ?? new()
             },
             new RoadmapStep
             {
                 StepNumber = 3,
-                Title = "Giai đoạn 3: Cơ sở dữ liệu & Entity Framework Core",
-                Subtitle = "Quản trị dữ liệu theo hướng Code-First",
-                Description = "Xây dựng mô hình dữ liệu quan hệ, kết nối SQL Server, thực thi Migrations, thao tác CRUD và tối ưu tốc độ đọc dữ liệu với AsNoTracking.",
+                Title = "Giai đoạn 3: Cấu trúc Dữ liệu, Giải thuật & LeetCode với C#",
+                Subtitle = "Rèn luyện tư duy thuật toán, Big-O & giải LeetCode tối ưu trong .NET",
+                Description = "Chuyên đề độc lập phân tích độ phức tạp Big-O, cấu trúc dữ liệu kinh điển, Two Pointers, Sliding Window, Monotonic Stack, PriorityQueue, Cây nhị phân và Quy hoạch động.",
                 Level = DifficultyLevel.Intermediate,
-                BadgeColor = "warning",
-                Icon = "bi-database",
-                KeyTopics = new List<string> { "Code-First Approach", "DbContext & DbSet", "EF Core Migrations", "CRUD Operations", "Relationship 1-N & N-N" },
-                RelatedTutorials = allCategories.Skip(2).FirstOrDefault()?.Tutorials.ToList() ?? new()
+                BadgeColor = "secondary",
+                Icon = "bi-diagram-3",
+                KeyTopics = new List<string> { "Big-O Time & Space", "Two Pointers & Sliding Window", "Monotonic Stack", "PriorityQueue (Min-Heap)", "Binary Tree BFS & DFS", "Dynamic Programming", "Dijkstra & DSU" },
+                RelatedTutorials = allCategories.FirstOrDefault(c => c.Slug == "csharp-dsa-leetcode")?.Tutorials.OrderBy(t => t.OrderIndex).ToList() ?? new()
             },
             new RoadmapStep
             {
                 StepNumber = 4,
-                Title = "Giai đoạn 4: Lập trình Web ASP.NET Core MVC & RESTful API",
-                Subtitle = "Sẵn sàng ứng tuyển lập trình viên .NET",
-                Description = "Thiết kế Web App MVC hoàn chỉnh, xây dựng RESTful API chuẩn quốc tế, Dependency Injection (DI) với 3 vòng đời và ứng dụng nguyên lý SOLID.",
+                Title = "Giai đoạn 4: Design Patterns & Kiến trúc Phần mềm .NET",
+                Subtitle = "Làm chủ GoF Patterns, Enterprise Data Patterns, CQRS & Clean Architecture",
+                Description = "Áp dụng các mẫu thiết kế kinh điển (Creational, Structural, Behavioral), Enterprise Data Patterns (Repository, Unit of Work, Specification), CQRS với MediatR và Clean Architecture chuẩn DDD.",
                 Level = DifficultyLevel.Advanced,
                 BadgeColor = "primary",
-                Icon = "bi-trophy",
-                KeyTopics = new List<string> { "Middleware Pipeline", "MVC Controllers & Razor", "RESTful Web API", "Dependency Injection", "SOLID Principles" },
-                RelatedTutorials = allCategories.FirstOrDefault(c => c.Level == DifficultyLevel.Advanced)?.Tutorials.ToList() ?? new()
+                Icon = "bi-boxes",
+                KeyTopics = new List<string> { "GoF Creational & Structural", "Strategy & Observer Patterns", "Repository & Unit of Work", "Specification Pattern", "CQRS & MediatR Pipeline", "Clean Architecture & DDD" },
+                RelatedTutorials = allCategories.FirstOrDefault(c => c.Slug == "design-patterns-architecture")?.Tutorials.OrderBy(t => t.OrderIndex).ToList() ?? new()
+            },
+            new RoadmapStep
+            {
+                StepNumber = 5,
+                Title = "Giai đoạn 5: Cơ sở Dữ liệu, EF Core & Dapper Hiệu năng cao",
+                Subtitle = "Quản trị dữ liệu theo hướng Code-First, tối ưu truy vấn & Dapper Micro-ORM",
+                Description = "Xây dựng mô hình dữ liệu quan hệ, Fluent API, tối ưu AsNoTracking, Split Query, giao dịch ACID, Optimistic Concurrency và kết hợp Dapper Micro-ORM cho hệ thống tải cao.",
+                Level = DifficultyLevel.Intermediate,
+                BadgeColor = "warning",
+                Icon = "bi-database",
+                KeyTopics = new List<string> { "EF Core Code-First", "Fluent API Relationships", "AsNoTracking & Split Query", "Transactions & Concurrency", "Hybrid Dapper Micro-ORM", "Interceptors & Multi-Tenancy" },
+                RelatedTutorials = allCategories.FirstOrDefault(c => c.Slug == "entity-framework-core")?.Tutorials.OrderBy(t => t.OrderIndex).ToList() ?? new()
+            },
+            new RoadmapStep
+            {
+                StepNumber = 6,
+                Title = "Giai đoạn 6: ASP.NET Core Web API, Minimal APIs & Enterprise Backend",
+                Subtitle = "Xây dựng RESTful API chuẩn quốc tế & Bảo mật doanh nghiệp",
+                Description = "Thiết kế Middleware Pipeline, Minimal APIs siêu tốc độ, Dependency Injection chuyên sâu, bảo mật xác thực JWT Bearer, Identity RBAC và Distributed Output Caching với Redis.",
+                Level = DifficultyLevel.Advanced,
+                BadgeColor = "danger",
+                Icon = "bi-globe2",
+                KeyTopics = new List<string> { "Kestrel & Middleware Pipeline", "RESTful API & ProblemDetails", "Dependency Injection Lifetimes", "High-Performance Minimal APIs", "JWT Bearer & Role-Based Auth", "Redis Caching & Serilog" },
+                RelatedTutorials = allCategories.FirstOrDefault(c => c.Slug == "aspnet-core-mvc-api")?.Tutorials.OrderBy(t => t.OrderIndex).ToList() ?? new()
+            },
+            new RoadmapStep
+            {
+                StepNumber = 7,
+                Title = "Giai đoạn 7: Microservices, Distributed Systems & Event-Driven (.NET 10)",
+                Subtitle = "Kiến trúc hệ thống phân tán, API Gateway YARP, RabbitMQ, Kafka & gRPC",
+                Description = "Xây dựng hệ sinh thái vi dịch vụ đám mây: Bounded Contexts, YARP Reverse Proxy Gateway, Event-Driven với RabbitMQ & Apache Kafka, MassTransit Outbox Pattern, gRPC và OpenTelemetry.",
+                Level = DifficultyLevel.Advanced,
+                BadgeColor = "dark",
+                Icon = "bi-hdd-network",
+                KeyTopics = new List<string> { "Microservices & Bounded Contexts", "YARP API Gateway", "RabbitMQ vs Kafka (Triệu Request)", "MassTransit & Outbox Pattern", "gRPC & Protobuf Streaming", "Polly Resilience & Circuit Breaker", "OpenTelemetry & Prometheus" },
+                RelatedTutorials = allCategories.FirstOrDefault(c => c.Slug == "microservices-distributed-systems")?.Tutorials.OrderBy(t => t.OrderIndex).ToList() ?? new()
+            },
+            new RoadmapStep
+            {
+                StepNumber = 8,
+                Title = "Giai đoạn 8: Tối ưu Hiệu năng CLR, Diagnostics & Cloud-Native DevOps",
+                Subtitle = "Kỹ sư C# cấp cao: Zero-Allocation, BenchmarkDotNet, dotnet-dump & Kubernetes",
+                Description = "Chinh phục đỉnh cao hiệu năng .NET: Phân vùng bộ nhớ CLR GC, lập trình Zero-Allocation với Span/Memory, đo lường vi mô BenchmarkDotNet, chẩn đoán Production dotnet-dump và triển khai Kubernetes Helm.",
+                Level = DifficultyLevel.Advanced,
+                BadgeColor = "info",
+                Icon = "bi-cpu",
+                KeyTopics = new List<string> { "CLR GC Gen 0/1/2 & LOH/POH", "Span<T>, Memory<T> & ArrayPool", "BenchmarkDotNet Profiling", "dotnet-dump & Memory Leaks", "Roslyn Source Generators", "Multi-Stage Docker & Helm Chart" },
+                RelatedTutorials = allCategories.FirstOrDefault(c => c.Slug == "performance-diagnostics-devops")?.Tutorials.OrderBy(t => t.OrderIndex).ToList() ?? new()
             }
         };
 
@@ -74,4 +122,3 @@ public class RoadmapController : Controller
         return View(viewModel);
     }
 }
-

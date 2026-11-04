@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using Microsoft.Extensions.DependencyInjection;
+using NET_Tutos.Models.ViewModels;
 
 namespace NET_Tutos.Services;
 
@@ -65,13 +67,21 @@ public interface ICodingArenaService
 /// </summary>
 public sealed class CodingArenaService : ICodingArenaService
 {
-    private readonly ICodeExecutionService _codeExecutionService;
+    private readonly IServiceScopeFactory? _scopeFactory;
+    private readonly ICodeExecutionService? _directCodeExecutionService;
     private readonly ConcurrentDictionary<string, ArenaRoomViewModel> _rooms = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, int> _playerElo = new(StringComparer.OrdinalIgnoreCase);
 
+    [ActivatorUtilitiesConstructor]
+    public CodingArenaService(IServiceScopeFactory scopeFactory)
+    {
+        _scopeFactory = scopeFactory;
+        SeedDefaultRooms();
+    }
+
     public CodingArenaService(ICodeExecutionService codeExecutionService)
     {
-        _codeExecutionService = codeExecutionService;
+        _directCodeExecutionService = codeExecutionService;
         SeedDefaultRooms();
     }
 
@@ -136,7 +146,29 @@ public sealed class CodingArenaService : ICodingArenaService
         string playerName = string.IsNullOrWhiteSpace(request.PlayerName) ? "AnonymousCoder" : request.PlayerName.Trim();
 
         var room = JoinRoom(roomCode, playerName);
-        var execResult = await _codeExecutionService.ExecuteAsync(request.SourceCode, timeoutMs: 4000);
+
+        ICodeExecutionService execService;
+        IDisposable? scopeToDispose = null;
+        if (_scopeFactory != null)
+        {
+            var scope = _scopeFactory.CreateScope();
+            scopeToDispose = scope;
+            execService = scope.ServiceProvider.GetRequiredService<ICodeExecutionService>();
+        }
+        else
+        {
+            execService = _directCodeExecutionService!;
+        }
+
+        CodeExecutionResponse execResult;
+        try
+        {
+            execResult = await execService.ExecuteAsync(request.SourceCode, timeoutMs: 4000);
+        }
+        finally
+        {
+            scopeToDispose?.Dispose();
+        }
 
         string actual = (execResult.Output ?? string.Empty).Trim();
         string expected = room.ExpectedOutput.Trim();

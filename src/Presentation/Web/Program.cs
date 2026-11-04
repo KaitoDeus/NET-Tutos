@@ -212,7 +212,7 @@ builder.Services.AddScoped<IMobileAuthService, MobileAuthService>();
 builder.Services.AddSingleton<INavMenuService, NavMenuService>();
 builder.Services.AddSingleton<IGeoIpService, GeoIpService>();
 builder.Services.AddSingleton<ISeoMetadataService, SeoMetadataService>();
-builder.Services.AddSingleton<ICodingArenaService, CodingArenaService>();
+builder.Services.AddSingleton<ICodingArenaService>(sp => new CodingArenaService(sp.GetRequiredService<IServiceScopeFactory>()));
 
 // Determine Database Provider
 var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "PostgreSql";

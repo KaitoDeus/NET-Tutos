@@ -28,19 +28,27 @@ public sealed class CatalogAssessmentEngine : ICatalogEngine
         {
             return
             [
-                new(1, "dotnet-fundamentals", "1. .NET Fundamentals & C# Syntax", "Master CLR runtime, primitive types, control flow, and collections.", 25, 1),
-                new(2, "oop-and-advanced-csharp", "2. OOP & Advanced C#", "4 OOP pillars, Generics, LINQ, Async/Await, Span<T> & Source Generators.", 26, 2),
-                new(3, "ef-core-and-database", "3. Entity Framework Core & Database", "Code-First migrations, Fluent API relationships, AsNoTracking & ACID transactions.", 25, 3),
-                new(4, "aspnet-core-and-microservices", "4. ASP.NET Core MVC, Web API & Microservices", "Minimal APIs, JWT/RBAC, Redis caching, YARP Gateway, RabbitMQ & Clean DDD.", 25, 4)
+                new(1, "dotnet-fundamentals", "1. C# & .NET Core In-Depth Fundamentals", "Master CLR runtime, primitive types, Stack vs Heap, and collections.", 6, 1),
+                new(2, "oop-and-advanced-csharp", "2. OOP & Advanced C# Techniques", "4 OOP pillars, Generics, LINQ, Async/Await concurrency, and C# 14.", 7, 2),
+                new(3, "dsa-and-leetcode-csharp", "3. Data Structures, Algorithms & LeetCode in C#", "Big-O complexity, Two Pointers, Sliding Window, Monotonic Stack, PriorityQueue & DP.", 6, 3),
+                new(4, "design-patterns-and-architecture", "4. Design Patterns & .NET Software Architecture", "GoF patterns, Repository, Unit of Work, CQRS with MediatR & Clean Architecture.", 6, 4),
+                new(5, "ef-core-and-database", "5. Entity Framework Core, Dapper & High-Performance DB", "Code-First migrations, Fluent API, AsNoTracking, ACID transactions & Dapper.", 6, 5),
+                new(6, "aspnet-core-web-api", "6. ASP.NET Core Web API, Minimal APIs & Enterprise Backend", "Minimal APIs, JWT/RBAC security, Redis caching, ProblemDetails & Serilog.", 6, 6),
+                new(7, "microservices-distributed-systems", "7. Microservices, Distributed Systems & Event-Driven", "YARP Gateway, Event-Driven with RabbitMQ and Kafka, MassTransit Outbox & gRPC.", 6, 7),
+                new(8, "performance-diagnostics-devops", "8. CLR Performance Optimization, Diagnostics & DevOps", "Zero-Allocation with Span/Memory, BenchmarkDotNet, dotnet-dump & Kubernetes Helm.", 6, 8)
             ];
         }
 
         return
         [
-            new(1, "dot-net-co-ban", "1. Nền tảng .NET & Cú pháp C#", "Làm chủ CLR Runtime, kiểu dữ liệu, cấu trúc điều khiển và Collections.", 25, 1),
-            new(2, "oop-va-csharp-nang-cao", "2. OOP & C# Nâng cao", "4 trụ cột OOP, Generics, LINQ, Async/Await, Span<T> & Source Generators.", 26, 2),
-            new(3, "ef-core-va-co-so-du-lieu", "3. Entity Framework Core & Database", "Code-First Migrations, Fluent API, tối ưu AsNoTracking & giao dịch ACID.", 25, 3),
-            new(4, "aspnet-core-mvc-va-web-api", "4. ASP.NET Core MVC, Web API & Microservices", "Minimal APIs, JWT/RBAC, Redis Caching, YARP Gateway, RabbitMQ & Clean DDD.", 25, 4)
+            new(1, "dot-net-co-ban", "1. C# & .NET Core Nền tảng Chuyên sâu", "Làm chủ CLR Runtime, kiểu dữ liệu, Stack vs Heap và Collections.", 6, 1),
+            new(2, "oop-va-csharp-nang-cao", "2. OOP & Kỹ thuật C# Nâng cao", "4 trụ cột OOP, Generics, LINQ, Async/Await đa luồng và Modern C#.", 7, 2),
+            new(3, "csharp-dsa-leetcode", "3. Cấu trúc Dữ liệu, Giải thuật & LeetCode với C#", "Phân tích Big-O, Two Pointers, Sliding Window, Monotonic Stack, PriorityQueue & Quy hoạch động.", 6, 3),
+            new(4, "design-patterns-va-kien-truc", "4. Design Patterns & Kiến trúc Phần mềm .NET", "Mẫu thiết kế GoF, Repository, Unit of Work, CQRS MediatR & Clean Architecture.", 6, 4),
+            new(5, "ef-core-va-co-so-du-lieu", "5. Entity Framework Core, Dapper & Cơ sở Dữ liệu Hiệu năng cao", "Code-First Migrations, Fluent API, AsNoTracking, giao dịch ACID & Dapper.", 6, 5),
+            new(6, "aspnet-core-web-api", "6. ASP.NET Core Web API, Minimal APIs & Enterprise Backend", "Minimal APIs, JWT/RBAC, Redis Caching, ProblemDetails & Serilog.", 6, 6),
+            new(7, "microservices-he-thong-phan-tan", "7. Microservices, Distributed Systems & Event-Driven (.NET 10)", "YARP Gateway, RabbitMQ vs Kafka, MassTransit Outbox Pattern & gRPC.", 6, 7),
+            new(8, "toi-uu-hieu-nang-va-devops", "8. Tối ưu Hiệu năng CLR, Diagnostics & Cloud-Native DevOps", "Zero-Allocation với Span/Memory, BenchmarkDotNet, dotnet-dump & Kubernetes Helm.", 6, 8)
         ];
     }
 

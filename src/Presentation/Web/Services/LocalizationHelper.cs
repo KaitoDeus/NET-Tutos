@@ -45,27 +45,47 @@ public static class LocalizationHelper
     {
         ["csharp-co-ban"] = "csharp-fundamentals",
         ["oop-csharp-nang-cao"] = "oop-advanced-csharp",
+        ["csharp-dsa-leetcode"] = "csharp-dsa-leetcode",
+        ["design-patterns-architecture"] = "design-patterns-architecture",
         ["entity-framework-core"] = "entity-framework-core",
-        ["aspnet-core-mvc-api"] = "aspnet-core-mvc-api"
+        ["aspnet-core-mvc-api"] = "aspnet-core-mvc-api",
+        ["microservices-distributed-systems"] = "microservices-distributed-systems",
+        ["performance-diagnostics-devops"] = "performance-diagnostics-devops"
     };
 
     private static readonly Dictionary<string, (string NameEn, string DescEn)> CategoryTranslations = new(StringComparer.OrdinalIgnoreCase)
     {
         ["csharp-co-ban"] = (
-            "1. C# & .NET Fundamentals",
-            "Get started with the .NET ecosystem, C# syntax, variables, data types, loops, and core data structures."
+            "1. C# & .NET Core In-Depth Fundamentals",
+            "Master the .NET Runtime (CLR, JIT, IL), primitive types, Stack vs Heap memory, Nullable Reference Types, control flows, and resilient exception handling."
         ),
         ["oop-csharp-nang-cao"] = (
-            "2. OOP & Advanced C#",
-            "Master the 4 OOP pillars, Interfaces, Generics, LINQ, and async/await asynchronous programming."
+            "2. OOP & Advanced C# Techniques",
+            "Master practical OOP pillars, Generic Constraints, Delegates, Events, LINQ internals, non-blocking Async/Await concurrency, and Modern C# (10-14)."
+        ),
+        ["csharp-dsa-leetcode"] = (
+            "3. Data Structures, Algorithms & LeetCode in C#",
+            "Dedicated track for algorithmic thinking, Big-O complexity, Two Pointers, Sliding Window, Monotonic Stack, PriorityQueue, Trees, and Dynamic Programming."
+        ),
+        ["design-patterns-architecture"] = (
+            "4. Design Patterns & .NET Software Architecture",
+            "Master Gang of Four (GoF) patterns, Enterprise Data Patterns, Repository, Unit of Work, CQRS with MediatR Pipeline, and Clean Architecture (DDD)."
         ),
         ["entity-framework-core"] = (
-            "3. Entity Framework Core & Database",
-            "Manage and manipulate databases with EF Core Code-First, Migrations, and performance optimization."
+            "5. Entity Framework Core, Dapper & High-Performance DB",
+            "Enterprise Code-First ORM, Fluent API relationships, eliminating N+1 queries, AsNoTracking, ACID transactions, and hybrid Dapper micro-ORM."
         ),
         ["aspnet-core-mvc-api"] = (
-            "4. ASP.NET Core MVC & Web API",
-            "Build complete Web Apps with MVC, RESTful Web APIs, Middleware, Dependency Injection, and Clean Architecture."
+            "6. ASP.NET Core Web API, Minimal APIs & Enterprise Backend",
+            "Design international RESTful APIs, high-performance Minimal APIs, deep Dependency Injection, JWT Bearer RBAC security, and Redis Distributed Caching."
+        ),
+        ["microservices-distributed-systems"] = (
+            "7. Microservices, Distributed Systems & Event-Driven (.NET 10)",
+            "Cloud-native microservices ecosystem, YARP API Gateway, Event-Driven with RabbitMQ and Apache Kafka, MassTransit Outbox Pattern, gRPC, and OpenTelemetry."
+        ),
+        ["performance-diagnostics-devops"] = (
+            "8. CLR Performance Optimization, Diagnostics & DevOps",
+            "Low-level internals: CLR Garbage Collection Gen 0/1/2/LOH, Zero-Allocation with Span/Memory/ArrayPool, BenchmarkDotNet, dotnet-dump, and Kubernetes Helm."
         )
     };
 
@@ -518,10 +538,14 @@ public static class LocalizationHelper
         if (!isEn) return fallback;
         return stepNumber switch
         {
-            1 => "Phase 1: .NET Fundamentals & C# Syntax",
+            1 => "Phase 1: .NET Core Fundamentals & C# Syntax",
             2 => "Phase 2: Object-Oriented Programming (OOP) & Advanced C#",
-            3 => "Phase 3: Database & Entity Framework Core",
-            4 => "Phase 4: ASP.NET Core MVC & RESTful Web APIs",
+            3 => "Phase 3: Data Structures, Algorithms & LeetCode in C#",
+            4 => "Phase 4: Design Patterns & .NET Software Architecture",
+            5 => "Phase 5: High-Performance Databases, EF Core & Dapper",
+            6 => "Phase 6: ASP.NET Core Web API & Enterprise Backend",
+            7 => "Phase 7: Microservices, Distributed Systems & Event-Driven",
+            8 => "Phase 8: CLR Performance, Diagnostics & Cloud DevOps",
             _ => fallback
         };
     }
@@ -531,10 +555,14 @@ public static class LocalizationHelper
         if (!isEn) return fallback;
         return stepNumber switch
         {
-            1 => "Essential foundations for beginners",
-            2 => "Professional software design mindset",
-            3 => "Enterprise data management with Code-First",
-            4 => "Job-ready .NET Backend Engineer",
+            1 => "Master CLR Runtime, Stack vs Heap & Modern C# 14",
+            2 => "Practical OOP, Generics, LINQ & Concurrency Mindset",
+            3 => "Algorithmic thinking, Big-O & optimal LeetCode solutions",
+            4 => "GoF Patterns, Enterprise Data Patterns, CQRS & Clean DDD",
+            5 => "Code-First, query tuning, ACID transactions & Dapper",
+            6 => "International RESTful APIs, Minimal APIs & RBAC security",
+            7 => "Distributed microservices, YARP Gateway, RabbitMQ & Kafka",
+            8 => "Zero-Allocation, BenchmarkDotNet, dotnet-dump & Kubernetes",
             _ => fallback
         };
     }
@@ -544,10 +572,14 @@ public static class LocalizationHelper
         if (!isEn) return fallback;
         return stepNumber switch
         {
-            1 => "Master the .NET runtime (CLR), C# language syntax, primitive types, control flows, loops, and basic collections.",
+            1 => "Master the .NET runtime (CLR), JIT compilation, primitive types, Stack vs Heap memory, Nullable Reference Types, control flows, and exception filters.",
             2 => "Master the 4 OOP pillars, Interfaces, Generic Types, write powerful queries with LINQ, and execute non-blocking asynchronous code with Async/Await.",
-            3 => "Build relational database schemas, connect SQL Server, run Migrations, execute CRUD operations, and optimize read speeds with AsNoTracking.",
-            4 => "Design complete MVC Web Applications, build RESTful APIs with Clean Architecture, and master Dependency Injection service lifetimes.",
+            3 => "Dedicated algorithms track: Big-O analysis, Two Pointers, Sliding Window, Monotonic Stack, PriorityQueue, Binary Trees, and Dynamic Programming in C#.",
+            4 => "Apply classical GoF design patterns (Creational, Structural, Behavioral), Repository, Unit of Work, Specification, CQRS with MediatR, and Clean Architecture.",
+            5 => "Build relational schemas, Fluent API, eliminate N+1 queries with AsNoTracking/Split Queries, ACID transactions, and hybrid high-throughput Dapper micro-ORM.",
+            6 => "Design Kestrel middleware pipelines, high-performance Minimal APIs, Dependency Injection service lifetimes, JWT Bearer security, and Redis Distributed Caching.",
+            7 => "Architect distributed cloud-native systems: Bounded Contexts, YARP Reverse Proxy Gateway, RabbitMQ vs Apache Kafka, MassTransit Outbox, and OpenTelemetry.",
+            8 => "Master low-level .NET internals: CLR Garbage Collection Gen 0/1/2/LOH, Zero-Allocation with Span/Memory, BenchmarkDotNet, dotnet-dump, and Kubernetes Helm.",
             _ => fallback
         };
     }
@@ -557,10 +589,14 @@ public static class LocalizationHelper
         if (!isEn) return fallback;
         return stepNumber switch
         {
-            1 => new List<string> { ".NET SDK & CLI", "Variables & Types", "Control Flows", "Array & List<T>", "Dictionary", "StringBuilder" },
-            2 => new List<string> { "4 OOP Pillars", "Interface & Abstract Class", "Generics", "LINQ & Lambda", "Task & Async/Await" },
-            3 => new List<string> { "Code-First Approach", "DbContext & DbSet", "EF Core Migrations", "CRUD Operations", "1-N & N-N Relationships" },
-            4 => new List<string> { "Middleware Pipeline", "MVC Controllers & Razor", "RESTful Web API", "Dependency Injection", "SOLID Principles" },
+            1 => new List<string> { ".NET 10 CLR & JIT", "Value vs Reference Types", "Stack vs Heap Memory", "Nullable References", "Methods & params", "Custom Exceptions" },
+            2 => new List<string> { "4 OOP Pillars", "Interface & Generics", "Delegates & Events", "LINQ Deferred Execution", "Async / Await Internals", "TPL & Channels", "Modern C# Records" },
+            3 => new List<string> { "Big-O Time & Space", "Two Pointers & Sliding Window", "Monotonic Stack", "PriorityQueue (Min-Heap)", "Binary Tree BFS & DFS", "Dynamic Programming", "Dijkstra & DSU" },
+            4 => new List<string> { "GoF Creational & Structural", "Strategy & Observer Patterns", "Repository & Unit of Work", "Specification Pattern", "CQRS & MediatR Pipeline", "Clean Architecture & DDD" },
+            5 => new List<string> { "EF Core Code-First", "Fluent API Relationships", "AsNoTracking & Split Query", "Transactions & Concurrency", "Hybrid Dapper Micro-ORM", "Interceptors & Multi-Tenancy" },
+            6 => new List<string> { "Kestrel & Middleware Pipeline", "RESTful API & ProblemDetails", "Dependency Injection Lifetimes", "High-Performance Minimal APIs", "JWT Bearer & Role-Based Auth", "Redis Caching & Serilog" },
+            7 => new List<string> { "Microservices & Bounded Contexts", "YARP API Gateway", "RabbitMQ vs Kafka", "MassTransit & Outbox Pattern", "gRPC & Protobuf Streaming", "Polly Resilience & Circuit Breaker", "OpenTelemetry & Prometheus" },
+            8 => new List<string> { "CLR GC Gen 0/1/2 & LOH/POH", "Span<T>, Memory<T> & ArrayPool", "BenchmarkDotNet Profiling", "dotnet-dump & Memory Leaks", "Roslyn Source Generators", "Multi-Stage Docker & Helm Chart" },
             _ => fallback
         };
     }
