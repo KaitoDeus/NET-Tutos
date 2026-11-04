@@ -82,4 +82,22 @@ public class GatewayRoutingTests : IClassFixture<WebApplicationFactory<Program>>
         content.Should().Contain("catalog-route");
         content.Should().Contain("web-cluster");
     }
+
+    [Fact]
+    public async Task GatewayTelemetry_ReturnsOpenTelemetryActivitySourceAndMeterMetrics()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        await client.GetAsync("/healthz");
+
+        // Act
+        var response = await client.GetAsync("/api/v1/gateway/telemetry");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().Contain("NET-Tutos.YarpGateway.Tracing");
+        content.Should().Contain("NET-Tutos.YarpGateway.Metrics");
+    }
 }
+

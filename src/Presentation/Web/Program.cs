@@ -84,6 +84,8 @@ else
     builder.Services.AddDistributedMemoryCache();
 }
 builder.Services.AddSingleton<IAppCacheService, HybridRedisCacheService>();
+builder.Services.AddSingleton<IObservabilityService, ObservabilityService>();
+builder.Services.AddTransient<ResilientMicroserviceHandler>();
 
 // CORS configuration for Web MVC & Mobile (.NET MAUI) clients
 builder.Services.AddCors(options =>
@@ -183,10 +185,10 @@ builder.Services.AddScoped<ITutorialService, TutorialService>();
 builder.Services.AddScoped<ILearningProgressService, LearningProgressService>();
 builder.Services.AddScoped<ICertificateService, CertificateService>();
 builder.Services.AddScoped<IExamService, ExamService>();
-builder.Services.AddHttpClient("CodeRunner");
-builder.Services.AddHttpClient("Gamification");
-builder.Services.AddHttpClient("AiTutor");
-builder.Services.AddHttpClient("Catalog");
+builder.Services.AddHttpClient("CodeRunner").AddHttpMessageHandler<ResilientMicroserviceHandler>();
+builder.Services.AddHttpClient("Gamification").AddHttpMessageHandler<ResilientMicroserviceHandler>();
+builder.Services.AddHttpClient("AiTutor").AddHttpMessageHandler<ResilientMicroserviceHandler>();
+builder.Services.AddHttpClient("Catalog").AddHttpMessageHandler<ResilientMicroserviceHandler>();
 builder.Services.AddHttpClient("Gemini", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(30);
@@ -517,6 +519,7 @@ var locOptions = app.Services.GetRequiredService<Microsoft.Extensions.Options.IO
 app.UseRequestLocalization(locOptions.Value);
 app.Use(async (context, next) =>
 {
+    var sw = System.Diagnostics.Stopwatch.StartNew();
     var country = context.GetDetectedCountry();
     var isEn = context.IsEnglish();
     context.Response.OnStarting(() =>
@@ -526,6 +529,9 @@ app.Use(async (context, next) =>
         return Task.CompletedTask;
     });
     await next();
+    sw.Stop();
+    var obs = context.RequestServices.GetService<IObservabilityService>();
+    obs?.RecordHttpRequest(context.Request.Path, context.Response.StatusCode, sw.Elapsed.TotalMilliseconds);
 });
 
 app.UseRouting();
@@ -547,6 +553,13 @@ app.UseAuthorization();
 
 // Map Web API Controllers
 app.MapControllers();
+
+// OpenTelemetry & HTTP Resilience Diagnostics Endpoint
+app.MapGet("/api/telemetry/diagnostics", async (IObservabilityService observability, CancellationToken ct) =>
+{
+    var snapshot = await observability.GetDiagnosticsAsync(ct);
+    return Results.Ok(snapshot);
+});
 
 // Seed/Sync additional tutorials endpoint
 app.MapGet("/api/admin/seed-tutorials", async (AppDbContext db) =>

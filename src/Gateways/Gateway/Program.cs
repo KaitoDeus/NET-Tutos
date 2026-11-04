@@ -1,9 +1,14 @@
+using System.Diagnostics;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using NET_Tutos.BuildingBlocks.Common.Models;
+using NET_Tutos.BuildingBlocks.Common.Telemetry;
 using NET_Tutos.YarpGateway.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var gatewayTelemetry = new ServiceTelemetry("NET-Tutos.YarpGateway");
+builder.Services.AddSingleton(gatewayTelemetry);
 
 // 1. Add YARP Reverse Proxy
 builder.Services.AddReverseProxy()
@@ -39,6 +44,23 @@ var app = builder.Build();
 // 4. Middlewares Pipeline
 app.UseCors("GatewayCorsPolicy");
 app.UseMiddleware<CorrelationIdMiddleware>();
+app.Use(async (context, next) =>
+{
+    var sw = Stopwatch.StartNew();
+    using var activity = gatewayTelemetry.StartActivity($"YARP {context.Request.Method}", ActivityKind.Server);
+    try
+    {
+        await next();
+        sw.Stop();
+        gatewayTelemetry.RecordOperation(context.Request.Method, sw.Elapsed.TotalMilliseconds, context.Response.StatusCode < 500);
+    }
+    catch
+    {
+        sw.Stop();
+        gatewayTelemetry.RecordOperation(context.Request.Method, sw.Elapsed.TotalMilliseconds, isSuccess: false);
+        throw;
+    }
+});
 app.UseRateLimiter();
 
 // 5. Gateway Health Endpoints
@@ -68,6 +90,11 @@ app.MapGet("/api/v1/gateway/status", (IConfiguration configuration) =>
 })
 .WithName("GatewayStatus")
 .WithSummary("Returns gateway routing topology and registered clusters");
+
+app.MapGet("/api/v1/gateway/telemetry", (ServiceTelemetry telemetry) =>
+    Results.Ok(ApiResponse<ServiceTelemetrySnapshotDto>.Ok(telemetry.GetSnapshot())))
+.WithName("GatewayTelemetry")
+.WithSummary("Returns OpenTelemetry ActivitySource and Meter metrics for the YARP API Gateway");
 
 // 6. Map Reverse Proxy Routes
 app.MapReverseProxy();
