@@ -12,7 +12,7 @@ public static class LeaderboardEndpoints
         var group = endpoints.MapGroup("/api/v1/gamification/leaderboard")
                              .WithTags("Leaderboard");
 
-        group.MapGet("/", async ([FromQuery] int top, [FromServices] IGamificationService service) =>
+        group.MapGet("/", async ([FromQuery] int top = 50, [FromServices] IGamificationService service = null!) =>
         {
             var limit = top > 0 ? top : 50;
             var leaderboard = await service.GetLeaderboardAsync(limit);
