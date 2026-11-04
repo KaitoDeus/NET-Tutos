@@ -1251,6 +1251,168 @@ public class {methodName}Tests
         };
     }
 
+    public Task<AiCodeCompletionResponse> CompleteCodeAsync(AiCodeCompletionRequest request, bool isEnglish)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.PrefixCode))
+        {
+            return Task.FromResult(new AiCodeCompletionResponse { Success = false, Completion = string.Empty });
+        }
+
+        string rawPrefix = request.PrefixCode;
+        string trimmedPrefix = rawPrefix.TrimEnd();
+        string[] lines = rawPrefix.Replace("\r\n", "\n").Split('\n');
+        string currentLine = lines.Length > 0 ? lines[^1] : string.Empty;
+        string previousLine = lines.Length > 1 ? lines[^2].Trim() : string.Empty;
+        string trimmedCurrent = currentLine.Trim();
+
+        string completion = string.Empty;
+
+        // 1. Check for specific LeetCode / Challenge algorithmic functions
+        if (trimmedPrefix.Contains("TwoSum(") || trimmedPrefix.EndsWith("TwoSum"))
+        {
+            completion = "\n    var map = new Dictionary<int, int>();\n    for (int i = 0; i < nums.Length; i++)\n    {\n        int complement = target - nums[i];\n        if (map.ContainsKey(complement))\n            return new int[] { map[complement], i };\n        map[nums[i]] = i;\n    }\n    return Array.Empty<int>();";
+        }
+        else if (trimmedPrefix.Contains("IsPalindrome(") || trimmedPrefix.EndsWith("IsPalindrome"))
+        {
+            completion = "\n    if (string.IsNullOrEmpty(s)) return true;\n    int l = 0, r = s.Length - 1;\n    while (l < r)\n    {\n        while (l < r && !char.IsLetterOrDigit(s[l])) l++;\n        while (l < r && !char.IsLetterOrDigit(s[r])) r--;\n        if (char.ToLower(s[l]) != char.ToLower(s[r])) return false;\n        l++; r--;\n    }\n    return true;";
+        }
+        else if (trimmedPrefix.Contains("MaxSubArray(") || trimmedPrefix.EndsWith("MaxSubArray"))
+        {
+            completion = "\n    int maxSoFar = nums[0], currentMax = nums[0];\n    for (int i = 1; i < nums.Length; i++)\n    {\n        currentMax = Math.Max(nums[i], currentMax + nums[i]);\n        maxSoFar = Math.Max(maxSoFar, currentMax);\n    }\n    return maxSoFar;";
+        }
+        else if (trimmedPrefix.Contains("ReverseList(") || trimmedPrefix.EndsWith("ReverseList"))
+        {
+            completion = "\n    ListNode prev = null;\n    ListNode curr = head;\n    while (curr != null)\n    {\n        ListNode nextTemp = curr.next;\n        curr.next = prev;\n        prev = curr;\n        curr = nextTemp;\n    }\n    return prev;";
+        }
+        // 2. Comment-driven prompt continuation
+        else if (previousLine.StartsWith("//"))
+        {
+            string comment = previousLine.TrimStart('/', ' ').ToLowerInvariant();
+            if (comment.Contains("tổng") || comment.Contains("sum"))
+                completion = currentLine.EndsWith("=") ? " numbers.Sum();" : "var sum = numbers.Sum();";
+            else if (comment.Contains("in") || comment.Contains("print"))
+                completion = currentLine.EndsWith("(") ? "\"Result: \" + result);" : "Console.WriteLine($\"Result: {result}\");";
+            else if (comment.Contains("lọc") || comment.Contains("filter") || comment.Contains("chẵn") || comment.Contains("even"))
+                completion = currentLine.EndsWith("=") ? " numbers.Where(n => n % 2 == 0).ToList();" : "var evens = numbers.Where(n => n % 2 == 0).ToList();";
+            else if (comment.Contains("sắp xếp") || comment.Contains("sort"))
+                completion = currentLine.EndsWith("=") ? " items.OrderBy(x => x).ToList();" : "var sorted = items.OrderBy(x => x).ToList();";
+            else if (comment.Contains("đảo ngược") || comment.Contains("reverse"))
+                completion = currentLine.EndsWith("=") ? " new string(input.Reverse().ToArray());" : "var reversed = new string(input.Reverse().ToArray());";
+            else if (comment.Contains("nguyên tố") || comment.Contains("prime"))
+                completion = "bool isPrime = n > 1 && Enumerable.Range(2, (int)Math.Sqrt(n) - 1).All(i => n % i != 0);";
+            else
+                completion = "Console.WriteLine(\"Processing...\");";
+        }
+        // 3. Line-level syntax completions
+        else if (trimmedCurrent.EndsWith("Console.WriteLine("))
+        {
+            completion = isEnglish ? "\"Hello from .NET 10!\");" : "\"Xin chào từ .NET 10!\");";
+        }
+        else if (trimmedCurrent.EndsWith("Console.Write("))
+        {
+            completion = isEnglish ? "\"Enter your name: \");" : "\"Nhập dữ liệu: \");";
+        }
+        else if (trimmedCurrent.EndsWith("Console.ReadLine()"))
+        {
+            completion = ";\nConsole.WriteLine($\"Output: {input}\");";
+        }
+        else if (trimmedCurrent == "for (" || trimmedCurrent.EndsWith("for ("))
+        {
+            completion = "int i = 0; i < length; i++)\n{\n    Console.WriteLine(i);\n}";
+        }
+        else if (trimmedCurrent == "foreach (" || trimmedCurrent.EndsWith("foreach ("))
+        {
+            completion = "var item in collection)\n{\n    Console.WriteLine(item);\n}";
+        }
+        else if (trimmedCurrent == "while (" || trimmedCurrent.EndsWith("while ("))
+        {
+            completion = "condition)\n{\n    // Loop body\n}";
+        }
+        else if (trimmedCurrent == "if (" || trimmedCurrent.EndsWith("if ("))
+        {
+            completion = "condition)\n{\n    // Logic\n}";
+        }
+        else if (trimmedCurrent == "try" || trimmedCurrent.EndsWith("try"))
+        {
+            completion = "\n{\n    // Code that may throw\n}\ncatch (Exception ex)\n{\n    Console.WriteLine($\"Error: {ex.Message}\");\n}";
+        }
+        else if (trimmedCurrent.EndsWith("using (") || trimmedCurrent.EndsWith("using (var "))
+        {
+            completion = "var stream = new MemoryStream())\n{\n    // Work with stream\n}";
+        }
+        else if (trimmedCurrent.EndsWith("public class ") || (trimmedCurrent.StartsWith("public class ") && !trimmedCurrent.Contains("{")))
+        {
+            completion = "\n{\n    public int Id { get; set; }\n    public string Name { get; set; } = string.Empty;\n}";
+        }
+        else if (trimmedCurrent.EndsWith("public record ") || (trimmedCurrent.StartsWith("public record ") && !trimmedCurrent.Contains(";")))
+        {
+            completion = "(int Id, string Name, DateTime CreatedAt);";
+        }
+        else if (trimmedCurrent.EndsWith("public interface ") || (trimmedCurrent.StartsWith("public interface ") && !trimmedCurrent.Contains("{")))
+        {
+            completion = "\n{\n    Task ExecuteAsync(CancellationToken cancellationToken = default);\n}";
+        }
+        else if (trimmedCurrent.EndsWith(".Where("))
+        {
+            completion = "x => x.IsActive)";
+        }
+        else if (trimmedCurrent.EndsWith(".Select("))
+        {
+            completion = "x => x.Name)";
+        }
+        else if (trimmedCurrent.EndsWith(".OrderBy("))
+        {
+            completion = "x => x.Id)";
+        }
+        else if (trimmedCurrent.EndsWith(".GroupBy("))
+        {
+            completion = "x => x.Category)";
+        }
+        else if (trimmedCurrent.EndsWith("var numbers =") || trimmedCurrent.EndsWith("var list ="))
+        {
+            completion = " new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };";
+        }
+        else if (trimmedCurrent.EndsWith("var users =") || trimmedCurrent.EndsWith("var names ="))
+        {
+            completion = " new List<string> { \"An\", \"Bình\", \"Chi\", \"Dũng\" };";
+        }
+        else if (trimmedCurrent.EndsWith("string message =") || trimmedCurrent.EndsWith("string title ="))
+        {
+            completion = " \"Hello World\";";
+        }
+        else if (trimmedCurrent.EndsWith("int result =") || trimmedCurrent.EndsWith("var result ="))
+        {
+            completion = " CalculateResult();";
+        }
+        else if (trimmedCurrent.EndsWith("="))
+        {
+            completion = " null;";
+        }
+        else if (trimmedCurrent.EndsWith("."))
+        {
+            completion = "ToString()";
+        }
+        else if (string.IsNullOrWhiteSpace(trimmedCurrent))
+        {
+            // Empty line continuation
+            if (trimmedPrefix.Contains("class ") || trimmedPrefix.Contains("record "))
+                completion = "Console.WriteLine(\"Executing...\");";
+            else
+                completion = "// Gõ mã C# hoặc định nghĩa hàm ở đây\nConsole.WriteLine(\"Done!\");";
+        }
+        else
+        {
+            completion = ";";
+        }
+
+        return Task.FromResult(new AiCodeCompletionResponse
+        {
+            Success = true,
+            Completion = completion,
+            ModelUsed = "Rule-Engine (Offline Copilot)"
+        });
+    }
+
     public Task<AiTutorStatusResponse> CheckStatusAsync()
     {
         return Task.FromResult(new AiTutorStatusResponse

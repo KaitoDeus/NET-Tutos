@@ -277,6 +277,24 @@ public class AiTogglePinRequest
 {
     public bool IsPinned { get; set; }
 }
+
+public class AiCodeCompletionRequest
+{
+    public string PrefixCode { get; set; } = string.Empty;
+    public string? SuffixCode { get; set; }
+    public int LineNumber { get; set; }
+    public int Column { get; set; }
+    public string? Language { get; set; } = "csharp";
+    public int? ChallengeId { get; set; }
+}
+
+public class AiCodeCompletionResponse
+{
+    public bool Success { get; set; } = true;
+    public string Completion { get; set; } = string.Empty;
+    public string? ModelUsed { get; set; }
+}
+
 public class AiTutorIndexViewModel
 {
     public bool IsAuthenticated { get; set; }

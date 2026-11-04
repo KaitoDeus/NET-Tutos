@@ -755,4 +755,99 @@ Nguyên tắc cốt lõi:
             };
         }
     }
+
+    public async Task<AiCodeCompletionResponse> CompleteCodeAsync(AiCodeCompletionRequest request, bool isEnglish)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.PrefixCode))
+        {
+            return new AiCodeCompletionResponse { Success = false, Completion = string.Empty };
+        }
+
+        if (!IsLiveGeminiAvailable)
+        {
+            return await _fallbackEngine.CompleteCodeAsync(request, isEnglish);
+        }
+
+        try
+        {
+            var systemPrompt = @"You are an expert AI code completion copilot for C# and .NET 10.
+Given the preceding C# code (and optional following code), generate ONLY the immediate continuation characters or lines to be inserted at the cursor position.
+CRITICAL RULES:
+- Output ONLY the raw code characters to be inserted directly at cursor position.
+- DO NOT wrap the code in markdown code blocks (NO ```csharp, NO ```).
+- DO NOT include explanations, conversational filler, or commentary.
+- DO NOT repeat what the user already typed in the prefix.
+- Provide clean, modern, type-safe C# syntax (1 to 5 lines maximum).";
+
+            var userContent = $"[PRECEDING_CODE]\n{request.PrefixCode}\n[CURSOR]\n{(string.IsNullOrEmpty(request.SuffixCode) ? "" : $"[FOLLOWING_CODE]\n{request.SuffixCode}")}";
+
+            var requestBody = new JsonObject
+            {
+                ["system_instruction"] = new JsonObject
+                {
+                    ["parts"] = new JsonArray
+                    {
+                        new JsonObject { ["text"] = systemPrompt }
+                    }
+                },
+                ["contents"] = new JsonArray
+                {
+                    new JsonObject
+                    {
+                        ["role"] = "user",
+                        ["parts"] = new JsonArray
+                        {
+                            new JsonObject { ["text"] = userContent }
+                        }
+                    }
+                },
+                ["generationConfig"] = new JsonObject
+                {
+                    ["temperature"] = 0.2,
+                    ["maxOutputTokens"] = 120,
+                    ["stopSequences"] = new JsonArray { "\n\n\n", "```" }
+                }
+            };
+
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3.5));
+            var httpRes = await _httpClient.PostAsJsonAsync(url, requestBody, cts.Token);
+            if (!httpRes.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Gemini code completion failed with status {Status}. Falling back to rule engine.", httpRes.StatusCode);
+                return await _fallbackEngine.CompleteCodeAsync(request, isEnglish);
+            }
+
+            var jsonNode = await httpRes.Content.ReadFromJsonAsync<JsonNode>(cancellationToken: cts.Token);
+            var rawText = jsonNode?["candidates"]?[0]?["content"]?[0]?["parts"]?[0]?["text"]?.GetValue<string>()
+                ?? jsonNode?["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.GetValue<string>()
+                ?? string.Empty;
+
+            // Strip any unexpected markdown formatting
+            rawText = rawText.TrimStart('`');
+            if (rawText.StartsWith("csharp\n", StringComparison.OrdinalIgnoreCase))
+                rawText = rawText.Substring(7);
+            if (rawText.StartsWith("c#\n", StringComparison.OrdinalIgnoreCase))
+                rawText = rawText.Substring(3);
+            if (rawText.EndsWith("```"))
+                rawText = rawText.Substring(0, rawText.Length - 3);
+
+            if (string.IsNullOrEmpty(rawText))
+            {
+                return await _fallbackEngine.CompleteCodeAsync(request, isEnglish);
+            }
+
+            return new AiCodeCompletionResponse
+            {
+                Success = true,
+                Completion = rawText,
+                ModelUsed = $"Gemini 2.0 Flash ({_model})"
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("Gemini code completion exception ({Message}). Falling back to rule engine.", ex.Message);
+            return await _fallbackEngine.CompleteCodeAsync(request, isEnglish);
+        }
+    }
 }

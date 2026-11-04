@@ -404,6 +404,14 @@
                                         </ul>
                                     </div>
 
+                                    <!-- AI Copilot Status Pill -->
+                                    <div id="aiCopilotPill" class="d-flex align-items-center gap-1.5 px-2.5 py-1.5 rounded-2 border bg-body-tertiary text-muted small user-select-none" style="font-size: var(--text-nav); cursor: pointer;" onclick="toggleAiCopilotState()" title="@(isEn ? "AI Copilot: Type code and press Tab to accept next lines (or Alt+\\)" : "AI Copilot: Gõ code và nhấn Tab để chèn các dòng gợi ý tiếp theo (hoặc Alt+\\)")">
+                                        <span class="spinner-border spinner-border-sm text-primary d-none" id="aiCopilotSpinner" style="width: 12px; height: 12px;" role="status"></span>
+                                        <i class="bi bi-magic text-primary" id="aiCopilotIcon"></i>
+                                        <span class="d-none d-md-inline fw-semibold text-primary" style="font-size: var(--text-xs);">Copilot</span>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-1 py-0 px-1 font-monospace d-none d-sm-inline" style="font-size: 0.65rem;">Tab</span>
+                                    </div>
+
                                     <!-- Editor Settings Dropdown -->
                                     <div class="dropdown">
                                         <button type="button" id="btnEditorSettings" class="btn btn-sm btn-outline-secondary rounded-2 px-2 py-1.5 shadow-none d-flex align-items-center" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="@(isEn ? "IDE & Editor Settings" : "Tùy biến IDE & Trình soạn thảo")" style="font-size: var(--text-nav);">
@@ -460,11 +468,23 @@
                                                 <input class="form-check-input" type="checkbox" role="switch" id="cfgEditorMinimap">
                                                 <label class="form-check-label small fw-medium" for="cfgEditorMinimap">@(isEn ? "Code Minimap" : "Bản đồ mã nguồn (Minimap)")</label>
                                             </div>
-                                            <div class="form-check form-switch mb-3">
+                                            <div class="form-check form-switch mb-2">
                                                 <input class="form-check-input" type="checkbox" role="switch" id="cfgEditorWordWrap">
                                                 <label class="form-check-label small fw-medium" for="cfgEditorWordWrap">@(isEn ? "Word Wrap" : "Tự xuống dòng (Word Wrap)")</label>
                                             </div>
+                                            <div class="form-check form-switch mb-3">
+                                                <input class="form-check-input" type="checkbox" role="switch" id="cfgEditorAiCopilot" checked>
+                                                <label class="form-check-label small fw-medium text-primary fw-bold" for="cfgEditorAiCopilot">@(isEn ? "✨ AI Copilot (Ghost Text)" : "✨ AI Copilot (Gợi ý dòng tiếp theo)")</label>
+                                            </div>
                                             <div class="p-2 rounded-2 bg-body-tertiary border text-muted" style="font-size: 0.72rem;">
+                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                    <span>@(isEn ? "Accept AI suggestion:" : "Chèn gợi ý AI:")</span>
+                                                    <kbd class="px-1 py-0.5">Tab</kbd>
+                                                </div>
+                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                    <span>@(isEn ? "Trigger AI Copilot:" : "Gọi gợi ý AI ngay:")</span>
+                                                    <kbd class="px-1 py-0.5">Alt + \</kbd>
+                                                </div>
                                                 <div class="d-flex align-items-center justify-content-between mb-1">
                                                     <span>@(isEn ? "Run Code:" : "Chạy mã:")</span>
                                                     <kbd class="px-1 py-0.5">Ctrl + Enter</kbd>
@@ -645,8 +665,45 @@
             theme: 'auto',
             ligatures: true,
             minimap: false,
-            wordWrap: false
+            wordWrap: false,
+            aiCopilot: true
         };
+
+        let isAiCopilotEnabled = true;
+        let aiCopilotAbortController = null;
+        const aiCopilotCache = new Map();
+
+        function updateCopilotPillUI(enabled) {
+            const pill = document.getElementById('aiCopilotPill');
+            const icon = document.getElementById('aiCopilotIcon');
+            if (!pill) return;
+            if (enabled) {
+                pill.classList.remove('opacity-50');
+                pill.classList.add('border-primary-subtle');
+                if (icon) icon.className = 'bi bi-magic text-primary';
+            } else {
+                pill.classList.add('opacity-50');
+                pill.classList.remove('border-primary-subtle');
+                if (icon) icon.className = 'bi bi-magic text-muted';
+            }
+        }
+
+        function toggleAiCopilotState() {
+            const settings = getSavedEditorSettings();
+            const newState = !(settings.aiCopilot !== false);
+            settings.aiCopilot = newState;
+            isAiCopilotEnabled = newState;
+            saveEditorSettings(settings);
+            syncSettingsUI(settings);
+            applyEditorSettings(settings);
+            if (typeof showGenericNotificationToast === 'function') {
+                showGenericNotificationToast(
+                    'AI Copilot',
+                    newState ? (isEn ? 'AI Copilot auto-suggestions enabled' : 'Đã bật AI Copilot gợi ý dòng tiếp theo') : (isEn ? 'AI Copilot disabled' : 'Đã tắt AI Copilot'),
+                    'info'
+                );
+            }
+        }
 
         function getSavedEditorSettings() {
             try {
@@ -678,6 +735,7 @@
             const ligEl = document.getElementById('cfgEditorLigatures');
             const minimapEl = document.getElementById('cfgEditorMinimap');
             const wrapEl = document.getElementById('cfgEditorWordWrap');
+            const copilotEl = document.getElementById('cfgEditorAiCopilot');
 
             if (fontEl) fontEl.value = settings.fontFamily;
             if (sizeEl) sizeEl.value = String(settings.fontSize);
@@ -686,18 +744,26 @@
             if (ligEl) ligEl.checked = !!settings.ligatures;
             if (minimapEl) minimapEl.checked = !!settings.minimap;
             if (wrapEl) wrapEl.checked = !!settings.wordWrap;
+            if (copilotEl) copilotEl.checked = settings.aiCopilot !== false;
+            updateCopilotPillUI(settings.aiCopilot !== false);
         }
 
         function applyEditorSettings(settings) {
             if (!editorInstance) return;
             monaco.editor.setTheme(getEffectiveTheme(settings.theme));
+            isAiCopilotEnabled = settings.aiCopilot !== false;
+            updateCopilotPillUI(isAiCopilotEnabled);
             editorInstance.updateOptions({
                 fontFamily: settings.fontFamily,
                 fontSize: parseInt(settings.fontSize, 10),
                 tabSize: parseInt(settings.tabSize, 10),
                 fontLigatures: !!settings.ligatures,
                 minimap: { enabled: !!settings.minimap },
-                wordWrap: settings.wordWrap ? 'on' : 'off'
+                wordWrap: settings.wordWrap ? 'on' : 'off',
+                inlineSuggest: {
+                    enabled: isAiCopilotEnabled,
+                    mode: 'prefix'
+                }
             });
         }
 
@@ -1002,6 +1068,118 @@
                 }
             });
 
+            // Register Monaco Inline Completions Provider for AI Copilot (Ghost-text next lines)
+            monaco.languages.registerInlineCompletionsProvider('csharp', {
+                provideInlineCompletions: async function (model, position, context, token) {
+                    if (!isAiCopilotEnabled) return { items: [] };
+
+                    const prefixCode = model.getValueInRange({
+                        startLineNumber: 1,
+                        startColumn: 1,
+                        endLineNumber: position.lineNumber,
+                        endColumn: position.column
+                    });
+
+                    if (!prefixCode || prefixCode.trim().length === 0) {
+                        return { items: [] };
+                    }
+
+                    // Debounce: Wait 280ms of typing pause before hitting backend
+                    try {
+                        await new Promise((resolve, reject) => {
+                            const timer = setTimeout(resolve, 280);
+                            token.onCancellationRequested(() => {
+                                clearTimeout(timer);
+                                reject(new Error('cancelled'));
+                            });
+                        });
+                    } catch (e) {
+                        return { items: [] };
+                    }
+
+                    if (token.isCancellationRequested) return { items: [] };
+
+                    const lineCount = model.getLineCount();
+                    const maxCol = model.getLineMaxColumn(lineCount);
+                    const suffixCode = model.getValueInRange({
+                        startLineNumber: position.lineNumber,
+                        startColumn: position.column,
+                        endLineNumber: Math.min(lineCount, position.lineNumber + 25),
+                        endColumn: maxCol
+                    });
+
+                    const spinner = document.getElementById('aiCopilotSpinner');
+                    const icon = document.getElementById('aiCopilotIcon');
+                    if (spinner && icon) {
+                        spinner.classList.remove('d-none');
+                        icon.classList.add('d-none');
+                    }
+
+                    try {
+                        const cacheKey = prefixCode.slice(-250);
+                        let completionText = aiCopilotCache.get(cacheKey);
+
+                        if (!completionText) {
+                            if (aiCopilotAbortController) {
+                                aiCopilotAbortController.abort();
+                            }
+                            aiCopilotAbortController = new AbortController();
+
+                            const response = await fetch('/AiTutor/CompleteCode', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    prefixCode: prefixCode,
+                                    suffixCode: suffixCode,
+                                    lineNumber: position.lineNumber,
+                                    column: position.column,
+                                    challengeId: (typeof activeChallengeId !== 'undefined' && activeChallengeId > 0) ? activeChallengeId : null
+                                }),
+                                signal: aiCopilotAbortController.signal
+                            });
+
+                            if (response.ok) {
+                                const data = await response.json();
+                                if (data && data.success && data.completion) {
+                                    completionText = data.completion;
+                                    aiCopilotCache.set(cacheKey, completionText);
+                                    if (aiCopilotCache.size > 50) {
+                                        const first = aiCopilotCache.keys().next().value;
+                                        aiCopilotCache.delete(first);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!completionText || token.isCancellationRequested) {
+                            return { items: [] };
+                        }
+
+                        return {
+                            items: [
+                                {
+                                    insertText: completionText,
+                                    range: new monaco.Range(
+                                        position.lineNumber,
+                                        position.column,
+                                        position.lineNumber,
+                                        position.column
+                                    )
+                                }
+                            ]
+                        };
+                    } catch (err) {
+                        return { items: [] };
+                    } finally {
+                        if (spinner && icon) {
+                            spinner.classList.add('d-none');
+                            icon.classList.remove('d-none');
+                        }
+                    }
+                },
+                freeInlineCompletions: function (completions) {}
+            });
+
             editorInstance = monaco.editor.create(document.getElementById('monacoEditor'), {
                 value: defaultCode,
                 language: 'csharp',
@@ -1024,7 +1202,12 @@
                 acceptSuggestionOnCommitCharacter: true,
                 snippetSuggestions: 'top',
                 suggestSelection: 'first',
+                inlineSuggest: {
+                    enabled: isAiCopilotEnabled,
+                    mode: 'prefix'
+                },
                 suggest: {
+                    preview: true,
                     insertMode: 'insert',
                     filterGraceful: true,
                     snippetsPreventQuickSuggestions: false,
@@ -1032,6 +1215,11 @@
                     shareSuggestSelections: true,
                     showIcons: true
                 }
+            });
+
+            // Keyboard shortcut Alt + \ to manually trigger AI Copilot completion
+            editorInstance.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.Backslash, function () {
+                editorInstance.trigger('ai-copilot', 'editor.action.inlineSuggest.trigger', {});
             });
 
             // Keyboard shortcut Ctrl + Enter to run code
@@ -1117,6 +1305,7 @@
             bindSettingChange('cfgEditorLigatures', 'ligatures', true, false);
             bindSettingChange('cfgEditorMinimap', 'minimap', true, false);
             bindSettingChange('cfgEditorWordWrap', 'wordWrap', true, false);
+            bindSettingChange('cfgEditorAiCopilot', 'aiCopilot', true, false);
 
             const btnResetSettings = document.getElementById('btnResetEditorSettings');
             if (btnResetSettings) {

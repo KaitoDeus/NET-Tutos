@@ -301,4 +301,18 @@ public class AiTutorController : Controller
         var response = await _aiTutorService.GenerateUnitTestAsync(request, isEnglish);
         return Json(response);
     }
+
+    // POST: /AiTutor/CompleteCode
+    [HttpPost]
+    public async Task<IActionResult> CompleteCode([FromBody] AiCodeCompletionRequest request)
+    {
+        if (request == null || string.IsNullOrEmpty(request.PrefixCode))
+        {
+            return Json(new AiCodeCompletionResponse { Success = false, Completion = string.Empty });
+        }
+
+        bool isEnglish = HttpContext.IsEnglish();
+        var response = await _aiTutorService.CompleteCodeAsync(request, isEnglish);
+        return Json(response);
+    }
 }
