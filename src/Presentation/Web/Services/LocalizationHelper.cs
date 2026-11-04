@@ -379,6 +379,24 @@ public static class LocalizationHelper
         return cat.Name ?? string.Empty;
     }
 
+    public static string GetShortTitle(this Category? cat, bool isEn)
+    {
+        if (cat == null) return string.Empty;
+        var slug = cat.Slug?.ToLowerInvariant() ?? "";
+        return slug switch
+        {
+            "csharp-co-ban" => isEn ? "C# & .NET Core" : "C# & .NET Core",
+            "oop-csharp-nang-cao" => isEn ? "OOP & Advanced C#" : "OOP & C# Nâng cao",
+            "csharp-dsa-leetcode" => isEn ? "DSA & LeetCode" : "DSA & LeetCode",
+            "design-patterns-architecture" => isEn ? "Design Patterns" : "Design Patterns",
+            "entity-framework-core" => isEn ? "EF Core & Dapper" : "EF Core & Dapper",
+            "aspnet-core-mvc-api" => isEn ? "ASP.NET Core API" : "ASP.NET Core Web API",
+            "microservices-distributed-systems" => isEn ? "Microservices" : "Microservices Phân tán",
+            "performance-diagnostics-devops" => isEn ? "CLR & DevOps" : "Hiệu năng CLR & DevOps",
+            _ => (cat.Name ?? string.Empty).Replace("1. ", "").Replace("2. ", "").Replace("3. ", "").Replace("4. ", "").Replace("5. ", "").Replace("6. ", "").Replace("7. ", "").Replace("8. ", "")
+        };
+    }
+
     public static string GetDesc(this Category? cat, bool isEn)
     {
         if (cat == null) return string.Empty;

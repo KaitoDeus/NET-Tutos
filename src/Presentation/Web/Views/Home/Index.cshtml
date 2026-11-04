@@ -9,12 +9,15 @@
 @section Styles {
     <style>
         .featured-card {
-            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .featured-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-4px);
             border-color: var(--bs-primary) !important;
-            box-shadow: 0 6px 18px rgba(13, 110, 253, 0.09) !important;
+            box-shadow: 0 10px 24px -4px rgba(13, 110, 253, 0.12), 0 4px 8px -2px rgba(0, 0, 0, 0.04) !important;
+        }
+        .featured-card .btn-outline-primary:hover {
+            color: #fff !important;
         }
     </style>
 }
@@ -84,27 +87,45 @@
     <div class="row g-3">
         @foreach (var item in Model.FeaturedTutorials)
         {
+            var badgeColor = item.Category?.BadgeColor ?? "primary";
             <div class="col-md-6 col-lg-4">
-                <div class="card h-100 rounded-3 border bg-body shadow-xs featured-card d-flex flex-column">
-                    <div class="p-3.5 d-flex flex-column flex-grow-1">
-                        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-monospace fw-semibold text-truncate" style="max-width: 65%; font-size: var(--text-2xs);" title="@(item.Category?.GetTitle(isEn) ?? "")">
-                                <i class="bi @(item.Category?.IconClass ?? "bi-journal-code") me-1"></i>@(item.Category?.GetTitle(isEn) ?? "")
+                <div class="card h-100 rounded-4 border bg-body shadow-xs featured-card d-flex flex-column">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <!-- Top Meta: Category Badge & Reading Time -->
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                            <span class="badge bg-@badgeColor-subtle text-@badgeColor border border-@badgeColor-subtle rounded-pill px-2.5 py-1.5 font-monospace fw-semibold d-inline-flex align-items-center gap-1.5" style="font-size: var(--text-2xs);">
+                                <i class="bi @(item.Category?.IconClass ?? "bi-journal-code")"></i>
+                                <span>@(item.Category.GetShortTitle(isEn))</span>
                             </span>
-                            <span class="text-muted flex-shrink-0 font-monospace text-nowrap d-flex align-items-center gap-1" style="font-size: var(--text-xs);">
-                                <i class="bi bi-clock"></i> @item.EstimatedReadingMinutes @(isEn ? "min read" : "phút đọc")
+                            <span class="text-muted font-monospace small d-flex align-items-center gap-1.5 text-nowrap" style="font-size: var(--text-xs);">
+                                <i class="bi bi-clock"></i>
+                                <span>@item.EstimatedReadingMinutes @(isEn ? "min read" : "phút đọc")</span>
                             </span>
                         </div>
-                        <h3 class="h6 fw-bold mb-2 text-body-emphasis" style="font-size: var(--text-base); line-height: 1.45; min-height: 2.8rem;">
+
+                        <!-- Title -->
+                        <h3 class="fw-bold mb-2 text-body-emphasis" style="font-size: 1.05rem; line-height: 1.45; min-height: 3rem;">
                             <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.GetSlug(isEn)" class="text-body-emphasis text-decoration-none hover-text-primary">
                                 @item.GetTitle(isEn)
                             </a>
                         </h3>
-                        <p class="text-body-secondary mb-3 text-truncate-2" style="font-size: var(--text-sm); line-height: 1.55;">
+
+                        <!-- Summary -->
+                        <p class="text-body-secondary mb-3 flex-grow-1" style="font-size: var(--text-sm); line-height: 1.6; min-height: 2.8rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                             @item.GetSummary(isEn)
                         </p>
-                        <div class="d-flex align-items-center justify-content-between pt-2.5 mt-auto border-top text-primary fw-medium" style="font-size: var(--text-xs);">
-                            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.GetSlug(isEn)" class="text-primary text-decoration-none d-flex align-items-center justify-content-between w-100">
+
+                        <!-- Bottom Action Bar -->
+                        <div class="d-flex align-items-center justify-content-between pt-3 mt-auto border-top">
+                            <span class="badge bg-body-tertiary text-secondary border rounded-pill px-2.5 py-1 font-monospace" style="font-size: var(--text-2xs);">
+                                @(item.Difficulty switch {
+                                    DifficultyLevel.Beginner => isEn ? "Beginner" : "Cơ bản",
+                                    DifficultyLevel.Intermediate => isEn ? "Intermediate" : "Trung cấp",
+                                    DifficultyLevel.Advanced => isEn ? "Advanced" : "Nâng cao",
+                                    _ => isEn ? "Beginner" : "Cơ bản"
+                                })
+                            </span>
+                            <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@item.GetSlug(isEn)" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1.5" style="font-size: var(--text-xs);">
                                 <span>@(isEn ? "Read lesson" : "Khám phá bài học")</span>
                                 <i class="bi bi-arrow-right"></i>
                             </a>
