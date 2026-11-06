@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +30,29 @@ public class AiTutorService : IAiTutorService
             _httpClient = httpClientFactory.CreateClient("AiTutor");
             _httpClient.BaseAddress = new Uri(_remoteServiceUrl);
             _httpClient.Timeout = TimeSpan.FromSeconds(5);
+        }
+    }
+
+    public async IAsyncEnumerable<string> StreamChatAsync(AiTutorChatRequest request, bool isEnglish, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var full = await ChatAsync(request, isEnglish);
+        var text = full.ResponseMarkdown;
+        if (string.IsNullOrEmpty(text)) yield break;
+
+        var words = text.Split(' ');
+        var currentChunk = new System.Text.StringBuilder();
+
+        for (int i = 0; i < words.Length; i++)
+        {
+            if (cancellationToken.IsCancellationRequested) yield break;
+
+            currentChunk.Append(words[i]).Append(' ');
+            if (i % 3 == 0 || i == words.Length - 1)
+            {
+                yield return currentChunk.ToString();
+                currentChunk.Clear();
+                await Task.Delay(20, cancellationToken);
+            }
         }
     }
 

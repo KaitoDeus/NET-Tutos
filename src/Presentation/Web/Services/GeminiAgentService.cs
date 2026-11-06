@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
@@ -124,6 +125,148 @@ public class GeminiAgentService : IAiTutorService
         }
 
         return response;
+    }
+
+    public async IAsyncEnumerable<string> StreamChatAsync(
+        AiTutorChatRequest request,
+        bool isEnglish,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        if (!IsLiveGeminiAvailable)
+        {
+            await foreach (var chunk in _fallbackEngine.StreamChatAsync(request, isEnglish, cancellationToken))
+            {
+                yield return chunk;
+            }
+            yield break;
+        }
+
+        var modelsToTry = new List<string> { _model };
+        string[] fallbacks = ["gemini-3.5-flash-lite", "gemini-3-flash-preview", "gemini-3.1-flash-lite-preview"];
+        foreach (var fb in fallbacks)
+        {
+            if (!modelsToTry.Contains(fb, StringComparer.OrdinalIgnoreCase))
+            {
+                modelsToTry.Add(fb);
+            }
+        }
+
+        var systemInstruction = BuildSystemPrompt(isEnglish);
+        var contents = new JsonArray();
+
+        // Load multi-turn history
+        if (_conversationService != null && request.ConversationId.HasValue && request.ConversationId.Value != Guid.Empty)
+        {
+            var history = await _conversationService.GetRecentMessagesForContextAsync(request.ConversationId.Value, 8);
+            foreach (var msg in history)
+            {
+                var role = msg.Role.Equals("model", StringComparison.OrdinalIgnoreCase) ? "model" : "user";
+                contents.Add(new JsonObject
+                {
+                    ["role"] = role,
+                    ["parts"] = new JsonArray { new JsonObject { ["text"] = msg.Content } }
+                });
+            }
+        }
+
+        contents.Add(new JsonObject
+        {
+            ["role"] = "user",
+            ["parts"] = new JsonArray { new JsonObject { ["text"] = BuildUserPrompt(request) } }
+        });
+
+        var requestBody = new JsonObject
+        {
+            ["system_instruction"] = new JsonObject
+            {
+                ["parts"] = new JsonArray { new JsonObject { ["text"] = systemInstruction } }
+            },
+            ["contents"] = contents,
+            ["generationConfig"] = new JsonObject
+            {
+                ["temperature"] = _temperature,
+                ["maxOutputTokens"] = 2048
+            }
+        };
+
+        bool streamSucceeded = false;
+
+        foreach (var currentModel in modelsToTry)
+        {
+            if (cancellationToken.IsCancellationRequested) yield break;
+
+            var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{currentModel}:streamGenerateContent?alt=sse";
+            using var reqMsg = new HttpRequestMessage(HttpMethod.Post, endpoint)
+            {
+                Content = JsonContent.Create(requestBody)
+            };
+            if (!string.IsNullOrWhiteSpace(_apiKey))
+            {
+                reqMsg.Headers.TryAddWithoutValidation("x-goog-api-key", _apiKey);
+            }
+
+            HttpResponseMessage? response = null;
+            try
+            {
+                response = await _httpClient.SendAsync(reqMsg, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Stream connection failed for {Model}: {Msg}", currentModel, ex.Message);
+                continue;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                response.Dispose();
+                _logger.LogWarning("Model {Model} returned {Status} for stream. Trying fallback.", currentModel, response.StatusCode);
+                continue;
+            }
+
+            using (response)
+            using (var stream = await response.Content.ReadAsStreamAsync(cancellationToken))
+            using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8))
+            {
+                string? line;
+                while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
+                {
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    if (line.StartsWith("data: "))
+                    {
+                        var jsonStr = line.Substring(6).Trim();
+                        if (string.IsNullOrWhiteSpace(jsonStr)) continue;
+
+                        string? chunkText = null;
+                        try
+                        {
+                            var parsed = JsonNode.Parse(jsonStr);
+                            chunkText = parsed?["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.GetValue<string>();
+                        }
+                        catch { }
+
+                        if (!string.IsNullOrEmpty(chunkText))
+                        {
+                            streamSucceeded = true;
+                            yield return chunkText;
+                        }
+                    }
+                }
+            }
+
+            if (streamSucceeded) yield break;
+        }
+
+        if (!streamSucceeded)
+        {
+            yield return isEnglish
+                ? "> ⚠️ *[Offline Engine Active - AI Assistant busy]*\n\n"
+                : "> ⚠️ *[Chế độ Ngoại tuyến kích hoạt - Hệ thống AI đang bận]*\n\n";
+
+            await foreach (var chunk in _fallbackEngine.StreamChatAsync(request, isEnglish, cancellationToken))
+            {
+                yield return chunk;
+            }
+        }
     }
 
     private async Task<AiTutorChatResponse> ExecuteAgentChatLoopAsync(AiTutorChatRequest request, bool isEnglish)
@@ -357,6 +500,14 @@ Nguyên tắc cốt lõi:
         {
             sb.AppendLine("\n[Compiler / Runtime Error Message]:");
             sb.AppendLine(request.ErrorContext);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.AttachedFileName) && !string.IsNullOrWhiteSpace(request.AttachedFileContent))
+        {
+            sb.AppendLine($"\n[Đính kèm tệp: {request.AttachedFileName}]:");
+            sb.AppendLine("```");
+            sb.AppendLine(request.AttachedFileContent);
+            sb.AppendLine("```");
         }
 
         return sb.ToString();

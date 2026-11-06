@@ -7,6 +7,8 @@ public class AiTutorChatRequest
     public string? CodeContext { get; set; }
     public string? ErrorContext { get; set; }
     public string? CurrentPage { get; set; }
+    public string? AttachedFileName { get; set; }
+    public string? AttachedFileContent { get; set; }
 }
 
 public class AiTutorChatResponse

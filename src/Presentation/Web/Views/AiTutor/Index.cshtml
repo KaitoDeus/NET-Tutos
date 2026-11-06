@@ -1,4 +1,4 @@
-@model NET_Tutos.Models.ViewModels.AiTutorIndexViewModel
+﻿@model NET_Tutos.Models.ViewModels.AiTutorIndexViewModel
 @{
     bool isEn = Context.IsEnglish();
     ViewData["Title"] = isEn ? "Atus — AI .NET Mentor | NET-Tutos" : "Atus — Trợ Lý AI Gia Sư .NET | NET-Tutos";
@@ -308,8 +308,28 @@
                 }
                 else
                 {
+                    <!-- File Attachment Preview Area -->
+                    <div id="attachedFileContainer" class="d-none mb-2">
+                        <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-3 bg-body-tertiary border shadow-xs" id="attachedFileBadge">
+                            <i class="bi bi-file-earmark-code-fill text-primary fs-5"></i>
+                            <div class="small">
+                                <div class="fw-semibold text-truncate" id="attachedFileName" style="max-width: 240px;">file.cs</div>
+                                <div class="text-muted" id="attachedFileSize" style="font-size: 0.68rem;">0 KB</div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-icon p-0 ms-2 text-muted text-hover-danger" onclick="removeAttachedFile()" title="@(isEn ? "Remove file" : "Gỡ bỏ tệp")">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Input Box Card -->
-                    <div class="input-card border rounded-4 p-2 bg-body shadow-sm d-flex align-items-end gap-2 focus-ring-card">
+                    <div class="input-card border rounded-4 p-2 bg-body shadow-sm d-flex align-items-end gap-2 focus-ring-card position-relative" id="chatDropZone">
+                        <input type="file" id="chatFileInput" class="d-none" accept=".cs,.txt,.log,.json,.md,.xml,.sql,.yaml,.yml" onchange="handleFileSelected(event)">
+                        
+                        <button type="button" class="btn btn-outline-secondary border-0 rounded-circle p-0 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;" onclick="document.getElementById('chatFileInput').click()" title="@(isEn ? "Attach C# or log file" : "Đính kèm tệp C# hoặc log lỗi")">
+                            <i class="bi bi-paperclip fs-5"></i>
+                        </button>
+
                         <textarea class="form-control border-0 bg-transparent shadow-none p-2 resize-none" id="chatMessageInput" rows="1"
                                   placeholder="@(isEn ? "Message Atus (Press Enter to send, Shift + Enter for new line)..." : "Nhắn tin cho Atus (Enter để gửi, Shift + Enter để xuống dòng)...")"
                                   oninput="autoResizeTextarea(this)" onkeydown="handleInputKeydown(event)"></textarea>
@@ -372,6 +392,7 @@
     const isAuthenticated = @(Model.IsAuthenticated ? "true" : "false");
     let currentConversationId = '@activeConvId';
     let isWaitingResponse = false;
+    let currentAttachedFile = null;
 
     // Auto-scroll messages container to bottom
     function scrollToBottom() {
@@ -403,14 +424,101 @@
         }
     }
 
-    // Restore sidebar state
+    // Restore sidebar state and move modals to body to prevent stacking context clipping
     document.addEventListener('DOMContentLoaded', () => {
         if (localStorage.getItem('nettutos_chat_sidebar_collapsed') === 'true') {
             const sidebar = document.getElementById('chatSidebar');
             if (sidebar) sidebar.classList.add('collapsed');
         }
+
+        // Relocate Bootstrap modals to body to prevent overflow:hidden clipping & backdrop issues
+        const renameModal = document.getElementById('renameModal');
+        const deleteModal = document.getElementById('deleteModal');
+        if (renameModal && renameModal.parentElement !== document.body) {
+            document.body.appendChild(renameModal);
+        }
+        if (deleteModal && deleteModal.parentElement !== document.body) {
+            document.body.appendChild(deleteModal);
+        }
+
+        // Setup drag & drop on chat box
+        setupChatDropZone();
+
         scrollToBottom();
     });
+
+    // File Attachment & Drag & Drop Handling
+    function setupChatDropZone() {
+        const dropZone = document.getElementById('chatDropZone');
+        if (!dropZone) return;
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('chat-drag-over');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('chat-drag-over');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            if (dt && dt.files && dt.files.length > 0) {
+                processFileAttachment(dt.files[0]);
+            }
+        });
+    }
+
+    function handleFileSelected(event) {
+        const file = event.target.files && event.target.files[0];
+        if (file) {
+            processFileAttachment(file);
+        }
+    }
+
+    function processFileAttachment(file) {
+        if (!file) return;
+
+        // Size check: Max 2MB
+        const maxBytes = 2 * 1024 * 1024;
+        if (file.size > maxBytes) {
+            alert(isEn ? "File size exceeds 2MB limit. Please choose a smaller code or log file." : "KÃ­ch thÆ°á»›c tá»‡p vÆ°á»£t quÃ¡ 2MB. Vui lÃ²ng chá»n tá»‡p nhá» hÆ¡n.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            currentAttachedFile = {
+                name: file.name,
+                size: file.size,
+                content: e.target.result
+            };
+
+            const container = document.getElementById('attachedFileContainer');
+            const nameEl = document.getElementById('attachedFileName');
+            const sizeEl = document.getElementById('attachedFileSize');
+
+            if (nameEl) nameEl.innerText = file.name;
+            if (sizeEl) sizeEl.innerText = (file.size / 1024).toFixed(1) + ' KB';
+            if (container) container.classList.remove('d-none');
+        };
+        reader.readAsText(file);
+    }
+
+    function removeAttachedFile() {
+        currentAttachedFile = null;
+        const container = document.getElementById('attachedFileContainer');
+        if (container) container.classList.add('d-none');
+        const input = document.getElementById('chatFileInput');
+        if (input) input.value = '';
+    }
 
     // Start New Chat session
     function startNewChat() {
@@ -421,7 +529,7 @@
 
         currentConversationId = '';
         const titleEl = document.getElementById('currentChatTitle');
-        if (titleEl) titleEl.innerText = isEn ? 'New Chat' : 'Đoạn chat mới';
+        if (titleEl) titleEl.innerText = isEn ? 'New Chat' : 'Äoáº¡n chat má»›i';
         
         const list = document.getElementById('messagesList');
         if (list) list.innerHTML = '';
@@ -429,17 +537,17 @@
         const hero = document.getElementById('heroStarterView');
         if (hero) hero.classList.remove('d-none');
         
-        // Remove active class from all items
         document.querySelectorAll('.conv-item').forEach(el => {
             el.classList.remove('active', 'bg-primary', 'bg-opacity-10', 'text-primary', 'fw-semibold');
             const icon = el.querySelector('.bi-chat-dots-fill');
             if (icon) icon.className = 'bi bi-chat-left-text text-secondary flex-shrink-0';
         });
 
-        // Update URL to clean state
         if (window.history && window.history.pushState) {
             window.history.pushState(null, '', '/AiTutor');
         }
+
+        removeAttachedFile();
 
         const input = document.getElementById('chatMessageInput');
         if (input) {
@@ -475,14 +583,12 @@
                 currentConversationId = conv.id;
                 
                 const titleEl = document.getElementById('currentChatTitle');
-                if (titleEl) titleEl.innerText = conv.title || (isEn ? 'New Chat' : 'Đoạn chat mới');
+                if (titleEl) titleEl.innerText = conv.title || (isEn ? 'New Chat' : 'Äoáº¡n chat má»›i');
 
-                // Update URL browser
                 if (window.history && window.history.pushState) {
                     window.history.pushState(null, '', `/AiTutor?id=${conv.id}`);
                 }
 
-                // Update active class in sidebar
                 document.querySelectorAll('.conv-item').forEach(el => {
                     if (el.dataset.id === convId) {
                         el.classList.add('active', 'bg-primary', 'bg-opacity-10', 'text-primary', 'fw-semibold');
@@ -495,7 +601,6 @@
                     }
                 });
 
-                // Render messages
                 const list = document.getElementById('messagesList');
                 list.innerHTML = '';
 
@@ -533,11 +638,7 @@
         }
     }
 
-    function sendPresetPrompt(prompt) {
-        useStarterPrompt(prompt);
-    }
-
-    // Send Message
+    // Send Message with Real-Time SSE Streaming
     async function sendMessage() {
         if (!isAuthenticated) {
             window.location.href = '/Account/Login?returnUrl=/AiTutor';
@@ -546,30 +647,64 @@
 
         const input = document.getElementById('chatMessageInput');
         const text = input ? input.value.trim() : '';
-        if (!text || isWaitingResponse) return;
+        const attached = currentAttachedFile;
 
-        // Hide hero starter view
+        if ((!text && !attached) || isWaitingResponse) return;
+
+        // Hide starter view
         document.getElementById('heroStarterView')?.classList.add('d-none');
 
-        // Append user message to UI
+        // Append user message
         const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        appendUserMessageToDOM(text, null, nowStr);
+        const userSnippet = attached ? `[${isEn ? 'Attached File' : 'Tá»‡p Ä‘Ã­nh kÃ¨m'}: ${attached.name}]` : null;
+        appendUserMessageToDOM(text || (isEn ? 'Sent attached file.' : 'ÄÃ£ gá»­i tá»‡p Ä‘Ã­nh kÃ¨m.'), userSnippet, nowStr);
+
+        // Reset input and attachment immediately
         input.value = '';
         input.style.height = 'auto';
+        removeAttachedFile();
 
-        // Show typing indicator
+        // Lock send state
         isWaitingResponse = true;
-        document.getElementById('typingIndicator')?.classList.remove('d-none');
         scrollToBottom();
+
+        // Prepare streaming AI placeholder bubble
+        const aiMsgId = 'ai-stream-msg-' + Date.now();
+        const list = document.getElementById('messagesList');
+        const aiHtml = `
+            <div class="d-flex gap-3 msg-row ai-msg" id="${aiMsgId}">
+                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                    <i class="bi bi-robot fs-5"></i>
+                </div>
+                <div class="d-flex flex-column flex-grow-1 overflow-hidden" style="max-width: 90%;">
+                    <div class="ai-bubble p-3.5 rounded-4 bg-body-tertiary border shadow-xs">
+                        <div class="fw-bold mb-1 text-primary small d-flex align-items-center gap-2">
+                            <span>Atus</span>
+                            <span class="badge bg-primary-subtle text-primary" style="font-size: 0.65rem;">AI Agent</span>
+                        </div>
+                        <div class="markdown-body small lh-lg text-container"><span class="streaming-cursor"></span></div>
+                    </div>
+                    <span class="text-muted small ps-2 mt-1" style="font-size: 0.68rem;">${nowStr}</span>
+                </div>
+            </div>`;
+        list.insertAdjacentHTML('beforeend', aiHtml);
+        scrollToBottom();
+
+        const currentAiRow = document.getElementById(aiMsgId);
+        const textContainer = currentAiRow?.querySelector('.text-container');
+
+        let accumulatedMarkdown = '';
 
         try {
             const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
             const payload = {
-                message: text,
-                conversationId: currentConversationId || null
+                message: text || (isEn ? 'Analyze this attached file' : 'HÃ£y phÃ¢n tÃ­ch ná»™i dung tá»‡p Ä‘Ã­nh kÃ¨m nÃ y'),
+                conversationId: currentConversationId || null,
+                attachedFileName: attached ? attached.name : null,
+                attachedFileContent: attached ? attached.content : null
             };
 
-            const response = await fetch('/AiTutor/Chat', {
+            const response = await fetch('/AiTutor/ChatStream', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -583,29 +718,139 @@
                 return;
             }
 
-            const data = await response.json();
-            document.getElementById('typingIndicator')?.classList.add('d-none');
-            isWaitingResponse = false;
+            if (!response.ok || !response.body) {
+                throw new Error('Stream connection failed');
+            }
 
-            if (data && data.responseMarkdown) {
-                if (data.conversationId) {
-                    currentConversationId = data.conversationId;
-                    if (window.history && window.history.pushState) {
-                        window.history.pushState(null, '', `/AiTutor?id=${currentConversationId}`);
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop(); // Keep partial line in buffer
+
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed || !trimmed.startsWith('data:')) continue;
+
+                    const jsonStr = trimmed.substring(5).trim();
+                    try {
+                        const eventObj = JSON.parse(jsonStr);
+
+                        if (eventObj.type === 'init') {
+                            if (eventObj.conversationId) {
+                                currentConversationId = eventObj.conversationId;
+                            }
+                        } else if (eventObj.type === 'chunk') {
+                            accumulatedMarkdown += (eventObj.text || '');
+                            if (textContainer) {
+                                textContainer.innerHTML = formatSimpleMarkdown(accumulatedMarkdown) + '<span class="streaming-cursor"></span>';
+                            }
+                            scrollToBottom();
+                        } else if (eventObj.type === 'done') {
+                            if (eventObj.conversationId) {
+                                currentConversationId = eventObj.conversationId;
+                                if (window.history && window.history.pushState) {
+                                    window.history.pushState(null, '', `/AiTutor?id=${currentConversationId}`);
+                                }
+                            }
+                            if (eventObj.title) {
+                                const titleEl = document.getElementById('currentChatTitle');
+                                if (titleEl) titleEl.innerText = eventObj.title;
+                            }
+                            await reloadConversationsList();
+                        } else if (eventObj.type === 'error') {
+                            accumulatedMarkdown += `\n\n> âš ï¸ *${escapeHtml(eventObj.message || 'Lá»—i xá»­ lÃ½')}*`;
+                            if (textContainer) {
+                                textContainer.innerHTML = formatSimpleMarkdown(accumulatedMarkdown);
+                            }
+                        }
+                    } catch (e) {
+                        // In case of non-json data line
                     }
                 }
-                appendAiMessageToDOM(data.responseMarkdown, data.codeSnippet, nowStr);
-                await reloadConversationsList();
-            } else {
-                appendAiMessageToDOM(isEn ? "Sorry, I could not process your query. Please try again." : "Rất tiếc, AI chưa thể xử lý yêu cầu này. Vui lòng thử lại nhé.", null, nowStr);
+            }
+
+            // Remove streaming cursor at end of response
+            if (textContainer) {
+                textContainer.innerHTML = formatSimpleMarkdown(accumulatedMarkdown);
             }
         } catch (err) {
-            document.getElementById('typingIndicator')?.classList.add('d-none');
+            if (textContainer) {
+                textContainer.innerHTML = formatSimpleMarkdown(accumulatedMarkdown || (isEn ? "Network error connecting to Atus. Please try again." : "Lá»—i káº¿t ná»‘i tá»›i Atus. Vui lÃ²ng thá»­ láº¡i sau."));
+            }
+        } finally {
             isWaitingResponse = false;
-            appendAiMessageToDOM(isEn ? "Network error connecting to Atus. Please check your connection." : "Lỗi mạng khi kết nối tới Atus. Vui lòng thử lại sau.", null, nowStr);
+            scrollToBottom();
         }
+    }
 
-        scrollToBottom();
+    // Inline Code Execution (Roslyn C# Runner)
+    async function runInlineCode(btn) {
+        const wrapper = btn.closest('.code-toolbar-wrapper');
+        if (!wrapper) return;
+
+        const pre = wrapper.querySelector('pre code');
+        if (!pre) return;
+
+        const codeText = pre.innerText.trim();
+        if (!codeText) return;
+
+        const terminal = wrapper.querySelector('.inline-code-terminal');
+        const terminalBody = wrapper.querySelector('.inline-terminal-body');
+        const timeBadge = wrapper.querySelector('.inline-terminal-time');
+        const statusBadge = wrapper.querySelector('.inline-terminal-status');
+
+        if (!terminal || !terminalBody) return;
+
+        terminal.classList.remove('d-none');
+        terminalBody.innerHTML = `
+            <div class="d-flex align-items-center gap-2 text-warning py-1">
+                <span class="spinner-border spinner-border-sm" role="status"></span>
+                <span>${isEn ? 'Compiling and executing via Roslyn engine...' : 'Äang biÃªn dá»‹ch & thá»±c thi qua Roslyn engine...'}</span>
+            </div>`;
+        if (timeBadge) timeBadge.innerText = '...';
+        if (statusBadge) statusBadge.innerHTML = `<span class="badge bg-warning-subtle text-warning">${isEn ? 'Running' : 'Äang cháº¡y'}</span>`;
+
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+            const res = await fetch('/Playground/Execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ code: codeText })
+            });
+
+            const data = await res.json();
+
+            if (timeBadge) timeBadge.innerText = (data.executionTimeMs || 0) + ' ms';
+
+            if (data.isSuccess) {
+                if (statusBadge) statusBadge.innerHTML = `<span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle-fill me-1"></i>${isEn ? 'Success' : 'ThÃ nh cÃ´ng'}</span>`;
+                const outText = data.output && data.output.trim() ? data.output : (isEn ? '(No console output)' : '(KhÃ´ng cÃ³ dá»¯ liá»‡u xuáº¥t Console)');
+                terminalBody.innerHTML = `<pre class="text-success mb-0 overflow-x-auto font-monospace" style="white-space: pre-wrap; font-size: 0.78rem;">${escapeHtml(outText)}</pre>`;
+            } else {
+                if (statusBadge) statusBadge.innerHTML = `<span class="badge bg-danger-subtle text-danger"><i class="bi bi-x-circle-fill me-1"></i>${isEn ? 'Build / Runtime Error' : 'Lá»—i biÃªn dá»‹ch / Runtime'}</span>`;
+                const errText = data.error || (isEn ? 'Compilation failed.' : 'BiÃªn dá»‹ch tháº¥t báº¡i.');
+                terminalBody.innerHTML = `<pre class="text-danger mb-0 overflow-x-auto font-monospace" style="white-space: pre-wrap; font-size: 0.78rem;">${escapeHtml(errText)}</pre>`;
+            }
+        } catch (e) {
+            if (statusBadge) statusBadge.innerHTML = `<span class="badge bg-danger-subtle text-danger">Error</span>`;
+            terminalBody.innerHTML = `<div class="text-danger small">${isEn ? 'Failed to connect to code runner service.' : 'Lá»—i káº¿t ná»‘i tá»›i mÃ¡y chá»§ Roslyn Runner.'}</div>`;
+        }
+    }
+
+    function closeInlineTerminal(btn) {
+        const wrapper = btn.closest('.code-toolbar-wrapper');
+        const terminal = wrapper?.querySelector('.inline-code-terminal');
+        if (terminal) terminal.classList.add('d-none');
     }
 
     // Reload sidebar conversations list via AJAX
@@ -628,20 +873,20 @@
         if (!container) return;
 
         if (convs.length === 0) {
-            container.innerHTML = `<div class="p-3 text-center text-muted small"><i class="bi bi-chat-square-text fs-3 d-block mb-2 opacity-50"></i><span>${isEn ? 'No conversations yet.' : 'Chưa có đoạn chat nào.'}</span></div>`;
+            container.innerHTML = `<div class="p-3 text-center text-muted small"><i class="bi bi-chat-square-text fs-3 d-block mb-2 opacity-50"></i><span>${isEn ? 'No conversations yet.' : 'ChÆ°a cÃ³ Ä‘oáº¡n chat nÃ o.'}</span></div>`;
             return;
         }
 
-        // Group by TimeGroup
         const groups = {};
         convs.forEach(c => {
-            if (!groups[c.timeGroup]) groups[c.timeGroup] = [];
-            groups[c.timeGroup].push(c);
+            const groupKey = c.timeGroup || (isEn ? 'Recent' : 'Gáº§n Ä‘Ã¢y');
+            if (!groups[groupKey]) groups[groupKey] = [];
+            groups[groupKey].push(c);
         });
 
         let html = '';
         for (const [groupName, items] of Object.entries(groups)) {
-            html += `<div class="conv-group-header text-uppercase text-muted fw-bold px-2.5 pt-2 pb-1" style="font-size: 0.68rem; letter-spacing: 0.5px;">${groupName}</div><div class="conv-group-items d-flex flex-column gap-1 mb-2">`;
+            html += `<div class="conv-group-header text-uppercase text-muted fw-bold px-2.5 pt-2 pb-1" style="font-size: 0.68rem; letter-spacing: 0.5px;">${escapeHtml(groupName)}</div><div class="conv-group-items d-flex flex-column gap-1 mb-2">`;
             items.forEach(c => {
                 const isActive = currentConversationId === c.id;
                 html += `
@@ -652,13 +897,13 @@
                             <span class="conv-title text-truncate small">${escapeHtml(c.title)}</span>
                         </div>
                         <div class="conv-actions d-flex align-items-center gap-1 flex-shrink-0">
-                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="${isEn ? 'Rename' : 'Đổi tên'}" onclick="event.stopPropagation(); renameConversationPrompt(this)">
+                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="${isEn ? 'Rename' : 'Äá»•i tÃªn'}" onclick="event.stopPropagation(); renameConversationPrompt(this)">
                                 <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
                             </button>
-                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="${c.isPinned ? (isEn ? 'Unpin' : 'Bỏ ghim') : (isEn ? 'Pin' : 'Ghim')}" onclick="event.stopPropagation(); togglePinConversation(this)">
+                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="${c.isPinned ? (isEn ? 'Unpin' : 'Bá» ghim') : (isEn ? 'Pin' : 'Ghim')}" onclick="event.stopPropagation(); togglePinConversation(this)">
                                 <i class="bi ${c.isPinned ? 'bi-pin-angle-fill text-warning' : 'bi-pin-angle'}" style="font-size: 0.75rem;"></i>
                             </button>
-                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon text-hover-danger" title="${isEn ? 'Delete' : 'Xóa'}" onclick="event.stopPropagation(); deleteConversationConfirm(this)">
+                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon text-hover-danger" title="${isEn ? 'Delete' : 'XÃ³a'}" onclick="event.stopPropagation(); deleteConversationConfirm(this)">
                                 <i class="bi bi-trash3" style="font-size: 0.75rem;"></i>
                             </button>
                         </div>
@@ -687,7 +932,6 @@
                 }
             });
 
-            // Toggle corresponding group header
             const header = group.previousElementSibling;
             if (header && header.classList.contains('conv-group-header')) {
                 if (hasVisibleChild) {
@@ -701,7 +945,7 @@
         });
     }
 
-    // Rename prompt
+    // Rename prompt & modal handling
     function renameConversationPrompt(btn) {
         const item = btn ? btn.closest('.conv-item') : null;
         if (!item) return;
@@ -733,7 +977,7 @@
         try {
             const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
             const res = await fetch(`/AiTutor/Conversations/${id}/Title`, {
-                method: 'PUT',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'RequestVerificationToken': token
@@ -750,7 +994,6 @@
                     if (titleEl) titleEl.innerText = title;
                 }
 
-                // Update element title instantly in DOM
                 const item = document.querySelector(`.conv-item[data-id="${id}"]`);
                 if (item) {
                     item.dataset.title = title;
@@ -765,7 +1008,6 @@
         }
     }
 
-    // Listen Enter key on Rename Input
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('renameConvTitle')?.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -787,7 +1029,7 @@
         try {
             const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
             const res = await fetch(`/AiTutor/Conversations/${convId}/Pin`, {
-                method: 'PUT',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'RequestVerificationToken': token
@@ -822,8 +1064,8 @@
 
         try {
             const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
-            const res = await fetch(`/AiTutor/Conversations/${convId}`, {
-                method: 'DELETE',
+            const res = await fetch(`/AiTutor/Conversations/${convId}/Delete`, {
+                method: 'POST',
                 headers: {
                     'RequestVerificationToken': token
                 }
@@ -852,7 +1094,7 @@
             <div class="d-flex justify-content-end msg-row user-msg">
                 <div class="d-flex flex-column align-items-end" style="max-width: 85%;">
                     <div class="user-bubble p-3 rounded-4 bg-primary text-white shadow-xs">
-                        <div class="message-text">${escapeHtml(content).replace(/\\n/g, '<br>')}</div>
+                        <div class="message-text">${escapeHtml(content).replace(/\n/g, '<br>')}</div>
                         ${snippetHtml}
                     </div>
                     <span class="text-muted small pe-2 mt-1" style="font-size: 0.68rem;">${timeStr}</span>
@@ -905,7 +1147,7 @@
         if (pre) {
             navigator.clipboard.writeText(pre.innerText).then(() => {
                 const original = btn.innerHTML;
-                btn.innerHTML = `<i class="bi bi-check2 text-success"></i> ${isEn ? 'Copied' : 'Đã sao chép'}`;
+                btn.innerHTML = `<i class="bi bi-check2 text-success"></i> ${isEn ? 'Copied' : 'ÄÃ£ sao chÃ©p'}`;
                 setTimeout(() => { btn.innerHTML = original; }, 2000);
             });
         }
@@ -922,22 +1164,47 @@
     function formatSimpleMarkdown(text) {
         if (!text) return '';
 
-        // Code blocks with syntax toolbar & Copy button & Sandbox button
+        // Code blocks with syntax toolbar: [â–¶ Cháº¡y trá»±c tiáº¿p], [Sao chÃ©p], [C# Sandbox] + Mini Terminal
         text = text.replace(/```(?:csharp|cs)?\n([\s\S]*?)```/gi, function(match, code) {
+            const trimmedCode = code.trim();
             return `
-                <div class="code-toolbar-wrapper my-3 rounded-3 overflow-hidden border">
+                <div class="code-toolbar-wrapper my-3 rounded-3 overflow-hidden border shadow-xs">
                     <div class="d-flex align-items-center justify-content-between px-3 py-1.5 bg-dark text-white border-bottom border-secondary border-opacity-25" style="font-size: 0.72rem;">
-                        <span class="fw-semibold text-info"><i class="bi bi-filetype-cs me-1"></i>C# (.NET 10)</span>
-                        <div class="d-flex gap-1.5">
-                            <button type="button" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 0.68rem;" onclick="copyCodeToClipboard(this)">
-                                <i class="bi bi-clipboard me-1"></i>${isEn ? 'Copy' : 'Sao chép'}
+                        <span class="fw-semibold text-info d-flex align-items-center gap-1.5">
+                            <i class="bi bi-filetype-cs"></i>
+                            <span>C# (.NET 10)</span>
+                        </span>
+                        <div class="d-flex gap-1.5 align-items-center">
+                            <button type="button" class="btn btn-sm btn-success py-0 px-2 fw-semibold d-inline-flex align-items-center gap-1" style="font-size: 0.68rem;" onclick="runInlineCode(this)" title="${isEn ? 'Execute code directly' : 'Cháº¡y trá»±c tiáº¿p mÃ£ nguá»“n'}">
+                                <i class="bi bi-play-fill"></i>
+                                <span>${isEn ? 'Run' : 'Cháº¡y trá»±c tiáº¿p'}</span>
                             </button>
-                            <button type="button" class="btn btn-sm btn-primary py-0 px-2" style="font-size: 0.68rem;" onclick="openInSandbox(this)">
-                                <i class="bi bi-play-circle-fill me-1"></i>${isEn ? 'Run in Sandbox' : 'Chạy thử'}
+                            <button type="button" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 0.68rem;" onclick="copyCodeToClipboard(this)">
+                                <i class="bi bi-clipboard me-1"></i>${isEn ? 'Copy' : 'Sao chÃ©p'}
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-info py-0 px-2" style="font-size: 0.68rem;" onclick="openInSandbox(this)" title="${isEn ? 'Open in full sandbox' : 'Má»Ÿ trong Sandbox'}">
+                                <i class="bi bi-box-arrow-up-right me-1"></i>${isEn ? 'Sandbox' : 'Sandbox'}
                             </button>
                         </div>
                     </div>
-                    <pre class="bg-dark text-light p-3 mb-0 overflow-x-auto font-monospace" style="font-size: 0.8rem; line-height: 1.55;"><code>${escapeHtml(code.trim())}</code></pre>
+                    <pre class="bg-dark text-light p-3 mb-0 overflow-x-auto font-monospace" style="font-size: 0.8rem; line-height: 1.55;"><code>${escapeHtml(trimmedCode)}</code></pre>
+                    
+                    <!-- Inline Code Execution Terminal Output Area -->
+                    <div class="inline-code-terminal d-none border-top border-secondary border-opacity-25 bg-black p-2.5 font-monospace" style="font-size: 0.75rem;">
+                        <div class="d-flex align-items-center justify-content-between pb-1.5 mb-1.5 border-bottom border-secondary border-opacity-25">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-1.5 py-0.5" style="font-size: 0.65rem;">TERMINAL</span>
+                                <span class="inline-terminal-status"></span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 text-muted" style="font-size: 0.7rem;">
+                                <span><i class="bi bi-stopwatch me-1"></i><span class="inline-terminal-time">0 ms</span></span>
+                                <button type="button" class="btn btn-sm btn-icon p-0 text-muted text-hover-light" onclick="closeInlineTerminal(this)" title="${isEn ? 'Close terminal' : 'ÄÃ³ng terminal'}">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="inline-terminal-body"></div>
+                    </div>
                 </div>`;
         });
 
@@ -1056,6 +1323,9 @@
     .text-hover-danger:hover {
         color: var(--bs-danger) !important;
     }
+    .text-hover-light:hover {
+        color: #fff !important;
+    }
 
     /* Main Area Styling */
     .chat-max-width {
@@ -1086,6 +1356,11 @@
         border-color: var(--bs-primary) !important;
         box-shadow: 0 0.25rem 1rem rgba(13, 110, 253, 0.15) !important;
     }
+    .chat-drag-over {
+        border-color: var(--bs-primary) !important;
+        background-color: var(--bs-primary-bg-subtle) !important;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25) !important;
+    }
     .send-btn {
         width: 38px;
         height: 38px;
@@ -1110,25 +1385,28 @@
         100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
     }
 
-    /* Wave typing animation */
-    .typing-wave span {
+    /* Real-Time Typewriter Cursor Effect */
+    .streaming-cursor {
         display: inline-block;
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
+        width: 7px;
+        height: 15px;
+        vertical-align: -2px;
         background-color: var(--bs-primary);
-        margin: 0 2px;
-        animation: wave-dots 1.3s infinite ease-in-out;
+        margin-left: 3px;
+        border-radius: 1px;
+        animation: blink-cursor 0.75s infinite ease-in-out;
     }
-    .typing-wave span:nth-child(2) { animation-delay: 0.15s; }
-    .typing-wave span:nth-child(3) { animation-delay: 0.3s; }
-    @@keyframes wave-dots {
-        0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-        30% { transform: translateY(-5px); opacity: 1; }
+    @@keyframes blink-cursor {
+        0%, 100% { opacity: 0; }
+        50% { opacity: 1; }
     }
 
     /* Clean markdown code blocks */
     .code-toolbar-wrapper pre {
+        border-radius: 0;
+    }
+    .inline-code-terminal {
+        background-color: #0b0f19 !important;
         border-radius: 0 0 8px 8px;
     }
 </style>

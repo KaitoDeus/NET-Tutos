@@ -387,10 +387,35 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(dp => dp.Headline).HasMaxLength(200);
             entity.Property(dp => dp.Location).HasMaxLength(150);
             entity.Property(dp => dp.SkillsCsv).HasMaxLength(500);
-
             entity.HasOne(dp => dp.User)
                   .WithMany()
                   .HasForeignKey(dp => dp.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // AI Chat Conversations & Messages configurations (Guarantees full UTF-8 / Unicode support)
+        modelBuilder.Entity<AiConversation>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.HasIndex(c => c.UserId);
+            entity.Property(c => c.Title).IsRequired().HasMaxLength(200).IsUnicode(true);
+            entity.HasOne(c => c.User)
+                  .WithMany()
+                  .HasForeignKey(c => c.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AiChatMessage>(entity =>
+        {
+            entity.HasKey(m => m.Id);
+            entity.HasIndex(m => m.ConversationId);
+            entity.Property(m => m.Role).IsRequired().HasMaxLength(20);
+            entity.Property(m => m.Content).IsRequired().IsUnicode(true);
+            entity.Property(m => m.CodeSnippet).IsUnicode(true);
+            entity.Property(m => m.ModelUsed).HasMaxLength(50);
+            entity.HasOne<AiConversation>()
+                  .WithMany(c => c.Messages)
+                  .HasForeignKey(m => m.ConversationId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
     }

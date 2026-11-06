@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -116,9 +117,11 @@ public class AiTutorController : Controller
         return Json(new { success = true, conversation = newConv });
     }
 
-    // PUT: /AiTutor/Conversations/{id}/Title
+    // PUT / POST: /AiTutor/Conversations/{id}/Title
     [HttpPut("/AiTutor/Conversations/{id:guid}/Title")]
+    [HttpPost("/AiTutor/Conversations/{id:guid}/Title")]
     [HttpPut("/AiTutor/UpdateTitle/{id:guid}")]
+    [HttpPost("/AiTutor/UpdateTitle/{id:guid}")]
     [Authorize]
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> UpdateTitle(Guid id, [FromBody] AiUpdateTitleRequest request)
@@ -140,9 +143,11 @@ public class AiTutorController : Controller
         return Json(new { success = true });
     }
 
-    // PUT: /AiTutor/Conversations/{id}/Pin
+    // PUT / POST: /AiTutor/Conversations/{id}/Pin
     [HttpPut("/AiTutor/Conversations/{id:guid}/Pin")]
+    [HttpPost("/AiTutor/Conversations/{id:guid}/Pin")]
     [HttpPut("/AiTutor/TogglePin/{id:guid}")]
+    [HttpPost("/AiTutor/TogglePin/{id:guid}")]
     [Authorize]
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> TogglePin(Guid id, [FromBody] AiTogglePinRequest request)
@@ -154,9 +159,11 @@ public class AiTutorController : Controller
         return Json(new { success });
     }
 
-    // DELETE: /AiTutor/Conversations/{id}
+    // DELETE / POST: /AiTutor/Conversations/{id}
     [HttpDelete("/AiTutor/Conversations/{id:guid}")]
+    [HttpPost("/AiTutor/Conversations/{id:guid}/Delete")]
     [HttpDelete("/AiTutor/DeleteConversation/{id:guid}")]
+    [HttpPost("/AiTutor/DeleteConversation/{id:guid}")]
     [Authorize]
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> DeleteConversation(Guid id)
@@ -216,6 +223,120 @@ public class AiTutorController : Controller
         response.ConversationId = request.ConversationId.Value;
 
         return Json(response);
+    }
+
+    // POST: /AiTutor/ChatStream (Server-Sent Events)
+    [HttpPost("/AiTutor/ChatStream")]
+    [IgnoreAntiforgeryToken]
+    public async Task ChatStream([FromBody] AiTutorChatRequest request, CancellationToken cancellationToken)
+    {
+        Response.ContentType = "text/event-stream; charset=utf-8";
+        Response.Headers.Append("Cache-Control", "no-cache");
+        Response.Headers.Append("X-Accel-Buffering", "no");
+
+        if (request == null || string.IsNullOrWhiteSpace(request.Message))
+        {
+            var errJson = JsonSerializer.Serialize(new { type = "error", message = "Vui lòng nhập câu hỏi hoặc yêu cầu cho Atus." });
+            await Response.WriteAsync($"data: {errJson}\n\n", cancellationToken);
+            await Response.Body.FlushAsync(cancellationToken);
+            return;
+        }
+
+        if (!(User.Identity?.IsAuthenticated ?? false))
+        {
+            Response.StatusCode = 401;
+            var errJson = JsonSerializer.Serialize(new { type = "error", requireLogin = true, message = "Bạn cần đăng nhập tài khoản để trò chuyện cùng Atus." });
+            await Response.WriteAsync($"data: {errJson}\n\n", cancellationToken);
+            await Response.Body.FlushAsync(cancellationToken);
+            return;
+        }
+
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            Response.StatusCode = 401;
+            var errJson = JsonSerializer.Serialize(new { type = "error", requireLogin = true, message = "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại." });
+            await Response.WriteAsync($"data: {errJson}\n\n", cancellationToken);
+            await Response.Body.FlushAsync(cancellationToken);
+            return;
+        }
+
+        if (!request.ConversationId.HasValue || request.ConversationId.Value == Guid.Empty)
+        {
+            var newConv = await _conversationService.CreateConversationAsync(user.Id, initialTitle: null);
+            request.ConversationId = newConv.Id;
+        }
+        else
+        {
+            var existing = await _conversationService.GetConversationAsync(request.ConversationId.Value, user.Id);
+            if (existing == null)
+            {
+                var newConv = await _conversationService.CreateConversationAsync(user.Id, initialTitle: null);
+                request.ConversationId = newConv.Id;
+            }
+        }
+
+        var convId = request.ConversationId.Value;
+        bool isEnglish = HttpContext.IsEnglish();
+
+        // Save user message first
+        string? snippet = !string.IsNullOrWhiteSpace(request.AttachedFileName)
+            ? $"[Tệp đính kèm: {request.AttachedFileName}]"
+            : request.CodeContext;
+
+        await _conversationService.SaveMessageAsync(
+            convId,
+            role: "user",
+            content: request.Message,
+            codeSnippet: snippet,
+            modelUsed: null);
+
+        var initJson = JsonSerializer.Serialize(new { type = "init", conversationId = convId });
+        await Response.WriteAsync($"data: {initJson}\n\n", cancellationToken);
+        await Response.Body.FlushAsync(cancellationToken);
+
+        var fullAnswerBuilder = new System.Text.StringBuilder();
+
+        try
+        {
+            await foreach (var chunk in _aiTutorService.StreamChatAsync(request, isEnglish, cancellationToken))
+            {
+                fullAnswerBuilder.Append(chunk);
+                var chunkJson = JsonSerializer.Serialize(new { type = "chunk", text = chunk });
+                await Response.WriteAsync($"data: {chunkJson}\n\n", cancellationToken);
+                await Response.Body.FlushAsync(cancellationToken);
+            }
+        }
+        catch
+        {
+            var errChunk = JsonSerializer.Serialize(new { type = "chunk", text = "\n\n> ⚠️ *[Lỗi kết nối streaming]*" });
+            await Response.WriteAsync($"data: {errChunk}\n\n", cancellationToken);
+            await Response.Body.FlushAsync(cancellationToken);
+        }
+
+        var fullAnswer = fullAnswerBuilder.ToString();
+
+        if (!string.IsNullOrWhiteSpace(fullAnswer))
+        {
+            await _conversationService.SaveMessageAsync(
+                convId,
+                role: "model",
+                content: fullAnswer,
+                modelUsed: "Atus");
+
+            await _conversationService.EnsureAutoTitleAsync(convId, request.Message, isEnglish);
+        }
+
+        var updatedConv = await _conversationService.GetConversationAsync(convId, user.Id);
+
+        var doneJson = JsonSerializer.Serialize(new
+        {
+            type = "done",
+            conversationId = convId,
+            title = updatedConv?.Title ?? (isEnglish ? "New Chat" : "Đoạn chat mới")
+        });
+        await Response.WriteAsync($"data: {doneJson}\n\n", cancellationToken);
+        await Response.Body.FlushAsync(cancellationToken);
     }
 
     // POST: /AiTutor/ExplainError
