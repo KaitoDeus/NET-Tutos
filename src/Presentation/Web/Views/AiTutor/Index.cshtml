@@ -136,6 +136,10 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
+                <a asp-controller="Interview" asp-action="Mock" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1 d-none d-lg-inline-flex align-items-center gap-1" style="font-size: 0.78rem;" title="@(isEn ? "AI Mock Technical Interview" : "Phỏng vấn kỹ thuật với Atus")">
+                    <i class="bi bi-robot"></i>
+                    <span>@(isEn ? "AI Mock Interview" : "Phỏng vấn thử")</span>
+                </a>
                 <a asp-controller="Playground" asp-action="Index" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 d-none d-md-inline-flex align-items-center gap-1" style="font-size: 0.78rem;">
                     <i class="bi bi-terminal-fill"></i>
                     <span>@(isEn ? "C# Sandbox" : "C# Sandbox")</span>

@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -752,43 +752,533 @@ Nguyên tắc cốt lõi:
         }
     }
 
+        private async Task<string?> CallGeminiJsonAsync(string systemInstruction, string userPrompt, CancellationToken cancellationToken = default)
+    {
+        if (!IsLiveGeminiAvailable) return null;
+
+        var modelsToTry = new List<string> { _model };
+        string[] fallbacks = ["gemini-3.5-flash-lite", "gemini-3-flash-preview", "gemini-3.1-flash-lite-preview"];
+        foreach (var fb in fallbacks)
+        {
+            if (!modelsToTry.Contains(fb, StringComparer.OrdinalIgnoreCase))
+            {
+                modelsToTry.Add(fb);
+            }
+        }
+
+        var requestBody = new JsonObject
+        {
+            ["system_instruction"] = new JsonObject
+            {
+                ["parts"] = new JsonArray { new JsonObject { ["text"] = systemInstruction } }
+            },
+            ["contents"] = new JsonArray
+            {
+                new JsonObject
+                {
+                    ["role"] = "user",
+                    ["parts"] = new JsonArray { new JsonObject { ["text"] = userPrompt } }
+                }
+            },
+            ["generationConfig"] = new JsonObject
+            {
+                ["temperature"] = 0.2,
+                ["response_mime_type"] = "application/json"
+            }
+        };
+
+        foreach (var currentModel in modelsToTry)
+        {
+            if (cancellationToken.IsCancellationRequested) return null;
+
+            var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{currentModel}:generateContent";
+            using var reqMsg = new HttpRequestMessage(HttpMethod.Post, endpoint)
+            {
+                Content = JsonContent.Create(requestBody)
+            };
+            if (!string.IsNullOrWhiteSpace(_apiKey))
+            {
+                reqMsg.Headers.TryAddWithoutValidation("x-goog-api-key", _apiKey);
+            }
+
+            try
+            {
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                cts.CancelAfter(TimeSpan.FromSeconds(15));
+                var response = await _httpClient.SendAsync(reqMsg, cts.Token);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("CallGeminiJsonAsync for {Model} returned {Status}", currentModel, response.StatusCode);
+                    continue;
+                }
+
+                var jsonStr = await response.Content.ReadAsStringAsync(cancellationToken);
+                var parsed = JsonNode.Parse(jsonStr);
+                var rawText = parsed?["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.GetValue<string>();
+                if (!string.IsNullOrWhiteSpace(rawText))
+                {
+                    return rawText.Trim();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("CallGeminiJsonAsync exception for {Model}: {Msg}", currentModel, ex.Message);
+            }
+        }
+
+        return null;
+    }
+
     public async Task<AiChallengeHintResponse> GetChallengeHintAsync(AiChallengeHintRequest request, bool isEnglish)
     {
+        if (!IsLiveGeminiAvailable) return await _fallbackEngine.GetChallengeHintAsync(request, isEnglish);
+
+        try
+        {
+            var systemPrompt = isEnglish
+                ? @"You are Atus, Principal C# Mentor. Provide a progressive hint for coding challenge.
+Hint Level 1: Core algorithmic concept without giving away code.
+Hint Level 2: Structural architecture and data structure recommendation.
+Hint Level 3: Step-by-step pseudocode logic.
+Return a valid JSON object:
+{
+  ""hintLevel"": 1,
+  ""title"": ""Hint Title"",
+  ""content"": ""Explanation encouraging independent discovery."",
+  ""codeClue"": ""// Optional 1-line syntax clue"",
+  ""hasNextLevel"": true
+}"
+                : @"Báº¡n lÃ  Atus, Principal .NET Mentor. Cung cáº¥p gá»£i Ã½ theo cáº¥p Ä‘á»™ cho bÃ i táº­p láº­p trÃ¬nh:
+Cáº¥p Ä‘á»™ 1: KhÃ¡i niá»‡m thuáº­t toÃ¡n cá»‘t lÃµi.
+Cáº¥p Ä‘á»™ 2: Cáº¥u trÃºc dá»¯ liá»‡u vÃ  hÆ°á»›ng tiáº¿p cáº­n tá»‘i Æ°u.
+Cáº¥p Ä‘á»™ 3: MÃ£ giáº£ hoáº·c logic tá»«ng bÆ°á»›c.
+Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
+{
+  ""hintLevel"": 1,
+  ""title"": ""TiÃªu Ä‘á» gá»£i Ã½"",
+  ""content"": ""Ná»™i dung gá»£i Ã½ mang tÃ­nh khÆ¡i gá»£i tÆ° duy Socratic."",
+  ""codeClue"": ""// Gá»£i Ã½ cÃº phÃ¡p ngáº¯n náº¿u cáº§n"",
+  ""hasNextLevel"": true
+}";
+
+            var userPrompt = $"[Challenge ID]: {request.ChallengeId}\n[Requested Level]: {request.HintLevel}\n[Candidate Code]:\n```csharp\n{request.CurrentCode}\n```";
+            var jsonText = await CallGeminiJsonAsync(systemPrompt, userPrompt);
+            if (!string.IsNullOrWhiteSpace(jsonText))
+            {
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var result = JsonSerializer.Deserialize<AiChallengeHintResponse>(jsonText, options);
+                if (result != null)
+                {
+                    result.Success = true;
+                    return result;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Live challenge hint generation failed. Falling back.");
+        }
+
         return await _fallbackEngine.GetChallengeHintAsync(request, isEnglish);
     }
 
     public async Task<AiCodeReviewResponse> ReviewCodeAsync(AiCodeReviewRequest request, bool isEnglish)
     {
+        if (!IsLiveGeminiAvailable) return await _fallbackEngine.ReviewCodeAsync(request, isEnglish);
+
+        try
+        {
+            var systemPrompt = isEnglish
+                ? @"You are Atus, Principal C# & .NET Code Reviewer.
+Analyze C# source code for Clean Code, Modern C# (.NET 10), Performance, and Security.
+Return a valid JSON object matching this schema:
+{
+  ""score"": 85,
+  ""summary"": ""High-level code review summary."",
+  ""points"": [
+    {
+      ""category"": ""Clean Code"",
+      ""severity"": ""warning"",
+      ""title"": ""Point Title"",
+      ""description"": ""Explanation and suggestion.""
+    }
+  ],
+  ""refactoredCode"": ""Refactored modern C# code snippet""
+}"
+                : @"Báº¡n lÃ  Atus, ChuyÃªn gia Principal C# & .NET Code Reviewer cá»§a NET-Tutos.
+PhÃ¢n tÃ­ch mÃ£ nguá»“n C# theo tiÃªu chuáº©n Clean Code, Modern C# (.NET 10), Hiá»‡u nÄƒng vÃ  Báº£o máº­t.
+Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
+{
+  ""score"": 85,
+  ""summary"": ""TÃ³m táº¯t tá»•ng quan vá» cháº¥t lÆ°á»£ng mÃ£ nguá»“n."",
+  ""points"": [
+    {
+      ""category"": ""Clean Code"",
+      ""severity"": ""warning"",
+      ""title"": ""TiÃªu Ä‘á» nháº­n xÃ©t"",
+      ""description"": ""Giáº£i thÃ­ch chi tiáº¿t vÃ  Ä‘á» xuáº¥t tá»‘i Æ°u.""
+    }
+  ],
+  ""refactoredCode"": ""Äoáº¡n mÃ£ C# Ä‘Ã£ Ä‘Æ°á»£c tÃ¡i cáº¥u trÃºc sáº¡ch Ä‘áº¹p""
+}";
+
+            var userPrompt = $"```csharp\n{request.SourceCode}\n```";
+            var jsonText = await CallGeminiJsonAsync(systemPrompt, userPrompt);
+            if (!string.IsNullOrWhiteSpace(jsonText))
+            {
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var result = JsonSerializer.Deserialize<AiCodeReviewResponse>(jsonText, options);
+                if (result != null)
+                {
+                    result.Success = true;
+                    return result;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Live code review failed. Falling back.");
+        }
+
         return await _fallbackEngine.ReviewCodeAsync(request, isEnglish);
     }
 
     public async Task<AiComplexityResponse> AnalyzeComplexityAsync(AiComplexityRequest request, bool isEnglish)
     {
+        if (!IsLiveGeminiAvailable) return await _fallbackEngine.AnalyzeComplexityAsync(request, isEnglish);
+
+        try
+        {
+            var systemPrompt = isEnglish
+                ? @"You are Atus, Principal Algorithm & Data Structures Specialist.
+Analyze the Big-O Time and Space Complexity of the C# code.
+Return a valid JSON object matching this schema:
+{
+  ""timeComplexity"": ""O(N log N)"",
+  ""spaceComplexity"": ""O(1)"",
+  ""efficiencyScore"": 88,
+  ""summary"": ""Concise asymptotic overview."",
+  ""detailedExplanation"": ""Detailed mathematical/loop step breakdown."",
+  ""optimizationTip"": ""Specific advice to optimize further."",
+  ""optimalComparison"": ""Comparison with the theoretical optimal approach.""
+}"
+                : @"Báº¡n lÃ  Atus, ChuyÃªn gia Cáº¥u trÃºc dá»¯ liá»‡u & Giáº£i thuáº­t cá»§a NET-Tutos.
+PhÃ¢n tÃ­ch Ä‘á»™ phá»©c táº¡p thuáº­t toÃ¡n Big-O (Thá»i gian & KhÃ´ng gian bá»™ nhá»›) cá»§a Ä‘oáº¡n mÃ£ C#.
+Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
+{
+  ""timeComplexity"": ""O(N log N)"",
+  ""spaceComplexity"": ""O(1)"",
+  ""efficiencyScore"": 88,
+  ""summary"": ""TÃ³m táº¯t Ä‘á»™ phá»©c táº¡p thuáº­t toÃ¡n."",
+  ""detailedExplanation"": ""Giáº£i thÃ­ch chi tiáº¿t cÃ¡c vÃ²ng láº·p, Ä‘á»‡ quy hoáº·c phÃ¢n bá»• bá»™ nhá»›."",
+  ""optimizationTip"": ""Gá»£i Ã½ cá»¥ thá»ƒ Ä‘á»ƒ tá»‘i Æ°u thÃªm náº¿u cÃ³."",
+  ""optimalComparison"": ""So sÃ¡nh vá»›i Ä‘á»™ phá»©c táº¡p tá»‘i Æ°u lÃ½ thuyáº¿t cá»§a bÃ i toÃ¡n.""
+}";
+
+            var userPrompt = $"[Challenge]: {request.ChallengeTitle ?? "C# Algorithm"}\n```csharp\n{request.SourceCode}\n```";
+            var jsonText = await CallGeminiJsonAsync(systemPrompt, userPrompt);
+            if (!string.IsNullOrWhiteSpace(jsonText))
+            {
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var result = JsonSerializer.Deserialize<AiComplexityResponse>(jsonText, options);
+                if (result != null)
+                {
+                    result.Success = true;
+                    return result;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Live complexity analysis failed. Falling back.");
+        }
+
         return await _fallbackEngine.AnalyzeComplexityAsync(request, isEnglish);
     }
 
     public async Task<AiDiagnoseTestFailureResponse> DiagnoseTestFailureAsync(AiDiagnoseTestFailureRequest request, bool isEnglish)
     {
+        if (!IsLiveGeminiAvailable) return await _fallbackEngine.DiagnoseTestFailureAsync(request, isEnglish);
+
+        try
+        {
+            var systemPrompt = isEnglish
+                ? @"You are Atus, Automated Diagnostic Engine for C# coding tests.
+Analyze why the candidate's test case failed and provide pedagogical guidance.
+Return a valid JSON object:
+{
+  ""failureCategory"": ""Logic Flaw / Boundary Condition / Overflow"",
+  ""diagnosticTitle"": ""Diagnostic Summary"",
+  ""analysis"": ""Root cause analysis."",
+  ""likelyFaultyCodeSegment"": ""Faulty statement or loop"",
+  ""guidanceHint"": ""Socratic hint to fix."",
+  ""suggestedFixSnippet"": ""Correct snippet""
+}"
+                : @"Báº¡n lÃ  Atus, Cháº©n Ä‘oÃ¡n Kiá»ƒm thá»­ Tá»± Ä‘á»™ng cho bÃ i táº­p C# cá»§a NET-Tutos.
+PhÃ¢n tÃ­ch nguyÃªn nhÃ¢n test case tháº¥t báº¡i vÃ  Ä‘Æ°a ra gá»£i Ã½ sÆ° pháº¡m.
+Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
+{
+  ""failureCategory"": ""Lá»—i logic / Äiá»u kiá»‡n biÃªn / TrÃ n sá»‘ / Sai kiá»ƒu"",
+  ""diagnosticTitle"": ""TiÃªu Ä‘á» cháº©n Ä‘oÃ¡n"",
+  ""analysis"": ""PhÃ¢n tÃ­ch nguyÃªn nhÃ¢n gá»‘c rá»…."",
+  ""likelyFaultyCodeSegment"": ""DÃ²ng lá»‡nh hoáº·c vÃ²ng láº·p nghi váº¥n"",
+  ""guidanceHint"": ""Gá»£i Ã½ kháº¯c phá»¥c khÆ¡i má»Ÿ tÆ° duy."",
+  ""suggestedFixSnippet"": ""Äoáº¡n mÃ£ kháº¯c phá»¥c máº«u""
+}";
+
+            var userPrompt = $"[Challenge]: {request.ChallengeTitle}\n[Input]: {request.InputParameters}\n[Expected]: {request.ExpectedOutput}\n[Actual]: {request.ActualOutput}\n```csharp\n{request.SourceCode}\n```";
+            var jsonText = await CallGeminiJsonAsync(systemPrompt, userPrompt);
+            if (!string.IsNullOrWhiteSpace(jsonText))
+            {
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var result = JsonSerializer.Deserialize<AiDiagnoseTestFailureResponse>(jsonText, options);
+                if (result != null)
+                {
+                    result.Success = true;
+                    return result;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Live test failure diagnosis failed. Falling back.");
+        }
+
         return await _fallbackEngine.DiagnoseTestFailureAsync(request, isEnglish);
     }
 
     public async Task<AiGenerateUnitTestResponse> GenerateUnitTestAsync(AiGenerateUnitTestRequest request, bool isEnglish)
     {
+        if (!IsLiveGeminiAvailable) return await _fallbackEngine.GenerateUnitTestAsync(request, isEnglish);
+
+        try
+        {
+            var systemPrompt = isEnglish
+                ? @"You are Atus, Principal Software Engineer in Test.
+Generate high-quality xUnit unit tests using AAA (Arrange-Act-Assert) pattern and FluentAssertions for the given C# code.
+Return a valid JSON object matching this schema:
+{
+  ""testFramework"": ""xUnit & FluentAssertions"",
+  ""testCode"": ""// Complete test class with AAA pattern"",
+  ""explanation"": ""Explanation of test scenarios covered."",
+  ""coveredScenarios"": [""Happy path"", ""Null reference guard"", ""Boundary condition""]
+}"
+                : @"Báº¡n lÃ  Atus, ChuyÃªn gia Kiá»ƒm thá»­ Tá»± Ä‘á»™ng & Software Engineer in Test cá»§a NET-Tutos.
+Sinh mÃ£ Unit Test xUnit cháº¥t lÆ°á»£ng cao theo chuáº©n AAA Pattern (Arrange - Act - Assert) káº¿t há»£p FluentAssertions cho Ä‘oáº¡n mÃ£ C#.
+Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
+{
+  ""testFramework"": ""xUnit & FluentAssertions"",
+  ""testCode"": ""// Lá»›p kiá»ƒm thá»­ hoÃ n chá»‰nh"",
+  ""explanation"": ""Giáº£i thÃ­ch cÃ¡c ká»‹ch báº£n kiá»ƒm thá»­ Ä‘Ã£ bao phá»§."",
+  ""coveredScenarios"": [""TrÆ°á»ng há»£p thÃ´ng thÆ°á»ng"", ""Kiá»ƒm tra tham sá»‘ null"", ""Äiá»u kiá»‡n biÃªn""]
+}";
+
+            var userPrompt = $"Target: {request.MethodOrClassName ?? "Method"}\n```csharp\n{request.SourceCode}\n```";
+            var jsonText = await CallGeminiJsonAsync(systemPrompt, userPrompt);
+            if (!string.IsNullOrWhiteSpace(jsonText))
+            {
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var result = JsonSerializer.Deserialize<AiGenerateUnitTestResponse>(jsonText, options);
+                if (result != null)
+                {
+                    result.Success = true;
+                    return result;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Live unit test generation failed. Falling back.");
+        }
+
         return await _fallbackEngine.GenerateUnitTestAsync(request, isEnglish);
     }
 
     public async Task<AiInterviewEvaluationResponse> EvaluateInterviewAnswerAsync(AiInterviewEvaluationRequest request, bool isEnglish)
     {
+        if (!IsLiveGeminiAvailable) return await _fallbackEngine.EvaluateInterviewAnswerAsync(request, isEnglish);
+
+        try
+        {
+            var systemPrompt = isEnglish
+                ? @"You are Atus, Principal .NET Technical Architect and Lead Interviewer.
+Evaluate the candidate's technical interview answer objectively and critically.
+Return a valid JSON object matching this exact schema:
+{
+  ""overallScore"": 85,
+  ""technicalAccuracyScore"": 85,
+  ""clarityStructureScore"": 80,
+  ""depthPracticalScore"": 75,
+  ""performanceRating"": ""Senior Competency / Solid Mid-Level / Junior"",
+  ""feedback"": ""Direct feedback to candidate explaining strengths and gaps."",
+  ""strengths"": [""Point 1"", ""Point 2""],
+  ""missingPoints"": [""Point 1"", ""Point 2""],
+  ""followUpQuestion"": ""A sharp Socratic follow-up question challenging edge cases, concurrency, or memory leaks."",
+  ""modelAnswerSample"": ""### Benchmark Senior Answer\nConcise practical response with modern C# concepts.""
+}"
+                : @"Báº¡n lÃ  Atus, Principal .NET Architect & Technical Lead Interviewer Ä‘á»™c quyá»n cá»§a NET-Tutos.
+ÄÃ¡nh giÃ¡ cÃ¢u tráº£ lá»i phá»ng váº¥n ká»¹ thuáº­t cá»§a há»c viÃªn má»™t cÃ¡ch khÃ¡ch quan, sáº¯c bÃ©n vÃ  thá»±c chiáº¿n.
+Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡ theo Ä‘Ãºng cáº¥u trÃºc sau:
+{
+  ""overallScore"": 85,
+  ""technicalAccuracyScore"": 85,
+  ""clarityStructureScore"": 80,
+  ""depthPracticalScore"": 75,
+  ""performanceRating"": ""TrÃ¬nh Ä‘á»™ Senior / Middle Vá»¯ng / Junior Tiá»m nÄƒng"",
+  ""feedback"": ""Lá»i nháº­n xÃ©t ngáº¯n gá»n, trá»±c diá»‡n chá»‰ rÃµ Æ°u Ä‘iá»ƒm vÃ  Ä‘iá»ƒm cáº§n cáº£i thiá»‡n."",
+  ""strengths"": [""Æ¯u Ä‘iá»ƒm 1"", ""Æ¯u Ä‘iá»ƒm 2""],
+  ""missingPoints"": [""Äiá»ƒm thiáº¿u sÃ³t 1"", ""Äiá»ƒm thiáº¿u sÃ³t 2""],
+  ""followUpQuestion"": ""Má»™t cÃ¢u há»i xoÃ¡y pháº£n biá»‡n sáº¯c bÃ©n vá» tÃ¬nh huá»‘ng biÃªn, Ä‘a luá»“ng hoáº·c rÃ² rá»‰ bá»™ nhá»›."",
+  ""modelAnswerSample"": ""### ÄÃ¡p Ã¡n Máº«u Chuáº©n Senior\nNgáº¯n gá»n, chuyÃªn sÃ¢u, Ä‘Ãºng trá»ng tÃ¢m.""
+}";
+
+            var userPrompt = $"[Question]: {request.Question}\n[Topic]: {request.Topic}\n[Difficulty]: {request.Difficulty}\n[Candidate Answer]:\n{request.CandidateAnswer}";
+
+            var jsonText = await CallGeminiJsonAsync(systemPrompt, userPrompt);
+            if (!string.IsNullOrWhiteSpace(jsonText))
+            {
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var result = JsonSerializer.Deserialize<AiInterviewEvaluationResponse>(jsonText, options);
+                if (result != null)
+                {
+                    result.Success = true;
+                    result.FlashcardId = request.FlashcardId;
+                    return result;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Live interview evaluation failed. Falling back to rule engine.");
+        }
+
         return await _fallbackEngine.EvaluateInterviewAnswerAsync(request, isEnglish);
     }
 
     public async Task<AiInterviewFollowUpResponse> AnswerFollowUpAsync(AiInterviewFollowUpRequest request, bool isEnglish)
     {
+        if (!IsLiveGeminiAvailable) return await _fallbackEngine.AnswerFollowUpAsync(request, isEnglish);
+
+        try
+        {
+            var systemPrompt = isEnglish
+                ? @"You are Atus, Principal .NET Architect.
+Evaluate the candidate's answer to your follow-up technical question.
+Return a valid JSON object matching this schema:
+{
+  ""isSatisfactory"": true,
+  ""feedback"": ""Concise assessment of their follow-up answer."",
+  ""bonusScore"": 10,
+  ""deepDiveInsight"": ""Senior insight on real-world production mitigation.""
+}"
+                : @"Báº¡n lÃ  Atus, Principal .NET Architect.
+ÄÃ¡nh giÃ¡ cÃ¢u tráº£ lá»i cá»§a á»©ng viÃªn cho cÃ¢u há»i xoÃ¡y ká»¹ thuáº­t.
+Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡ theo Ä‘Ãºng cáº¥u trÃºc:
+{
+  ""isSatisfactory"": true,
+  ""feedback"": ""Nháº­n xÃ©t ngáº¯n gá»n vá» cÃ¢u tráº£ lá»i cho cÃ¢u há»i pháº£n biá»‡n."",
+  ""bonusScore"": 10,
+  ""deepDiveInsight"": ""GÃ³c nhÃ¬n chuyÃªn sÃ¢u tá»« kinh nghiá»‡m thá»±c chiáº¿n production.""
+}";
+
+            var userPrompt = $"[Original Question]: {request.OriginalQuestion}\n[Follow-up Question]: {request.FollowUpQuestion}\n[Candidate Response]:\n{request.CandidateAnswer}";
+
+            var jsonText = await CallGeminiJsonAsync(systemPrompt, userPrompt);
+            if (!string.IsNullOrWhiteSpace(jsonText))
+            {
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var result = JsonSerializer.Deserialize<AiInterviewFollowUpResponse>(jsonText, options);
+                if (result != null)
+                {
+                    result.Success = true;
+                    return result;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Live follow-up evaluation failed. Falling back.");
+        }
+
         return await _fallbackEngine.AnswerFollowUpAsync(request, isEnglish);
     }
 
     public async Task<AiInterviewReportResponse> GenerateInterviewReportAsync(AiInterviewReportRequest request, bool isEnglish)
     {
+        if (!IsLiveGeminiAvailable) return await _fallbackEngine.GenerateInterviewReportAsync(request, isEnglish);
+
+        try
+        {
+            var systemPrompt = isEnglish
+                ? @"You are Atus, Principal .NET Architect and Hiring Lead.
+Synthesize the overall mock interview report across all answered questions.
+Return a valid JSON object matching this exact schema:
+{
+  ""averageScore"": 80,
+  ""readinessLevel"": ""Ready for Mid/Senior .NET Engineer"",
+  ""readinessBadgeClass"": ""success"",
+  ""executiveAssessment"": ""Comprehensive paragraph summarizing technical maturity and practical capabilities."",
+  ""skillBreakdowns"": [
+    { ""skillName"": ""C# Internals & Memory Architecture"", ""score"": 85, ""level"": ""Senior"" },
+    { ""skillName"": ""Asynchronous Concurrency & ThreadPool"", ""score"": 80, ""level"": ""Mid"" },
+    { ""skillName"": ""Entity Framework Core & Query Optimization"", ""score"": 78, ""level"": ""Mid"" },
+    { ""skillName"": ""ASP.NET Core & Web API Architecture"", ""score"": 82, ""level"": ""Solid"" },
+    { ""skillName"": ""Clean Architecture & SOLID Design"", ""score"": 80, ""level"": ""Proficient"" }
+  ],
+  ""recommendedLessons"": [
+    { ""title"": ""Lesson Title"", ""slug"": ""lesson-slug"", ""reason"": ""Why this strengthens candidate profile."" }
+  ],
+  ""xpAwarded"": 75
+}"
+                : @"Báº¡n lÃ  Atus, Principal .NET Architect & Technical Lead.
+Tá»•ng káº¿t bÃ¡o cÃ¡o nÄƒng lá»±c phá»ng váº¥n toÃ n diá»‡n cho há»c viÃªn dá»±a trÃªn cÃ¡c cÃ¢u há»i Ä‘Ã£ tráº£ lá»i.
+Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡ theo Ä‘Ãºng cáº¥u trÃºc:
+{
+  ""averageScore"": 80,
+  ""readinessLevel"": ""Sáºµn sÃ ng Phá»ng váº¥n Senior .NET Developer / Middle Vá»¯ng"",
+  ""readinessBadgeClass"": ""success"",
+  ""executiveAssessment"": ""Äoáº¡n vÄƒn nháº­n Ä‘á»‹nh tá»•ng quan vá» báº£n lÄ©nh ká»¹ thuáº­t, tÆ° duy kiáº¿n trÃºc vÃ  má»©c Ä‘á»™ sáºµn sÃ ng thá»±c táº¿."",
+  ""skillBreakdowns"": [
+    { ""skillName"": ""Báº£n cháº¥t C# & Quáº£n lÃ½ Bá»™ nhá»›"", ""score"": 85, ""level"": ""Senior"" },
+    { ""skillName"": ""Láº­p trÃ¬nh Báº¥t Ä‘á»“ng bá»™ & Xá»­ lÃ½ Äá»“ng thá»i"", ""score"": 80, ""level"": ""Mid"" },
+    { ""skillName"": ""Entity Framework Core & Tá»‘i Æ°u Truy váº¥n"", ""score"": 78, ""level"": ""Mid"" },
+    { ""skillName"": ""Kiáº¿n trÃºc ASP.NET Core & Web API"", ""score"": 82, ""level"": ""Solid"" },
+    { ""skillName"": ""Clean Architecture & Máº«u Thiáº¿t káº¿ SOLID"", ""score"": 80, ""level"": ""Proficient"" }
+  ],
+  ""recommendedLessons"": [
+    { ""title"": ""TÃªn bÃ i há»c"", ""slug"": ""slug-bai-hoc"", ""reason"": ""LÃ½ do cáº§n Ã´n táº­p thÃªm."" }
+  ],
+  ""xpAwarded"": 75
+}";
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"Total Questions Answered: {request.Items.Count}");
+            sb.AppendLine($"Time Spent: {request.TimeSpentSeconds} seconds\n");
+            foreach (var item in request.Items)
+            {
+                sb.AppendLine($"[Topic]: {item.Topic} | Score: {item.Score}/100");
+                sb.AppendLine($"[Q]: {item.Question}");
+                sb.AppendLine($"[A]: {item.CandidateAnswer}\n");
+            }
+
+            var jsonText = await CallGeminiJsonAsync(systemPrompt, sb.ToString());
+            if (!string.IsNullOrWhiteSpace(jsonText))
+            {
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var result = JsonSerializer.Deserialize<AiInterviewReportResponse>(jsonText, options);
+                if (result != null)
+                {
+                    result.Success = true;
+                    result.TimeSpentSeconds = request.TimeSpentSeconds;
+                    return result;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Live interview report generation failed. Falling back.");
+        }
+
         return await _fallbackEngine.GenerateInterviewReportAsync(request, isEnglish);
     }
 

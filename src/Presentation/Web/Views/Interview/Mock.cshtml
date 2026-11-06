@@ -1,4 +1,4 @@
-@model NET_Tutos.Models.ViewModels.MockInterviewViewModel
+﻿@model NET_Tutos.Models.ViewModels.MockInterviewViewModel
 @{
     bool isEn = Context.IsEnglish();
     ViewData["Title"] = isEn ? ".NET AI Mock Technical Interview Simulator" : "Phòng Phỏng Vấn Kỹ Thuật .NET Với AI";
@@ -48,7 +48,7 @@
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <div class="btn-group btn-group-sm p-1 rounded-pill bg-body-tertiary border shadow-xs" role="group">
                     <button type="button" class="btn btn-sm rounded-pill active fw-semibold px-3" id="tabModeAi" onclick="switchMode('ai')">
-                        <i class="bi bi-robot me-1.5 text-primary"></i> @(isEn ? "AI Tech Lead Interviewer" : "Chấm Điểm Với AI Tech Lead")
+                        <i class="bi bi-robot me-1.5 text-primary"></i> @(isEn ? "Atus AI Interviewer" : "Chấm Điểm Với Atus Tech Lead")
                     </button>
                     <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 text-muted" id="tabModeClassic" onclick="switchMode('classic')">
                         <i class="bi bi-pencil-square me-1.5"></i> @(isEn ? "Classic Self-Check" : "Tự Ôn Tập Nhanh")
@@ -138,7 +138,7 @@
                 <div class="ai-mode-panel mb-3">
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         <button type="button" class="btn btn-sm btn-primary rounded-pill px-3.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs" id="btnEvaluateAi-@q.Id" onclick="evaluateAnswerWithAi(@q.Id)">
-                            <i class="bi bi-robot"></i> <span>@(isEn ? "Submit to AI Tech Lead for Assessment" : "Gửi Cho AI Tech Lead Chấm Điểm")</span>
+                            <i class="bi bi-robot"></i> <span>@(isEn ? "Submit to Atus for Assessment" : "Gửi Cho Atus Chấm Điểm")</span>
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 small fw-semibold" onclick="toggleBenchmarkAnswer(@q.Id)">
                             <i class="bi bi-eye me-1"></i> @(isEn ? "View Benchmark Answer" : "Xem Đáp Án Chuẩn")
@@ -282,7 +282,7 @@
                             <i class="bi bi-camera-video-fill text-primary me-1.5"></i>
                             @(isEn ? "1-on-1 Technical Screen: .NET Senior Competency" : "Phỏng Vấn Sát Hạch Kỹ Thuật 1-1 (.NET Senior)")
                         </h6>
-                        <small class="text-secondary" id="callStatusIndicator">Đang kết nối với AI Tech Lead...</small>
+                        <small class="text-secondary" id="callStatusIndicator">Đang kết nối với Trợ Lý AI Atus...</small>
                     </div>
                 </div>
 
@@ -736,7 +736,7 @@
             const qText = document.getElementById(`questionText-${qId}`)?.innerText || '';
 
             if (!answer) {
-                alert(isEn ? 'Please type or speak your answer before submitting for AI assessment.' : 'Vui lòng nhập hoặc nói câu trả lời trước khi gửi cho AI Tech Lead.');
+                alert(isEn ? 'Please type or speak your answer before submitting for AI assessment.' : 'Vui lòng nhập hoặc nói câu trả lời trước khi gửi cho Atus chấm điểm.');
                 textarea?.focus();
                 return;
             }
