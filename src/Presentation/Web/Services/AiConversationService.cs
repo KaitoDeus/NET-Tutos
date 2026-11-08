@@ -37,7 +37,8 @@ public class AiConversationService : IAiConversationService
                 c.IsPinned,
                 c.CreatedAt,
                 c.UpdatedAt,
-                MessageCount = c.Messages.Count
+                MessageCount = c.Messages.Count,
+                FirstUserMessage = c.Messages.Where(m => m.Role == "user").OrderBy(m => m.CreatedAt).Select(m => m.Content).FirstOrDefault()
             })
             .ToListAsync();
 
@@ -69,10 +70,29 @@ public class AiConversationService : IAiConversationService
                 group = isEnglish ? "Older" : "Cũ hơn";
             }
 
+            var resolvedTitle = c.Title;
+            // Auto-heal corrupted question-mark titles if a clean prompt is available in messages
+            if (string.IsNullOrWhiteSpace(resolvedTitle) || resolvedTitle.Contains('?'))
+            {
+                if (!string.IsNullOrWhiteSpace(c.FirstUserMessage) && !c.FirstUserMessage.Contains('?'))
+                {
+                    var healed = CleanPromptForTitle(c.FirstUserMessage);
+                    if (!string.IsNullOrWhiteSpace(healed))
+                    {
+                        resolvedTitle = healed;
+                    }
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(resolvedTitle))
+            {
+                resolvedTitle = isEnglish ? "New Chat" : "Cuộc trò chuyện mới";
+            }
+
             return new AiConversationSummaryDto
             {
                 Id = c.Id,
-                Title = string.IsNullOrWhiteSpace(c.Title) ? (isEnglish ? "New Chat" : "Cuộc trò chuyện mới") : c.Title,
+                Title = resolvedTitle,
                 IsPinned = c.IsPinned,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt,
@@ -262,14 +282,30 @@ public class AiConversationService : IAiConversationService
 
             if (conversation == null) return;
 
-            // Only auto-title if it still has the default title or <= 2 messages
+            // Auto-title if it has default title, corrupted question marks, or <= 2 messages
             bool isDefaultTitle = string.IsNullOrWhiteSpace(conversation.Title) ||
                                   conversation.Title == "Cuộc trò chuyện mới" ||
-                                  conversation.Title == "New Chat";
+                                  conversation.Title == "New Chat" ||
+                                  conversation.Title.Contains('?');
 
             if (!isDefaultTitle && conversation.Messages.Count > 2) return;
 
-            var clean = CleanPromptForTitle(firstPrompt);
+            // Pick the best non-corrupted prompt candidate
+            var promptToUse = firstPrompt;
+            if (promptToUse.Contains('?') && conversation.Messages.Any())
+            {
+                var cleanUserMsg = conversation.Messages
+                    .Where(m => m.Role == "user" && !string.IsNullOrWhiteSpace(m.Content) && !m.Content.Contains('?'))
+                    .OrderBy(m => m.CreatedAt)
+                    .Select(m => m.Content)
+                    .FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(cleanUserMsg))
+                {
+                    promptToUse = cleanUserMsg;
+                }
+            }
+
+            var clean = CleanPromptForTitle(promptToUse);
             if (string.IsNullOrWhiteSpace(clean))
             {
                 clean = isEnglish ? "General Discussion" : "Hỏi đáp C# & .NET";
@@ -289,19 +325,27 @@ public class AiConversationService : IAiConversationService
     {
         if (string.IsNullOrWhiteSpace(prompt)) return string.Empty;
 
+        var text = prompt.Normalize(System.Text.NormalizationForm.FormC);
+
         // Remove markdown, code blocks, urls
-        var text = Regex.Replace(prompt, @"```[\s\S]*?```", "");
+        text = Regex.Replace(text, @"```[\s\S]*?```", "");
         text = Regex.Replace(text, @"`[^`]+`", "");
         text = Regex.Replace(text, @"https?://\S+", "");
 
         // Remove common greeting prefixes
-        text = Regex.Replace(text, @"^(xin chào|chào bạn|hello|hi|cho mình hỏi|làm thế nào để|giải thích|hãy giải thích)\s*", "", RegexOptions.IgnoreCase);
+        text = Regex.Replace(text, @"^(xin chào|chào bạn|hello|hi|cho mình hỏi|làm thế nào để|giải thích|hãy giải thích|hướng dẫn|cho hỏi)\s*", "", RegexOptions.IgnoreCase);
         text = text.Trim();
+
+        // If prefix removal emptied the string, fallback to prompt
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            text = prompt.Trim();
+        }
 
         // Capitalize first letter
         if (text.Length > 0)
         {
-            text = char.ToUpper(text[0]) + (text.Length > 1 ? text.Substring(1) : "");
+            text = char.ToUpper(text[0], System.Globalization.CultureInfo.CurrentCulture) + (text.Length > 1 ? text.Substring(1) : "");
         }
 
         const int maxLength = 42;

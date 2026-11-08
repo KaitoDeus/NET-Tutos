@@ -207,15 +207,15 @@ public class AiTutorService : IAiTutorService
         return new AiTutorChatResponse
         {
             ResponseMarkdown = isEnglish
-                ? $"### 🤖 .NET AI Tutor Assistant\n\n" +
-                  $"Hello! I am your interactive .NET & C# AI mentor. I can help you with:\n\n" +
+                ? $"### 🤖 Atus — .NET AI Mentor\n\n" +
+                  $"Hello! I am **Atus**, your interactive .NET 10 & C# 14 AI mentor (combining **A**gent and Tu**tos**). I can help you with:\n\n" +
                   $"- 🔍 **Explaining compiler errors** like CS0103, CS0029, CS1002 with instant fixes.\n" +
                   $"- 💡 **Coding challenges hints** and algorithmic approaches.\n" +
                   $"- ⚡ **Code review & optimization** based on .NET 10 best practices.\n" +
                   $"- 📚 **In-depth concepts** across ASP.NET Core, EF Core, LINQ, and Clean Architecture.\n\n" +
                   $"Feel free to ask a question or paste your code snippet below!"
-                : $"### 🤖 Trợ Lý AI Gia Sư .NET\n\n" +
-                  $"Chào bạn! Tôi là **Atus**, Trợ lý AI chuyên sâu về hệ sinh thái **C# & .NET 10** của NET-Tutos (tên tôi kết hợp từ **A**gent và hậu tố Tu**tos**). Tôi có thể hỗ trợ bạn:\n\n" +
+                : $"### 🤖 Atus — Trợ Lý AI Gia Sư .NET\n\n" +
+                  $"Chào bạn! Tôi là **Atus**, Trợ lý AI chuyên sâu về hệ sinh thái **C# 14 & .NET 10** của NET-Tutos (tên tôi kết hợp từ **A**gent và hậu tố Tu**tos**). Tôi có thể hỗ trợ bạn:\n\n" +
                   $"- 🔍 **Phân tích và sửa lỗi biên dịch**: Chỉ rõ nguyên nhân và cách khắc phục các lỗi như CS0103, CS0029, NullReferenceException.\n" +
                   $"- 💡 **Gợi ý giải bài tập**: Cung cấp ý tưởng giải thuật toán theo từng cấp độ mà không làm mất tính tự học.\n" +
                   $"- ⚡ **Tối ưu hóa mã nguồn (Code Review)**: Nâng cấp code theo chuẩn Clean Code và cú pháp Modern C#.\n" +

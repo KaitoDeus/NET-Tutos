@@ -13,15 +13,18 @@ public class AiTutorController : Controller
     private readonly IAiTutorService _aiTutorService;
     private readonly IAiConversationService _conversationService;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IAppCacheService? _cacheService;
 
     public AiTutorController(
         IAiTutorService aiTutorService,
         IAiConversationService conversationService,
-        UserManager<ApplicationUser> userManager)
+        UserManager<ApplicationUser> userManager,
+        IAppCacheService? cacheService = null)
     {
         _aiTutorService = aiTutorService;
         _conversationService = conversationService;
         _userManager = userManager;
+        _cacheService = cacheService;
     }
 
     // GET: /AiTutor or /AiTutor?id={conversationId}
@@ -435,5 +438,27 @@ public class AiTutorController : Controller
         bool isEnglish = HttpContext.IsEnglish();
         var response = await _aiTutorService.CompleteCodeAsync(request, isEnglish);
         return Json(response);
+    }
+
+    // GET: /AiTutor/Diagnostics
+    [HttpGet("/AiTutor/Diagnostics")]
+    public async Task<IActionResult> GetDiagnostics()
+    {
+        var status = await _aiTutorService.CheckStatusAsync();
+        CacheTelemetrySnapshot? cacheDiag = null;
+        if (_cacheService != null)
+        {
+            cacheDiag = await _cacheService.GetDiagnosticsAsync();
+        }
+
+        return Json(new
+        {
+            success = true,
+            agentName = "Atus",
+            agentMeaning = "Agent + Tutos (Principal .NET Architect & Technical Lead)",
+            liveAi = status,
+            cacheTelemetry = cacheDiag,
+            serverTimestamp = DateTime.UtcNow
+        });
     }
 }

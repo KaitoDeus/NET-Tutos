@@ -22,6 +22,7 @@ public class GeminiAgentService : IAiTutorService
     private readonly AiTutorService _fallbackEngine;
     private readonly ILogger<GeminiAgentService> _logger;
     private readonly IAiConversationService? _conversationService;
+    private readonly IAppCacheService? _cacheService;
 
     private readonly string? _apiKey;
     private readonly string _model;
@@ -36,7 +37,8 @@ public class GeminiAgentService : IAiTutorService
         IStreakService streakService,
         AiTutorService fallbackEngine,
         ILogger<GeminiAgentService> logger,
-        IAiConversationService? conversationService = null)
+        IAiConversationService? conversationService = null,
+        IAppCacheService? cacheService = null)
     {
         _httpClient = httpClientFactory.CreateClient("Gemini");
         _configuration = configuration;
@@ -46,6 +48,7 @@ public class GeminiAgentService : IAiTutorService
         _fallbackEngine = fallbackEngine;
         _logger = logger;
         _conversationService = conversationService;
+        _cacheService = cacheService;
 
         var rawKey = (new[]
         {
@@ -169,10 +172,11 @@ public class GeminiAgentService : IAiTutorService
             }
         }
 
+        var ragContext = await GetCurriculumRagContextAsync(request.Message, isEnglish);
         contents.Add(new JsonObject
         {
             ["role"] = "user",
-            ["parts"] = new JsonArray { new JsonObject { ["text"] = BuildUserPrompt(request) } }
+            ["parts"] = new JsonArray { new JsonObject { ["text"] = BuildUserPrompt(request, ragContext) } }
         });
 
         var requestBody = new JsonObject
@@ -484,7 +488,7 @@ Nguyên tắc cốt lõi:
 7. Giới hạn: Tuyệt đối không nhắc đến từ 'Gemini' hoặc tên nhà cung cấp AI. KHÔNG đưa phần gợi ý câu hỏi tiếp theo vào cuối câu trả lời.";
     }
 
-    private static string BuildUserPrompt(AiTutorChatRequest request)
+    private static string BuildUserPrompt(AiTutorChatRequest request, string? ragContext = null)
     {
         var sb = new System.Text.StringBuilder();
         sb.AppendLine(request.Message);
@@ -605,9 +609,9 @@ Nguyên tắc cốt lõi:
                     var query = args["query"]?.GetValue<string>() ?? string.Empty;
                     var results = await _context.Tutorials
                         .AsNoTracking()
-                        .Where(t => EF.Functions.Like(t.Title, $"%{query}%") || EF.Functions.Like(t.Summary, $"%{query}%"))
+                        .Where(t => EF.Functions.Like(t.Title, $"%{query}%") || EF.Functions.Like(t.Summary, $"%{query}%") || EF.Functions.Like(t.Slug, $"%{query}%"))
                         .Take(3)
-                        .Select(t => new { t.Id, t.Title, t.Summary, t.Difficulty })
+                        .Select(t => new { t.Id, t.Title, t.Slug, t.Summary, t.Difficulty })
                         .ToListAsync();
 
                     var arr = new JsonArray();
@@ -617,9 +621,10 @@ Nguyên tắc cốt lõi:
                         {
                             ["id"] = item.Id,
                             ["title"] = item.Title,
+                            ["slug"] = item.Slug,
                             ["summary"] = item.Summary,
                             ["difficulty"] = item.Difficulty.ToString(),
-                            ["url"] = $"/Tutorial/Detail/{item.Id}"
+                            ["url"] = $"/lessons/{item.Slug}"
                         });
                     }
 
@@ -833,6 +838,15 @@ Nguyên tắc cốt lõi:
     {
         if (!IsLiveGeminiAvailable) return await _fallbackEngine.GetChallengeHintAsync(request, isEnglish);
 
+        string? cacheKey = null;
+        if (_cacheService != null)
+        {
+            var hash = ComputeSha256(request.CurrentCode ?? "");
+            cacheKey = $"atus:hint:{(isEnglish ? "en" : "vi")}:{request.ChallengeId}:{request.HintLevel}:{hash}";
+            var cached = await _cacheService.GetAsync<AiChallengeHintResponse>(cacheKey);
+            if (cached != null) return cached;
+        }
+
         try
         {
             var systemPrompt = isEnglish
@@ -848,16 +862,16 @@ Return a valid JSON object:
   ""codeClue"": ""// Optional 1-line syntax clue"",
   ""hasNextLevel"": true
 }"
-                : @"Báº¡n lÃ  Atus, Principal .NET Mentor. Cung cáº¥p gá»£i Ã½ theo cáº¥p Ä‘á»™ cho bÃ i táº­p láº­p trÃ¬nh:
-Cáº¥p Ä‘á»™ 1: KhÃ¡i niá»‡m thuáº­t toÃ¡n cá»‘t lÃµi.
-Cáº¥p Ä‘á»™ 2: Cáº¥u trÃºc dá»¯ liá»‡u vÃ  hÆ°á»›ng tiáº¿p cáº­n tá»‘i Æ°u.
-Cáº¥p Ä‘á»™ 3: MÃ£ giáº£ hoáº·c logic tá»«ng bÆ°á»›c.
+                : @"Bạn là Atus, Principal .NET Mentor. Cung cấp gợi ý theo cấp độ cho bài tập lập trình:
+Cấp độ 1: Khái niệm thuật toán cốt lõi.
+Cấp độ 2: Cấu trúc dữ liệu và hướng tiếp cận tối ưu.
+Cấp độ 3: Mã giả hoặc logic từng bước.
 Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
 {
   ""hintLevel"": 1,
-  ""title"": ""TiÃªu Ä‘á» gá»£i Ã½"",
-  ""content"": ""Ná»™i dung gá»£i Ã½ mang tÃ­nh khÆ¡i gá»£i tÆ° duy Socratic."",
-  ""codeClue"": ""// Gá»£i Ã½ cÃº phÃ¡p ngáº¯n náº¿u cáº§n"",
+  ""title"": ""Tiêu đề gợi ý"",
+  ""content"": ""Nội dung gợi ý mang tính khơi gợi tư duy Socratic."",
+  ""codeClue"": ""// Gợi ý cú pháp ngắn nếu cần"",
   ""hasNextLevel"": true
 }";
 
@@ -870,6 +884,10 @@ Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
                 if (result != null)
                 {
                     result.Success = true;
+                    if (_cacheService != null && cacheKey != null)
+                    {
+                        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(12));
+                    }
                     return result;
                 }
             }
@@ -885,6 +903,18 @@ Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
     public async Task<AiCodeReviewResponse> ReviewCodeAsync(AiCodeReviewRequest request, bool isEnglish)
     {
         if (!IsLiveGeminiAvailable) return await _fallbackEngine.ReviewCodeAsync(request, isEnglish);
+
+        string? cacheKey = null;
+        if (_cacheService != null && !string.IsNullOrWhiteSpace(request.SourceCode))
+        {
+            var hash = ComputeSha256(request.SourceCode.Trim());
+            cacheKey = $"atus:review:{(isEnglish ? "en" : "vi")}:{hash}";
+            var cached = await _cacheService.GetAsync<AiCodeReviewResponse>(cacheKey);
+            if (cached != null)
+            {
+                return cached;
+            }
+        }
 
         try
         {
@@ -905,21 +935,21 @@ Return a valid JSON object matching this schema:
   ],
   ""refactoredCode"": ""Refactored modern C# code snippet""
 }"
-                : @"Báº¡n lÃ  Atus, ChuyÃªn gia Principal C# & .NET Code Reviewer cá»§a NET-Tutos.
-PhÃ¢n tÃ­ch mÃ£ nguá»“n C# theo tiÃªu chuáº©n Clean Code, Modern C# (.NET 10), Hiá»‡u nÄƒng vÃ  Báº£o máº­t.
+                : @"Bạn là Atus, Chuyên gia Principal C# & .NET Code Reviewer của NET-Tutos.
+Phân tích mã nguồn C# theo tiêu chuẩn Clean Code, Modern C# (.NET 10), Hiệu năng và Bảo mật.
 Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
 {
   ""score"": 85,
-  ""summary"": ""TÃ³m táº¯t tá»•ng quan vá» cháº¥t lÆ°á»£ng mÃ£ nguá»“n."",
+  ""summary"": ""Tóm tắt tổng quan về chất lượng mã nguồn."",
   ""points"": [
     {
       ""category"": ""Clean Code"",
       ""severity"": ""warning"",
-      ""title"": ""TiÃªu Ä‘á» nháº­n xÃ©t"",
-      ""description"": ""Giáº£i thÃ­ch chi tiáº¿t vÃ  Ä‘á» xuáº¥t tá»‘i Æ°u.""
+      ""title"": ""Tiêu đề nhận xét"",
+      ""description"": ""Giải thích chi tiết và đề xuất tối ưu.""
     }
   ],
-  ""refactoredCode"": ""Äoáº¡n mÃ£ C# Ä‘Ã£ Ä‘Æ°á»£c tÃ¡i cáº¥u trÃºc sáº¡ch Ä‘áº¹p""
+  ""refactoredCode"": ""Đoạn mã C# đã được tái cấu trúc sạch đẹp""
 }";
 
             var userPrompt = $"```csharp\n{request.SourceCode}\n```";
@@ -931,6 +961,10 @@ Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
                 if (result != null)
                 {
                     result.Success = true;
+                    if (_cacheService != null && cacheKey != null)
+                    {
+                        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(12));
+                    }
                     return result;
                 }
             }
@@ -947,6 +981,18 @@ Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
     {
         if (!IsLiveGeminiAvailable) return await _fallbackEngine.AnalyzeComplexityAsync(request, isEnglish);
 
+        string? cacheKey = null;
+        if (_cacheService != null && !string.IsNullOrWhiteSpace(request.SourceCode))
+        {
+            var hash = ComputeSha256($"{request.ChallengeTitle}:{request.SourceCode.Trim()}");
+            cacheKey = $"atus:complexity:{(isEnglish ? "en" : "vi")}:{hash}";
+            var cached = await _cacheService.GetAsync<AiComplexityResponse>(cacheKey);
+            if (cached != null)
+            {
+                return cached;
+            }
+        }
+
         try
         {
             var systemPrompt = isEnglish
@@ -962,17 +1008,17 @@ Return a valid JSON object matching this schema:
   ""optimizationTip"": ""Specific advice to optimize further."",
   ""optimalComparison"": ""Comparison with the theoretical optimal approach.""
 }"
-                : @"Báº¡n lÃ  Atus, ChuyÃªn gia Cáº¥u trÃºc dá»¯ liá»‡u & Giáº£i thuáº­t cá»§a NET-Tutos.
-PhÃ¢n tÃ­ch Ä‘á»™ phá»©c táº¡p thuáº­t toÃ¡n Big-O (Thá»i gian & KhÃ´ng gian bá»™ nhá»›) cá»§a Ä‘oáº¡n mÃ£ C#.
+                : @"Bạn là Atus, Chuyên gia Cấu trúc dữ liệu & Giải thuật của NET-Tutos.
+Phân tích độ phức tạp thuật toán Big-O (Thời gian & Không gian bộ nhớ) của đoạn mã C#.
 Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
 {
   ""timeComplexity"": ""O(N log N)"",
   ""spaceComplexity"": ""O(1)"",
   ""efficiencyScore"": 88,
-  ""summary"": ""TÃ³m táº¯t Ä‘á»™ phá»©c táº¡p thuáº­t toÃ¡n."",
-  ""detailedExplanation"": ""Giáº£i thÃ­ch chi tiáº¿t cÃ¡c vÃ²ng láº·p, Ä‘á»‡ quy hoáº·c phÃ¢n bá»• bá»™ nhá»›."",
-  ""optimizationTip"": ""Gá»£i Ã½ cá»¥ thá»ƒ Ä‘á»ƒ tá»‘i Æ°u thÃªm náº¿u cÃ³."",
-  ""optimalComparison"": ""So sÃ¡nh vá»›i Ä‘á»™ phá»©c táº¡p tá»‘i Æ°u lÃ½ thuyáº¿t cá»§a bÃ i toÃ¡n.""
+  ""summary"": ""Tóm tắt độ phức tạp thuật toán."",
+  ""detailedExplanation"": ""Giải thích chi tiết các vòng lặp, đệ quy hoặc phân bổ bộ nhớ."",
+  ""optimizationTip"": ""Gợi ý cụ thể để tối ưu thêm nếu có."",
+  ""optimalComparison"": ""So sánh với độ phức tạp tối ưu lý thuyết của bài toán.""
 }";
 
             var userPrompt = $"[Challenge]: {request.ChallengeTitle ?? "C# Algorithm"}\n```csharp\n{request.SourceCode}\n```";
@@ -984,6 +1030,10 @@ Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
                 if (result != null)
                 {
                     result.Success = true;
+                    if (_cacheService != null && cacheKey != null)
+                    {
+                        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(12));
+                    }
                     return result;
                 }
             }
@@ -1000,6 +1050,15 @@ Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
     {
         if (!IsLiveGeminiAvailable) return await _fallbackEngine.DiagnoseTestFailureAsync(request, isEnglish);
 
+        string? cacheKey = null;
+        if (_cacheService != null && !string.IsNullOrWhiteSpace(request.SourceCode))
+        {
+            var hash = ComputeSha256($"{request.ChallengeTitle}:{request.ActualOutput}:{request.SourceCode}");
+            cacheKey = $"atus:diagnose:{(isEnglish ? "en" : "vi")}:{hash}";
+            var cached = await _cacheService.GetAsync<AiDiagnoseTestFailureResponse>(cacheKey);
+            if (cached != null) return cached;
+        }
+
         try
         {
             var systemPrompt = isEnglish
@@ -1014,16 +1073,16 @@ Return a valid JSON object:
   ""guidanceHint"": ""Socratic hint to fix."",
   ""suggestedFixSnippet"": ""Correct snippet""
 }"
-                : @"Báº¡n lÃ  Atus, Cháº©n Ä‘oÃ¡n Kiá»ƒm thá»­ Tá»± Ä‘á»™ng cho bÃ i táº­p C# cá»§a NET-Tutos.
-PhÃ¢n tÃ­ch nguyÃªn nhÃ¢n test case tháº¥t báº¡i vÃ  Ä‘Æ°a ra gá»£i Ã½ sÆ° pháº¡m.
+                : @"Bạn là Atus, Chẩn đoán Kiểm thử Tự động cho bài tập C# của NET-Tutos.
+Phân tích nguyên nhân test case thất bại và đưa ra gợi ý sư phạm.
 Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
 {
-  ""failureCategory"": ""Lá»—i logic / Äiá»u kiá»‡n biÃªn / TrÃ n sá»‘ / Sai kiá»ƒu"",
-  ""diagnosticTitle"": ""TiÃªu Ä‘á» cháº©n Ä‘oÃ¡n"",
-  ""analysis"": ""PhÃ¢n tÃ­ch nguyÃªn nhÃ¢n gá»‘c rá»…."",
-  ""likelyFaultyCodeSegment"": ""DÃ²ng lá»‡nh hoáº·c vÃ²ng láº·p nghi váº¥n"",
-  ""guidanceHint"": ""Gá»£i Ã½ kháº¯c phá»¥c khÆ¡i má»Ÿ tÆ° duy."",
-  ""suggestedFixSnippet"": ""Äoáº¡n mÃ£ kháº¯c phá»¥c máº«u""
+  ""failureCategory"": ""Lỗi logic / Điều kiện biên / Tràn số / Sai kiểu"",
+  ""diagnosticTitle"": ""Tiêu đề chẩn đoán"",
+  ""analysis"": ""Phân tích nguyên nhân gốc rễ."",
+  ""likelyFaultyCodeSegment"": ""Dòng lệnh hoặc vòng lặp nghi vấn"",
+  ""guidanceHint"": ""Gợi ý khắc phục khơi mở tư duy."",
+  ""suggestedFixSnippet"": ""Đoạn mã khắc phục mẫu""
 }";
 
             var userPrompt = $"[Challenge]: {request.ChallengeTitle}\n[Input]: {request.InputParameters}\n[Expected]: {request.ExpectedOutput}\n[Actual]: {request.ActualOutput}\n```csharp\n{request.SourceCode}\n```";
@@ -1035,6 +1094,10 @@ Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
                 if (result != null)
                 {
                     result.Success = true;
+                    if (_cacheService != null && cacheKey != null)
+                    {
+                        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(12));
+                    }
                     return result;
                 }
             }
@@ -1051,6 +1114,15 @@ Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
     {
         if (!IsLiveGeminiAvailable) return await _fallbackEngine.GenerateUnitTestAsync(request, isEnglish);
 
+        string? cacheKey = null;
+        if (_cacheService != null && !string.IsNullOrWhiteSpace(request.SourceCode))
+        {
+            var hash = ComputeSha256($"{request.MethodOrClassName}:{request.SourceCode}");
+            cacheKey = $"atus:unittest:{(isEnglish ? "en" : "vi")}:{hash}";
+            var cached = await _cacheService.GetAsync<AiGenerateUnitTestResponse>(cacheKey);
+            if (cached != null) return cached;
+        }
+
         try
         {
             var systemPrompt = isEnglish
@@ -1063,14 +1135,14 @@ Return a valid JSON object matching this schema:
   ""explanation"": ""Explanation of test scenarios covered."",
   ""coveredScenarios"": [""Happy path"", ""Null reference guard"", ""Boundary condition""]
 }"
-                : @"Báº¡n lÃ  Atus, ChuyÃªn gia Kiá»ƒm thá»­ Tá»± Ä‘á»™ng & Software Engineer in Test cá»§a NET-Tutos.
-Sinh mÃ£ Unit Test xUnit cháº¥t lÆ°á»£ng cao theo chuáº©n AAA Pattern (Arrange - Act - Assert) káº¿t há»£p FluentAssertions cho Ä‘oáº¡n mÃ£ C#.
+                : @"Bạn là Atus, Chuyên gia Kiểm thử Tự động & Software Engineer in Test của NET-Tutos.
+Sinh mã Unit Test xUnit chất lượng cao theo chuẩn AAA Pattern (Arrange - Act - Assert) kết hợp FluentAssertions cho đoạn mã C#.
 Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
 {
   ""testFramework"": ""xUnit & FluentAssertions"",
-  ""testCode"": ""// Lá»›p kiá»ƒm thá»­ hoÃ n chá»‰nh"",
-  ""explanation"": ""Giáº£i thÃ­ch cÃ¡c ká»‹ch báº£n kiá»ƒm thá»­ Ä‘Ã£ bao phá»§."",
-  ""coveredScenarios"": [""TrÆ°á»ng há»£p thÃ´ng thÆ°á»ng"", ""Kiá»ƒm tra tham sá»‘ null"", ""Äiá»u kiá»‡n biÃªn""]
+  ""testCode"": ""// Lớp kiểm thử hoàn chỉnh"",
+  ""explanation"": ""Giải thích các kịch bản kiểm thử đã bao phủ."",
+  ""coveredScenarios"": [""Trường hợp thông thường"", ""Kiểm tra tham số null"", ""Điều kiện biên""]
 }";
 
             var userPrompt = $"Target: {request.MethodOrClassName ?? "Method"}\n```csharp\n{request.SourceCode}\n```";
@@ -1082,6 +1154,10 @@ Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
                 if (result != null)
                 {
                     result.Success = true;
+                    if (_cacheService != null && cacheKey != null)
+                    {
+                        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(12));
+                    }
                     return result;
                 }
             }
@@ -1116,20 +1192,20 @@ Return a valid JSON object matching this exact schema:
   ""followUpQuestion"": ""A sharp Socratic follow-up question challenging edge cases, concurrency, or memory leaks."",
   ""modelAnswerSample"": ""### Benchmark Senior Answer\nConcise practical response with modern C# concepts.""
 }"
-                : @"Báº¡n lÃ  Atus, Principal .NET Architect & Technical Lead Interviewer Ä‘á»™c quyá»n cá»§a NET-Tutos.
-ÄÃ¡nh giÃ¡ cÃ¢u tráº£ lá»i phá»ng váº¥n ká»¹ thuáº­t cá»§a há»c viÃªn má»™t cÃ¡ch khÃ¡ch quan, sáº¯c bÃ©n vÃ  thá»±c chiáº¿n.
-Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡ theo Ä‘Ãºng cáº¥u trÃºc sau:
+                : @"Bạn là Atus, Principal .NET Architect & Technical Lead Interviewer độc quyền của NET-Tutos.
+Đánh giá câu trả lời phỏng vấn kỹ thuật của học viên một cách khách quan, sắc bén và thực chiến.
+Trả về định dạng JSON hợp lệ theo đúng cấu trúc sau:
 {
   ""overallScore"": 85,
   ""technicalAccuracyScore"": 85,
   ""clarityStructureScore"": 80,
   ""depthPracticalScore"": 75,
-  ""performanceRating"": ""TrÃ¬nh Ä‘á»™ Senior / Middle Vá»¯ng / Junior Tiá»m nÄƒng"",
-  ""feedback"": ""Lá»i nháº­n xÃ©t ngáº¯n gá»n, trá»±c diá»‡n chá»‰ rÃµ Æ°u Ä‘iá»ƒm vÃ  Ä‘iá»ƒm cáº§n cáº£i thiá»‡n."",
+  ""performanceRating"": ""Trình độ Senior / Middle Vững / Junior Tiềm năng"",
+  ""feedback"": ""Lời nhận xét ngắn gọn, trực diện chỉ rõ ưu điểm và điểm cần cải thiện."",
   ""strengths"": [""Æ¯u Ä‘iá»ƒm 1"", ""Æ¯u Ä‘iá»ƒm 2""],
-  ""missingPoints"": [""Äiá»ƒm thiáº¿u sÃ³t 1"", ""Äiá»ƒm thiáº¿u sÃ³t 2""],
-  ""followUpQuestion"": ""Má»™t cÃ¢u há»i xoÃ¡y pháº£n biá»‡n sáº¯c bÃ©n vá» tÃ¬nh huá»‘ng biÃªn, Ä‘a luá»“ng hoáº·c rÃ² rá»‰ bá»™ nhá»›."",
-  ""modelAnswerSample"": ""### ÄÃ¡p Ã¡n Máº«u Chuáº©n Senior\nNgáº¯n gá»n, chuyÃªn sÃ¢u, Ä‘Ãºng trá»ng tÃ¢m.""
+  ""missingPoints"": [""Điểm thiếu sót 1"", ""Điểm thiếu sót 2""],
+  ""followUpQuestion"": ""Một câu hỏi xoáy phản biện sắc bén về tình huống biên, đa luồng hoặc rò rỉ bộ nhớ."",
+  ""modelAnswerSample"": ""### Đáp Án Mẫu Chuẩn Senior\nNgắn gọn, chuyên sâu, đúng trọng tâm.""
 }";
 
             var userPrompt = $"[Question]: {request.Question}\n[Topic]: {request.Topic}\n[Difficulty]: {request.Difficulty}\n[Candidate Answer]:\n{request.CandidateAnswer}";
@@ -1159,6 +1235,15 @@ Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡ theo Ä‘Ãºn
     {
         if (!IsLiveGeminiAvailable) return await _fallbackEngine.AnswerFollowUpAsync(request, isEnglish);
 
+        string? cacheKey = null;
+        if (_cacheService != null && !string.IsNullOrWhiteSpace(request.CandidateAnswer))
+        {
+            var hash = ComputeSha256($"{request.OriginalQuestion}:{request.FollowUpQuestion}:{request.CandidateAnswer}");
+            cacheKey = $"atus:interviewfollowup:{(isEnglish ? "en" : "vi")}:{hash}";
+            var cached = await _cacheService.GetAsync<AiInterviewFollowUpResponse>(cacheKey);
+            if (cached != null) return cached;
+        }
+
         try
         {
             var systemPrompt = isEnglish
@@ -1171,14 +1256,14 @@ Return a valid JSON object matching this schema:
   ""bonusScore"": 10,
   ""deepDiveInsight"": ""Senior insight on real-world production mitigation.""
 }"
-                : @"Báº¡n lÃ  Atus, Principal .NET Architect.
-ÄÃ¡nh giÃ¡ cÃ¢u tráº£ lá»i cá»§a á»©ng viÃªn cho cÃ¢u há»i xoÃ¡y ká»¹ thuáº­t.
-Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡ theo Ä‘Ãºng cáº¥u trÃºc:
+                : @"Bạn là Atus, Principal .NET Architect.
+Đánh giá câu trả lời của ứng viên cho câu hỏi xoáy kỹ thuật.
+Trả về định dạng JSON hợp lệ theo đúng cấu trúc:
 {
   ""isSatisfactory"": true,
-  ""feedback"": ""Nháº­n xÃ©t ngáº¯n gá»n vá» cÃ¢u tráº£ lá»i cho cÃ¢u há»i pháº£n biá»‡n."",
+  ""feedback"": ""Nhận xét ngắn gọn về câu trả lời cho câu hỏi phản biện."",
   ""bonusScore"": 10,
-  ""deepDiveInsight"": ""GÃ³c nhÃ¬n chuyÃªn sÃ¢u tá»« kinh nghiá»‡m thá»±c chiáº¿n production.""
+  ""deepDiveInsight"": ""Góc nhìn chuyên sâu từ kinh nghiệm thực chiến production.""
 }";
 
             var userPrompt = $"[Original Question]: {request.OriginalQuestion}\n[Follow-up Question]: {request.FollowUpQuestion}\n[Candidate Response]:\n{request.CandidateAnswer}";
@@ -1191,6 +1276,10 @@ Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡ theo Ä‘Ãºn
                 if (result != null)
                 {
                     result.Success = true;
+                    if (_cacheService != null && cacheKey != null)
+                    {
+                        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(12));
+                    }
                     return result;
                 }
             }
@@ -1230,23 +1319,23 @@ Return a valid JSON object matching this exact schema:
   ],
   ""xpAwarded"": 75
 }"
-                : @"Báº¡n lÃ  Atus, Principal .NET Architect & Technical Lead.
-Tá»•ng káº¿t bÃ¡o cÃ¡o nÄƒng lá»±c phá»ng váº¥n toÃ n diá»‡n cho há»c viÃªn dá»±a trÃªn cÃ¡c cÃ¢u há»i Ä‘Ã£ tráº£ lá»i.
-Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡ theo Ä‘Ãºng cáº¥u trÃºc:
+                : @"Bạn là Atus, Principal .NET Architect & Technical Lead.
+Tổng kết báo cáo năng lực phỏng vấn toàn diện cho học viên dựa trên các câu hỏi đã trả lời.
+Trả về định dạng JSON hợp lệ theo đúng cấu trúc:
 {
   ""averageScore"": 80,
-  ""readinessLevel"": ""Sáºµn sÃ ng Phá»ng váº¥n Senior .NET Developer / Middle Vá»¯ng"",
+  ""readinessLevel"": ""Sẵn sàng Phỏng vấn Senior .NET Developer / Middle Vững"",
   ""readinessBadgeClass"": ""success"",
-  ""executiveAssessment"": ""Äoáº¡n vÄƒn nháº­n Ä‘á»‹nh tá»•ng quan vá» báº£n lÄ©nh ká»¹ thuáº­t, tÆ° duy kiáº¿n trÃºc vÃ  má»©c Ä‘á»™ sáºµn sÃ ng thá»±c táº¿."",
+  ""executiveAssessment"": ""Đoạn văn nhận định tổng quan về bản lĩnh kỹ thuật, tư duy kiến trúc và mức độ sẵn sàng thực tế."",
   ""skillBreakdowns"": [
-    { ""skillName"": ""Báº£n cháº¥t C# & Quáº£n lÃ½ Bá»™ nhá»›"", ""score"": 85, ""level"": ""Senior"" },
-    { ""skillName"": ""Láº­p trÃ¬nh Báº¥t Ä‘á»“ng bá»™ & Xá»­ lÃ½ Äá»“ng thá»i"", ""score"": 80, ""level"": ""Mid"" },
-    { ""skillName"": ""Entity Framework Core & Tá»‘i Æ°u Truy váº¥n"", ""score"": 78, ""level"": ""Mid"" },
-    { ""skillName"": ""Kiáº¿n trÃºc ASP.NET Core & Web API"", ""score"": 82, ""level"": ""Solid"" },
+    { ""skillName"": ""Bản chất C# & Quản lý Bộ nhớ"", ""score"": 85, ""level"": ""Senior"" },
+    { ""skillName"": ""Lập trình Bất đồng bộ & Xử lý Đồng thời"", ""score"": 80, ""level"": ""Mid"" },
+    { ""skillName"": ""Entity Framework Core & Tối ưu Truy vấn"", ""score"": 78, ""level"": ""Mid"" },
+    { ""skillName"": ""Kiến trúc ASP.NET Core & Web API"", ""score"": 82, ""level"": ""Solid"" },
     { ""skillName"": ""Clean Architecture & Máº«u Thiáº¿t káº¿ SOLID"", ""score"": 80, ""level"": ""Proficient"" }
   ],
   ""recommendedLessons"": [
-    { ""title"": ""TÃªn bÃ i há»c"", ""slug"": ""slug-bai-hoc"", ""reason"": ""LÃ½ do cáº§n Ã´n táº­p thÃªm."" }
+    { ""title"": ""Tên bài học"", ""slug"": ""slug-bai-hoc"", ""reason"": ""Lý do cần ôn tập thêm."" }
   ],
   ""xpAwarded"": 75
 }";
@@ -1491,4 +1580,101 @@ CRITICAL RULES:
             return await _fallbackEngine.CompleteCodeAsync(request, isEnglish);
         }
     }
+
+    private async Task<string?> GetCurriculumRagContextAsync(string? message, bool isEnglish)
+    {
+        if (string.IsNullOrWhiteSpace(message)) return null;
+
+        try
+        {
+            var lowerMsg = message.ToLowerInvariant();
+            var keywords = lowerMsg.Split(new[] { ' ', ',', '.', '?', '!', '\n', '\r', ':', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                .Where(w => w.Length >= 3 && !IsCommonStopWord(w))
+                .Distinct()
+                .Take(6)
+                .ToList();
+
+            if (!keywords.Any()) return null;
+
+            List<TutorialRagDto>? tutorials = null;
+            if (_cacheService != null)
+            {
+                tutorials = await _cacheService.GetOrCreateAsync("curriculum:rag:tutorials:catalog", async ct =>
+                {
+                    return await _context.Tutorials
+                        .AsNoTracking()
+                        .OrderBy(t => t.OrderIndex)
+                        .Select(t => new TutorialRagDto(t.Id, t.Title, t.Slug, t.Summary ?? string.Empty))
+                        .ToListAsync(ct);
+                }, l2Expiration: TimeSpan.FromHours(2), l1Expiration: TimeSpan.FromMinutes(30));
+            }
+            else
+            {
+                tutorials = await _context.Tutorials
+                    .AsNoTracking()
+                    .OrderBy(t => t.OrderIndex)
+                    .Select(t => new TutorialRagDto(t.Id, t.Title, t.Slug, t.Summary ?? string.Empty))
+                    .ToListAsync();
+            }
+
+            if (tutorials == null || tutorials.Count == 0) return null;
+
+            var matches = tutorials
+                .Select(t =>
+                {
+                    int score = 0;
+                    var tTitle = t.Title.ToLowerInvariant();
+                    var tSlug = t.Slug.ToLowerInvariant();
+                    var tSummary = t.Summary.ToLowerInvariant();
+
+                    foreach (var kw in keywords)
+                    {
+                        if (tTitle.Contains(kw)) score += 5;
+                        if (tSlug.Contains(kw)) score += 3;
+                        if (tSummary.Contains(kw)) score += 1;
+                    }
+                    return new { Tutorial = t, Score = score };
+                })
+                .Where(m => m.Score >= 5)
+                .OrderByDescending(m => m.Score)
+                .Take(2)
+                .Select(m => m.Tutorial)
+                .ToList();
+
+            if (!matches.Any()) return null;
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine(isEnglish 
+                ? "\n[Relevant NET-Tutos Lessons Context (Recommend linking using markdown [Title](/lessons/slug) if helpful)]:"
+                : "\n[Giáo trình NET-Tutos liên quan (Hãy tự nhiên giới thiệu học viên bấm vào link [Tên bài học](/lessons/slug) nếu hữu ích)]:");
+
+            foreach (var match in matches)
+            {
+                sb.AppendLine($"- [{match.Title}](/lessons/{match.Slug}): {match.Summary}");
+            }
+
+            return sb.ToString();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("GetCurriculumRagContextAsync error: {Msg}", ex.Message);
+            return null;
+        }
+    }
+
+    private static bool IsCommonStopWord(string word)
+    {
+        string[] stops = ["cho", "mình", "hỏi", "làm", "thế", "nào", "để", "giải", "thích", "cách", "trong", "với", "và", "các", "những", "được", "không", "như", "what", "how", "why", "when", "the", "and", "for", "with", "from", "that", "this", "help", "please"];
+        return stops.Contains(word, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static string ComputeSha256(string input)
+    {
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        var bytes = System.Text.Encoding.UTF8.GetBytes(input);
+        var hash = sha.ComputeHash(bytes);
+        return Convert.ToHexString(hash);
+    }
+
+    private record TutorialRagDto(int Id, string Title, string Slug, string Summary);
 }

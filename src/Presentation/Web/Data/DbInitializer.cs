@@ -84,33 +84,6 @@ public static class DbInitializer
                 await userManager.DeleteAsync(legacyDemo);
             }
         }
-        if (false)
-        {
-            var studentEmail = "student@nettutos.com";
-        var existingStudent = await userManager.FindByEmailAsync(studentEmail);
-        if (existingStudent == null)
-        {
-            var studentUser = new ApplicationUser
-            {
-                UserName = studentEmail,
-                Email = studentEmail,
-                FullName = "Nguyễn Văn An (Demo Student)",
-                EmailConfirmed = true,
-                ExperiencePoints = 350,
-                CurrentStreak = 5,
-                LongestStreak = 7,
-                LastCheckInDate = DateTime.UtcNow.Date,
-                Bio = "Học viên trải nghiệm hệ thống NET-Tutos",
-                CreatedAt = DateTime.UtcNow.AddDays(-10)
-            };
-
-            var createStudentResult = await userManager.CreateAsync(studentUser, "StudentPassword@123");
-            if (createStudentResult.Succeeded)
-            {
-                await userManager.AddToRoleAsync(studentUser, "Student");
-        }
-            }
-        }
 
         // Seed Coding Challenges if none exist
         if (!await context.CodingChallenges.AnyAsync())
@@ -2634,6 +2607,20 @@ Xây dựng một sàn đấu giá trực tuyến hoạt động thời gian th�
                         CONSTRAINT [FK_AiChatMessages_AiConversations_ConversationId] FOREIGN KEY ([ConversationId]) REFERENCES [AiConversations] ([Id]) ON DELETE CASCADE
                     );
                     CREATE INDEX [IX_AiChatMessages_ConversationId] ON [AiChatMessages] ([ConversationId]);
+                END;
+
+                -- Ensure NVARCHAR Unicode support if table existed prior to Unicode migration
+                IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('AiConversations') AND name = 'Title' AND system_type_id = 167)
+                BEGIN
+                    ALTER TABLE [AiConversations] ALTER COLUMN [Title] nvarchar(200) NOT NULL;
+                END;
+                IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('AiChatMessages') AND name = 'Content' AND system_type_id = 167)
+                BEGIN
+                    ALTER TABLE [AiChatMessages] ALTER COLUMN [Content] nvarchar(max) NOT NULL;
+                END;
+                IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('AiChatMessages') AND name = 'CodeSnippet' AND system_type_id = 167)
+                BEGIN
+                    ALTER TABLE [AiChatMessages] ALTER COLUMN [CodeSnippet] nvarchar(max) NULL;
                 END;
             ");
         }

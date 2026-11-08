@@ -61,13 +61,13 @@
                                     <span class="conv-title text-truncate small">@c.Title</span>
                                 </div>
                                 <div class="conv-actions d-flex align-items-center gap-1 flex-shrink-0">
-                                    <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="@(isEn ? "Rename" : "Đổi tên")" onclick="event.stopPropagation(); renameConversationPrompt(this)">
+                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="${isEn ? 'Rename' : 'Đổi tên'}" onclick="event.stopPropagation(); renameConversationPrompt(this)">
                                         <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
                                     </button>
                                     <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="@(c.IsPinned ? (isEn ? "Unpin" : "Bỏ ghim") : (isEn ? "Pin" : "Ghim"))" onclick="event.stopPropagation(); togglePinConversation(this)">
                                         <i class="bi @(c.IsPinned ? "bi-pin-angle-fill text-warning" : "bi-pin-angle")" style="font-size: 0.75rem;"></i>
                                     </button>
-                                    <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon text-hover-danger" title="@(isEn ? "Delete" : "Xóa")" onclick="event.stopPropagation(); deleteConversationConfirm(this)">
+                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon text-hover-danger" title="${isEn ? 'Delete' : 'Xóa'}" onclick="event.stopPropagation(); deleteConversationConfirm(this)">
                                         <i class="bi bi-trash3" style="font-size: 0.75rem;"></i>
                                     </button>
                                 </div>
@@ -127,7 +127,7 @@
                     <i class="bi bi-layout-sidebar-inset fs-5"></i>
                 </button>
                 <div class="d-flex align-items-center gap-2 overflow-hidden">
-                    <span class="fw-bold text-truncate" id="currentChatTitle">@(activeConv != null ? activeConv.Title : (isEn ? "New Chat" : "Đoạn chat mới"))</span>
+        if (titleEl) titleEl.innerText = isEn ? 'New Chat' : 'Đoạn chat mới';
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 d-none d-sm-inline-flex align-items-center gap-1" style="font-size: 0.7rem;">
                         <span class="status-dot-pulse"></span>
                         <span>Atus</span>
@@ -493,7 +493,7 @@
         // Size check: Max 2MB
         const maxBytes = 2 * 1024 * 1024;
         if (file.size > maxBytes) {
-            alert(isEn ? "File size exceeds 2MB limit. Please choose a smaller code or log file." : "KÃ­ch thÆ°á»›c tá»‡p vÆ°á»£t quÃ¡ 2MB. Vui lÃ²ng chá»n tá»‡p nhá» hÆ¡n.");
+            alert(isEn ? "File size exceeds 2MB limit. Please choose a smaller code or log file." : "Kích thước tệp vượt quá 2MB. Vui lòng chọn tệp nhỏ hơn.");
             return;
         }
 
@@ -533,7 +533,7 @@
 
         currentConversationId = '';
         const titleEl = document.getElementById('currentChatTitle');
-        if (titleEl) titleEl.innerText = isEn ? 'New Chat' : 'Äoáº¡n chat má»›i';
+        if (titleEl) titleEl.innerText = isEn ? 'New Chat' : 'Đoạn chat mới';
         
         const list = document.getElementById('messagesList');
         if (list) list.innerHTML = '';
@@ -587,7 +587,7 @@
                 currentConversationId = conv.id;
                 
                 const titleEl = document.getElementById('currentChatTitle');
-                if (titleEl) titleEl.innerText = conv.title || (isEn ? 'New Chat' : 'Äoáº¡n chat má»›i');
+                if (titleEl) titleEl.innerText = conv.title || (isEn ? 'New Chat' : 'Đoạn chat mới');
 
                 if (window.history && window.history.pushState) {
                     window.history.pushState(null, '', `/AiTutor?id=${conv.id}`);
@@ -660,8 +660,8 @@
 
         // Append user message
         const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const userSnippet = attached ? `[${isEn ? 'Attached File' : 'Tá»‡p Ä‘Ã­nh kÃ¨m'}: ${attached.name}]` : null;
-        appendUserMessageToDOM(text || (isEn ? 'Sent attached file.' : 'ÄÃ£ gá»­i tá»‡p Ä‘Ã­nh kÃ¨m.'), userSnippet, nowStr);
+        const userSnippet = attached ? `[${isEn ? 'Attached File' : 'Tệp đính kèm'}: ${attached.name}]` : null;
+        appendUserMessageToDOM(text || (isEn ? 'Sent attached file.' : 'Đã gửi tệp đính kèm.'), userSnippet, nowStr);
 
         // Reset input and attachment immediately
         input.value = '';
@@ -702,9 +702,9 @@
         try {
             const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
             const payload = {
-                message: text || (isEn ? 'Analyze this attached file' : 'HÃ£y phÃ¢n tÃ­ch ná»™i dung tá»‡p Ä‘Ã­nh kÃ¨m nÃ y'),
+                message: text || (isEn ? 'Analyze this attached file' : 'Hãy phân tích nội dung tệp đính kèm này'),
                 conversationId: currentConversationId || null,
-                attachedFileName: attached ? attached.name : null,
+        const userSnippet = attached ? `[${isEn ? 'Attached File' : 'Tệp đính kèm'}: ${attached.name}]` : null;
                 attachedFileContent: attached ? attached.content : null
             };
 
@@ -769,7 +769,7 @@
                             }
                             await reloadConversationsList();
                         } else if (eventObj.type === 'error') {
-                            accumulatedMarkdown += `\n\n> âš ï¸ *${escapeHtml(eventObj.message || 'Lá»—i xá»­ lÃ½')}*`;
+                            accumulatedMarkdown += `\n\n> ⚠️ *${escapeHtml(eventObj.message || 'Lỗi xử lý')}*`;
                             if (textContainer) {
                                 textContainer.innerHTML = formatSimpleMarkdown(accumulatedMarkdown);
                             }
@@ -786,7 +786,7 @@
             }
         } catch (err) {
             if (textContainer) {
-                textContainer.innerHTML = formatSimpleMarkdown(accumulatedMarkdown || (isEn ? "Network error connecting to Atus. Please try again." : "Lá»—i káº¿t ná»‘i tá»›i Atus. Vui lÃ²ng thá»­ láº¡i sau."));
+                textContainer.innerHTML = formatSimpleMarkdown(accumulatedMarkdown || (isEn ? "Network error connecting to Atus. Please try again." : "Lỗi kết nối tới Atus. Vui lòng thử lại sau."));
             }
         } finally {
             isWaitingResponse = false;
@@ -816,10 +816,10 @@
         terminalBody.innerHTML = `
             <div class="d-flex align-items-center gap-2 text-warning py-1">
                 <span class="spinner-border spinner-border-sm" role="status"></span>
-                <span>${isEn ? 'Compiling and executing via Roslyn engine...' : 'Äang biÃªn dá»‹ch & thá»±c thi qua Roslyn engine...'}</span>
+                <span>${isEn ? 'Compiling and executing via Roslyn engine...' : 'Đang biên dịch & thực thi qua Roslyn engine...'}</span>
             </div>`;
         if (timeBadge) timeBadge.innerText = '...';
-        if (statusBadge) statusBadge.innerHTML = `<span class="badge bg-warning-subtle text-warning">${isEn ? 'Running' : 'Äang cháº¡y'}</span>`;
+        if (statusBadge) statusBadge.innerHTML = `<span class="badge bg-warning-subtle text-warning">${isEn ? 'Running' : 'Đang chạy'}</span>`;
 
         try {
             const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
@@ -837,17 +837,17 @@
             if (timeBadge) timeBadge.innerText = (data.executionTimeMs || 0) + ' ms';
 
             if (data.isSuccess) {
-                if (statusBadge) statusBadge.innerHTML = `<span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle-fill me-1"></i>${isEn ? 'Success' : 'ThÃ nh cÃ´ng'}</span>`;
-                const outText = data.output && data.output.trim() ? data.output : (isEn ? '(No console output)' : '(KhÃ´ng cÃ³ dá»¯ liá»‡u xuáº¥t Console)');
+                if (statusBadge) statusBadge.innerHTML = `<span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle-fill me-1"></i>${isEn ? 'Success' : 'Thành công'}</span>`;
+                const outText = data.output && data.output.trim() ? data.output : (isEn ? '(No console output)' : '(Không có dữ liệu xuất Console)');
                 terminalBody.innerHTML = `<pre class="text-success mb-0 overflow-x-auto font-monospace" style="white-space: pre-wrap; font-size: 0.78rem;">${escapeHtml(outText)}</pre>`;
             } else {
-                if (statusBadge) statusBadge.innerHTML = `<span class="badge bg-danger-subtle text-danger"><i class="bi bi-x-circle-fill me-1"></i>${isEn ? 'Build / Runtime Error' : 'Lá»—i biÃªn dá»‹ch / Runtime'}</span>`;
-                const errText = data.error || (isEn ? 'Compilation failed.' : 'BiÃªn dá»‹ch tháº¥t báº¡i.');
+                if (statusBadge) statusBadge.innerHTML = `<span class="badge bg-danger-subtle text-danger"><i class="bi bi-x-circle-fill me-1"></i>${isEn ? 'Build / Runtime Error' : 'Lỗi biên dịch / Runtime'}</span>`;
+                const errText = data.error || (isEn ? 'Compilation failed.' : 'Biên dịch thất bại.');
                 terminalBody.innerHTML = `<pre class="text-danger mb-0 overflow-x-auto font-monospace" style="white-space: pre-wrap; font-size: 0.78rem;">${escapeHtml(errText)}</pre>`;
             }
         } catch (e) {
             if (statusBadge) statusBadge.innerHTML = `<span class="badge bg-danger-subtle text-danger">Error</span>`;
-            terminalBody.innerHTML = `<div class="text-danger small">${isEn ? 'Failed to connect to code runner service.' : 'Lá»—i káº¿t ná»‘i tá»›i mÃ¡y chá»§ Roslyn Runner.'}</div>`;
+            terminalBody.innerHTML = `<div class="text-danger small">${isEn ? 'Failed to connect to code runner service.' : 'Lỗi kết nối tới máy chủ Roslyn Runner.'}</div>`;
         }
     }
 
@@ -877,13 +877,13 @@
         if (!container) return;
 
         if (convs.length === 0) {
-            container.innerHTML = `<div class="p-3 text-center text-muted small"><i class="bi bi-chat-square-text fs-3 d-block mb-2 opacity-50"></i><span>${isEn ? 'No conversations yet.' : 'ChÆ°a cÃ³ Ä‘oáº¡n chat nÃ o.'}</span></div>`;
+            container.innerHTML = `<div class="p-3 text-center text-muted small"><i class="bi bi-chat-square-text fs-3 d-block mb-2 opacity-50"></i><span>${isEn ? 'No conversations yet.' : 'Chưa có đoạn chat nào.'}</span></div>`;
             return;
         }
 
         const groups = {};
         convs.forEach(c => {
-            const groupKey = c.timeGroup || (isEn ? 'Recent' : 'Gáº§n Ä‘Ã¢y');
+            const groupKey = c.timeGroup || (isEn ? 'Recent' : 'Gần đây');
             if (!groups[groupKey]) groups[groupKey] = [];
             groups[groupKey].push(c);
         });
@@ -901,13 +901,13 @@
                             <span class="conv-title text-truncate small">${escapeHtml(c.title)}</span>
                         </div>
                         <div class="conv-actions d-flex align-items-center gap-1 flex-shrink-0">
-                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="${isEn ? 'Rename' : 'Äá»•i tÃªn'}" onclick="event.stopPropagation(); renameConversationPrompt(this)">
+                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="${isEn ? 'Rename' : 'Đổi tên'}" onclick="event.stopPropagation(); renameConversationPrompt(this)">
                                 <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
                             </button>
                             <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="${c.isPinned ? (isEn ? 'Unpin' : 'Bá» ghim') : (isEn ? 'Pin' : 'Ghim')}" onclick="event.stopPropagation(); togglePinConversation(this)">
                                 <i class="bi ${c.isPinned ? 'bi-pin-angle-fill text-warning' : 'bi-pin-angle'}" style="font-size: 0.75rem;"></i>
                             </button>
-                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon text-hover-danger" title="${isEn ? 'Delete' : 'XÃ³a'}" onclick="event.stopPropagation(); deleteConversationConfirm(this)">
+                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon text-hover-danger" title="${isEn ? 'Delete' : 'Xóa'}" onclick="event.stopPropagation(); deleteConversationConfirm(this)">
                                 <i class="bi bi-trash3" style="font-size: 0.75rem;"></i>
                             </button>
                         </div>
@@ -1151,7 +1151,7 @@
         if (pre) {
             navigator.clipboard.writeText(pre.innerText).then(() => {
                 const original = btn.innerHTML;
-                btn.innerHTML = `<i class="bi bi-check2 text-success"></i> ${isEn ? 'Copied' : 'ÄÃ£ sao chÃ©p'}`;
+                btn.innerHTML = `<i class="bi bi-check2 text-success"></i> ${isEn ? 'Copied' : 'Đã sao chép'}`;
                 setTimeout(() => { btn.innerHTML = original; }, 2000);
             });
         }
@@ -1168,7 +1168,7 @@
     function formatSimpleMarkdown(text) {
         if (!text) return '';
 
-        // Code blocks with syntax toolbar: [â–¶ Cháº¡y trá»±c tiáº¿p], [Sao chÃ©p], [C# Sandbox] + Mini Terminal
+        // Code blocks with syntax toolbar: [▶ Chạy trực tiếp], [Sao chép], [C# Sandbox] + Mini Terminal
         text = text.replace(/```(?:csharp|cs)?\n([\s\S]*?)```/gi, function(match, code) {
             const trimmedCode = code.trim();
             return `
@@ -1179,14 +1179,14 @@
                             <span>C# (.NET 10)</span>
                         </span>
                         <div class="d-flex gap-1.5 align-items-center">
-                            <button type="button" class="btn btn-sm btn-success py-0 px-2 fw-semibold d-inline-flex align-items-center gap-1" style="font-size: 0.68rem;" onclick="runInlineCode(this)" title="${isEn ? 'Execute code directly' : 'Cháº¡y trá»±c tiáº¿p mÃ£ nguá»“n'}">
+                            <button type="button" class="btn btn-sm btn-success py-0 px-2 fw-semibold d-inline-flex align-items-center gap-1" style="font-size: 0.68rem;" onclick="runInlineCode(this)" title="${isEn ? 'Execute code directly' : 'Chạy trực tiếp mã nguồn'}">
                                 <i class="bi bi-play-fill"></i>
                                 <span>${isEn ? 'Run' : 'Cháº¡y trá»±c tiáº¿p'}</span>
                             </button>
                             <button type="button" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 0.68rem;" onclick="copyCodeToClipboard(this)">
-                                <i class="bi bi-clipboard me-1"></i>${isEn ? 'Copy' : 'Sao chÃ©p'}
+                                <i class="bi bi-clipboard me-1"></i>${isEn ? 'Copy' : 'Sao chép'}
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-info py-0 px-2" style="font-size: 0.68rem;" onclick="openInSandbox(this)" title="${isEn ? 'Open in full sandbox' : 'Má»Ÿ trong Sandbox'}">
+                            <button type="button" class="btn btn-sm btn-outline-info py-0 px-2" style="font-size: 0.68rem;" onclick="openInSandbox(this)" title="${isEn ? 'Open in full sandbox' : 'Mở trong Sandbox'}">
                                 <i class="bi bi-box-arrow-up-right me-1"></i>${isEn ? 'Sandbox' : 'Sandbox'}
                             </button>
                         </div>
@@ -1202,7 +1202,7 @@
                             </div>
                             <div class="d-flex align-items-center gap-2 text-muted" style="font-size: 0.7rem;">
                                 <span><i class="bi bi-stopwatch me-1"></i><span class="inline-terminal-time">0 ms</span></span>
-                                <button type="button" class="btn btn-sm btn-icon p-0 text-muted text-hover-light" onclick="closeInlineTerminal(this)" title="${isEn ? 'Close terminal' : 'ÄÃ³ng terminal'}">
+                                <button type="button" class="btn btn-sm btn-icon p-0 text-muted text-hover-light" onclick="closeInlineTerminal(this)" title="${isEn ? 'Close terminal' : 'Đóng terminal'}">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
                             </div>

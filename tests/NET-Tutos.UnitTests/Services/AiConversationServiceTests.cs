@@ -153,4 +153,23 @@ public class AiConversationServiceTests
         history[1].Content.Should().Be("Trả lời 1");
         history[2].Content.Should().Be("Tin 2");
     }
+    [Fact]
+    public async Task GetUserConversationsAsync_AutoHealsCorruptedQuestionMarkTitles()
+    {
+        // Arrange
+        using var context = MockHelpers.CreateInMemoryDbContext();
+        var service = new AiConversationService(context, _loggerMock.Object);
+        var userId = "user-corrupt-test";
+
+        var conv = await service.CreateConversationAsync(userId, "3 nguy?n t?c vi?t Clea...");
+        await service.SaveMessageAsync(conv.Id, "user", "3 nguyên tắc viết Clean Code trong dự án .NET");
+
+        // Act
+        var list = await service.GetUserConversationsAsync(userId, isEnglish: false);
+
+        // Assert
+        list.Should().HaveCount(1);
+        list[0].Title.Should().NotContain("?");
+        list[0].Title.Should().Contain("nguyên tắc");
+    }
 }
