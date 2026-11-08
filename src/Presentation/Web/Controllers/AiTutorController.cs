@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
 using NET_Tutos.Services;
+using NET_Tutos.BuildingBlocks.EventBus.Kafka;
 
 namespace NET_Tutos.Controllers;
 
@@ -14,17 +15,20 @@ public class AiTutorController : Controller
     private readonly IAiConversationService _conversationService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAppCacheService? _cacheService;
+    private readonly IKafkaProducer? _kafkaProducer;
 
     public AiTutorController(
         IAiTutorService aiTutorService,
         IAiConversationService conversationService,
         UserManager<ApplicationUser> userManager,
-        IAppCacheService? cacheService = null)
+        IAppCacheService? cacheService = null,
+        IKafkaProducer? kafkaProducer = null)
     {
         _aiTutorService = aiTutorService;
         _conversationService = conversationService;
         _userManager = userManager;
         _cacheService = cacheService;
+        _kafkaProducer = kafkaProducer;
     }
 
     // GET: /AiTutor or /AiTutor?id={conversationId}
@@ -451,6 +455,12 @@ public class AiTutorController : Controller
             cacheDiag = await _cacheService.GetDiagnosticsAsync();
         }
 
+        KafkaTelemetrySnapshot? kafkaDiag = null;
+        if (_kafkaProducer != null)
+        {
+            kafkaDiag = await _kafkaProducer.GetDiagnosticsAsync();
+        }
+
         return Json(new
         {
             success = true,
@@ -458,6 +468,7 @@ public class AiTutorController : Controller
             agentMeaning = "Agent + Tutos (Principal .NET Architect & Technical Lead)",
             liveAi = status,
             cacheTelemetry = cacheDiag,
+            kafkaTelemetry = kafkaDiag,
             serverTimestamp = DateTime.UtcNow
         });
     }

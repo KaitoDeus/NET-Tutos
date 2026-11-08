@@ -12,6 +12,8 @@ using NET_Tutos.Models;
 using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
 using NET_Tutos.Services;
+using NET_Tutos.BuildingBlocks.EventBus.Extensions;
+using NET_Tutos.BuildingBlocks.EventBus.Kafka;
 using Npgsql;
 using System.Globalization;
 using System.Net.Http.Headers;
@@ -213,6 +215,7 @@ builder.Services.AddSingleton<INavMenuService, NavMenuService>();
 builder.Services.AddSingleton<IGeoIpService, GeoIpService>();
 builder.Services.AddSingleton<ISeoMetadataService, SeoMetadataService>();
 builder.Services.AddSingleton<ICodingArenaService>(sp => new CodingArenaService(sp.GetRequiredService<IServiceScopeFactory>()));
+builder.Services.AddKafkaEventStreaming(builder.Configuration);
 
 // Determine Database Provider
 var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "PostgreSql";

@@ -1,10 +1,12 @@
-﻿using System.Net.Http.Json;
+using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using NET_Tutos.Data;
 using NET_Tutos.Models.ViewModels;
+using NET_Tutos.BuildingBlocks.EventBus.Events;
+using NET_Tutos.BuildingBlocks.EventBus.Kafka;
 
 namespace NET_Tutos.Services;
 
@@ -23,6 +25,7 @@ public class GeminiAgentService : IAiTutorService
     private readonly ILogger<GeminiAgentService> _logger;
     private readonly IAiConversationService? _conversationService;
     private readonly IAppCacheService? _cacheService;
+    private readonly IKafkaProducer? _kafkaProducer;
 
     private readonly string? _apiKey;
     private readonly string _model;
@@ -38,7 +41,8 @@ public class GeminiAgentService : IAiTutorService
         AiTutorService fallbackEngine,
         ILogger<GeminiAgentService> logger,
         IAiConversationService? conversationService = null,
-        IAppCacheService? cacheService = null)
+        IAppCacheService? cacheService = null,
+        IKafkaProducer? kafkaProducer = null)
     {
         _httpClient = httpClientFactory.CreateClient("Gemini");
         _configuration = configuration;
@@ -49,6 +53,7 @@ public class GeminiAgentService : IAiTutorService
         _logger = logger;
         _conversationService = conversationService;
         _cacheService = cacheService;
+        _kafkaProducer = kafkaProducer;
 
         var rawKey = (new[]
         {
@@ -125,6 +130,26 @@ public class GeminiAgentService : IAiTutorService
 
             await _conversationService.EnsureAutoTitleAsync(request.ConversationId.Value, request.Message, isEnglish);
             response.ConversationId = request.ConversationId.Value;
+        }
+
+        // 3. Emit Kafka Stream Telemetry Event for AI Auditing and Adaptive Learning Analytics
+        if (_kafkaProducer != null)
+        {
+            var promptSnippet = (request.Message ?? string.Empty).Length > 100
+                ? (request.Message ?? string.Empty).Substring(0, 100) + "..."
+                : (request.Message ?? string.Empty);
+
+            var telemetryEvent = new AtusAiTelemetryEvent(
+                SessionId: request.ConversationId?.ToString() ?? Guid.NewGuid().ToString(),
+                UserId: null,
+                PromptSnippet: promptSnippet,
+                ModelUsed: response.ModelUsed ?? _model,
+                LatencyMs: 0,
+                IsSuccess: response.Success,
+                IsFallback: !IsLiveGeminiAvailable || response.ResponseMarkdown.Contains("[Chế độ Ngoại tuyến") || response.ResponseMarkdown.Contains("[Offline Engine")
+            );
+
+            _kafkaProducer.ProduceFireAndForget(KafkaTopics.AtusAiTelemetry, telemetryEvent);
         }
 
         return response;
