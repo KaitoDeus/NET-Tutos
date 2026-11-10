@@ -175,4 +175,21 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
         headerEnd.Should().BeGreaterThan(0);
         html[..headerEnd].Should().NotContain("if (titleEl)");
     }
+
+    [Fact]
+    public async Task Get_MockInterviewAndTtsEndpoint_SupportVietnameseVoiceFallback()
+    {
+        // Act
+        var mockPageResp = await _client.GetAsync("/Interview/Mock");
+        var emptyTtsResp = await _client.GetAsync("/api/tts/speak?text=");
+
+        // Assert
+        mockPageResp.EnsureSuccessStatusCode();
+        var html = await mockPageResp.Content.ReadAsStringAsync();
+        html.Should().Contain("/api/tts/speak");
+        html.Should().Contain("playBackendTts");
+        html.Should().NotContain("bg-opacity-15");
+
+        emptyTtsResp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
 }

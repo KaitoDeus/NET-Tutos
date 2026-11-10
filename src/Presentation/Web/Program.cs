@@ -195,6 +195,12 @@ builder.Services.AddHttpClient("Gemini", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(30);
 });
+builder.Services.AddHttpClient("Tts", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(6);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+});
+builder.Services.AddScoped<ITtsService, TtsService>();
 builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
 builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddScoped<IDiscussionService, DiscussionService>();
@@ -589,6 +595,15 @@ app.MapGet("/api/adaptive/recommendations", async (HttpContext http, IAdaptiveLe
 app.MapGet("/api/kafka/analytics", (IKafkaStreamAnalyticsStore analyticsStore) =>
 {
     return Results.Ok(analyticsStore.GetSnapshot());
+});
+
+// Cached Neural Text-to-Speech Endpoint (Vietnamese & English voice fallback/stream)
+app.MapGet("/api/tts/speak", async (string? text, string? lang, ITtsService tts, CancellationToken ct) =>
+{
+    if (string.IsNullOrWhiteSpace(text)) return Results.BadRequest();
+    var audio = await tts.SynthesizeSpeechAsync(text, lang ?? "vi", ct);
+    if (audio == null || audio.Length == 0) return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    return Results.File(audio, "audio/mpeg", enableRangeProcessing: true);
 });
 
 // Seed/Sync additional tutorials endpoint

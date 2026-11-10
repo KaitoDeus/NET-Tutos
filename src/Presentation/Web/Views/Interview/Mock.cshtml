@@ -16,7 +16,7 @@
                 </div>
                 <div>
                     <div class="d-flex align-items-center gap-2 mb-1">
-                        <span class="badge bg-danger bg-opacity-15 text-danger rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1.5">
+                        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1.5">
                             <span class="spinner-grow spinner-grow-sm text-danger" role="status" style="width: 0.55rem; height: 0.55rem;"></span>
                             @(isEn ? "AI TECHNICAL INTERVIEW" : "PHỎNG VẤN TRỰC TIẾP VỚI AI")
                         </span>
@@ -92,7 +92,7 @@
                         </span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-@q.DifficultyBadgeClass bg-opacity-15 text-@q.DifficultyBadgeClass rounded-pill px-2.5 py-1 small">
+                        <span class="badge bg-@q.DifficultyBadgeClass bg-opacity-10 text-@q.DifficultyBadgeClass rounded-pill px-2.5 py-1 small">
                             @q.DifficultyName
                         </span>
                         <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 small ai-status-badge d-none" id="aiStatusBadge-@q.Id">
@@ -211,7 +211,7 @@
     <!-- Results View (Hidden until submit) -->
     <div id="mockResultsView" class="card border-0 rounded-4 shadow-sm p-4 p-md-5 bg-body d-none">
         <div class="text-center mb-4">
-            <div id="resultIconBox" class="rounded-circle bg-success bg-opacity-15 text-success mx-auto mb-3 d-flex align-items-center justify-content-center shadow-xs" style="width: 84px; height: 84px;">
+            <div id="resultIconBox" class="rounded-circle bg-success bg-opacity-10 text-success mx-auto mb-3 d-flex align-items-center justify-content-center shadow-xs" style="width: 84px; height: 84px;">
                 <i class="bi bi-award-fill display-5"></i>
             </div>
             <span class="badge rounded-pill px-3 py-1.5 fw-bold mb-2 fs-6" id="resultReadinessBadge"></span>
@@ -1198,13 +1198,65 @@
         };
 
         // ==========================================
-        // AI Voice Synthesis (Web Speech API TTS)
+        // AI Voice Synthesis (Hybrid Web Speech API + Backend Neural TTS Fallback)
         // ==========================================
         const AiVoice = {
             synth: window.speechSynthesis,
+            cachedVoices: [],
             isMuted: false,
             rate: 1.0,
             currentUtterance: null,
+            audioPlayer: null,
+            speakWatchdog: null,
+            playbackToken: 0,
+
+            initVoices: function () {
+                if (!this.synth) return;
+                const refresh = () => {
+                    this.cachedVoices = this.synth.getVoices() || [];
+                };
+                refresh();
+                if ('onvoiceschanged' in this.synth) {
+                    this.synth.onvoiceschanged = refresh;
+                }
+            },
+
+            findBestVoice: function (targetLang, persona) {
+                if (!this.synth) return null;
+                const voices = (this.cachedVoices && this.cachedVoices.length > 0)
+                    ? this.cachedVoices
+                    : (this.synth.getVoices() || []);
+
+                const langVoices = voices.filter(v => {
+                    const normalized = (v.lang || '').toLowerCase().replace('_', '-');
+                    return normalized === targetLang || normalized.startsWith(targetLang + '-');
+                });
+
+                if (langVoices.length === 0) return null;
+
+                const preferredFemale = ['hoaimy', 'linh', 'chi', 'female', 'zira', 'samantha', 'google'];
+                const preferredMale = ['namminh', 'an', 'minh', 'male', 'david', 'guy', 'google'];
+                const namePool = persona === 'sarah' ? preferredFemale : preferredMale;
+
+                let best = langVoices.find(v => {
+                    const n = (v.name || '').toLowerCase();
+                    return (n.includes('natural') || n.includes('online') || n.includes('google')) &&
+                           namePool.some(k => n.includes(k));
+                });
+
+                if (!best) {
+                    best = langVoices.find(v => {
+                        const n = (v.name || '').toLowerCase();
+                        return n.includes('natural') || n.includes('online') || n.includes('google');
+                    });
+                }
+
+                if (!best) {
+                    best = langVoices.find(v => namePool.some(k => (v.name || '').toLowerCase().includes(k)));
+                }
+
+                return best || langVoices[0];
+            },
 
             cleanMarkdown: function (text) {
                 if (!text) return '';
@@ -1221,14 +1273,63 @@
                     .trim();
             },
 
-            speak: function (text, onStart, onEnd) {
-                if (!this.synth) {
-                    console.warn('SpeechSynthesis is not supported by this browser.');
+            setSpeakingVisuals: function (active) {
+                if (active) {
+                    document.getElementById('voiceWaveVisualizer')?.classList.add('speaking');
+                    document.getElementById('interviewerAvatarGlow')?.classList.add('speaking');
+                } else {
+                    document.getElementById('voiceWaveVisualizer')?.classList.remove('speaking');
+                    document.getElementById('interviewerAvatarGlow')?.classList.remove('speaking');
+                }
+            },
+
+            playBackendTts: function (cleanText, lang, token, onStart, onEnd) {
+                if (token !== this.playbackToken || this.isMuted) {
                     if (onEnd) onEnd();
                     return;
                 }
 
+                const ttsUrl = `/api/tts/speak?lang=${encodeURIComponent(lang)}&text=${encodeURIComponent(cleanText)}`;
+                const audio = new Audio(ttsUrl);
+                audio.playbackRate = this.rate;
+                this.audioPlayer = audio;
+
+                let settled = false;
+                const finish = () => {
+                    if (settled) return;
+                    settled = true;
+                    if (this.audioPlayer === audio) {
+                        this.audioPlayer = null;
+                    }
+                    this.setSpeakingVisuals(false);
+                    if (onEnd) onEnd();
+                };
+
+                audio.onplay = () => {
+                    if (token !== this.playbackToken) {
+                        audio.pause();
+                        return;
+                    }
+                    this.setSpeakingVisuals(true);
+                    if (onStart) onStart();
+                };
+
+                audio.onended = finish;
+                audio.onerror = (err) => {
+                    console.warn('Backend TTS playback error:', err);
+                    finish();
+                };
+
+                audio.play().catch((err) => {
+                    console.warn('Audio play blocked or failed:', err);
+                    finish();
+                });
+            },
+
+            speak: function (text, onStart, onEnd) {
                 this.stop();
+                const token = ++this.playbackToken;
+
                 if (this.isMuted) {
                     if (onEnd) onEnd();
                     return;
@@ -1240,66 +1341,88 @@
                     return;
                 }
 
+                const targetLang = isEn ? 'en' : 'vi';
+                const matchedVoice = this.synth ? this.findBestVoice(targetLang, VoiceCallManager.persona) : null;
+
+                const hasNativeQualityVoice = matchedVoice && (
+                    isEn ||
+                    /natural|online|google|hoaimy|namminh/i.test(matchedVoice.name || '')
+                );
+
+                if (!this.synth || !hasNativeQualityVoice) {
+                    this.playBackendTts(clean, targetLang, token, onStart, onEnd);
+                    return;
+                }
+
                 const utterance = new SpeechSynthesisUtterance(clean);
                 utterance.rate = this.rate;
                 utterance.pitch = (VoiceCallManager.persona === 'sarah') ? 1.15 : 0.95;
+                utterance.voice = matchedVoice;
+                utterance.lang = matchedVoice.lang || (isEn ? 'en-US' : 'vi-VN');
 
-                const voices = this.synth.getVoices();
-                const targetLang = isEn ? 'en' : 'vi';
-                let matchedVoice = null;
+                let started = false;
+                let ended = false;
 
-                if (VoiceCallManager.persona === 'sarah') {
-                    matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(targetLang) &&
-                        (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('linh') || v.name.toLowerCase().includes('samantha')));
-                } else {
-                    matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(targetLang) &&
-                        (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('an') || v.name.toLowerCase().includes('nam')));
-                }
-
-                if (!matchedVoice) {
-                    matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(targetLang));
-                }
-
-                if (matchedVoice) {
-                    utterance.voice = matchedVoice;
-                } else {
-                    utterance.lang = isEn ? 'en-US' : 'vi-VN';
-                }
+                this.speakWatchdog = setTimeout(() => {
+                    if (!started && !ended && token === this.playbackToken) {
+                        console.warn('Browser SpeechSynthesis stalled; switching to backend Neural TTS.');
+                        try { this.synth.cancel(); } catch (e) {}
+                        this.currentUtterance = null;
+                        this.playBackendTts(clean, targetLang, token, onStart, onEnd);
+                    }
+                }, 1500);
 
                 utterance.onstart = () => {
+                    if (token !== this.playbackToken) return;
+                    started = true;
+                    if (this.speakWatchdog) { clearTimeout(this.speakWatchdog); this.speakWatchdog = null; }
                     this.currentUtterance = utterance;
-                    document.getElementById('voiceWaveVisualizer')?.classList.add('speaking');
-                    document.getElementById('interviewerAvatarGlow')?.classList.add('speaking');
+                    this.setSpeakingVisuals(true);
                     if (onStart) onStart();
                 };
 
                 utterance.onend = () => {
+                    if (this.speakWatchdog) { clearTimeout(this.speakWatchdog); this.speakWatchdog = null; }
+                    if (ended || token !== this.playbackToken) return;
+                    ended = true;
                     this.currentUtterance = null;
-                    document.getElementById('voiceWaveVisualizer')?.classList.remove('speaking');
-                    document.getElementById('interviewerAvatarGlow')?.classList.remove('speaking');
+                    this.setSpeakingVisuals(false);
                     if (onEnd) onEnd();
                 };
 
                 utterance.onerror = (e) => {
-                    console.warn('TTS playback error:', e);
+                    if (this.speakWatchdog) { clearTimeout(this.speakWatchdog); this.speakWatchdog = null; }
+                    if (ended || token !== this.playbackToken) return;
+                    console.warn('Browser TTS error, switching to backend Neural TTS:', e);
+                    ended = true;
                     this.currentUtterance = null;
-                    document.getElementById('voiceWaveVisualizer')?.classList.remove('speaking');
-                    document.getElementById('interviewerAvatarGlow')?.classList.remove('speaking');
-                    if (onEnd) onEnd();
+                    this.playBackendTts(clean, targetLang, token, onStart, onEnd);
                 };
 
                 this.synth.speak(utterance);
             },
 
             stop: function () {
+                this.playbackToken++;
+                if (this.speakWatchdog) {
+                    clearTimeout(this.speakWatchdog);
+                    this.speakWatchdog = null;
+                }
                 if (this.synth) {
-                    this.synth.cancel();
+                    try { this.synth.cancel(); } catch (e) {}
+                }
+                if (this.audioPlayer) {
+                    try {
+                        this.audioPlayer.pause();
+                        this.audioPlayer.src = '';
+                    } catch (e) {}
+                    this.audioPlayer = null;
                 }
                 this.currentUtterance = null;
-                document.getElementById('voiceWaveVisualizer')?.classList.remove('speaking');
-                document.getElementById('interviewerAvatarGlow')?.classList.remove('speaking');
+                this.setSpeakingVisuals(false);
             }
         };
+        AiVoice.initVoices();
 
         // In-card TTS player for individual questions
         let activeReadingQuestionId = null;
@@ -1467,6 +1590,7 @@
                 else if (AiVoice.rate === 1.25) AiVoice.rate = 0.85;
                 else AiVoice.rate = 1.0;
 
+                if (AiVoice.audioPlayer) AiVoice.audioPlayer.playbackRate = AiVoice.rate;
                 const btn = document.getElementById('btnCallSpeed');
                 if (btn) btn.innerText = `${AiVoice.rate}x`;
             },
