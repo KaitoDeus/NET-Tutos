@@ -215,7 +215,11 @@ builder.Services.AddSingleton<INavMenuService, NavMenuService>();
 builder.Services.AddSingleton<IGeoIpService, GeoIpService>();
 builder.Services.AddSingleton<ISeoMetadataService, SeoMetadataService>();
 builder.Services.AddSingleton<ICodingArenaService>(sp => new CodingArenaService(sp.GetRequiredService<IServiceScopeFactory>()));
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddKafkaEventStreaming(builder.Configuration);
+builder.Services.AddSingleton<IKafkaStreamAnalyticsStore, KafkaStreamAnalyticsStore>();
+builder.Services.AddHostedService<KafkaTelemetryConsumerWorker>();
+builder.Services.AddScoped<IAdaptiveLearningService, AdaptiveLearningService>();
 
 // Determine Database Provider
 var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "PostgreSql";
@@ -571,6 +575,20 @@ app.MapGet("/api/search/semantic", async (string? q, int? top, HttpContext http,
 {
     var result = await search.SearchAsync(q ?? string.Empty, http.IsEnglish(), top ?? 5, ct);
     return Results.Ok(result);
+});
+
+// Personalized Adaptive Learning Recommendations powered by Kafka Telemetry + Semantic RAG
+app.MapGet("/api/adaptive/recommendations", async (HttpContext http, IAdaptiveLearningService adaptive, CancellationToken ct) =>
+{
+    var userId = http.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+    var result = await adaptive.GetRecommendationsAsync(userId, http.IsEnglish(), ct);
+    return Results.Ok(result);
+});
+
+// Live Apache Kafka Consumer Stream Analytics Endpoint
+app.MapGet("/api/kafka/analytics", (IKafkaStreamAnalyticsStore analyticsStore) =>
+{
+    return Results.Ok(analyticsStore.GetSnapshot());
 });
 
 // Seed/Sync additional tutorials endpoint

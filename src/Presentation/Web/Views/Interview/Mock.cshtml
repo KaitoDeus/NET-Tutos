@@ -1,4 +1,4 @@
-﻿@model NET_Tutos.Models.ViewModels.MockInterviewViewModel
+@model NET_Tutos.Models.ViewModels.MockInterviewViewModel
 @{
     bool isEn = Context.IsEnglish();
     ViewData["Title"] = isEn ? ".NET AI Mock Technical Interview Simulator" : "Phòng Phỏng Vấn Kỹ Thuật .NET Với AI";
@@ -1060,7 +1060,7 @@
                         <div class="card border h-100 rounded-3 p-3 bg-body shadow-xs">
                             <div class="small fw-bold text-primary mb-1"><i class="bi bi-book-half me-1"></i>${escapeHtml(lesson.title)}</div>
                             <div class="text-muted small mb-3 flex-grow-1" style="font-size: 0.78rem;">${escapeHtml(lesson.reason)}</div>
-                            <a href="/tutorials/${encodeURIComponent(lesson.slug)}" class="btn btn-xs btn-outline-primary rounded-pill py-1 small fw-semibold text-center">
+                            <a href="${lesson.slug && lesson.slug.startsWith('/') ? escapeHtml(lesson.slug) : `/tutorials/${encodeURIComponent(lesson.slug || '')}`}" class="btn btn-xs btn-outline-primary rounded-pill py-1 small fw-semibold text-center">
                                 ${isEn ? 'Study Lesson' : 'Ôn tập bài này'} <i class="bi bi-arrow-right"></i>
                             </a>
                         </div>

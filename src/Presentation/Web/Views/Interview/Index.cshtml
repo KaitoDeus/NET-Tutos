@@ -105,6 +105,28 @@
         </div>
     </div>
 
+    <!-- Adaptive Learning Insights Panel (Hydrated via Kafka Telemetry + Semantic RAG) -->
+    <div id="adaptiveLearningPanel" class="card border rounded-4 shadow-xs bg-body p-4 mb-5 d-none">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.72rem;">
+                        <i class="bi bi-cpu-fill me-1"></i> @(isEn ? "ADAPTIVE LEARNING ENGINE (ATUS + KAFKA RAG)" : "LỘ TRÌNH THÍCH ỨNG THÔNG MINH (ATUS + KAFKA RAG)")
+                    </span>
+                    <span id="adaptiveSuggestedLevelBadge" class="badge bg-info bg-opacity-10 text-info rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 0.72rem;"></span>
+                </div>
+                <h5 class="fw-bold mb-0 text-body-emphasis">
+                    @(isEn ? "Recommended Next Lessons Based on Your Progress" : "Bài Học Đề Xuất Cá Nhân Hóa Dựa Trên Năng Lực Thực Tế")
+                </h5>
+            </div>
+            <a asp-action="Mock" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold flex-shrink-0">
+                <i class="bi bi-lightning-fill me-1"></i> @(isEn ? "Test Readiness with Atus" : "Đo trình độ với Atus")
+            </a>
+        </div>
+        <div id="adaptiveWeakSpotsRow" class="d-flex flex-wrap gap-2 mb-3 d-none"></div>
+        <div id="adaptiveLessonsGrid" class="row g-3"></div>
+    </div>
+
     <!-- Topics Grid Section -->
     <div class="mb-5">
         <div class="d-flex align-items-center justify-content-between mb-3">
@@ -309,3 +331,64 @@
         }
     </div>
 </div>
+
+
+@section Scripts {
+<script>
+    (function () {
+        const isEn = @(isEn ? "true" : "false");
+        function escHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        fetch('/api/adaptive/recommendations')
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (!data || !data.recommendedLessons || data.recommendedLessons.length === 0) return;
+
+                const panel = document.getElementById('adaptiveLearningPanel');
+                const badge = document.getElementById('adaptiveSuggestedLevelBadge');
+                const weakRow = document.getElementById('adaptiveWeakSpotsRow');
+                const grid = document.getElementById('adaptiveLessonsGrid');
+
+                if (badge && data.suggestedInterviewLevel) {
+                    badge.textContent = (isEn ? 'Target: ' : 'Mục tiêu: ') + data.suggestedInterviewLevel;
+                }
+
+                if (weakRow && data.detectedWeakSpots && data.detectedWeakSpots.length > 0) {
+                    weakRow.classList.remove('d-none');
+                    weakRow.innerHTML = `<span class="small text-muted fw-semibold align-self-center">${isEn ? 'Focus areas:' : 'Trọng tâm cần bù đắp:'}</span>` +
+                        data.detectedWeakSpots.slice(0, 4).map(w =>
+                            `<span class="badge bg-warning bg-opacity-15 text-dark border border-warning border-opacity-25 rounded-pill px-2.5 py-1 fw-medium" style="font-size: 0.72rem;">
+                                <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>${escHtml(w.topic)} (${w.lowestScore}/100)
+                            </span>`
+                        ).join('');
+                }
+
+                if (grid) {
+                    grid.innerHTML = data.recommendedLessons.slice(0, 3).map(lesson => `
+                        <div class="col-md-4">
+                            <div class="card border h-100 rounded-3 p-3 bg-body-tertiary shadow-xs d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">${escHtml(lesson.category)}</span>
+                                    ${lesson.recommendedDifficulty ? `<span class="small text-muted fw-semibold" style="font-size: 0.68rem;">${escHtml(lesson.recommendedDifficulty)}</span>` : ''}
+                                </div>
+                                <div class="fw-bold text-body-emphasis small mb-1">${escHtml(lesson.title)}</div>
+                                <div class="text-muted small mb-3 flex-grow-1" style="font-size: 0.76rem;">${escHtml(lesson.reason)}</div>
+                                <a href="${escHtml(lesson.url)}" class="btn btn-sm btn-outline-primary rounded-pill py-1 fw-semibold text-center">
+                                    ${isEn ? 'Review Lesson' : 'Học ngay'} <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                panel?.classList.remove('d-none');
+            })
+            .catch(() => { });
+    })();
+</script>
+}

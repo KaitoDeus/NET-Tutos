@@ -1,10 +1,13 @@
 using System.Diagnostics;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
+using NET_Tutos.BuildingBlocks.EventBus.Events;
+using NET_Tutos.BuildingBlocks.EventBus.Kafka;
 using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
 
@@ -17,15 +20,21 @@ public class CodeExecutionService : ICodeExecutionService
     private readonly string? _remoteServiceUrl;
     private readonly ILogger<CodeExecutionService>? _logger;
     private readonly IAppCacheService? _cacheService;
+    private readonly IKafkaProducer? _kafkaProducer;
+    private readonly IHttpContextAccessor? _httpContextAccessor;
 
     public CodeExecutionService(
         IHttpClientFactory? httpClientFactory = null,
         IConfiguration? configuration = null,
         ILogger<CodeExecutionService>? logger = null,
-        IAppCacheService? cacheService = null)
+        IAppCacheService? cacheService = null,
+        IKafkaProducer? kafkaProducer = null,
+        IHttpContextAccessor? httpContextAccessor = null)
     {
         _logger = logger;
         _cacheService = cacheService;
+        _kafkaProducer = kafkaProducer;
+        _httpContextAccessor = httpContextAccessor;
         _remoteServiceUrl = configuration?["Services:CodeRunner:Url"]?.TrimEnd('/');
         if (!string.IsNullOrEmpty(_remoteServiceUrl) && httpClientFactory != null)
         {
@@ -66,6 +75,33 @@ public class CodeExecutionService : ICodeExecutionService
     };
 
     public async Task<CodeExecutionResponse> ExecuteAsync(string code, int timeoutMs = 4000)
+    {
+        var result = await ExecuteInternalAsync(code, timeoutMs);
+        if (_kafkaProducer != null && !string.IsNullOrWhiteSpace(code))
+        {
+            var userId = _httpContextAccessor?.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var errSnippet = result.Error?.Length > 140 ? result.Error[..140] : result.Error;
+            bool hasCompileErr = !result.IsSuccess && !result.IsTimeout &&
+                (result.Error?.Contains("biên dịch", StringComparison.OrdinalIgnoreCase) == true ||
+                 result.Error?.Contains("CS", StringComparison.Ordinal) == true);
+
+            _kafkaProducer.ProduceFireAndForget(
+                KafkaTopics.CodeExecutionTelemetry,
+                new CodeExecutionTelemetryEvent(
+                    ExecutionId: Guid.NewGuid().ToString("N")[..12],
+                    UserId: userId,
+                    Language: "csharp",
+                    ExecutionDurationMs: result.ExecutionTimeMs,
+                    MemoryBytes: GC.GetTotalMemory(false),
+                    IsSuccess: result.IsSuccess,
+                    HasCompileErrors: hasCompileErr,
+                    ErrorSnippet: errSnippet));
+        }
+
+        return result;
+    }
+
+    private async Task<CodeExecutionResponse> ExecuteInternalAsync(string code, int timeoutMs)
     {
         if (string.IsNullOrWhiteSpace(code))
         {

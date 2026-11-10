@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +28,8 @@ public class GeminiAgentService : IAiTutorService
     private readonly IAiConversationService? _conversationService;
     private readonly IAppCacheService? _cacheService;
     private readonly IKafkaProducer? _kafkaProducer;
+    private readonly ISemanticCurriculumSearchService? _semanticSearch;
+    private readonly IHttpContextAccessor? _httpContextAccessor;
 
     private readonly string? _apiKey;
     private readonly string _model;
@@ -42,7 +46,9 @@ public class GeminiAgentService : IAiTutorService
         ILogger<GeminiAgentService> logger,
         IAiConversationService? conversationService = null,
         IAppCacheService? cacheService = null,
-        IKafkaProducer? kafkaProducer = null)
+        IKafkaProducer? kafkaProducer = null,
+        ISemanticCurriculumSearchService? semanticSearch = null,
+        IHttpContextAccessor? httpContextAccessor = null)
     {
         _httpClient = httpClientFactory.CreateClient("Gemini");
         _configuration = configuration;
@@ -54,6 +60,8 @@ public class GeminiAgentService : IAiTutorService
         _conversationService = conversationService;
         _cacheService = cacheService;
         _kafkaProducer = kafkaProducer;
+        _semanticSearch = semanticSearch;
+        _httpContextAccessor = httpContextAccessor;
 
         var rawKey = (new[]
         {
@@ -76,6 +84,8 @@ public class GeminiAgentService : IAiTutorService
 
     public async Task<AiTutorChatResponse> ChatAsync(AiTutorChatRequest request, bool isEnglish)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         // 1. Save user question if conversation exists
         if (_conversationService != null && request.ConversationId.HasValue && request.ConversationId.Value != Guid.Empty)
         {
@@ -117,6 +127,8 @@ public class GeminiAgentService : IAiTutorService
             }
         }
 
+        stopwatch.Stop();
+
         // 2. Save model answer and auto-generate title if conversation exists
         if (_conversationService != null && request.ConversationId.HasValue && request.ConversationId.Value != Guid.Empty)
         {
@@ -133,24 +145,10 @@ public class GeminiAgentService : IAiTutorService
         }
 
         // 3. Emit Kafka Stream Telemetry Event for AI Auditing and Adaptive Learning Analytics
-        if (_kafkaProducer != null)
-        {
-            var promptSnippet = (request.Message ?? string.Empty).Length > 100
-                ? (request.Message ?? string.Empty).Substring(0, 100) + "..."
-                : (request.Message ?? string.Empty);
-
-            var telemetryEvent = new AtusAiTelemetryEvent(
-                SessionId: request.ConversationId?.ToString() ?? Guid.NewGuid().ToString(),
-                UserId: null,
-                PromptSnippet: promptSnippet,
-                ModelUsed: response.ModelUsed ?? _model,
-                LatencyMs: 0,
-                IsSuccess: response.Success,
-                IsFallback: !IsLiveGeminiAvailable || response.ResponseMarkdown.Contains("[Chế độ Ngoại tuyến") || response.ResponseMarkdown.Contains("[Offline Engine")
-            );
-
-            _kafkaProducer.ProduceFireAndForget(KafkaTopics.AtusAiTelemetry, telemetryEvent);
-        }
+        bool isFallback = !IsLiveGeminiAvailable
+            || response.ResponseMarkdown.Contains("[Chế độ Ngoại tuyến")
+            || response.ResponseMarkdown.Contains("[Offline Engine");
+        EmitAtusTelemetry(request, response.ModelUsed ?? _model, stopwatch.ElapsedMilliseconds, response.Success, isFallback);
 
         return response;
     }
@@ -160,12 +158,16 @@ public class GeminiAgentService : IAiTutorService
         bool isEnglish,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         if (!IsLiveGeminiAvailable)
         {
             await foreach (var chunk in _fallbackEngine.StreamChatAsync(request, isEnglish, cancellationToken))
             {
                 yield return chunk;
             }
+            stopwatch.Stop();
+            EmitAtusTelemetry(request, "OfflineEngine", stopwatch.ElapsedMilliseconds, true, isFallback: true);
             yield break;
         }
 
@@ -282,7 +284,12 @@ public class GeminiAgentService : IAiTutorService
                 }
             }
 
-            if (streamSucceeded) yield break;
+            if (streamSucceeded)
+            {
+                stopwatch.Stop();
+                EmitAtusTelemetry(request, currentModel, stopwatch.ElapsedMilliseconds, true, isFallback: false);
+                yield break;
+            }
         }
 
         if (!streamSucceeded)
@@ -295,6 +302,8 @@ public class GeminiAgentService : IAiTutorService
             {
                 yield return chunk;
             }
+            stopwatch.Stop();
+            EmitAtusTelemetry(request, "OfflineEngine", stopwatch.ElapsedMilliseconds, true, isFallback: true);
         }
     }
 
@@ -353,6 +362,9 @@ public class GeminiAgentService : IAiTutorService
             }
         }
 
+        // Enrich prompt with real Semantic Vector & Curriculum RAG Context
+        var ragContext = await GetCurriculumRagContextAsync(request.Message, isEnglish);
+
         // Append current turn user prompt
         contents.Add(new JsonObject
         {
@@ -361,7 +373,7 @@ public class GeminiAgentService : IAiTutorService
             {
                 new JsonObject
                 {
-                    ["text"] = BuildUserPrompt(request)
+                    ["text"] = BuildUserPrompt(request, ragContext)
                 }
             }
         });
@@ -891,7 +903,7 @@ Return a valid JSON object:
 Cấp độ 1: Khái niệm thuật toán cốt lõi.
 Cấp độ 2: Cấu trúc dữ liệu và hướng tiếp cận tối ưu.
 Cấp độ 3: Mã giả hoặc logic từng bước.
-Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
+Trả về định dạng JSON hợp lệ:
 {
   ""hintLevel"": 1,
   ""title"": ""Tiêu đề gợi ý"",
@@ -962,7 +974,7 @@ Return a valid JSON object matching this schema:
 }"
                 : @"Bạn là Atus, Chuyên gia Principal C# & .NET Code Reviewer của NET-Tutos.
 Phân tích mã nguồn C# theo tiêu chuẩn Clean Code, Modern C# (.NET 10), Hiệu năng và Bảo mật.
-Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
+Trả về định dạng JSON hợp lệ:
 {
   ""score"": 85,
   ""summary"": ""Tóm tắt tổng quan về chất lượng mã nguồn."",
@@ -1035,7 +1047,7 @@ Return a valid JSON object matching this schema:
 }"
                 : @"Bạn là Atus, Chuyên gia Cấu trúc dữ liệu & Giải thuật của NET-Tutos.
 Phân tích độ phức tạp thuật toán Big-O (Thời gian & Không gian bộ nhớ) của đoạn mã C#.
-Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
+Trả về định dạng JSON hợp lệ:
 {
   ""timeComplexity"": ""O(N log N)"",
   ""spaceComplexity"": ""O(1)"",
@@ -1100,7 +1112,7 @@ Return a valid JSON object:
 }"
                 : @"Bạn là Atus, Chẩn đoán Kiểm thử Tự động cho bài tập C# của NET-Tutos.
 Phân tích nguyên nhân test case thất bại và đưa ra gợi ý sư phạm.
-Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
+Trả về định dạng JSON hợp lệ:
 {
   ""failureCategory"": ""Lỗi logic / Điều kiện biên / Tràn số / Sai kiểu"",
   ""diagnosticTitle"": ""Tiêu đề chẩn đoán"",
@@ -1162,7 +1174,7 @@ Return a valid JSON object matching this schema:
 }"
                 : @"Bạn là Atus, Chuyên gia Kiểm thử Tự động & Software Engineer in Test của NET-Tutos.
 Sinh mã Unit Test xUnit chất lượng cao theo chuẩn AAA Pattern (Arrange - Act - Assert) kết hợp FluentAssertions cho đoạn mã C#.
-Tráº£ vá» Ä‘á»‹nh dáº¡ng JSON há»£p lá»‡:
+Trả về định dạng JSON hợp lệ:
 {
   ""testFramework"": ""xUnit & FluentAssertions"",
   ""testCode"": ""// Lớp kiểm thử hoàn chỉnh"",
@@ -1227,7 +1239,7 @@ Trả về định dạng JSON hợp lệ theo đúng cấu trúc sau:
   ""depthPracticalScore"": 75,
   ""performanceRating"": ""Trình độ Senior / Middle Vững / Junior Tiềm năng"",
   ""feedback"": ""Lời nhận xét ngắn gọn, trực diện chỉ rõ ưu điểm và điểm cần cải thiện."",
-  ""strengths"": [""Æ¯u Ä‘iá»ƒm 1"", ""Æ¯u Ä‘iá»ƒm 2""],
+  ""strengths"": [""Ưu điểm 1"", ""Ưu điểm 2""],
   ""missingPoints"": [""Điểm thiếu sót 1"", ""Điểm thiếu sót 2""],
   ""followUpQuestion"": ""Một câu hỏi xoáy phản biện sắc bén về tình huống biên, đa luồng hoặc rò rỉ bộ nhớ."",
   ""modelAnswerSample"": ""### Đáp Án Mẫu Chuẩn Senior\nNgắn gọn, chuyên sâu, đúng trọng tâm.""
@@ -1357,7 +1369,7 @@ Trả về định dạng JSON hợp lệ theo đúng cấu trúc:
     { ""skillName"": ""Lập trình Bất đồng bộ & Xử lý Đồng thời"", ""score"": 80, ""level"": ""Mid"" },
     { ""skillName"": ""Entity Framework Core & Tối ưu Truy vấn"", ""score"": 78, ""level"": ""Mid"" },
     { ""skillName"": ""Kiến trúc ASP.NET Core & Web API"", ""score"": 82, ""level"": ""Solid"" },
-    { ""skillName"": ""Clean Architecture & Máº«u Thiáº¿t káº¿ SOLID"", ""score"": 80, ""level"": ""Proficient"" }
+    { ""skillName"": ""Clean Architecture & Mẫu Thiết kế SOLID"", ""score"": 80, ""level"": ""Proficient"" }
   ],
   ""recommendedLessons"": [
     { ""title"": ""Tên bài học"", ""slug"": ""slug-bai-hoc"", ""reason"": ""Lý do cần ôn tập thêm."" }
@@ -1384,6 +1396,7 @@ Trả về định dạng JSON hợp lệ theo đúng cấu trúc:
                 {
                     result.Success = true;
                     result.TimeSpentSeconds = request.TimeSpentSeconds;
+                    await EnrichReportWithRagLessonsAsync(result, request, isEnglish);
                     return result;
                 }
             }
@@ -1393,7 +1406,9 @@ Trả về định dạng JSON hợp lệ theo đúng cấu trúc:
             _logger.LogWarning(ex, "Live interview report generation failed. Falling back.");
         }
 
-        return await _fallbackEngine.GenerateInterviewReportAsync(request, isEnglish);
+        var fallbackReport = await _fallbackEngine.GenerateInterviewReportAsync(request, isEnglish);
+        await EnrichReportWithRagLessonsAsync(fallbackReport, request, isEnglish);
+        return fallbackReport;
     }
 
     public async Task<AiTutorStatusResponse> CheckStatusAsync()
@@ -1606,12 +1621,119 @@ CRITICAL RULES:
         }
     }
 
+    private void EmitAtusTelemetry(
+        AiTutorChatRequest request,
+        string modelUsed,
+        long latencyMs,
+        bool isSuccess,
+        bool isFallback)
+    {
+        if (_kafkaProducer == null) return;
+
+        var userId = _httpContextAccessor?.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var promptSnippet = (request.Message ?? string.Empty).Length > 100
+            ? (request.Message ?? string.Empty).Substring(0, 100) + "..."
+            : (request.Message ?? string.Empty);
+
+        var telemetryEvent = new AtusAiTelemetryEvent(
+            SessionId: request.ConversationId?.ToString() ?? Guid.NewGuid().ToString("N")[..12],
+            UserId: userId,
+            PromptSnippet: promptSnippet,
+            ModelUsed: modelUsed,
+            LatencyMs: latencyMs,
+            IsSuccess: isSuccess,
+            IsFallback: isFallback
+        );
+
+        _kafkaProducer.ProduceFireAndForget(KafkaTopics.AtusAiTelemetry, telemetryEvent);
+    }
+
+    private async Task EnrichReportWithRagLessonsAsync(
+        AiInterviewReportResponse report,
+        AiInterviewReportRequest request,
+        bool isEnglish)
+    {
+        if (_semanticSearch == null) return;
+
+        try
+        {
+            var weakItems = request.Items
+                .OrderBy(i => i.Score)
+                .Take(3)
+                .ToList();
+
+            var queryParts = weakItems.Any()
+                ? weakItems.Select(w => $"{w.Topic} {w.Question}").ToList()
+                : new List<string> { "C# Async Await Dependency Injection Clean Architecture" };
+
+            var verifiedLessons = new List<AiInterviewRecommendedLesson>();
+            var seenTitles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var q in queryParts)
+            {
+                var searchRes = await _semanticSearch.SearchAsync(q, isEnglish, topK: 2);
+                foreach (var hit in searchRes.Hits)
+                {
+                    if (!seenTitles.Add(hit.Title)) continue;
+
+                    string urlSlug = isEnglish
+                        ? $"/csharp-curriculum/{hit.LessonNumber}"
+                        : $"/chuong-trinh-csharp/{hit.LessonNumber}";
+
+                    verifiedLessons.Add(new AiInterviewRecommendedLesson
+                    {
+                        Title = hit.Title,
+                        Slug = urlSlug,
+                        Reason = hit.Summary
+                    });
+
+                    if (verifiedLessons.Count >= 3) break;
+                }
+                if (verifiedLessons.Count >= 3) break;
+            }
+
+            if (verifiedLessons.Count > 0)
+            {
+                report.RecommendedLessons = verifiedLessons;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug("EnrichReportWithRagLessonsAsync skipped: {Msg}", ex.Message);
+        }
+    }
+
     private async Task<string?> GetCurriculumRagContextAsync(string? message, bool isEnglish)
     {
         if (string.IsNullOrWhiteSpace(message)) return null;
 
         try
         {
+            var sb = new System.Text.StringBuilder();
+            bool hasContent = false;
+
+            // 1. Semantic Vector RAG Search over comprehensive bilingual C# curriculum
+            if (_semanticSearch != null)
+            {
+                var semanticHits = await _semanticSearch.SearchAsync(message, isEnglish, topK: 2);
+                if (semanticHits.Hits.Count > 0)
+                {
+                    hasContent = true;
+                    sb.AppendLine(isEnglish
+                        ? "\n[Relevant NET-Tutos Semantic Curriculum (Use exact markdown links if helpful)]:"
+                        : "\n[Giáo trình Chuyên sâu NET-Tutos liên quan (Hãy gắn link Markdown chính xác cho học viên)]:");
+
+                    foreach (var hit in semanticHits.Hits)
+                    {
+                        var route = isEnglish
+                            ? $"/csharp-curriculum/{hit.LessonNumber}"
+                            : $"/chuong-trinh-csharp/{hit.LessonNumber}";
+                        sb.AppendLine($"- [{hit.Title}]({route}): {hit.Summary}");
+                    }
+                }
+            }
+
+            // 2. Keyword match against Tutorial DB catalog (cached in L1/L2 Redis)
             var lowerMsg = message.ToLowerInvariant();
             var keywords = lowerMsg.Split(new[] { ' ', ',', '.', '?', '!', '\n', '\r', ':', ';' }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(w => w.Length >= 3 && !IsCommonStopWord(w))
@@ -1619,66 +1741,71 @@ CRITICAL RULES:
                 .Take(6)
                 .ToList();
 
-            if (!keywords.Any()) return null;
-
-            List<TutorialRagDto>? tutorials = null;
-            if (_cacheService != null)
+            if (keywords.Any())
             {
-                tutorials = await _cacheService.GetOrCreateAsync("curriculum:rag:tutorials:catalog", async ct =>
+                List<TutorialRagDto>? tutorials = null;
+                if (_cacheService != null)
                 {
-                    return await _context.Tutorials
+                    tutorials = await _cacheService.GetOrCreateAsync("curriculum:rag:tutorials:catalog", async ct =>
+                    {
+                        return await _context.Tutorials
+                            .AsNoTracking()
+                            .OrderBy(t => t.OrderIndex)
+                            .Select(t => new TutorialRagDto(t.Id, t.Title, t.Slug, t.Summary ?? string.Empty))
+                            .ToListAsync(ct);
+                    }, l2Expiration: TimeSpan.FromHours(2), l1Expiration: TimeSpan.FromMinutes(30));
+                }
+                else
+                {
+                    tutorials = await _context.Tutorials
                         .AsNoTracking()
                         .OrderBy(t => t.OrderIndex)
                         .Select(t => new TutorialRagDto(t.Id, t.Title, t.Slug, t.Summary ?? string.Empty))
-                        .ToListAsync(ct);
-                }, l2Expiration: TimeSpan.FromHours(2), l1Expiration: TimeSpan.FromMinutes(30));
-            }
-            else
-            {
-                tutorials = await _context.Tutorials
-                    .AsNoTracking()
-                    .OrderBy(t => t.OrderIndex)
-                    .Select(t => new TutorialRagDto(t.Id, t.Title, t.Slug, t.Summary ?? string.Empty))
-                    .ToListAsync();
-            }
+                        .ToListAsync();
+                }
 
-            if (tutorials == null || tutorials.Count == 0) return null;
-
-            var matches = tutorials
-                .Select(t =>
+                if (tutorials != null && tutorials.Count > 0)
                 {
-                    int score = 0;
-                    var tTitle = t.Title.ToLowerInvariant();
-                    var tSlug = t.Slug.ToLowerInvariant();
-                    var tSummary = t.Summary.ToLowerInvariant();
+                    var matches = tutorials
+                        .Select(t =>
+                        {
+                            int score = 0;
+                            var tTitle = t.Title.ToLowerInvariant();
+                            var tSlug = t.Slug.ToLowerInvariant();
+                            var tSummary = t.Summary.ToLowerInvariant();
 
-                    foreach (var kw in keywords)
+                            foreach (var kw in keywords)
+                            {
+                                if (tTitle.Contains(kw)) score += 5;
+                                if (tSlug.Contains(kw)) score += 3;
+                                if (tSummary.Contains(kw)) score += 1;
+                            }
+                            return new { Tutorial = t, Score = score };
+                        })
+                        .Where(m => m.Score >= 5)
+                        .OrderByDescending(m => m.Score)
+                        .Take(2)
+                        .Select(m => m.Tutorial)
+                        .ToList();
+
+                    if (matches.Any())
                     {
-                        if (tTitle.Contains(kw)) score += 5;
-                        if (tSlug.Contains(kw)) score += 3;
-                        if (tSummary.Contains(kw)) score += 1;
+                        if (!hasContent)
+                        {
+                            sb.AppendLine(isEnglish
+                                ? "\n[Relevant NET-Tutos Tutorials Context (Use exact markdown [Title](/lessons/slug))]:"
+                                : "\n[Bài hướng dẫn NET-Tutos liên quan (Hãy gắn link [Tên bài](/lessons/slug) nếu hữu ích)]:");
+                        }
+                        hasContent = true;
+                        foreach (var match in matches)
+                        {
+                            sb.AppendLine($"- [{match.Title}](/lessons/{match.Slug}): {match.Summary}");
+                        }
                     }
-                    return new { Tutorial = t, Score = score };
-                })
-                .Where(m => m.Score >= 5)
-                .OrderByDescending(m => m.Score)
-                .Take(2)
-                .Select(m => m.Tutorial)
-                .ToList();
-
-            if (!matches.Any()) return null;
-
-            var sb = new System.Text.StringBuilder();
-            sb.AppendLine(isEnglish 
-                ? "\n[Relevant NET-Tutos Lessons Context (Recommend linking using markdown [Title](/lessons/slug) if helpful)]:"
-                : "\n[Giáo trình NET-Tutos liên quan (Hãy tự nhiên giới thiệu học viên bấm vào link [Tên bài học](/lessons/slug) nếu hữu ích)]:");
-
-            foreach (var match in matches)
-            {
-                sb.AppendLine($"- [{match.Title}](/lessons/{match.Slug}): {match.Summary}");
+                }
             }
 
-            return sb.ToString();
+            return hasContent ? sb.ToString() : null;
         }
         catch (Exception ex)
         {

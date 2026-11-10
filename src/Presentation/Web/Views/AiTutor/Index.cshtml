@@ -1,4 +1,4 @@
-﻿@model NET_Tutos.Models.ViewModels.AiTutorIndexViewModel
+@model NET_Tutos.Models.ViewModels.AiTutorIndexViewModel
 @{
     bool isEn = Context.IsEnglish();
     ViewData["Title"] = isEn ? "Atus — AI .NET Mentor | NET-Tutos" : "Atus — Trợ Lý AI Gia Sư .NET | NET-Tutos";
@@ -1181,7 +1181,7 @@
                         <div class="d-flex gap-1.5 align-items-center">
                             <button type="button" class="btn btn-sm btn-success py-0 px-2 fw-semibold d-inline-flex align-items-center gap-1" style="font-size: 0.68rem;" onclick="runInlineCode(this)" title="${isEn ? 'Execute code directly' : 'Chạy trực tiếp mã nguồn'}">
                                 <i class="bi bi-play-fill"></i>
-                                <span>${isEn ? 'Run' : 'Cháº¡y trá»±c tiáº¿p'}</span>
+                                <span>${isEn ? 'Run' : 'Chạy trực tiếp'}</span>
                             </button>
                             <button type="button" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 0.68rem;" onclick="copyCodeToClipboard(this)">
                                 <i class="bi bi-clipboard me-1"></i>${isEn ? 'Copy' : 'Sao chép'}

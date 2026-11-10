@@ -134,4 +134,29 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
         registerHtml.Should().Contain("value=\"GitHub\"");
         registerHtml.Should().Contain("value=\"Google\"");
     }
+
+    [Fact]
+    public async Task Get_AdaptiveRecommendationsAndKafkaAnalytics_ReturnValidJsonPayloads()
+    {
+        // Act
+        var adaptiveResponse = await _client.GetAsync("/api/adaptive/recommendations");
+        var kafkaResponse = await _client.GetAsync("/api/kafka/analytics");
+        var interviewResponse = await _client.GetAsync("/Interview");
+
+        // Assert
+        adaptiveResponse.EnsureSuccessStatusCode();
+        kafkaResponse.EnsureSuccessStatusCode();
+        interviewResponse.EnsureSuccessStatusCode();
+
+        var adaptiveJson = await adaptiveResponse.Content.ReadAsStringAsync();
+        adaptiveJson.Should().Contain("recommendedLessons");
+        adaptiveJson.Should().Contain("suggestedInterviewLevel");
+
+        var kafkaJson = await kafkaResponse.Content.ReadAsStringAsync();
+        kafkaJson.Should().Contain("totalEventsConsumed");
+        kafkaJson.Should().Contain("recentEvents");
+
+        var interviewHtml = await interviewResponse.Content.ReadAsStringAsync();
+        interviewHtml.Should().Contain("adaptiveLearningPanel");
+    }
 }

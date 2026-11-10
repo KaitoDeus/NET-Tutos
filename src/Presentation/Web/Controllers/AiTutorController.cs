@@ -16,19 +16,22 @@ public class AiTutorController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAppCacheService? _cacheService;
     private readonly IKafkaProducer? _kafkaProducer;
+    private readonly IKafkaStreamAnalyticsStore? _analyticsStore;
 
     public AiTutorController(
         IAiTutorService aiTutorService,
         IAiConversationService conversationService,
         UserManager<ApplicationUser> userManager,
         IAppCacheService? cacheService = null,
-        IKafkaProducer? kafkaProducer = null)
+        IKafkaProducer? kafkaProducer = null,
+        IKafkaStreamAnalyticsStore? analyticsStore = null)
     {
         _aiTutorService = aiTutorService;
         _conversationService = conversationService;
         _userManager = userManager;
         _cacheService = cacheService;
         _kafkaProducer = kafkaProducer;
+        _analyticsStore = analyticsStore;
     }
 
     // GET: /AiTutor or /AiTutor?id={conversationId}
@@ -461,6 +464,8 @@ public class AiTutorController : Controller
             kafkaDiag = await _kafkaProducer.GetDiagnosticsAsync();
         }
 
+        KafkaConsumerAnalyticsSnapshot? consumerDiag = _analyticsStore?.GetSnapshot();
+
         return Json(new
         {
             success = true,
@@ -469,6 +474,7 @@ public class AiTutorController : Controller
             liveAi = status,
             cacheTelemetry = cacheDiag,
             kafkaTelemetry = kafkaDiag,
+            kafkaConsumerAnalytics = consumerDiag,
             serverTimestamp = DateTime.UtcNow
         });
     }

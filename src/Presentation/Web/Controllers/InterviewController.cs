@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using NET_Tutos.BuildingBlocks.EventBus.Events;
+using NET_Tutos.BuildingBlocks.EventBus.Kafka;
 using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
 using NET_Tutos.Services;
@@ -14,19 +16,22 @@ public class InterviewController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IStreakService _streakService;
     private readonly ILogger<InterviewController> _logger;
+    private readonly IKafkaProducer? _kafkaProducer;
 
     public InterviewController(
         IFlashcardService flashcardService,
         IAiTutorService aiTutorService,
         UserManager<ApplicationUser> userManager,
         IStreakService streakService,
-        ILogger<InterviewController> logger)
+        ILogger<InterviewController> logger,
+        IKafkaProducer? kafkaProducer = null)
     {
         _flashcardService = flashcardService;
         _aiTutorService = aiTutorService;
         _userManager = userManager;
         _streakService = streakService;
         _logger = logger;
+        _kafkaProducer = kafkaProducer;
     }
 
     // GET: /Interview or /phong-van-csharp or /interview-prep
@@ -59,7 +64,7 @@ public class InterviewController : Controller
 
         if (!sessionModel.QueueCards.Any())
         {
-            TempData["SuccessMessage"] = isEn 
+            TempData["SuccessMessage"] = isEn
                 ? "You've reviewed all cards in this topic for today! Great job!"
                 : "Bạn đã hoàn thành ôn tập tất cả các thẻ trong chủ đề này hôm nay! Tuyệt vời!";
             return RedirectToAction(nameof(Index));
@@ -82,6 +87,18 @@ public class InterviewController : Controller
         bool isEn = HttpContext.IsEnglish();
         var response = await _flashcardService.RecordReviewAsync(
             userId, request.FlashcardId, request.Rating, isEn);
+
+        _kafkaProducer?.ProduceFireAndForget(
+            KafkaTopics.UserLearningActivity,
+            new UserLearningActivityEvent(
+                UserId: userId,
+                ActivityType: "FlashcardReview",
+                EntityId: request.FlashcardId.ToString(),
+                Title: $"Flashcard #{request.FlashcardId}",
+                Metadata: new Dictionary<string, string>
+                {
+                    ["rating"] = request.Rating.ToString()
+                }));
 
         return Json(response);
     }
@@ -112,8 +129,26 @@ public class InterviewController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EvaluateAiAnswer([FromBody] AiInterviewEvaluationRequest request)
     {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         bool isEn = HttpContext.IsEnglish();
         var evaluation = await _aiTutorService.EvaluateInterviewAnswerAsync(request, isEn);
+
+        if (_kafkaProducer != null && !string.IsNullOrEmpty(userId))
+        {
+            _kafkaProducer.ProduceFireAndForget(
+                KafkaTopics.UserLearningActivity,
+                new UserLearningActivityEvent(
+                    UserId: userId,
+                    ActivityType: "MockInterviewEval",
+                    EntityId: request.FlashcardId.ToString(),
+                    Title: request.Topic,
+                    Metadata: new Dictionary<string, string>
+                    {
+                        ["score"] = evaluation.OverallScore.ToString(),
+                        ["topic"] = request.Topic
+                    }));
+        }
+
         return Json(evaluation);
     }
 
@@ -150,6 +185,21 @@ public class InterviewController : Controller
                 }
 
                 await _streakService.RecordLearningActivityStreakAsync(userId);
+
+                _kafkaProducer?.ProduceFireAndForget(
+                    KafkaTopics.UserLearningActivity,
+                    new UserLearningActivityEvent(
+                        UserId: userId,
+                        ActivityType: "MockInterviewReport",
+                        EntityId: "mock-session",
+                        Title: report.ReadinessLevel,
+                        XpEarned: report.XpAwarded,
+                        DurationSeconds: request.TimeSpentSeconds,
+                        Metadata: new Dictionary<string, string>
+                        {
+                            ["score"] = report.AverageScore.ToString(),
+                            ["topic"] = request.Items.OrderBy(i => i.Score).FirstOrDefault()?.Topic ?? ".NET Architecture"
+                        }));
             }
             catch (Exception ex)
             {
