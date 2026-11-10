@@ -5,8 +5,8 @@ Author: Senior Principal Solution Architect & Lead Distributed Systems Engineer
 System: **.NET Tutos - Comprehensive .NET Learning & Assessment Platform**  
 Target Framework: **.NET 10 (`net10.0`), C# 14, ASP.NET Core**  
 Architecture Pattern: **Strangler Fig Migration, Domain-Driven Design (DDD), Clean Architecture, Event-Driven Architecture (EDA)**  
-Container Orchestration: **Docker Compose (PostgreSQL 17, RabbitMQ 3, CodeRunner.API, Gamification.API, AiTutor.API, Web BFF, YARP Gateway)**  
-Status: **Phase 1, Phase 2, Phase 3, Phase 4 (YARP API Gateway) & Phase 5 (AiTutor.API) Implemented & Verified in CI Pipeline (112/112 Tests Passing)**  
+Container Orchestration: **Docker Compose (12 Containers: YARP Gateway, Web BFF, CodeRunner, Gamification, AiTutor, Catalog, PostgreSQL 17, Redis 7, RabbitMQ 3, Kafka KRaft, Prometheus, Grafana)**  
+Status: **Phase 1 – Phase 19 Implemented & Verified (201/201 Automated Tests Passing)**  
 
 ---
 
@@ -337,23 +337,26 @@ To provide unified access control, TLS termination, distributed tracing, and rat
    - `/{**catch-all}` -> Routed to `web-cluster` (`http://web:5000`).
 3. **Correlation ID Middleware:** Automatically inspects incoming HTTP requests for `X-Correlation-ID`. If missing, generates a new unique `Guid` and stamps it onto both response headers and forwarded upstream requests for distributed tracing.
 4. **Endpoint Rate Limiting:** Enforces ASP.NET Core Fixed-Window Rate Limiter (`runner-policy`: 60 requests/minute per client IP) on compute-intensive Roslyn execution endpoints to defend against denial-of-service abuse.
-5. **Gateway Health & Topology Discovery:** Exposes `/healthz` for load-balancer probes and `/api/v1/gateway/status` for real-time cluster/route discovery.
+5. **Gateway Health, Telemetry & OpenMetrics:** Exposes `/healthz` for load-balancer probes, `/api/v1/gateway/status` for real-time cluster/route discovery, `/api/v1/gateway/telemetry`, and `/metrics` for Prometheus scraping.
 
 ---
 
-## 6. Docker Compose Multi-Container Orchestration
+## 6. Docker Compose Multi-Container Orchestration (12 Containers)
 
 The platform is orchestrated via [`docker-compose.yml`](file:///d:/NET-Tutos/docker-compose.yml) on a shared bridge network:
 
 | Container Name | Service | Image / Dockerfile | Ports | Purpose |
 | :--- | :--- | :--- | :--- | :--- |
-| **`nettutos-gateway`** | `gateway` | `src/Gateways/Gateway/Dockerfile` | `5000:8080` | Microsoft YARP API Gateway (Single External Ingress) |
-| **`nettutos-web`** | `web` | `src/Presentation/Web/Dockerfile` | `5001:5000` | ASP.NET Core 10 Web Application & BFF Frontend |
-| **`nettutos-coderunner`** | `coderunner` | `src/Services/CodeRunner/NET-Tutos.CodeRunner.API/Dockerfile` | `5002:8080` | Sandboxed Roslyn script compilation & challenge judge |
-| **`nettutos-gamification`** | `gamification` | `src/Services/Gamification/NET-Tutos.Gamification.API/Dockerfile` | `5004:8080` | Gamification microservice with MassTransit consumers |
-| **`nettutos-aitutor`** | `aitutor` | `src/Services/AiTutor/NET-Tutos.AiTutor.API/Dockerfile` | `5006:8080` | AI Tutor analysis & technical mock interview microservice |
-| **`nettutos-catalog`** | `catalog` | `src/Services/Catalog/NET-Tutos.Catalog.API/Dockerfile` | `5008:8080` | Catalog, curriculum & exam certification microservice |
-| **`nettutos-redis`** | `redis` | `redis:7-alpine` | `6379:6379` | L2 Distributed Cache (Roslyn SHA-256, Catalog & SEO Sitemap) |
+| **`nettutos-gateway`** | `gateway` | `src/Gateways/Gateway/Dockerfile` | `5000:8080` | Microsoft YARP API Gateway, Rate Limiter & `/metrics` |
+| **`nettutos-web`** | `web` | `src/Presentation/Web/Dockerfile` | `5001:5000` | ASP.NET Core 10 Web BFF, Multi-Source RAG, TTS, IDE Bridge & `/metrics` |
+| **`nettutos-coderunner`** | `coderunner` | `src/Services/CodeRunner/NET-Tutos.CodeRunner.API/Dockerfile` | `5002:8080` | Sandboxed Roslyn script compilation, challenge judge & `/metrics` |
+| **`nettutos-gamification`** | `gamification` | `src/Services/Gamification/NET-Tutos.Gamification.API/Dockerfile` | `5004:8080` | Gamification microservice (`MassTransit.RabbitMQ 8.3.7`) & `/metrics` |
+| **`nettutos-aitutor`** | `aitutor` | `src/Services/AiTutor/NET-Tutos.AiTutor.API/Dockerfile` | `5006:8080` | AI Tutor analysis, technical mock interview microservice & `/metrics` |
+| **`nettutos-catalog`** | `catalog` | `src/Services/Catalog/NET-Tutos.Catalog.API/Dockerfile` | `5008:8080` | Catalog, 7-stage curriculum, exam grading, certification & `/metrics` |
+| **`nettutos-prometheus`** | `prometheus` | `prom/prometheus:latest` | `9090:9090` | Prometheus time-series scraper polling `/metrics` across 7 targets (`5s`) |
+| **`nettutos-grafana`** | `grafana` | `grafana/grafana:latest` | `3000:3000` | Pre-provisioned Grafana dashboards (`nettutos-overview`, 12 panels) |
+| **`nettutos-kafka`** | `kafka` | `apache/kafka:latest` | `9092:9092`<br/>`29092:29092` | Apache Kafka KRaft event streaming for AI, Roslyn & Learning telemetry |
+| **`nettutos-redis`** | `redis` | `redis:7-alpine` | `6379:6379` | L2 Distributed Cache (Roslyn SHA-256, Neural TTS, Catalog & SEO Sitemap) |
 | **`nettutos-rabbitmq`** | `rabbitmq` | `rabbitmq:3-management-alpine` | `5672:5672`<br/>`15672:15672` | AMQP Message Broker & Management Web Console |
 | **`nettutos-postgres`** | `postgres` | `postgres:17-alpine` | `5432:5432` | Relational storage for Identity, Web, and Gamification |
 
@@ -366,10 +369,10 @@ docker compose up -d --build
 
 ## 7. Verification & Automated Quality Gates
 
-The distributed microservices architecture is verified by a 112-test automated suite executed across all projects:
+The distributed microservices architecture & IDE tooling are verified by **201 automated tests**:
 
 ```powershell
-# 1. Run API Gateway routing and correlation ID tests (4 tests)
+# 1. Run API Gateway routing, correlation ID & Prometheus /metrics tests (6 tests)
 dotnet test tests/NET-Tutos.Gateway.Tests/NET-Tutos.Gateway.Tests.csproj
 
 # 2. Run Gamification microservice domain & consumer tests (16 tests)
@@ -381,12 +384,18 @@ dotnet test tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj
 # 4. Run AiTutor microservice domain & engine tests (16 tests)
 dotnet test tests/NET-Tutos.AiTutor.Tests/NET-Tutos.AiTutor.Tests.csproj
 
-# 5. Run Web application unit & service tests (53 tests)
+# 5. Run Catalog & Assessment microservice tests (17 tests)
+dotnet test tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj
+
+# 6. Run Web application unit & service tests (97 tests)
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
 
-# 6. Run HTTP integration pipeline tests (12 tests)
+# 7. Run HTTP integration pipeline tests (33 tests)
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
+
+# 8. Run VS Code Extension TypeScript unit tests (5 tests)
+npm --prefix extensions/vscode-atus test
 ```
 
-**Quality Gate Result:** **151/151 Tests Passing across 7 Test Projects (100% Pass Rate, 0 Failed, 0 Skipped).**  
-All test suites are permanently enforced in GitHub Actions continuous delivery via [`.github/workflows/ci.yml`](file:///d:/NET-Tutos/.github/workflows/ci.yml). For the full phase-by-phase roadmap and AI context memory, see [**10. Master Project Roadmap & AI Context Memory**](file:///d:/NET-Tutos/docs/10_project_roadmap_and_ai_memory.md).
+**Quality Gate Result:** **201/201 Tests Passing (196 `.NET` across 7 Test Projects + 5 VS Code Node Tests — 0 Failed, 0 Skipped).**  
+All `.NET` test suites are enforced in GitHub Actions continuous delivery via [`.github/workflows/ci.yml`](file:///d:/NET-Tutos/.github/workflows/ci.yml). For the full phase-by-phase roadmap and AI context memory, see [**10. Master Project Roadmap & AI Context Memory**](file:///d:/NET-Tutos/docs/10_project_roadmap_and_ai_memory.md).

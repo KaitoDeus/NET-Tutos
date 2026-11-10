@@ -3,9 +3,9 @@
 Document Type: Enterprise Quality Assurance & Automated Testing Specification  
 System: .NET Tutos - Comprehensive .NET Learning & Assessment Platform  
 Scope: Unit Testing, Integration Testing, Sandboxed Execution, CI/CD Automated Quality Gates  
-Target Framework: .NET 10 (`net10.0`), C# 14  
-Tooling: xUnit 2.9, FluentAssertions 7.2, Moq 4.20, Coverlet 6.0, Microsoft.AspNetCore.Mvc.Testing 10.0  
-Status: Verified & Integrated in Automated CI Pipeline  
+Target Framework: .NET 10 (`net10.0`), C# 14 & Node.js 22 / TypeScript 5.7 (VS Code Extension)  
+Tooling: xUnit 2.9, FluentAssertions 7.2, Moq 4.20, Coverlet 6.0, Microsoft.AspNetCore.Mvc.Testing 10.0, `node:test`  
+Status: Verified & Integrated in Automated CI Pipeline (**201/201 Tests Passing**)  
 
 ---
 
@@ -187,25 +187,39 @@ flowchart LR
 
 ## 5. Local Developer Execution Guide
 
-Developers can execute and debug the automated testing suite locally using standard .NET CLI commands.
+Developers can execute and debug the full **201-test** automated verification suite locally using standard .NET CLI and npm commands.
 
-### Run Unit Tests:
+### Run Web Unit & Integration Tests:
 ```powershell
+# Web BFF unit tests (97 tests)
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj --verbosity normal
-```
 
-### Run Microservice Tests:
-```powershell
-# Run CodeRunner microservice tests (6 tests)
-dotnet test tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj --verbosity normal
-
-# Run Gamification microservice tests (7 tests)
-dotnet test tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.csproj --verbosity normal
-```
-
-### Run Integration Tests:
-```powershell
+# HTTP Integration Pipeline tests (/metrics, /api/v1/ide/*, /api/search/knowledge, Whiteboard, TTS, OAuth, SEO) (33 tests)
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj --verbosity normal
+```
+
+### Run Gateway & Microservice Tests:
+```powershell
+# YARP API Gateway tests (6 tests)
+dotnet test tests/NET-Tutos.Gateway.Tests/NET-Tutos.Gateway.Tests.csproj
+
+# CodeRunner microservice tests (11 tests)
+dotnet test tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj
+
+# Gamification microservice tests (16 tests)
+dotnet test tests/NET-Tutos.Gamification.Tests/NET-Tutos.Gamification.Tests.csproj
+
+# AiTutor microservice tests (16 tests)
+dotnet test tests/NET-Tutos.AiTutor.Tests/NET-Tutos.AiTutor.Tests.csproj
+
+# Catalog microservice tests (17 tests)
+dotnet test tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj
+```
+
+### Run VS Code Extension TypeScript Tests:
+```powershell
+npm --prefix extensions/vscode-atus run lint
+npm --prefix extensions/vscode-atus test   # 5 tests (AtusClient & reviewMapper)
 ```
 
 ### Run All Automated Tests with Code Coverage:

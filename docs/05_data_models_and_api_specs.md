@@ -234,3 +234,39 @@ erDiagram
     "timeSpentSeconds": 485
   }
   ```
+
+#### `POST /Interview/EvaluateLiveCoding`
+- **Description:** Evaluate candidate C# whiteboard solution concurrently via `ReviewCodeAsync` + `AnalyzeComplexityAsync` (`Task.WhenAll`), returning Clean Code feedback, Big-O metrics, refactored snippet, combined score, and emitting `UserLearningActivityEvent` (`LiveCodingInterview`) to Kafka.
+- **Request Body:** `{ "topic": "Async/Await", "title": "...", "sourceCode": "..." }` (requires valid `[ValidateAntiForgeryToken]` header).
+
+---
+
+### Group 5: Multi-Source Hybrid RAG, Neural TTS, Kafka Telemetry & Observability
+
+| Endpoint | Method | Purpose |
+| :--- | :---: | :--- |
+| `/api/search/knowledge?q=&top=6` | `GET` | Unified semantic search across `Curriculum`, `Tutorial`, `CodingChallenge`, and `InterviewFlashcard` (`175+` docs). |
+| `/api/search/semantic?q=&top=5` | `GET` | Curriculum-only 101-lesson semantic vector search. |
+| `/api/tts/speak?text=&lang=vi` | `GET` | Cached bilingual Neural Text-to-Speech (`audio/mpeg`) stored in Redis L1/L2 cache. |
+| `/api/adaptive/recommendations` | `GET` | Personalized weak-spot recommendations combining Kafka consumer telemetry & Hybrid RAG. |
+| `/api/adaptive/challenge` | `POST` | Generates runnable C# coding remediation challenges for weak topics (`AiAdaptiveChallengeRequest`). |
+| `/api/kafka/analytics` | `GET` | Real-time Kafka consumer analytics snapshot (`TopAiTopics`, `TopCompilerErrors`, `RecentEvents`). |
+| `/api/telemetry/diagnostics` | `GET` | JSON snapshot of Web BFF HTTP, Downstream Microservices, Cache, TTS & AI diagnostics. |
+| `/metrics` | `GET` | Prometheus OpenMetrics v0.0.4 scrape endpoint (available across `Web`, `Gateway`, `CodeRunner`, `Gamification`, `AiTutor`, `Catalog`). |
+
+---
+
+### Group 6: VS Code Extension IDE Bridge (`/api/v1/ide`)
+
+Stateless JSON REST endpoints exposed by `IdeAssistantController` (accessible directly via Web `:5001` or proxied through YARP Gateway `:5000`), supporting optional `Authorization: Bearer <token>` and `lang=vi|en`:
+
+| Endpoint | Method | Description |
+| :--- | :---: | :--- |
+| `/api/v1/ide/status` | `GET` | Verifies connection health, Atus availability, authenticated user, and indexed RAG doc count. |
+| `/api/v1/ide/search?q=&top=6&lang=` | `GET` | Queries Multi-Source Hybrid RAG directly from VS Code QuickPick. |
+| `/api/v1/ide/chat` | `POST` | Conversational mentoring with active editor context (`codeContext`, `errorContext`, `fileName`) and RAG citations. |
+| `/api/v1/ide/review` | `POST` | Concurrent Clean Code review + Big-O analysis returning structured findings for VS Code `DiagnosticCollection` and refactor preview. |
+| `/api/v1/ide/explain-error` | `POST` | Explains compiler/runtime errors or selected snippets with repair suggestions. |
+| `/api/v1/ide/generate-tests` | `POST` | Generates `xUnit` AAA unit tests for the active C# file or selection. |
+| `/api/v1/ide/complexity` | `POST` | Standalone Big-O Time/Space complexity grading. |
+| `/api/v1/ide/execute` | `POST` | Runs C# snippets inside the isolated Roslyn Sandbox (`timeoutMs` clamped to `500..8000`). |

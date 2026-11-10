@@ -3,9 +3,9 @@
 Document Type: Master Index & Architecture Specification Suite  
 Author: Senior Business Analyst / Enterprise Solution Specialist  
 System: .NET Tutos - Comprehensive .NET Learning & Assessment Platform  
-Scope: Web Application (ASP.NET Core 10), Mobile Client (.NET MAUI 10), AI Tutor Engine, Roslyn Sandbox  
-Version: Release 2.5  
-Status: Verified & Approved for Production (PostgreSQL 17 & Docker Orchestrated)  
+Scope: Web Application (ASP.NET Core 10), Microservices & YARP Gateway, Kafka & Prometheus/Grafana Observability, VS Code Extension, AI Tutor Engine, Roslyn Sandbox, Mobile Client (.NET MAUI 10 — Separate Roadmap)  
+Version: Release 3.0  
+Status: Verified & Approved for Production (12 Docker Containers | PostgreSQL 17, Redis 7, RabbitMQ 3, Kafka, Prometheus & Grafana)  
 
 ---
 
@@ -85,30 +85,29 @@ d:\NET-Tutos\docs\
    - Wireframe layout architecture (Playground Monaco IDE, Markdown reader, MAUI mobile tab navigation).
 
 7. [**07. PostgreSQL 17 & Docker Compose Infrastructure**](file:///d:/NET-Tutos/docs/07_docker_and_database_setup.md)
-   - Multi-container topology (PostgreSQL 17 Alpine and ASP.NET Core 10 Web App).
+   - 12-container orchestration topology (`gateway`, `web`, `coderunner`, `gamification`, `aitutor`, `catalog`, `postgres`, `redis`, `rabbitmq`, `kafka`, `prometheus`, `grafana`).
    - `Npgsql.EntityFrameworkCore.PostgreSQL` 10 configuration, connection strings, and resilient SQLite fallback.
-   - 31 database tables specification and seed data initialization.
-   - Operations guide (`docker compose up -d`) and VS Code Database Client / SQLTools configuration.
+   - Relational schema catalog, seed data initialization, and Live OAuth 2.0 setup.
+   - Operations guide (`docker compose up -d --build`) and VS Code Database Client / SQLTools configuration.
 
 8. [**08. Automated Testing Strategy, Test Case Matrix & Exception Handling**](file:///d:/NET-Tutos/docs/08_testing_strategy_and_test_cases.md)
-   - Quality strategy and automated testing pyramid (Unit, Integration, CI/CD).
-   - Complete 35+ automated test cases matrix covering Streak, Gamification, Exam, Roslyn Sandbox, AI Tutor, and HTTP endpoints.
+   - Quality strategy and automated testing pyramid (Unit, Integration, Microservice, VS Code Extension Node Tests, CI/CD).
+   - Automated test matrix across Streak, Gamification, Exam, Roslyn Sandbox, AI Tutor, Observability/Prometheus, Multi-Source RAG, Live Coding Whiteboard, IDE Bridge, and HTTP endpoints.
    - Comprehensive Exceptions and Error Handling matrix with system mitigation and user recovery strategies.
    - GitHub Actions CI workflow pipeline configuration (`.github/workflows/ci.yml`) and code coverage quality gates.
-   - Local developer CLI execution guide.
+   - Local developer CLI execution guide (201 automated tests: 196 `.NET` + 5 `node:test`).
 
 9. [**09. Microservices Architecture & Strangler Fig Migration**](file:///d:/NET-Tutos/docs/09_microservices_architecture_and_migration.md)
    - Distributed system transformation, bounded contexts, and architectural drivers.
-   - Reusable `BuildingBlocks` (`Common` and `EventBus` integration events).
-   - Dedicated `CodeRunner.API` Roslyn C# execution microservice specification and REST endpoints.
-   - Decoupled `Gamification.API` microservice with MassTransit RabbitMQ event-driven consumers.
-   - Resilient delegation and graceful in-process fallback pattern in `CodeExecutionService` and `StreakService`.
-   - Multi-container Docker Compose orchestration (`gateway`, `web`, `coderunner`, `gamification`, `aitutor`, `catalog`, `redis`, `rabbitmq`, `postgres`).
-   - 172/172 automated test execution across 7 test projects (`Gateway`, `CodeRunner`, `Gamification`, `AiTutor`, `Catalog`, `UnitTests`, `IntegrationTests`) and GitHub Actions CI quality gates.
+   - Reusable `BuildingBlocks` (`Common`, `PrometheusMetricsBuilder`, and `EventBus` RabbitMQ + Kafka events).
+   - Dedicated `CodeRunner.API`, `Gamification.API`, `AiTutor.API`, and `Catalog.API` microservices with `/metrics` and `/healthz`.
+   - Resilient delegation and graceful in-process fallback pattern (`ResilientMicroserviceHandler`).
+   - 12-container Docker Compose orchestration including Apache Kafka KRaft, Prometheus (`:9090`), and Grafana (`:3000`).
+   - 201/201 automated test execution across 7 `.NET` test projects plus the VS Code Extension test suite.
 
 10. [**10. Master Project Roadmap & AI Context Memory**](file:///d:/NET-Tutos/docs/10_project_roadmap_and_ai_memory.md)
-   - Persistent AI Context Memory and Single Source of Truth (SSOT) for all 15 completed phases (Phase 1 through Phase 15), Hybrid L1/L2 Redis 7 Caching, Catalog Microservice, OpenTelemetry Tracing & HTTP Resilience, Real-Time 1v1 SignalR Coding Arena, RAG Semantic Vector Search & Kubernetes Helm Deployment.
-   - Standing engineering rules (Pure .NET 10 / C# 14, Auto-Commit workflow, English-Only Code Comments, Zero Secret/Demo Leakage, Geo-IP Region Detection `VN` -> `vi` / Outside `VN` -> `en`, and Continuous SEO).
+   - Persistent AI Context Memory and Single Source of Truth (SSOT) for all 19 completed phases (Phase 1 through Phase 19): Hybrid L1/L2 Redis 7 Caching, Catalog Microservice, OpenTelemetry Tracing & HTTP Resilience, Real-Time 1v1 SignalR Coding Arena, Apache Kafka Streams & Neural TTS, Live Coding Whiteboard, Multi-Source Hybrid RAG, Prometheus + Grafana Observability Stack, and the VS Code Atus Pair-Programmer Extension.
+   - Standing engineering rules (Pure .NET 10 / C# 14, Auto-Commit workflow, English-Only Code Comments, Zero Secret/Demo Leakage, Geo-IP Region Detection `VN` -> `vi` / Outside `VN` -> `en`, Continuous SEO, and Dedicated Mobile Roadmap separation).
 
 11. [**DESIGN. Design System & Anti-AI-Slop Constitution**](file:///d:/NET-Tutos/docs/DESIGN.md)
    - Developer Tool standard inspired by Linear, Raycast, Stripe, and GitHub Primer.
@@ -127,13 +126,15 @@ d:\NET-Tutos\docs\
 | **Senior Technical Hiring Readiness** | `MOD-INT` | `InterviewController.cs`, `AiTutorService.cs`, `Mock.cshtml` | 3-dimension rubric evaluation, Speech-to-Text, radar reports |
 | **Continuous Cross-Platform Study** | `MOD-MOB` | `MobileAuthController.cs`, `ApiService.cs` (.NET MAUI), `LoginPage.xaml` | JWT Bearer verification, device storage, progress sync |
 | **Learner Engagement & Retention** | `MOD-GAM` | `StreakService.cs`, `LeaderboardService.cs`, `NET-Tutos.Gamification.API` | Daily check-in tests, Level formula calculation, Gamification microservice tests |
-| **Microservice High-Compute Isolation** | `MOD-ARCH` | `NET-Tutos.CodeRunner.API`, `NET-Tutos.Gamification.API`, `NET-Tutos.AiTutor.API`, `NET-Tutos.Catalog.API`, `NET-Tutos.YarpGateway` | 172/172 automated tests, 9-container Docker topology, CI pipeline |
+| **Microservice High-Compute Isolation** | `MOD-ARCH` | `NET-Tutos.CodeRunner.API`, `NET-Tutos.Gamification.API`, `NET-Tutos.AiTutor.API`, `NET-Tutos.Catalog.API`, `NET-Tutos.YarpGateway` | 196 `.NET` + 5 VS Code tests (201/201), 12-container Docker topology, CI pipeline |
 | **Geo-IP Localization & Technical SEO** | `MOD-SEO` | `GeoIpService.cs`, `SeoMetadataService.cs`, `SeoController.cs` | VN -> `vi` / INTL -> `en`, Dynamic OG SVG, `BreadcrumbList`, `FAQPage`, IndexNow |
-| **Hybrid L1/L2 Redis 7 Caching** | `MOD-CACHE` | `HybridRedisCacheService.cs`, `CodeExecutionService.cs`, `TutorialService.cs`, `CurriculumService.cs` | L1 Memory + L2 Redis 7, Stampede Semaphore Lock, 30s Circuit Breaker |
+| **Hybrid L1/L2 Redis 7 Caching & TTS** | `MOD-CACHE` | `HybridRedisCacheService.cs`, `TtsService.cs` (`/api/tts/speak`), `CodeExecutionService.cs`, `CurriculumService.cs` | L1 Memory + L2 Redis 7, Stampede Semaphore Lock, 30s Circuit Breaker, Neural TTS cache hit metrics |
 | **Live OAuth 2.0 SSO Authentication** | `MOD-AUTH` | `Program.cs`, `AccountController.cs`, `Login.cshtml`, `Register.cshtml`, `Profile.cshtml` | Live GitHub (`/signin-github`) & Google (`/signin-google`) OAuth 2.0 SSO |
-| **Observability & HTTP Resilience** | `MOD-OBS` | `ServiceTelemetry.cs`, `ObservabilityService.cs`, `ResilientMicroserviceHandler.cs` | W3C ActivitySource, System.Diagnostics.Metrics, Exponential Backoff & Circuit Breaker |
+| **Prometheus, Grafana & Resilience** | `MOD-OBS` | `PrometheusMetricsBuilder`, `PrometheusTelemetryExporter.cs`, `ObservabilityService.cs`, `observability/` | `/metrics` across 6 `.NET` services, Prometheus `:9090`, Grafana `:3000` (`nettutos-overview`) |
+| **Apache Kafka Streams & Adaptive AI** | `MOD-KAFKA` | `KafkaProducer`, `KafkaTelemetryConsumerWorker`, `KafkaStreamAnalyticsStore`, `AdaptiveLearningService`, `Admin/Telemetry.cshtml` | Real-time AI/CodeRunner/Learning event streams, partition lag metrics, `/api/adaptive/challenge` |
 | **Real-Time 1v1 Coding Arena** | `MOD-ARENA` | `CodingArenaHub.cs`, `CodingArenaService.cs`, `ArenaController.cs`, `Arena/Index.cshtml` | SignalR real-time broadcast, Roslyn submission validation, ELO ladder updates |
-| **RAG Semantic Search & Cloud Deploy** | `MOD-RAG` | `SemanticCurriculumSearchService.cs`, `/api/search/semantic`, `deploy/helm/nettutos` | 4096-dim hashed TF-IDF vector ranking, diacritic folding, Helm chart deployment |
+| **Multi-Source Hybrid RAG & Whiteboard** | `MOD-RAG` | `SemanticCurriculumSearchService.cs`, `/api/search/knowledge`, `/Interview/Mock` (`EvaluateLiveCoding`) | 175+ indexed docs (Curriculum, Tutorials, Challenges, Flashcards) & Live Coding Whiteboard |
+| **VS Code Extension & IDE Bridge** | `MOD-IDE` | `IdeAssistantController.cs` (`/api/v1/ide/*`), `extensions/vscode-atus/` | Sidebar Atus Chat, inline C# diagnostics, Big-O Review, xUnit gen, Roslyn runner (`5/5 node:test`) |
 
 ---
 
