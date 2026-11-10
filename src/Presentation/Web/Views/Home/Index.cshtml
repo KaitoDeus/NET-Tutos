@@ -99,11 +99,11 @@
                     <div class="card-body p-4 d-flex flex-column">
                         <!-- Top Meta: Category Badge & Reading Time -->
                         <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
-                            <span class="badge bg-@badgeColor-subtle text-@badgeColor border border-@badgeColor-subtle rounded-pill px-2.5 py-1.5 font-monospace fw-semibold d-inline-flex align-items-center gap-1.5" style="font-size: var(--text-2xs);">
-                                <i class="bi @(item.Category?.IconClass ?? "bi-journal-code")"></i>
-                                <span>@(item.Category.GetShortTitle(isEn))</span>
+                            <span class="badge bg-@badgeColor-subtle text-@badgeColor border border-@badgeColor-subtle rounded-pill px-2.5 py-1.5 font-monospace fw-semibold d-inline-flex align-items-center gap-1.5 text-truncate" style="font-size: var(--text-2xs); min-width: 0; max-width: 68%;" title="@item.Category?.GetTitle(isEn)">
+                                <i class="bi @(item.Category?.IconClass ?? "bi-journal-code") flex-shrink-0"></i>
+                                <span class="text-truncate">@(item.Category.GetShortTitle(isEn))</span>
                             </span>
-                            <span class="text-muted font-monospace small d-flex align-items-center gap-1.5 text-nowrap" style="font-size: var(--text-xs);">
+                            <span class="text-muted font-monospace small d-flex align-items-center gap-1.5 text-nowrap flex-shrink-0" style="font-size: var(--text-xs);">
                                 <i class="bi bi-clock"></i>
                                 <span>@item.EstimatedReadingMinutes @(isEn ? "min read" : "phút đọc")</span>
                             </span>

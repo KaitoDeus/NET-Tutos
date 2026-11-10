@@ -24,13 +24,23 @@ public class LearningProgressService : ILearningProgressService
         _activityFeedService = activityFeedService;
     }
 
-    public async Task<bool> ToggleLessonCompletedAsync(string userId, int tutorialId)
+    public async Task<bool> ToggleLessonCompletedAsync(string userId, int tutorialId, bool bypassLocks = false)
     {
         var progress = await _context.UserLessonProgresses
             .FirstOrDefaultAsync(p => p.UserId == userId && p.TutorialId == tutorialId);
 
         var tutorial = await _context.Tutorials.FindAsync(tutorialId);
         if (tutorial == null) return false;
+
+        bool isMarkingCompleted = progress == null || !progress.IsCompleted;
+        if (isMarkingCompleted && !bypassLocks)
+        {
+            var access = await CheckTutorialAccessAsync(userId, tutorialId, bypassLocks: false);
+            if (access != null && !access.IsUnlocked)
+            {
+                return false;
+            }
+        }
 
         bool isCompletedNow;
 
@@ -227,6 +237,131 @@ public class LearningProgressService : ILearningProgressService
             Certificates = certificates,
             RecentQuizAttempts = recentAttempts
         };
+    }
+
+    public async Task<UserStageProgressionSnapshot> GetStageProgressionAsync(string? userId, bool bypassLocks = false)
+    {
+        bool isAuthenticated = !string.IsNullOrWhiteSpace(userId);
+
+        var categories = await _context.Categories
+            .AsNoTracking()
+            .OrderBy(c => c.OrderIndex)
+            .ThenBy(c => c.Id)
+            .Select(c => new
+            {
+                c.Id,
+                c.OrderIndex,
+                c.Slug,
+                c.Name,
+                Tutorials = c.Tutorials
+                    .OrderBy(t => t.OrderIndex)
+                    .ThenBy(t => t.Id)
+                    .Select(t => new { t.Id, t.Slug })
+                    .ToList()
+            })
+            .ToListAsync();
+
+        var completedIds = isAuthenticated
+            ? (await _context.UserLessonProgresses
+                .Where(p => p.UserId == userId && p.IsCompleted)
+                .Select(p => p.TutorialId)
+                .ToListAsync())
+                .ToHashSet()
+            : new HashSet<int>();
+
+        var stagesByCategoryId = new Dictionary<int, StageUnlockStatus>();
+        var unlockedCategoryIds = new HashSet<int>();
+
+        int? blockingCategoryId = null;
+        string? blockingSlug = null;
+        string? blockingTitleVi = null;
+        string? blockingTitleEn = null;
+        int blockingRemaining = 0;
+        string? nextPrereqSlug = null;
+
+        bool isFirstNonEmptyStage = true;
+
+        foreach (var cat in categories)
+        {
+            int total = cat.Tutorials.Count;
+            int completed = cat.Tutorials.Count(t => completedIds.Contains(t.Id));
+            bool stageCompleted = total > 0 && completed >= total;
+
+            var helperCat = new Category { Id = cat.Id, Slug = cat.Slug, Name = cat.Name, OrderIndex = cat.OrderIndex };
+            string titleVi = cat.Name;
+            string titleEn = helperCat.GetTitle(true);
+
+            bool isUnlocked;
+            if (bypassLocks || isFirstNonEmptyStage && total > 0 || blockingCategoryId == null)
+            {
+                isUnlocked = true;
+            }
+            else
+            {
+                isUnlocked = false;
+            }
+
+            if (total > 0 && isFirstNonEmptyStage)
+            {
+                isFirstNonEmptyStage = false;
+            }
+
+            var status = new StageUnlockStatus(
+                CategoryId: cat.Id,
+                OrderIndex: cat.OrderIndex,
+                Slug: cat.Slug,
+                TitleVi: titleVi,
+                TitleEn: titleEn,
+                CompletedCount: completed,
+                TotalCount: total,
+                IsUnlocked: isUnlocked,
+                IsCompleted: stageCompleted,
+                BlockingCategoryId: isUnlocked ? null : blockingCategoryId,
+                BlockingCategorySlug: isUnlocked ? null : blockingSlug,
+                BlockingStageTitleVi: isUnlocked ? null : blockingTitleVi,
+                BlockingStageTitleEn: isUnlocked ? null : blockingTitleEn,
+                BlockingRemainingLessons: isUnlocked ? 0 : blockingRemaining,
+                NextPrerequisiteTutorialSlug: isUnlocked ? null : nextPrereqSlug);
+
+            stagesByCategoryId[cat.Id] = status;
+            if (isUnlocked)
+            {
+                unlockedCategoryIds.Add(cat.Id);
+            }
+
+            // First incomplete non-empty stage becomes the blocker for all subsequent stages
+            if (!bypassLocks && total > 0 && !stageCompleted && blockingCategoryId == null)
+            {
+                blockingCategoryId = cat.Id;
+                blockingSlug = cat.Slug;
+                blockingTitleVi = titleVi;
+                blockingTitleEn = titleEn;
+                blockingRemaining = Math.Max(0, total - completed);
+                nextPrereqSlug = cat.Tutorials.FirstOrDefault(t => !completedIds.Contains(t.Id))?.Slug
+                              ?? cat.Tutorials.FirstOrDefault()?.Slug;
+            }
+        }
+
+        return new UserStageProgressionSnapshot(
+            IsAuthenticated: isAuthenticated,
+            StagesByCategoryId: stagesByCategoryId,
+            CompletedTutorialIds: completedIds,
+            UnlockedCategoryIds: unlockedCategoryIds);
+    }
+
+    public async Task<StageUnlockStatus?> CheckTutorialAccessAsync(string? userId, int tutorialId, bool bypassLocks = false)
+    {
+        var tutorial = await _context.Tutorials
+            .AsNoTracking()
+            .Select(t => new { t.Id, t.CategoryId })
+            .FirstOrDefaultAsync(t => t.Id == tutorialId);
+
+        if (tutorial == null) return null;
+
+        var progression = await GetStageProgressionAsync(userId, bypassLocks);
+        return progression.StagesByCategoryId.TryGetValue(tutorial.CategoryId, out var status)
+            ? status
+            : null;
     }
 
     private async Task UpdateCourseEnrollmentAsync(string userId, int categoryId)

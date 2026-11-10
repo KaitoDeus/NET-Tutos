@@ -298,4 +298,35 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
         execResp.EnsureSuccessStatusCode();
         execBody.Should().Contain("42");
     }
+
+    [Fact]
+    public async Task TutorialsAndRoadmap_EnforceStageLocking_AndFixCardTitleMinutesLayout()
+    {
+        // Act
+        var stage7ListResp = await _client.GetAsync("/Tutorials?category=microservices-distributed-systems");
+        var stage1DetailResp = await _client.GetAsync("/bai-hoc/tong-quan-he-sinh-thai-dotnet-cai-dat-moi-truong");
+        var stage7DetailResp = await _client.GetAsync("/bai-hoc/distributed-observability-opentelemetry-prometheus-grafana");
+        var roadmapResp = await _client.GetAsync("/Roadmap");
+
+        // Assert
+        stage7ListResp.EnsureSuccessStatusCode();
+        var listHtml = await stage7ListResp.Content.ReadAsStringAsync();
+        listHtml.Should().Contain("text-truncate");
+        listHtml.Should().Contain("text-nowrap flex-shrink-0");
+        listHtml.Should().Contain("bi-lock-fill");
+
+        stage1DetailResp.EnsureSuccessStatusCode();
+        var stage1Html = await stage1DetailResp.Content.ReadAsStringAsync();
+        stage1Html.Should().Contain("markdown-body");
+        stage1Html.Should().NotContain("lessonLockedGate");
+
+        stage7DetailResp.EnsureSuccessStatusCode();
+        var stage7Html = await stage7DetailResp.Content.ReadAsStringAsync();
+        stage7Html.Should().Contain("lessonLockedGate");
+
+        roadmapResp.EnsureSuccessStatusCode();
+        var roadmapHtml = await roadmapResp.Content.ReadAsStringAsync();
+        roadmapHtml.Should().Contain("bi-unlock-fill");
+        roadmapHtml.Should().Contain("bi-lock-fill");
+    }
 }

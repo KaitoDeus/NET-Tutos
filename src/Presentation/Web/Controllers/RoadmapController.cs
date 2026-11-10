@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
 using NET_Tutos.Services;
@@ -8,15 +9,39 @@ namespace NET_Tutos.Controllers;
 public class RoadmapController : Controller
 {
     private readonly ITutorialService _tutorialService;
+    private readonly ILearningProgressService? _progressService;
 
-    public RoadmapController(ITutorialService tutorialService)
+    public RoadmapController(
+        ITutorialService tutorialService,
+        ILearningProgressService? progressService = null)
     {
         _tutorialService = tutorialService;
+        _progressService = progressService;
     }
 
     public async Task<IActionResult> Index()
     {
         var allCategories = (await _tutorialService.GetCategoriesWithTutorialsAsync()).ToList();
+
+        string? currentUserId = User.Identity?.IsAuthenticated == true
+            ? User.FindFirstValue(ClaimTypes.NameIdentifier)
+            : null;
+        bool bypassLocks = User.IsInRole("Admin");
+        var progression = _progressService != null
+            ? await _progressService.GetStageProgressionAsync(currentUserId, bypassLocks)
+            : null;
+
+        string[] stageSlugs =
+        [
+            "csharp-co-ban",
+            "oop-csharp-nang-cao",
+            "csharp-dsa-leetcode",
+            "design-patterns-architecture",
+            "entity-framework-core",
+            "aspnet-core-mvc-api",
+            "microservices-distributed-systems",
+            "performance-diagnostics-devops"
+        ];
 
         var steps = new List<RoadmapStep>
         {
@@ -118,7 +143,38 @@ public class RoadmapController : Controller
             }
         };
 
-        var viewModel = new RoadmapViewModel { Steps = steps };
+        foreach (var (step, idx) in steps.Select((s, i) => (s, i)))
+        {
+            var catSlug = idx < stageSlugs.Length ? stageSlugs[idx] : string.Empty;
+            var cat = allCategories.FirstOrDefault(c => c.Slug == catSlug);
+            if (cat != null)
+            {
+                step.CategoryId = cat.Id;
+                step.CategorySlug = cat.Slug;
+                step.TotalLessonsCount = cat.Tutorials.Count;
+
+                if (progression != null && progression.StagesByCategoryId.TryGetValue(cat.Id, out var status))
+                {
+                    step.IsUnlocked = status.IsUnlocked;
+                    step.IsCompleted = status.IsCompleted;
+                    step.CompletedLessonsCount = status.CompletedCount;
+                    step.TotalLessonsCount = status.TotalCount;
+                    step.BlockingStageTitleVi = status.BlockingStageTitleVi;
+                    step.BlockingStageTitleEn = status.BlockingStageTitleEn;
+                    step.NextPrerequisiteTutorialSlug = status.NextPrerequisiteTutorialSlug;
+                }
+            }
+        }
+
+        var viewModel = new RoadmapViewModel
+        {
+            Steps = steps,
+            IsAuthenticated = progression?.IsAuthenticated ?? false,
+            BypassStageLocks = bypassLocks,
+            CompletedTutorialIds = progression != null
+                ? new HashSet<int>(progression.CompletedTutorialIds)
+                : new HashSet<int>()
+        };
         return View(viewModel);
     }
 }

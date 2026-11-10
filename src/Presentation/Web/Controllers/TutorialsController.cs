@@ -37,6 +37,12 @@ public class TutorialsController : Controller
             ? categories.FirstOrDefault(c => c.Slug == category || c.Slug == canonicalCategory) 
             : null;
 
+        string? currentUserId = User.Identity?.IsAuthenticated == true
+            ? User.FindFirstValue(ClaimTypes.NameIdentifier)
+            : null;
+        bool bypassLocks = User.IsInRole("Admin");
+        var stageProgression = await _progressService.GetStageProgressionAsync(currentUserId, bypassLocks);
+
         var viewModel = new TutorialListViewModel
         {
             Tutorials = items,
@@ -45,7 +51,9 @@ public class TutorialsController : Controller
             CurrentCategory = currentCategory,
             CurrentDifficulty = level,
             SearchQuery = search,
-            TotalCount = totalCount
+            TotalCount = totalCount,
+            StageProgression = stageProgression,
+            BypassStageLocks = bypassLocks
         };
 
         return View(viewModel);
@@ -66,39 +74,60 @@ public class TutorialsController : Controller
             return NotFound();
         }
 
-        // Increment view count safely
-        try
-        {
-            await _tutorialService.IncrementViewCountAsync(tutorial.Id);
-        }
-        catch
-        {
-            // Non-critical tracking fallback
-        }
+        bool isEn = HttpContext.IsEnglish();
+        string? currentUserId = User.Identity?.IsAuthenticated == true
+            ? User.FindFirstValue(ClaimTypes.NameIdentifier)
+            : null;
+        bool bypassLocks = User.IsInRole("Admin");
+
+        var currentStageStatus = await _progressService.CheckTutorialAccessAsync(currentUserId, tutorial.Id, bypassLocks);
+        bool isLocked = currentStageStatus != null && !currentStageStatus.IsUnlocked;
 
         var previous = await _tutorialService.GetPreviousTutorialAsync(tutorial.Id);
         var next = await _tutorialService.GetNextTutorialAsync(tutorial.Id);
-        bool isEn = HttpContext.IsEnglish();
-        var markdownContent = tutorial.GetContentMarkdown(isEn);
-        var renderedHtml = _markdownService.ToHtml(markdownContent);
+
+        bool isNextLocked = false;
+        if (next != null)
+        {
+            var nextAccess = await _progressService.CheckTutorialAccessAsync(currentUserId, next.Id, bypassLocks);
+            isNextLocked = nextAccess != null && !nextAccess.IsUnlocked;
+        }
+
+        string renderedHtml = string.Empty;
+        if (!isLocked)
+        {
+            // Increment view count safely only for unlocked lessons
+            try
+            {
+                await _tutorialService.IncrementViewCountAsync(tutorial.Id);
+            }
+            catch
+            {
+                // Non-critical tracking fallback
+            }
+
+            var markdownContent = tutorial.GetContentMarkdown(isEn);
+            renderedHtml = _markdownService.ToHtml(markdownContent);
+        }
 
         var viewModel = new TutorialDetailViewModel
         {
             Tutorial = tutorial,
             RenderedHtmlContent = renderedHtml,
             PreviousTutorial = previous,
-            NextTutorial = next
+            NextTutorial = next,
+            IsLocked = isLocked,
+            CurrentStageStatus = currentStageStatus,
+            IsNextTutorialLocked = isNextLocked
         };
 
-        string? currentUserId = null;
-        if (User.Identity?.IsAuthenticated == true)
+        if (!string.IsNullOrEmpty(currentUserId))
         {
-            currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(currentUserId))
+            viewModel.IsCompletedByCurrentUser = await _progressService.IsLessonCompletedAsync(currentUserId, tutorial.Id);
+            var completedIds = await _progressService.GetCompletedLessonIdsAsync(currentUserId);
+            viewModel.CompletedTutorialIds = new HashSet<int>(completedIds);
+            if (!isLocked)
             {
-                viewModel.IsCompletedByCurrentUser = await _progressService.IsLessonCompletedAsync(currentUserId, tutorial.Id);
-                var completedIds = await _progressService.GetCompletedLessonIdsAsync(currentUserId);
-                viewModel.CompletedTutorialIds = new HashSet<int>(completedIds);
                 try
                 {
                     await _progressService.RecordLessonAccessAsync(currentUserId, tutorial.Id);

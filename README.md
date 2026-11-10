@@ -9,7 +9,7 @@
 [![Observability](https://img.shields.io/badge/Observability-Prometheus_%2B_Grafana-E6522C?logo=prometheus&logoColor=white)](observability/)
 [![VS Code Extension](https://img.shields.io/badge/VS_Code-Atus_Pair_Programmer-007ACC?logo=visualstudiocode&logoColor=white)](extensions/vscode-atus)
 [![.NET MAUI](https://img.shields.io/badge/.NET_MAUI-Separate_Mobile_Roadmap-512BD4?logo=dotnet)](src/Presentation/Mobile)
-[![Tests](https://img.shields.io/badge/Tests-201%2F201_Passing-10B981)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-204%2F204_Passing-10B981)](tests/)
 [![Cache](https://img.shields.io/badge/Cache-Hybrid_L1_%2B_Redis_7-DC382D?logo=redis&logoColor=white)](docker-compose.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -37,7 +37,7 @@
   - [Option B: Run Standalone Web App with Automatic Resilient Fallback](#option-b-run-standalone-web-app-with-automatic-resilient-fallback)
   - [Option C: Run the .NET MAUI Mobile Application (Separate Mobile Roadmap)](#option-c-run-the-net-maui-mobile-application-separate-mobile-roadmap)
   - [Option D: Run the VS Code Extension (Atus .NET Pair Programmer)](#option-d-run-the-vs-code-extension-atus-net-pair-programmer)
-- [8. Automated Testing & CI Quality Gates (201/201 Passing)](#8-automated-testing--ci-quality-gates-201201-passing)
+- [8. Automated Testing & CI Quality Gates (204/204 Passing)](#8-automated-testing--ci-quality-gates-204204-passing)
 - [9. Enterprise Documentation Suite (`docs/`)](#9-enterprise-documentation-suite-docs)
 - [10. License](#10-license)
 
@@ -130,14 +130,14 @@ d:\NET-Tutos\
 │       ├── Common/                             # ApiResponse<T>, Result<T>, ServiceTelemetry & PrometheusMetricsBuilder
 │       └── EventBus/                           # Integration events (RabbitMQ/MassTransit) & Apache Kafka streams
 │
-└── tests/                                      # [04. Tests Layer — 196 .NET Tests + 5 VS Code Node Tests = 201]
+└── tests/                                      # [04. Tests Layer — 199 .NET Tests + 5 VS Code Node Tests = 204]
     ├── NET-Tutos.Gateway.Tests/                # YARP Gateway routing, status, /metrics & X-Correlation-ID tests
     ├── NET-Tutos.CodeRunner.Tests/             # Roslyn sandbox, AST security blacklist & timeout tests
     ├── NET-Tutos.Gamification.Tests/           # Streak domain rules, XP ledger & MassTransit consumer tests
     ├── NET-Tutos.AiTutor.Tests/                # Big-O complexity rules, 3D rubric value objects & AI engine tests
     ├── NET-Tutos.Catalog.Tests/                # 7-stage curriculum, learning track estimation & certificate tests
-    ├── NET-Tutos.UnitTests/                    # Web BFF, Prometheus Exporter, Multi-Source RAG, TTS, Kafka & Arena tests
-    └── NET-Tutos.IntegrationTests/             # End-to-end HTTP pipeline, /metrics, /api/v1/ide/* & Whiteboard tests
+    ├── NET-Tutos.UnitTests/                    # Web BFF, Prometheus Exporter, Multi-Source RAG, TTS, Kafka, Stage Lock & Arena tests
+    └── NET-Tutos.IntegrationTests/             # End-to-end HTTP pipeline, /metrics, /api/v1/ide/*, Stage Lock & Whiteboard tests
 ```
 
 ---
@@ -187,7 +187,7 @@ d:\NET-Tutos\
 
 ## 4. Key Platform Features
 
-1. **101-Lesson Curriculum & 4-Stage Mastery Roadmap:** Structured progression from C# 14 Fundamentals ➔ OOP, Memory & LINQ ➔ EF Core 10 & SQL Performance ➔ ASP.NET Core 10 MVC, Web API & Clean Microservices.
+1. **101-Lesson Curriculum, 8-Stage Roadmap & Stage-by-Stage Lock/Unlock:** Structured progression from C# 14 Fundamentals ➔ OOP, Memory & LINQ ➔ DSA & Design Patterns ➔ EF Core 10 ➔ ASP.NET Core 10 Web API ➔ Microservices & DevOps, enforcing sequential stage unlocking once 100% of the prerequisite stage is completed (`/Tutorials`, `/Roadmap`, `/Account/ToggleLesson`).
 2. **In-Browser Monaco IDE & Online Judge:** VS Code's Monaco Editor with keyboard shortcuts (`Ctrl+Enter` to run, `Ctrl+I` for AI Mentor), hidden unit test cases, execution timing, and automated XP rewards.
 3. **"Atus" Autonomous AI Agent:** Multi-turn conversational AI Mentor with persistent chat history (`AiConversation`), internal **Function Calling (Tools)** (`execute_csharp_code`, `search_curriculum`, `get_challenge_details`), Big-O complexity analyzer, test failure diagnostics, and xUnit generator.
 4. **AI Tech Lead Mock Interview, Live Coding Whiteboard & Neural TTS:** Timed 5-question technical interviews plus an integrated **Pair-Programming Live Coding Whiteboard** (`/Interview/Mock`, `POST /Interview/EvaluateLiveCoding`), Web Speech API (STT), cached Vietnamese/English **Neural TTS** (`/api/tts/speak` backed by Redis 7), 3-dimensional rubric grading, and 5-dimension competency reports.
@@ -333,9 +333,9 @@ Learners can sign in or register directly via **GitHub OAuth 2.0** (`/signin-git
 
 ---
 
-## 8. Automated Testing & CI Quality Gates (201/201 Passing)
+## 8. Automated Testing & CI Quality Gates (204/204 Passing)
 
-Every microservice, gateway route, domain value object, hybrid Redis cache, Geo-IP detector, SEO engine, OAuth 2.0 SSO flow, Prometheus OpenMetrics exporter, Kafka analytics store, Neural TTS proxy, SignalR coding arena, Multi-Source Hybrid RAG engine, IDE Bridge API, and VS Code extension client is verified by **201 automated tests** (**196 `.NET` tests across 7 projects + 5 VS Code Node tests**, enforced via [`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
+Every microservice, gateway route, domain value object, hybrid Redis cache, Geo-IP detector, SEO engine, OAuth 2.0 SSO flow, Prometheus OpenMetrics exporter, Kafka analytics store, Neural TTS proxy, SignalR coding arena, Multi-Source Hybrid RAG engine, Stage-by-Stage Lock progression, IDE Bridge API, and VS Code extension client is verified by **204 automated tests** (**199 `.NET` tests across 7 projects + 5 VS Code Node tests**, enforced via [`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
 
 ```powershell
 # 1. YARP API Gateway routing, topology, telemetry, /metrics & X-Correlation-ID tests (6 tests)
@@ -353,10 +353,10 @@ dotnet test tests/NET-Tutos.AiTutor.Tests/NET-Tutos.AiTutor.Tests.csproj
 # 5. Catalog & Assessment microservice domain, 7-stage curriculum & certification tests (17 tests)
 dotnet test tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj
 
-# 6. Web BFF unit tests (Cache, Geo-IP, SEO, Observability, Prometheus Exporter, Arena, Multi-Source RAG, TTS, Kafka) (97 tests)
+# 6. Web BFF unit tests (Cache, Geo-IP, SEO, Observability, Prometheus Exporter, Stage Lock, Arena, Multi-Source RAG, TTS, Kafka) (99 tests)
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
 
-# 7. End-to-End HTTP integration pipeline (/metrics, /api/v1/ide/*, /api/search/knowledge, Live Coding Whiteboard, TTS, OAuth, SEO) (33 tests)
+# 7. End-to-End HTTP integration pipeline (/metrics, /api/v1/ide/*, /api/search/knowledge, Stage Lock, Whiteboard, TTS, OAuth, SEO) (34 tests)
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
 
 # 8. VS Code Extension TypeScript client & C# review diagnostic mapper tests (5 tests)

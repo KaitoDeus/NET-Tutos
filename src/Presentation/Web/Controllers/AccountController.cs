@@ -303,7 +303,25 @@ public class AccountController : Controller
             return Json(new { success = false, message = "Mã bài học không hợp lệ." });
         }
 
-        bool isCompleted = await _progressService.ToggleLessonCompletedAsync(userId, targetId);
+        bool bypassLocks = User.IsInRole("Admin");
+        bool alreadyCompleted = await _progressService.IsLessonCompletedAsync(userId, targetId);
+        if (!alreadyCompleted && !bypassLocks)
+        {
+            var access = await _progressService.CheckTutorialAccessAsync(userId, targetId, bypassLocks: false);
+            if (access != null && !access.IsUnlocked)
+            {
+                bool isEn = HttpContext.IsEnglish();
+                string blockerTitle = isEn
+                    ? (access.BlockingStageTitleEn ?? "previous stage")
+                    : (access.BlockingStageTitleVi ?? "giai đoạn trước");
+                string msg = isEn
+                    ? $"This lesson is locked. Complete {blockerTitle} first ({access.BlockingRemainingLessons} lessons remaining)."
+                    : $"Bài học đang bị khóa. Hãy hoàn thành {blockerTitle} trước (còn {access.BlockingRemainingLessons} bài).";
+                return StatusCode(StatusCodes.Status403Forbidden, new { success = false, isLocked = true, message = msg });
+            }
+        }
+
+        bool isCompleted = await _progressService.ToggleLessonCompletedAsync(userId, targetId, bypassLocks);
         return Json(new { success = true, isCompleted = isCompleted });
     }
 

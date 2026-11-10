@@ -223,6 +223,20 @@ public class MobileTutorialsController : ControllerBase
             });
         }
 
+        bool alreadyCompleted = await _progressService.IsLessonCompletedAsync(userId, request.TutorialId);
+        if (!alreadyCompleted)
+        {
+            var access = await _progressService.CheckTutorialAccessAsync(userId, request.TutorialId, bypassLocks: false);
+            if (access != null && !access.IsUnlocked)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new MobileCompleteTutorialResponse
+                {
+                    IsSuccess = false,
+                    Message = $"Bài học đang bị khóa. Hãy hoàn thành {access.BlockingStageTitleVi ?? "giai đoạn trước"} (còn {access.BlockingRemainingLessons} bài) để mở khóa."
+                });
+            }
+        }
+
         var isCompleted = await _progressService.ToggleLessonCompletedAsync(userId, request.TutorialId);
         var user = await _userManager.FindByIdAsync(userId);
 

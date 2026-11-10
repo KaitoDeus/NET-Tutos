@@ -30,37 +30,112 @@
                 <!-- Article Header -->
                 <header class="border-bottom pb-4 mb-4">
                     <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                        <span class="badge bg-@Model.Tutorial.Category?.BadgeColor px-3 py-1.5 rounded-pill">
+                        <span class="badge bg-@Model.Tutorial.Category?.BadgeColor px-3 py-1.5 rounded-pill text-truncate d-inline-block"
+                              style="max-width: min(100%, 420px);"
+                              title="@Model.Tutorial.Category?.GetTitle(isEn)">
                             @Model.Tutorial.Category?.GetTitle(isEn)
                         </span>
-                        <span class="badge bg-light text-secondary border px-3 py-1.5 rounded-pill">
+                        <span class="badge bg-light text-secondary border px-3 py-1.5 rounded-pill text-nowrap flex-shrink-0">
                             @LocalizationHelper.GetDifficultyName(Model.Tutorial.Difficulty, isEn)
                         </span>
-                        <span class="text-muted small ms-auto">
+                        <span class="text-muted small ms-sm-auto text-nowrap flex-shrink-0">
                             <i class="bi bi-clock me-1"></i>~@Model.Tutorial.EstimatedReadingMinutes @(isEn ? "mins read" : "phút đọc")
                         </span>
-                        <span class="text-muted small">
+                        <span class="text-muted small text-nowrap flex-shrink-0">
                             <i class="bi bi-eye me-1"></i>@Model.Tutorial.ViewCount @(isEn ? "views" : "lượt xem")
                         </span>
                         <span id="headerBadgeWrapper">
-                            @if (User.Identity?.IsAuthenticated == true && Model.IsCompletedByCurrentUser)
+                            @if (Model.IsLocked)
+                            {
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-1.5 rounded-pill">
+                                    <i class="bi bi-lock-fill me-1"></i> @(isEn ? "Stage Locked" : "Đang khóa")
+                                </span>
+                            }
+                            else if (User.Identity?.IsAuthenticated == true && Model.IsCompletedByCurrentUser)
                             {
                                 <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill">
                                     <i class="bi bi-check-circle-fill me-1"></i> @(isEn ? "Completed" : "Đã hoàn thành")
                                 </span>
                             }
                         </span>
-                        <!-- Save for Offline Reading Button -->
-                        <button type="button" id="btnSaveOffline" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 shadow-none" title="@(isEn ? "Save offline for reading without Internet" : "Lưu đọc ngoại tuyến khi không có mạng")">
-                            <i class="bi bi-cloud-arrow-down" id="offlineSaveIcon"></i>
-                            <span id="offlineSaveText">@(isEn ? "Save Offline" : "Lưu ngoại tuyến")</span>
-                        </button>
+                        @if (!Model.IsLocked)
+                        {
+                            <!-- Save for Offline Reading Button -->
+                            <button type="button" id="btnSaveOffline" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 shadow-none" title="@(isEn ? "Save offline for reading without Internet" : "Lưu đọc ngoại tuyến khi không có mạng")">
+                                <i class="bi bi-cloud-arrow-down" id="offlineSaveIcon"></i>
+                                <span id="offlineSaveText">@(isEn ? "Save Offline" : "Lưu ngoại tuyến")</span>
+                            </button>
+                        }
                     </div>
 
                     <h1 class="h2 fw-extrabold text-body-emphasis mb-3">@Model.Tutorial.GetTitle(isEn)</h1>
                     <p class="lead text-muted">@Model.Tutorial.GetSummary(isEn)</p>
                 </header>
 
+                @if (Model.IsLocked)
+                {
+                    var st = Model.CurrentStageStatus;
+                    string blockerTitle = isEn
+                        ? (st?.BlockingStageTitleEn ?? "Previous Stage")
+                        : (st?.BlockingStageTitleVi ?? "Giai đoạn trước");
+                    int remaining = st?.BlockingRemainingLessons ?? 0;
+                    string? nextPrereqSlug = st?.NextPrerequisiteTutorialSlug;
+                    string? nextPrereqRouteSlug = !string.IsNullOrEmpty(nextPrereqSlug)
+                        ? new Tutorial { Slug = nextPrereqSlug }.GetSlug(isEn)
+                        : null;
+
+                    <div id="lessonLockedGate" class="card border border-warning-subtle bg-body-tertiary rounded-4 p-4 p-md-5 text-center my-3">
+                        <div class="mx-auto rounded-circle bg-warning-subtle text-warning d-inline-flex align-items-center justify-content-center mb-3" style="width: 68px; height: 68px;">
+                            <i class="bi bi-lock-fill fs-2"></i>
+                        </div>
+                        <h3 class="fw-bold mb-2 text-body-emphasis">
+                            @(isEn ? "This Stage Is Currently Locked" : "Chặng Học Này Đang Được Khóa")
+                        </h3>
+                        <p class="text-muted mx-auto mb-4" style="max-width: 560px;">
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                @(isEn
+                                    ? $"To unlock this lesson, please complete 100% of {blockerTitle} ({remaining} remaining lessons)."
+                                    : $"Để mở khóa bài học này, bạn cần hoàn thành 100% {blockerTitle} (còn {remaining} bài học chưa hoàn thành).")
+                            }
+                            else
+                            {
+                                @(isEn
+                                    ? $"Sign in and complete 100% of {blockerTitle} to unlock subsequent stages automatically."
+                                    : $"Hãy đăng nhập và hoàn thành 100% {blockerTitle} để hệ thống tự động mở khóa các giai đoạn tiếp theo.")
+                            }
+                        </p>
+                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                            @if (!string.IsNullOrEmpty(nextPrereqRouteSlug))
+                            {
+                                <a asp-action="Details" asp-route-slug="@nextPrereqRouteSlug" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+                                    <i class="bi bi-play-circle-fill me-1"></i>
+                                    @(isEn ? $"Continue {blockerTitle}" : $"Tiếp tục học {blockerTitle}")
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-action="Index" asp-route-category="@st?.BlockingCategorySlug" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+                                    <i class="bi bi-collection-play me-1"></i>
+                                    @(isEn ? $"Go to {blockerTitle}" : $"Mở {blockerTitle}")
+                                </a>
+                            }
+                            @if (User.Identity?.IsAuthenticated != true)
+                            {
+                                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>
+                                    @(isEn ? "Sign In" : "Đăng nhập")
+                                </a>
+                            }
+                            <a asp-controller="Roadmap" asp-action="Index" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
+                                <i class="bi bi-signpost-split me-1"></i>
+                                @(isEn ? "View Learning Roadmap" : "Xem lộ trình mở khóa")
+                            </a>
+                        </div>
+                    </div>
+                }
+                else
+                {
                 <!-- Markdown Content Rendered to HTML -->
                 <div class="markdown-body">
                     @Html.Raw(Model.RenderedHtmlContent)
@@ -154,6 +229,8 @@
                         </div>
                     </div>
                 </div>
+                }
+                @* Unlocked Lesson Navigation *@
 
                 <!-- Previous / Next Navigation -->
                 <nav class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-3 mt-5 pt-4 border-top">
@@ -172,10 +249,16 @@
                     <div class="text-start text-sm-end flex-grow-1 flex-sm-grow-0">
                         @if (Model.NextTutorial != null)
                         {
-                            <a id="nextLessonLink" asp-action="Details" asp-route-slug="@Model.NextTutorial.GetSlug(isEn)" class="btn btn-primary text-start text-sm-end w-100 w-sm-auto" title="@(isEn ? "Next lesson (Alt + →)" : "Bài tiếp theo (Alt + →)")">
+                            <a id="nextLessonLink" asp-action="Details" asp-route-slug="@Model.NextTutorial.GetSlug(isEn)" class="btn @(Model.IsNextTutorialLocked ? "btn-outline-secondary" : "btn-primary") text-start text-sm-end w-100 w-sm-auto" title="@(isEn ? "Next lesson (Alt + →)" : "Bài tiếp theo (Alt + →)")">
                                 <small class="d-flex align-items-center justify-content-between opacity-75">
-                                    <kbd class="small me-2 border-0 bg-white bg-opacity-25 text-white px-1 py-0.5">Alt →</kbd>
-                                    <span>@(isEn ? "Next lesson →" : "Bài tiếp theo →")</span>
+                                    <kbd class="small me-2 border-0 @(Model.IsNextTutorialLocked ? "bg-secondary bg-opacity-25" : "bg-white bg-opacity-25 text-white") px-1 py-0.5">Alt →</kbd>
+                                    <span>
+                                        @if (Model.IsNextTutorialLocked)
+                                        {
+                                            <i class="bi bi-lock-fill me-1"></i>
+                                        }
+                                        @(isEn ? "Next lesson →" : "Bài tiếp theo →")
+                                    </span>
                                 </small>
                                 <span class="fw-semibold">@Model.NextTutorial.GetTitle(isEn)</span>
                             </a>
@@ -190,7 +273,7 @@
                 </nav>
 
                 <!-- Real-Time Community Discussion & Q&A -->
-                @if (Model.Discussion != null)
+                @if (Model.Discussion != null && !Model.IsLocked)
                 {
                     <partial name="_DiscussionSection" model="Model.Discussion" />
                 }
@@ -214,7 +297,7 @@
                                 <a asp-action="Details" asp-route-slug="@tut.GetSlug(isEn)"
                                    class="list-group-item list-group-item-action py-2.5 px-2 rounded-2 mb-1 @(isCurrent ? "active fw-semibold" : "")"
                                    data-tutorial-item-id="@tut.Id">
-                                    <i class="bi @(isTutCompleted ? "bi-check-circle-fill text-success" : (isCurrent ? "bi-play-circle-fill" : "bi-circle text-muted")) me-2 opacity-75"></i>
+                                    <i class="bi @(Model.IsLocked ? "bi-lock-fill text-secondary" : (isTutCompleted ? "bi-check-circle-fill text-success" : (isCurrent ? "bi-play-circle-fill" : "bi-circle text-muted"))) me-2 opacity-75"></i>
                                     @tut.GetTitle(isEn)
                                 </a>
                             }

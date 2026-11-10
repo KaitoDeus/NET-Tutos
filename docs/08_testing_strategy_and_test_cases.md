@@ -5,7 +5,7 @@ System: .NET Tutos - Comprehensive .NET Learning & Assessment Platform
 Scope: Unit Testing, Integration Testing, Sandboxed Execution, CI/CD Automated Quality Gates  
 Target Framework: .NET 10 (`net10.0`), C# 14 & Node.js 22 / TypeScript 5.7 (VS Code Extension)  
 Tooling: xUnit 2.9, FluentAssertions 7.2, Moq 4.20, Coverlet 6.0, Microsoft.AspNetCore.Mvc.Testing 10.0, `node:test`  
-Status: Verified & Integrated in Automated CI Pipeline (**201/201 Tests Passing**)  
+Status: Verified & Integrated in Automated CI Pipeline (**204/204 Tests Passing**)  
 
 ---
 
@@ -187,14 +187,14 @@ flowchart LR
 
 ## 5. Local Developer Execution Guide
 
-Developers can execute and debug the full **201-test** automated verification suite locally using standard .NET CLI and npm commands.
+Developers can execute and debug the full **204-test** automated verification suite locally using standard .NET CLI and npm commands.
 
 ### Run Web Unit & Integration Tests:
 ```powershell
-# Web BFF unit tests (97 tests)
+# Web BFF unit tests (99 tests)
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj --verbosity normal
 
-# HTTP Integration Pipeline tests (/metrics, /api/v1/ide/*, /api/search/knowledge, Whiteboard, TTS, OAuth, SEO) (33 tests)
+# HTTP Integration Pipeline tests (/metrics, /api/v1/ide/*, /api/search/knowledge, Stage Lock, Whiteboard, TTS, OAuth, SEO) (34 tests)
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj --verbosity normal
 ```
 

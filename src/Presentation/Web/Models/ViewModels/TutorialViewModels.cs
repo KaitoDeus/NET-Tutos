@@ -2,6 +2,29 @@ using NET_Tutos.Models.Entities;
 
 namespace NET_Tutos.Models.ViewModels;
 
+public sealed record StageUnlockStatus(
+    int CategoryId,
+    int OrderIndex,
+    string Slug,
+    string TitleVi,
+    string TitleEn,
+    int CompletedCount,
+    int TotalCount,
+    bool IsUnlocked,
+    bool IsCompleted,
+    int? BlockingCategoryId,
+    string? BlockingCategorySlug,
+    string? BlockingStageTitleVi,
+    string? BlockingStageTitleEn,
+    int BlockingRemainingLessons,
+    string? NextPrerequisiteTutorialSlug);
+
+public sealed record UserStageProgressionSnapshot(
+    bool IsAuthenticated,
+    IReadOnlyDictionary<int, StageUnlockStatus> StagesByCategoryId,
+    IReadOnlySet<int> CompletedTutorialIds,
+    IReadOnlySet<int> UnlockedCategoryIds);
+
 public class TutorialDetailViewModel
 {
     public Tutorial Tutorial { get; set; } = null!;
@@ -11,6 +34,9 @@ public class TutorialDetailViewModel
     public IEnumerable<Tutorial> RelatedTutorials { get; set; } = new List<Tutorial>();
     public bool IsCompletedByCurrentUser { get; set; }
     public HashSet<int> CompletedTutorialIds { get; set; } = new();
+    public bool IsLocked { get; set; }
+    public StageUnlockStatus? CurrentStageStatus { get; set; }
+    public bool IsNextTutorialLocked { get; set; }
     public DiscussionSectionViewModel? Discussion { get; set; }
 }
 
@@ -23,5 +49,7 @@ public class TutorialListViewModel
     public DifficultyLevel? CurrentDifficulty { get; set; }
     public string? SearchQuery { get; set; }
     public int TotalCount { get; set; }
+    public UserStageProgressionSnapshot? StageProgression { get; set; }
+    public bool BypassStageLocks { get; set; }
 }
 
