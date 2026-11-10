@@ -192,4 +192,39 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
 
         emptyTtsResp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
+
+    [Fact]
+    public async Task AdminTelemetry_RequiresAdminRole_AndAdaptiveChallengeApiReturnsRunnableCode()
+    {
+        // Arrange
+        var noRedirectClient = _factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
+
+        // Act
+        var telemetryResp = await noRedirectClient.GetAsync("/Admin/Telemetry");
+        var telemetryDataResp = await noRedirectClient.GetAsync("/Admin/TelemetryData");
+        var challengeResp = await _client.PostAsJsonAsync("/api/adaptive/challenge", new AiAdaptiveChallengeRequest
+        {
+            Topic = "Async/Await & ThreadPool",
+            Difficulty = "Intermediate"
+        });
+        var interviewHtml = await (await _client.GetAsync("/Interview")).Content.ReadAsStringAsync();
+
+        // Assert - Security boundaries
+        telemetryResp.StatusCode.Should().BeOneOf(HttpStatusCode.Redirect, HttpStatusCode.Unauthorized);
+        telemetryDataResp.StatusCode.Should().BeOneOf(HttpStatusCode.Redirect, HttpStatusCode.Unauthorized);
+
+        // Assert - Adaptive challenge endpoint
+        challengeResp.EnsureSuccessStatusCode();
+        var challenge = await challengeResp.Content.ReadFromJsonAsync<AiAdaptiveChallengeResponse>();
+        challenge.Should().NotBeNull();
+        challenge!.Success.Should().BeTrue();
+        challenge.StarterCode.Should().NotBeNullOrWhiteSpace();
+        challenge.SolutionCode.Should().NotBeNullOrWhiteSpace();
+
+        interviewHtml.Should().Contain("adaptiveChallengeModal");
+        interviewHtml.Should().Contain("btnGenerateAdaptiveChallenge");
+    }
 }

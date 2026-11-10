@@ -1,0 +1,364 @@
+@{
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "Kafka & System Telemetry" : "Giám sát Kafka & AI Telemetry";
+}
+
+<div class="container-fluid px-3 px-xl-4 py-4">
+    <partial name="_AdminNav" />
+
+    <!-- Control Bar -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1 fw-bold d-inline-flex align-items-center gap-1.5" style="font-size: 0.72rem;">
+                    <span class="spinner-grow spinner-grow-sm text-success" role="status" style="width: 0.5rem; height: 0.5rem;"></span>
+                    @(isEn ? "REAL-TIME TELEMETRY" : "GIÁM SÁT THỜI GIAN THỰC")
+                </span>
+                <span class="text-muted small" id="lastSyncTimestamp">@(isEn ? "Connecting..." : "Đang kết nối...")</span>
+            </div>
+            <h4 class="fw-bold mb-0 text-body-emphasis">
+                @(isEn ? "Apache Kafka Stream, Redis Cache & Microservices Observability" : "Luồng Sự kiện Kafka, Bộ nhớ đệm Redis & Sức khỏe Microservices")
+            </h4>
+        </div>
+
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <div class="form-check form-switch me-2">
+                <input class="form-check-input" type="checkbox" id="autoRefreshToggle" checked>
+                <label class="form-check-label small fw-semibold" for="autoRefreshToggle">
+                    @(isEn ? "Auto-refresh (5s)" : "Tự cập nhật (5s)")
+                </label>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold" onclick="loadTelemetry(false)">
+                <i class="bi bi-arrow-clockwise me-1"></i> @(isEn ? "Refresh" : "Làm mới")
+            </button>
+            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold" id="btnPingAtus" onclick="loadTelemetry(true)">
+                <i class="bi bi-robot me-1"></i> @(isEn ? "Ping Atus AI" : "Kiểm tra Atus AI")
+            </button>
+        </div>
+    </div>
+
+    <!-- Atus Ping Result Alert (Hidden by default) -->
+    <div id="atusPingBanner" class="alert rounded-4 shadow-xs mb-4 d-none" role="alert"></div>
+
+    <!-- Row 1: 4 Telemetry KPI Cards -->
+    <div class="row g-3 g-md-4 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-body">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-body-secondary fw-semibold small text-uppercase">Apache Kafka Stream</span>
+                        <span id="kafkaHealthBadge" class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1 small">...</span>
+                    </div>
+                    <h2 class="fw-bold mb-1" id="kpiKafkaConsumed">0</h2>
+                    <div class="text-body-secondary small" id="kpiKafkaMeta">Bootstrap: ...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-body">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-body-secondary fw-semibold small text-uppercase">Redis L1/L2 Cache</span>
+                        <span id="redisHealthBadge" class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1 small">...</span>
+                    </div>
+                    <h2 class="fw-bold mb-1" id="kpiCacheHitRatio">--%</h2>
+                    <div class="text-body-secondary small" id="kpiCacheMeta">L1 Hits: 0 | L2 Hits: 0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-body">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-body-secondary fw-semibold small text-uppercase">Web BFF Traffic</span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2.5 py-1 small" id="kpiUptime">Up: 0s</span>
+                    </div>
+                    <h2 class="fw-bold mb-1" id="kpiHttpRequests">0</h2>
+                    <div class="text-body-secondary small" id="kpiHttpMeta">Avg Latency: 0 ms</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-body">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-body-secondary fw-semibold small text-uppercase">Atus & Sandbox Latency</span>
+                        <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-2.5 py-1 small">Live Metrics</span>
+                    </div>
+                    <h2 class="fw-bold mb-1" id="kpiAiAvgLatency">0 ms</h2>
+                    <div class="text-body-secondary small" id="kpiCodeAvgLatency">CodeRunner Avg: 0 ms</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Downstream Microservices & AI/Compiler Trends -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-body">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-diagram-3-fill text-primary me-2"></i> @(isEn ? "Downstream Microservices & Circuit Breakers" : "Trạng thái Microservices & Circuit Breaker")
+                    </h5>
+                </div>
+                <div class="card-body px-4 py-3">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Circuit</th>
+                                    <th class="text-end">Calls</th>
+                                    <th class="text-end">Failures</th>
+                                    <th class="text-end">Avg Latency</th>
+                                </tr>
+                            </thead>
+                            <tbody id="microservicesTableBody">
+                                <tr><td colspan="5" class="text-center text-muted py-4">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-body">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-bar-chart-fill text-warning me-2"></i> @(isEn ? "Live Learner Trends (Kafka Aggregation)" : "Xu hướng Học tập & Lỗi Biên dịch (Từ Kafka)")
+                    </h5>
+                </div>
+                <div class="card-body px-4 py-3">
+                    <div class="mb-3">
+                        <div class="small fw-semibold text-muted mb-2">@(isEn ? "Top C#/.NET Topics Asked to Atus:" : "Chủ đề được hỏi nhiều trên Atus:")</div>
+                        <div id="topTopicsContainer" class="d-flex flex-column gap-2">
+                            <span class="text-muted small fst-italic">@(isEn ? "Waiting for live queries..." : "Chưa có sự kiện AI mới...")</span>
+                        </div>
+                    </div>
+                    <hr class="opacity-25">
+                    <div>
+                        <div class="small fw-semibold text-muted mb-2">@(isEn ? "Top Compiler & Runtime Errors Caught:" : "Lỗi biên dịch C# thường gặp:")</div>
+                        <div id="topErrorsContainer" class="d-flex flex-wrap gap-2">
+                            <span class="text-muted small fst-italic">@(isEn ? "No compiler errors recorded yet." : "Chưa ghi nhận lỗi biên dịch.")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 3: Live Kafka Consumer Feed -->
+    <div class="card border-0 shadow-sm rounded-4 bg-body">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-broadcast text-danger me-2"></i> @(isEn ? "Live Kafka Consumer Event Stream (Last 30 Events)" : "Dòng Sự kiện Kafka Trực tiếp (30 sự kiện gần nhất)")
+            </h5>
+            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1 small" id="kafkaTopicsBadge">
+                3 Topics Subscribed
+            </span>
+        </div>
+        <div class="card-body px-4 pb-4">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0 small font-monospace">
+                    <thead class="table-light">
+                        <tr>
+                            <th>UTC Time</th>
+                            <th>Kafka Topic</th>
+                            <th>Partition Key</th>
+                            <th>Event Summary</th>
+                            <th class="text-end">Duration</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="kafkaEventsTableBody">
+                        <tr><td colspan="6" class="text-center text-muted py-4">Waiting for Kafka stream...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const isEn = @(isEn ? "true" : "false");
+    let pollTimer = null;
+
+    function escHtml(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    }
+
+    async function loadTelemetry(pingAi) {
+        const pingBtn = document.getElementById('btnPingAtus');
+        if (pingAi && pingBtn) {
+            pingBtn.disabled = true;
+            pingBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> ${isEn ? 'Pinging...' : 'Đang ping...'}`;
+        }
+
+        try {
+            const resp = await fetch(`/Admin/TelemetryData?pingAi=${pingAi ? 'true' : 'false'}`);
+            if (!resp.ok) return;
+            const data = await resp.json();
+
+            document.getElementById('lastSyncTimestamp').innerText =
+                (isEn ? 'Last synced: ' : 'Cập nhật lúc: ') + new Date(data.serverTimestamp).toLocaleTimeString();
+
+            // 1. Kafka Producer & Consumer
+            const kp = data.kafkaProducer;
+            const kc = data.kafkaConsumer;
+            const kBadge = document.getElementById('kafkaHealthBadge');
+            if (kp) {
+                kBadge.className = kp.isHealthy
+                    ? 'badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1 small'
+                    : 'badge bg-warning bg-opacity-10 text-warning rounded-pill px-2.5 py-1 small';
+                kBadge.innerText = kp.isHealthy ? 'Healthy (KRaft)' : (kp.isConfigured ? 'Degraded' : 'Disabled');
+                document.getElementById('kpiKafkaMeta').innerText =
+                    `${kp.bootstrapServers || 'N/A'} | Produced: ${kp.messagesProduced} | Fallback: ${kp.fallbackInMemCount}`;
+            }
+            if (kc) {
+                document.getElementById('kpiKafkaConsumed').innerText = kc.totalEventsConsumed;
+                document.getElementById('kpiAiAvgLatency').innerText = `${kc.averageAiLatencyMs || 0} ms`;
+                document.getElementById('kpiCodeAvgLatency').innerText = `CodeRunner Avg: ${kc.averageCodeExecutionMs || 0} ms | Fallbacks: ${kc.fallbackAiCount}`;
+
+                renderTopTopics(kc.topAiTopics || {});
+                renderTopErrors(kc.topCompilerErrors || {});
+                renderKafkaEvents(kc.recentEvents || []);
+            }
+
+            // 2. Cache & Observability
+            const obs = data.observability;
+            if (obs) {
+                document.getElementById('kpiUptime').innerText = `Up: ${obs.uptimeSeconds}s`;
+                document.getElementById('kpiHttpRequests').innerText = obs.totalHttpRequests;
+                document.getElementById('kpiHttpMeta').innerText =
+                    `Success: ${obs.httpSuccessRatePercent}% | Avg Latency: ${obs.averageHttpLatencyMs} ms`;
+
+                const cache = obs.cacheDiagnostics;
+                if (cache) {
+                    const rBadge = document.getElementById('redisHealthBadge');
+                    rBadge.className = cache.isRedisHealthy
+                        ? 'badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1 small'
+                        : 'badge bg-warning bg-opacity-10 text-warning rounded-pill px-2.5 py-1 small';
+                    rBadge.innerText = cache.isRedisHealthy ? 'Redis 7 Healthy' : 'L1 Fallback';
+                    document.getElementById('kpiCacheHitRatio').innerText = `${cache.hitRatioPercent}%`;
+                    document.getElementById('kpiCacheMeta').innerText = `L1 Hits: ${cache.l1MemoryHits} | L2 Hits: ${cache.l2RedisHits} | Miss: ${cache.cacheMisses}`;
+                }
+
+                renderMicroservices(obs.downstreamMicroservices || []);
+            }
+
+            // 3. Optional Atus Ping Banner
+            if (pingAi && data.aiStatus) {
+                const banner = document.getElementById('atusPingBanner');
+                banner.classList.remove('d-none', 'alert-success', 'alert-warning');
+                banner.classList.add(data.aiStatus.isAvailable ? 'alert-success' : 'alert-warning');
+                banner.innerHTML = `<i class="bi bi-robot me-2"></i><strong>${escHtml(data.aiStatus.provider)}</strong> (${data.aiStatus.latencyMs} ms): ${escHtml(data.aiStatus.message)}`;
+            }
+        } catch (err) {
+            console.warn('Telemetry refresh error:', err);
+        } finally {
+            if (pingAi && pingBtn) {
+                pingBtn.disabled = false;
+                pingBtn.innerHTML = `<i class="bi bi-robot me-1"></i> ${isEn ? 'Ping Atus AI' : 'Kiểm tra Atus AI'}`;
+            }
+        }
+    }
+
+    function renderMicroservices(services) {
+        const tbody = document.getElementById('microservicesTableBody');
+        if (!services || services.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">No microservice telemetry yet.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = services.map(s => `
+            <tr>
+                <td class="fw-bold">${escHtml(s.serviceName)}</td>
+                <td>
+                    <span class="badge ${s.isCircuitOpen ? 'bg-danger' : 'bg-success'} bg-opacity-10 ${s.isCircuitOpen ? 'text-danger' : 'text-success'} rounded-pill px-2">
+                        ${s.isCircuitOpen ? 'OPEN' : 'CLOSED'}
+                    </span>
+                </td>
+                <td class="text-end">${s.totalCalls}</td>
+                <td class="text-end ${s.failedCalls > 0 ? 'text-danger fw-bold' : ''}">${s.failedCalls}</td>
+                <td class="text-end">${s.averageLatencyMs} ms</td>
+            </tr>
+        `).join('');
+    }
+
+    function renderTopTopics(topics) {
+        const container = document.getElementById('topTopicsContainer');
+        const entries = Object.entries(topics);
+        if (entries.length === 0) {
+            container.innerHTML = `<span class="text-muted small fst-italic">${isEn ? 'No AI topics captured yet.' : 'Chưa có thống kê chủ đề.'}</span>`;
+            return;
+        }
+        const maxVal = Math.max(...entries.map(e => e[1]), 1);
+        container.innerHTML = entries.map(([name, count]) => `
+            <div>
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="fw-semibold">${escHtml(name)}</span>
+                    <span class="text-muted">${count}</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar bg-primary" style="width: ${Math.round((count / maxVal) * 100)}%"></div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderTopErrors(errors) {
+        const container = document.getElementById('topErrorsContainer');
+        const entries = Object.entries(errors);
+        if (entries.length === 0) {
+            container.innerHTML = `<span class="text-muted small fst-italic">${isEn ? 'Zero compiler/runtime errors caught.' : 'Chưa phát sinh lỗi biên dịch nào.'}</span>`;
+            return;
+        }
+        container.innerHTML = entries.map(([code, count]) => `
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-1.5 fw-semibold">
+                <i class="bi bi-bug-fill me-1"></i>${escHtml(code)}: ${count}
+            </span>
+        `).join('');
+    }
+
+    function renderKafkaEvents(events) {
+        const tbody = document.getElementById('kafkaEventsTableBody');
+        if (!events || events.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">${isEn ? 'Waiting for live events on Kafka topics...' : 'Đang chờ sự kiện mới trên Kafka topics...'}</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = events.map(e => `
+            <tr>
+                <td class="text-muted">${escHtml(new Date(e.timestamp).toLocaleTimeString())}</td>
+                <td><span class="badge bg-primary bg-opacity-10 text-primary">${escHtml(e.topic)}</span></td>
+                <td class="text-muted">${escHtml(e.partitionKey)}</td>
+                <td>${escHtml(e.summary)}</td>
+                <td class="text-end">${e.durationMs} ms</td>
+                <td class="text-center">
+                    <span class="badge ${e.isSuccess ? 'bg-success' : 'bg-danger'} bg-opacity-10 ${e.isSuccess ? 'text-success' : 'text-danger'} rounded-pill">
+                        ${e.isSuccess ? 'OK' : 'FAIL'}
+                    </span>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    document.getElementById('autoRefreshToggle').addEventListener('change', function () {
+        if (this.checked) {
+            pollTimer = setInterval(() => loadTelemetry(false), 5000);
+        } else if (pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+        }
+    });
+
+    loadTelemetry(false);
+    pollTimer = setInterval(() => loadTelemetry(false), 5000);
+</script>
+}

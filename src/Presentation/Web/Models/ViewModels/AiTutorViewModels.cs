@@ -308,3 +308,24 @@ public class AiTutorIndexViewModel
     public Guid? ActiveConversationId => ActiveConversation?.Id;
     public bool IsLiveGeminiConfigured { get; set; }
 }
+
+
+public class AiAdaptiveChallengeRequest
+{
+    public string Topic { get; set; } = string.Empty;
+    public string Difficulty { get; set; } = "Intermediate";
+}
+
+public class AiAdaptiveChallengeResponse
+{
+    public bool Success { get; set; } = true;
+    public string Topic { get; set; } = string.Empty;
+    public string Difficulty { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string ProblemStatementMarkdown { get; set; } = string.Empty;
+    public string StarterCode { get; set; } = string.Empty;
+    public string SolutionCode { get; set; } = string.Empty;
+    public string Hint { get; set; } = string.Empty;
+    public string ExpectedOutput { get; set; } = string.Empty;
+    public string ModelUsed { get; set; } = "Atus";
+}

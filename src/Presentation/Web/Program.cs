@@ -591,6 +591,30 @@ app.MapGet("/api/adaptive/recommendations", async (HttpContext http, IAdaptiveLe
     return Results.Ok(result);
 });
 
+// AI Adaptive Coding Challenge Generator for remediating weak spots directly in Roslyn Sandbox
+app.MapPost("/api/adaptive/challenge", async (AiAdaptiveChallengeRequest req, HttpContext http, IAiTutorService aiTutor, IKafkaProducer? kafka) =>
+{
+    if (req == null || string.IsNullOrWhiteSpace(req.Topic))
+    {
+        return Results.BadRequest(new { success = false, message = "Topic is required." });
+    }
+
+    var challenge = await aiTutor.GenerateAdaptiveChallengeAsync(req, http.IsEnglish());
+    var userId = http.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (!string.IsNullOrEmpty(userId))
+    {
+        kafka?.ProduceFireAndForget(
+            NET_Tutos.BuildingBlocks.EventBus.Events.KafkaTopics.UserLearningActivity,
+            new NET_Tutos.BuildingBlocks.EventBus.Events.UserLearningActivityEvent(
+                UserId: userId,
+                ActivityType: "AdaptiveChallengeGenerated",
+                EntityId: req.Topic,
+                Title: challenge.Title));
+    }
+
+    return Results.Ok(challenge);
+});
+
 // Live Apache Kafka Consumer Stream Analytics Endpoint
 app.MapGet("/api/kafka/analytics", (IKafkaStreamAnalyticsStore analyticsStore) =>
 {

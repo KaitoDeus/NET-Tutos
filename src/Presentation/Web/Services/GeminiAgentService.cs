@@ -1621,6 +1621,81 @@ CRITICAL RULES:
         }
     }
 
+    public async Task<AiAdaptiveChallengeResponse> GenerateAdaptiveChallengeAsync(AiAdaptiveChallengeRequest request, bool isEnglish)
+    {
+        if (!IsLiveGeminiAvailable)
+        {
+            return await _fallbackEngine.GenerateAdaptiveChallengeAsync(request, isEnglish);
+        }
+
+        string normalizedTopic = (request.Topic ?? ".NET").Trim();
+        string normalizedDiff = string.IsNullOrWhiteSpace(request.Difficulty) ? "Intermediate" : request.Difficulty.Trim();
+        string? cacheKey = null;
+
+        if (_cacheService != null)
+        {
+            var hash = ComputeSha256($"{normalizedTopic}:{normalizedDiff}");
+            cacheKey = $"atus:adaptivechallenge:{(isEnglish ? "en" : "vi")}:{hash}";
+            var cached = await _cacheService.GetAsync<AiAdaptiveChallengeResponse>(cacheKey);
+            if (cached != null) return cached;
+        }
+
+        try
+        {
+            var systemPrompt = isEnglish
+                ? @"You are Atus, Principal .NET Architect. Design a concise, practical C# 14 top-level script coding exercise tailored to remediate the candidate's weak spot.
+IMPORTANT: The starterCode and solutionCode MUST run cleanly inside a lightweight Roslyn C# script sandbox (using only System, System.Collections.Generic, System.Linq, System.Text, System.Threading.Tasks, System.Text.Json — NO external namespaces or EF DbContext classes, and finish with Console.WriteLine(...)).
+Return valid JSON matching this schema:
+{
+  ""title"": ""Concise Exercise Title"",
+  ""problemStatementMarkdown"": ""Clear description of bug or optimization required."",
+  ""starterCode"": ""// Runnable C# top-level snippet with TODO"",
+  ""solutionCode"": ""// Working reference C# solution printing expectedOutput"",
+  ""hint"": ""Helpful hint without spoiling completely."",
+  ""expectedOutput"": ""Exact Console.WriteLine output of solutionCode""
+}"
+                : @"Bạn là Atus, Principal .NET Architect. Thiết kế 1 bài tập thực hành sửa lỗi hoặc tối ưu code C# 14 ngắn gọn, sát thực tế để khắc phục đúng điểm yếu của học viên.
+QUAN TRỌNG: starterCode và solutionCode PHẢI chạy được bằng Roslyn C# Script (top-level statements, chỉ dùng System, System.Collections.Generic, System.Linq, System.Text, System.Threading.Tasks, System.Text.Json — KHÔNG dùng DbContext hay thư viện ngoài, và kết thúc bằng Console.WriteLine(...)).
+Trả về định dạng JSON hợp lệ:
+{
+  ""title"": ""Tiêu đề bài tập thực hành"",
+  ""problemStatementMarkdown"": ""Mô tả rõ lỗi hoặc yêu cầu tối ưu."",
+  ""starterCode"": ""// Mã nguồn mẫu top-level có chú thích TODO"",
+  ""solutionCode"": ""// Lời giải chuẩn chạy ra đúng expectedOutput"",
+  ""hint"": ""Gợi ý hướng giải quyết ngắn gọn."",
+  ""expectedOutput"": ""Kết quả chính xác in ra từ Console.WriteLine""
+}";
+
+            var userPrompt = $"[Weak Topic]: {normalizedTopic}\n[Difficulty]: {normalizedDiff}";
+            var jsonText = await CallGeminiJsonAsync(systemPrompt, userPrompt);
+            if (!string.IsNullOrWhiteSpace(jsonText))
+            {
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var result = JsonSerializer.Deserialize<AiAdaptiveChallengeResponse>(jsonText, options);
+                if (result != null && !string.IsNullOrWhiteSpace(result.StarterCode))
+                {
+                    result.Success = true;
+                    result.Topic = normalizedTopic;
+                    result.Difficulty = normalizedDiff;
+                    result.ModelUsed = $"Atus ({_model})";
+
+                    if (_cacheService != null && cacheKey != null)
+                    {
+                        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(12));
+                    }
+
+                    return result;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("Adaptive challenge generation failed ({Message}). Falling back to curated rule engine.", ex.Message);
+        }
+
+        return await _fallbackEngine.GenerateAdaptiveChallengeAsync(request, isEnglish);
+    }
+
     private void EmitAtusTelemetry(
         AiTutorChatRequest request,
         string modelUsed,

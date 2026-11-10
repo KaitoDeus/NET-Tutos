@@ -1437,6 +1437,175 @@ public class {methodName}Tests
         });
     }
 
+    public Task<AiAdaptiveChallengeResponse> GenerateAdaptiveChallengeAsync(AiAdaptiveChallengeRequest request, bool isEnglish)
+    {
+        var topic = string.IsNullOrWhiteSpace(request.Topic) ? ".NET Clean Code" : request.Topic.Trim();
+        var lower = topic.ToLowerInvariant();
+        var diff = string.IsNullOrWhiteSpace(request.Difficulty) ? "Intermediate" : request.Difficulty;
+
+        if (lower.Contains("async") || lower.Contains("await") || lower.Contains("thread") || lower.Contains("task"))
+        {
+            return Task.FromResult(new AiAdaptiveChallengeResponse
+            {
+                Success = true,
+                Topic = topic,
+                Difficulty = diff,
+                Title = isEnglish
+                    ? "Refactor Blocking Tasks to Non-Blocking Async/Await"
+                    : "Khắc phục Deadlock & Chặn luồng (.Result) bằng Async/Await",
+                ProblemStatementMarkdown = isEnglish
+                    ? "The code below fetches user metrics sequentially and calls `.Result` on a Task. Fix `RunDashboardAsync` to run both I/O tasks **concurrently** using `Task.WhenAll` and `await` without blocking."
+                    : "Đoạn mã dưới đây gọi `.Result` chặn ThreadPool và chạy tuần tự 2 tác vụ I/O. Hãy sửa hàm `RunDashboardAsync` để thực thi song song bằng `Task.WhenAll` và `await` chuẩn Async All The Way.",
+                StarterCode =
+@"async Task<int> FetchScoreAsync() { await Task.Delay(50); return 90; }
+async Task<int> FetchStreakAsync() { await Task.Delay(50); return 7; }
+
+async Task<string> RunDashboardAsync()
+{
+    // TODO: Replace blocking .Result and sequential execution with Task.WhenAll
+    var score = FetchScoreAsync().Result;
+    var streak = FetchStreakAsync().Result;
+    return $""Score={score}, Streak={streak}"";
+}
+
+Console.WriteLine(await RunDashboardAsync());",
+                SolutionCode =
+@"async Task<int> FetchScoreAsync() { await Task.Delay(50); return 90; }
+async Task<int> FetchStreakAsync() { await Task.Delay(50); return 7; }
+
+async Task<string> RunDashboardAsync()
+{
+    var scoreTask = FetchScoreAsync();
+    var streakTask = FetchStreakAsync();
+    await Task.WhenAll(scoreTask, streakTask);
+    return $""Score={scoreTask.Result}, Streak={streakTask.Result}"";
+}
+
+Console.WriteLine(await RunDashboardAsync());",
+                Hint = isEnglish
+                    ? "Start both async tasks first, await Task.WhenAll(t1, t2), then read .Result safely after completion."
+                    : "Khởi tạo cả 2 Task trước, dùng `await Task.WhenAll(scoreTask, streakTask)` rồi lấy giá trị trả về (hoặc destructure kết quả).",
+                ExpectedOutput = "Score=90, Streak=7",
+                ModelUsed = "Atus Curated Engine"
+            });
+        }
+
+        if (lower.Contains("linq") || lower.Contains("deferred") || lower.Contains("ef core") || lower.Contains("entity"))
+        {
+            return Task.FromResult(new AiAdaptiveChallengeResponse
+            {
+                Success = true,
+                Topic = topic,
+                Difficulty = diff,
+                Title = isEnglish
+                    ? "Optimize LINQ Query & Avoid Multiple Enumeration"
+                    : "Tối ưu Truy vấn LINQ & Tránh Multiple Enumeration",
+                ProblemStatementMarkdown = isEnglish
+                    ? "Filter active learners (`Score >= 80`), order descending by `Score`, take the top 2 usernames formatted as a comma-separated string in a **single materialized query**."
+                    : "Lọc các học viên đạt chuẩn (`Score >= 80`), sắp xếp giảm dần theo `Score` và lấy ra tên 2 học viên dẫn đầu nối bằng dấu `, ` chỉ trong một lần duyệt LINQ tối ưu.",
+                StarterCode =
+@"record Learner(string Name, int Score);
+var learners = new List<Learner>
+{
+    new(""An"", 75), new(""Binh"", 95), new(""Chi"", 88), new(""Dung"", 92)
+};
+
+// TODO: Filter >= 80, OrderByDescending Score, Take(2), Select Name
+var topNames = new List<string>();
+Console.WriteLine(string.Join("", "", topNames));",
+                SolutionCode =
+@"record Learner(string Name, int Score);
+var learners = new List<Learner>
+{
+    new(""An"", 75), new(""Binh"", 95), new(""Chi"", 88), new(""Dung"", 92)
+};
+
+var topNames = learners
+    .Where(l => l.Score >= 80)
+    .OrderByDescending(l => l.Score)
+    .Take(2)
+    .Select(l => l.Name)
+    .ToList();
+
+Console.WriteLine(string.Join("", "", topNames));",
+                Hint = isEnglish
+                    ? "Chain .Where(), .OrderByDescending(), .Take(2), .Select(), and .ToList() cleanly."
+                    : "Kết hợp chuỗi `.Where(l => l.Score >= 80).OrderByDescending(l => l.Score).Take(2).Select(l => l.Name)`.",
+                ExpectedOutput = "Binh, Dung",
+                ModelUsed = "Atus Curated Engine"
+            });
+        }
+
+        if (lower.Contains("scope") || lower.Contains("cs0103") || lower.Contains("cs0029") || lower.Contains("syntax") || lower.Contains("variable"))
+        {
+            return Task.FromResult(new AiAdaptiveChallengeResponse
+            {
+                Success = true,
+                Topic = topic,
+                Difficulty = diff,
+                Title = isEnglish
+                    ? "Fix Compiler Scope & Safe Type Conversion (CS0103 / CS0029)"
+                    : "Khắc phục Lỗi Phạm vi Biến & Ép kiểu An toàn (CS0103 / CS0029)",
+                ProblemStatementMarkdown = isEnglish
+                    ? "Fix the variable scope bug (`CS0103`) and string-to-int conversion error (`CS0029`) using `int.TryParse` so valid inputs print `Bonus: 150`."
+                    : "Mã nguồn bên dưới đang lỗi phạm vi biến (`CS0103`) và ép kiểu chuỗi sang số (`CS0029`). Hãy sửa bằng `int.TryParse` để chương trình chạy in ra đúng `Bonus: 150`.",
+                StarterCode =
+@"string rawPoints = ""100"";
+if (rawPoints != null)
+{
+    int parsed = rawPoints; // Bug CS0029: cannot convert string to int
+}
+// Bug CS0103: parsed is out of scope here!
+Console.WriteLine($""Bonus: {parsed + 50}"");",
+                SolutionCode =
+@"string rawPoints = ""100"";
+int finalScore = 0;
+if (int.TryParse(rawPoints, out int parsed))
+{
+    finalScore = parsed + 50;
+}
+Console.WriteLine($""Bonus: {finalScore}"");",
+                Hint = isEnglish
+                    ? "Declare finalScore in the outer scope and safely parse with int.TryParse(rawPoints, out int parsed)."
+                    : "Khai báo biến kết quả ở phạm vi ngoài (outer scope) và dùng `int.TryParse(rawPoints, out int parsed)`.",
+                ExpectedOutput = "Bonus: 150",
+                ModelUsed = "Atus Curated Engine"
+            });
+        }
+
+        return Task.FromResult(new AiAdaptiveChallengeResponse
+        {
+            Success = true,
+            Topic = topic,
+            Difficulty = diff,
+            Title = isEnglish
+                ? $"Modern C# Practice: {topic}"
+                : $"Thực hành C# 14 & Clean Code: {topic}",
+            ProblemStatementMarkdown = isEnglish
+                ? "Refactor the mutable DTO class into an immutable `record` with clean pattern matching to evaluate score tiers (`Senior` if >= 85, else `Mid`)."
+                : "Chuyển đổi lớp dữ liệu thông thường sang Modern C# `record` bất biến và sử dụng `switch expression` đánh giá hạng (`Senior` nếu >= 85, ngược lại `Mid`).",
+            StarterCode =
+@"// TODO: Replace class with immutable record StudentProfile(string Name, int Score)
+int score = 90;
+string level = """"; // TODO: use switch expression
+Console.WriteLine($""An: {level}"");",
+            SolutionCode =
+@"record StudentProfile(string Name, int Score);
+var student = new StudentProfile(""An"", 90);
+string level = student.Score switch
+{
+    >= 85 => ""Senior"",
+    _ => ""Mid""
+};
+Console.WriteLine($""{student.Name}: {level}"");",
+            Hint = isEnglish
+                ? "Use `record StudentProfile(string Name, int Score);` and relational pattern `>= 85 => \"Senior\"`."
+                : "Dùng cú pháp `record StudentProfile(string Name, int Score);` và pattern `student.Score switch { >= 85 => \"Senior\", _ => \"Mid\" }`.",
+            ExpectedOutput = "An: Senior",
+            ModelUsed = "Atus Curated Engine"
+        });
+    }
+
     public Task<AiTutorStatusResponse> CheckStatusAsync()
     {
         return Task.FromResult(new AiTutorStatusResponse

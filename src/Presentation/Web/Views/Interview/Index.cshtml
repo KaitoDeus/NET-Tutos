@@ -119,9 +119,14 @@
                     @(isEn ? "Recommended Next Lessons Based on Your Progress" : "Bài Học Đề Xuất Cá Nhân Hóa Dựa Trên Năng Lực Thực Tế")
                 </h5>
             </div>
-            <a asp-action="Mock" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold flex-shrink-0">
-                <i class="bi bi-lightning-fill me-1"></i> @(isEn ? "Test Readiness with Atus" : "Đo trình độ với Atus")
-            </a>
+            <div class="d-flex flex-wrap gap-2 flex-shrink-0">
+                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold" id="btnGenerateAdaptiveChallenge" onclick="openAdaptiveChallenge(defaultAdaptiveTopic)">
+                    <i class="bi bi-code-slash me-1"></i> @(isEn ? "Generate Practice Code" : "Sinh Bài Tập Code")
+                </button>
+                <a asp-action="Mock" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                    <i class="bi bi-lightning-fill me-1"></i> @(isEn ? "Test Readiness with Atus" : "Đo trình độ với Atus")
+                </a>
+            </div>
         </div>
         <div id="adaptiveWeakSpotsRow" class="d-flex flex-wrap gap-2 mb-3 d-none"></div>
         <div id="adaptiveLessonsGrid" class="row g-3"></div>
@@ -334,15 +339,164 @@
 
 
 @section Scripts {
+<!-- Adaptive Challenge Practice Modal -->
+<div class="modal fade" id="adaptiveChallengeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-bottom px-4 py-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2.5 py-0.5 small fw-bold">
+                            <i class="bi bi-cpu-fill me-1"></i> Atus Adaptive Sandbox
+                        </span>
+                        <span id="adaptiveChallengeTopicBadge" class="badge bg-info bg-opacity-10 text-info rounded-pill px-2.5 py-0.5 small"></span>
+                    </div>
+                    <h5 class="modal-title fw-bold mb-0" id="adaptiveChallengeTitle">@(isEn ? "Generating practice exercise..." : "Đang khởi tạo bài luyện tập...")</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="adaptiveChallengeLoading" class="text-center py-5">
+                    <div class="spinner-border text-primary mb-2" role="status"></div>
+                    <div class="text-muted small">@(isEn ? "Atus is crafting a personalized C# debugging exercise..." : "Atus đang thiết kế bài tập C# đúng trọng tâm điểm yếu của bạn...")</div>
+                </div>
+                <div id="adaptiveChallengeContent" class="d-none">
+                    <p id="adaptiveChallengeDesc" class="text-body-secondary small mb-3"></p>
+                    <div class="mb-2 d-flex justify-content-between align-items-center">
+                        <label class="small fw-bold text-primary mb-0"><i class="bi bi-filetype-cs me-1"></i>C# (.NET 10) Editor</label>
+                        <span class="small text-muted" id="adaptiveExpectedOutLabel"></span>
+                    </div>
+                    <textarea id="adaptiveCodeEditor" class="form-control bg-dark text-light font-monospace rounded-3 p-3 mb-3 border-secondary" rows="9" style="font-size: 0.82rem; line-height: 1.5;" spellcheck="false"></textarea>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button type="button" class="btn btn-sm btn-success rounded-pill px-3.5 fw-semibold" id="btnRunAdaptiveCode" onclick="runAdaptiveCode()">
+                            <i class="bi bi-play-fill me-1"></i> @(isEn ? "Run in Roslyn Sandbox" : "Chạy thử (Roslyn Sandbox)")
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-semibold" onclick="toggleAdaptiveHint()">
+                            <i class="bi bi-lightbulb me-1"></i> @(isEn ? "Hint" : "Gợi ý")
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold" onclick="loadAdaptiveSolution()">
+                            <i class="bi bi-code-square me-1"></i> @(isEn ? "Load Reference Solution" : "Nạp lời giải chuẩn")
+                        </button>
+                    </div>
+                    <div id="adaptiveHintAlert" class="alert alert-warning rounded-3 small py-2 mb-3 d-none"></div>
+                    <div id="adaptiveTerminalBox" class="rounded-3 bg-dark text-light p-3 font-monospace small d-none" style="font-size: 0.8rem;">
+                        <div class="d-flex justify-content-between text-muted border-bottom border-secondary pb-1 mb-2" style="font-size: 0.72rem;">
+                            <span>Roslyn Output</span>
+                            <span id="adaptiveExecTime">0 ms</span>
+                        </div>
+                        <pre id="adaptiveTerminalOutput" class="mb-0" style="white-space: pre-wrap;"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    let defaultAdaptiveTopic = 'Async/Await & ThreadPool';
+    let currentAdaptiveChallenge = null;
+    let adaptiveModalInstance = null;
+
+    function escHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    async function openAdaptiveChallenge(topic) {
+        const isEn = @(isEn ? "true" : "false");
+        const modalEl = document.getElementById('adaptiveChallengeModal');
+        if (!modalEl) return;
+
+        if (!adaptiveModalInstance) {
+            adaptiveModalInstance = new bootstrap.Modal(modalEl);
+        }
+        adaptiveModalInstance.show();
+
+        document.getElementById('adaptiveChallengeLoading')?.classList.remove('d-none');
+        document.getElementById('adaptiveChallengeContent')?.classList.add('d-none');
+        document.getElementById('adaptiveHintAlert')?.classList.add('d-none');
+        document.getElementById('adaptiveTerminalBox')?.classList.add('d-none');
+        document.getElementById('adaptiveChallengeTopicBadge').innerText = topic || 'Modern C#';
+
+        try {
+            const resp = await fetch('/api/adaptive/challenge', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topic: topic || 'Async/Await & ThreadPool', difficulty: 'Intermediate' })
+            });
+            const data = await resp.json();
+            if (data && data.success) {
+                currentAdaptiveChallenge = data;
+                document.getElementById('adaptiveChallengeTitle').innerText = data.title;
+                document.getElementById('adaptiveChallengeDesc').innerText = data.problemStatementMarkdown;
+                document.getElementById('adaptiveCodeEditor').value = data.starterCode || '';
+                document.getElementById('adaptiveExpectedOutLabel').innerText = data.expectedOutput
+                    ? ((isEn ? 'Expected: ' : 'Kỳ vọng: ') + data.expectedOutput)
+                    : '';
+                document.getElementById('adaptiveChallengeLoading')?.classList.add('d-none');
+                document.getElementById('adaptiveChallengeContent')?.classList.remove('d-none');
+            }
+        } catch (err) {
+            console.warn('Error loading adaptive challenge:', err);
+        }
+    }
+
+    async function runAdaptiveCode() {
+        const isEn = @(isEn ? "true" : "false");
+        const code = document.getElementById('adaptiveCodeEditor').value;
+        const btn = document.getElementById('btnRunAdaptiveCode');
+        const box = document.getElementById('adaptiveTerminalBox');
+        const outEl = document.getElementById('adaptiveTerminalOutput');
+        const timeEl = document.getElementById('adaptiveExecTime');
+
+        btn.disabled = true;
+        box.classList.remove('d-none');
+        outEl.className = 'mb-0 text-warning';
+        outEl.innerText = isEn ? 'Compiling & running in Roslyn Sandbox...' : 'Đang biên dịch & chạy trên Roslyn Sandbox...';
+
+        try {
+            const resp = await fetch('/Playground/Execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code })
+            });
+            const res = await resp.json();
+            timeEl.innerText = (res.executionTimeMs || 0) + ' ms';
+
+            if (res.isSuccess) {
+                const actual = (res.output || '').trim();
+                const expected = (currentAdaptiveChallenge?.expectedOutput || '').trim();
+                const matched = expected && actual.includes(expected);
+                outEl.className = 'mb-0 text-success';
+                outEl.innerText = actual + (matched ? (isEn ? '\n\n✅ PASSED! Matched expected output.' : '\n\n✅ XUẤT SẮC! Khớp hoàn toàn với kết quả kỳ vọng.') : '');
+            } else {
+                outEl.className = 'mb-0 text-danger';
+                outEl.innerText = res.error || (isEn ? 'Execution error.' : 'Lỗi thực thi.');
+            }
+        } catch (e) {
+            outEl.className = 'mb-0 text-danger';
+            outEl.innerText = isEn ? 'Failed connecting to Sandbox.' : 'Lỗi kết nối Sandbox.';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function toggleAdaptiveHint() {
+        const alertEl = document.getElementById('adaptiveHintAlert');
+        if (!alertEl || !currentAdaptiveChallenge) return;
+        alertEl.innerText = currentAdaptiveChallenge.hint || '';
+        alertEl.classList.toggle('d-none');
+    }
+
+    function loadAdaptiveSolution() {
+        if (!currentAdaptiveChallenge?.solutionCode) return;
+        document.getElementById('adaptiveCodeEditor').value = currentAdaptiveChallenge.solutionCode;
+    }
+
     (function () {
         const isEn = @(isEn ? "true" : "false");
-        function escHtml(str) {
-            if (!str) return '';
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
 
         fetch('/api/adaptive/recommendations')
             .then(r => r.ok ? r.json() : null)
@@ -358,14 +512,19 @@
                     badge.textContent = (isEn ? 'Target: ' : 'Mục tiêu: ') + data.suggestedInterviewLevel;
                 }
 
-                if (weakRow && data.detectedWeakSpots && data.detectedWeakSpots.length > 0) {
-                    weakRow.classList.remove('d-none');
-                    weakRow.innerHTML = `<span class="small text-muted fw-semibold align-self-center">${isEn ? 'Focus areas:' : 'Trọng tâm cần bù đắp:'}</span>` +
-                        data.detectedWeakSpots.slice(0, 4).map(w =>
-                            `<span class="badge bg-warning bg-opacity-15 text-dark border border-warning border-opacity-25 rounded-pill px-2.5 py-1 fw-medium" style="font-size: 0.72rem;">
-                                <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>${escHtml(w.topic)} (${w.lowestScore}/100)
-                            </span>`
-                        ).join('');
+                if (data.detectedWeakSpots && data.detectedWeakSpots.length > 0) {
+                    defaultAdaptiveTopic = data.detectedWeakSpots[0].topic;
+                    if (weakRow) {
+                        weakRow.classList.remove('d-none');
+                        weakRow.innerHTML = `<span class="small text-muted fw-semibold align-self-center">${isEn ? 'Click weak spot to practice:' : 'Bấm điểm yếu để luyện code ngay:'}</span>` +
+                            data.detectedWeakSpots.slice(0, 4).map(w =>
+                                `<button type="button" onclick="openAdaptiveChallenge('${escHtml(w.topic).replace(/'/g, "\\'")}')" class="btn btn-sm badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25 rounded-pill px-2.5 py-1 fw-medium" style="font-size: 0.72rem;">
+                                    <i class="bi bi-code-slash text-warning me-1"></i>${escHtml(w.topic)} (${w.lowestScore}/100)
+                                </button>`
+                            ).join('');
+                    }
+                } else if (data.trendingQuestions && data.trendingQuestions.length > 0) {
+                    defaultAdaptiveTopic = data.trendingQuestions[0];
                 }
 
                 if (grid) {

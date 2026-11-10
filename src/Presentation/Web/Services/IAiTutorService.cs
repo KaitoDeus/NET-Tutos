@@ -16,5 +16,6 @@ public interface IAiTutorService
     Task<AiInterviewFollowUpResponse> AnswerFollowUpAsync(AiInterviewFollowUpRequest request, bool isEnglish);
     Task<AiInterviewReportResponse> GenerateInterviewReportAsync(AiInterviewReportRequest request, bool isEnglish);
     Task<AiCodeCompletionResponse> CompleteCodeAsync(AiCodeCompletionRequest request, bool isEnglish);
+    Task<AiAdaptiveChallengeResponse> GenerateAdaptiveChallengeAsync(AiAdaptiveChallengeRequest request, bool isEnglish);
     Task<AiTutorStatusResponse> CheckStatusAsync();
 }

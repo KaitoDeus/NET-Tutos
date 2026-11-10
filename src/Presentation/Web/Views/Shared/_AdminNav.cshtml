@@ -1,5 +1,6 @@
 @{
     var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
     bool isEn = Context.IsEnglish();
 }
 
@@ -30,31 +31,37 @@
         <!-- Nav tabs -->
         <ul class="nav nav-pills gap-1 flex-nowrap overflow-x-auto pb-1">
             <li class="nav-item">
-                <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "Admin" ? "active" : "text-body")" 
+                <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "Admin" && currentAction != "Telemetry" ? "active" : "text-body")"
                    asp-controller="Admin" asp-action="Index">
                     <i class="bi bi-speedometer2 me-1"></i> @(isEn ? "KPI Overview" : "Tổng quan KPI")
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "AdminTutorials" ? "active" : "text-body")" 
+                <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "Admin" && currentAction == "Telemetry" ? "active" : "text-body")"
+                   asp-controller="Admin" asp-action="Telemetry">
+                    <i class="bi bi-activity me-1 text-danger"></i> @(isEn ? "Kafka & System Telemetry" : "Giám sát Kafka & AI")
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "AdminTutorials" ? "active" : "text-body")"
                    asp-controller="AdminTutorials" asp-action="Index">
                     <i class="bi bi-journal-richtext me-1"></i> @(isEn ? "Tutorials CMS" : "Quản lý Bài học (CMS)")
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "AdminQuizzes" ? "active" : "text-body")" 
+                <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "AdminQuizzes" ? "active" : "text-body")"
                    asp-controller="AdminQuizzes" asp-action="Index">
                     <i class="bi bi-patch-question me-1"></i> @(isEn ? "Question Bank" : "Ngân hàng Đề thi")
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "AdminUsers" ? "active" : "text-body")" 
+                <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "AdminUsers" ? "active" : "text-body")"
                    asp-controller="AdminUsers" asp-action="Index">
                     <i class="bi bi-people me-1"></i> @(isEn ? "Learners & Roles" : "Học viên & Phân quyền")
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "AdminProjects" ? "active" : "text-body")" 
+                <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "AdminProjects" ? "active" : "text-body")"
                    asp-controller="AdminProjects" asp-action="Submissions">
                     <i class="bi bi-folder-check me-1"></i> @(isEn ? "Review Capstone Projects" : "Duyệt Đồ án Thực chiến")
                 </a>
