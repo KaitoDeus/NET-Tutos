@@ -10,6 +10,10 @@
 *.env
 appsettings.Local.json
 docs
+observability
+extensions
+**/node_modules
+*.vsix
 *.db
 *.db-shm
 *.db-wal

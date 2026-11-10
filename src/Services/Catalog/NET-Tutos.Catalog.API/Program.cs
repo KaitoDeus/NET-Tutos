@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using NET_Tutos.BuildingBlocks.Common.Models;
+using NET_Tutos.BuildingBlocks.Common.Telemetry;
 using NET_Tutos.Catalog.Application.Contracts;
 using NET_Tutos.Catalog.Application.Features;
 using NET_Tutos.Catalog.Application.Services;
@@ -6,6 +8,9 @@ using NET_Tutos.Catalog.Domain.Exceptions;
 using NET_Tutos.Catalog.Infrastructure.Engines;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var serviceTelemetry = new ServiceTelemetry("NET-Tutos.Catalog.API");
+builder.Services.AddSingleton(serviceTelemetry);
 
 builder.Services.AddSingleton<ICatalogEngine, CatalogAssessmentEngine>();
 builder.Services.AddScoped<GetCatalogOverviewQueryHandler>();
@@ -17,12 +22,24 @@ var app = builder.Build();
 
 app.Use(async (context, next) =>
 {
+    if (context.Request.Path.StartsWithSegments("/metrics"))
+    {
+        await next();
+        return;
+    }
+
+    var sw = Stopwatch.StartNew();
+    using var activity = serviceTelemetry.StartActivity($"Catalog {context.Request.Method}", ActivityKind.Server);
     try
     {
         await next();
+        sw.Stop();
+        serviceTelemetry.RecordOperation($"{context.Request.Method} {context.Request.Path}", sw.Elapsed.TotalMilliseconds, context.Response.StatusCode < 500);
     }
     catch (CatalogDomainException ex)
     {
+        sw.Stop();
+        serviceTelemetry.RecordOperation($"{context.Request.Method} {context.Request.Path}", sw.Elapsed.TotalMilliseconds, isSuccess: true);
         context.Response.StatusCode = StatusCodes.Status400BadRequest;
         await context.Response.WriteAsJsonAsync(new
         {
@@ -32,6 +49,12 @@ app.Use(async (context, next) =>
             detail = ex.Message
         });
     }
+    catch
+    {
+        sw.Stop();
+        serviceTelemetry.RecordOperation($"{context.Request.Method} {context.Request.Path}", sw.Elapsed.TotalMilliseconds, isSuccess: false);
+        throw;
+    }
 });
 
 app.MapGet("/healthz", () => Results.Ok(new
@@ -40,6 +63,9 @@ app.MapGet("/healthz", () => Results.Ok(new
     status = "Healthy",
     timestampUtc = DateTime.UtcNow
 }));
+
+app.MapGet("/metrics", (ServiceTelemetry telemetry) =>
+    Results.Text(telemetry.ToPrometheusMetrics(), PrometheusMetricsBuilder.ContentType));
 
 var group = app.MapGroup("/api/v1/catalog");
 

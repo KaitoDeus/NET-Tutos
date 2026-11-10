@@ -26,6 +26,7 @@ public sealed record ServiceTelemetrySnapshotDto(
 /// </summary>
 public sealed class ServiceTelemetry
 {
+    private const int MaxTrackedOperations = 64;
     private readonly string _serviceName;
     private readonly DateTime _startedAtUtc = DateTime.UtcNow;
     private readonly Counter<long> _requestCounter;
@@ -65,11 +66,39 @@ public sealed class ServiceTelemetry
         long micros = (long)Math.Max(0, durationMs * 1000.0);
         Interlocked.Add(ref _totalLatencyMicros, micros);
 
-        _requestCounter.Add(1, new KeyValuePair<string, object?>("operation", operation), new KeyValuePair<string, object?>("success", isSuccess));
-        _latencyHistogram.Record(durationMs, new KeyValuePair<string, object?>("operation", operation));
+        string safeOp = string.IsNullOrWhiteSpace(operation) ? "unknown" : operation.Trim();
+        if (!_operations.ContainsKey(safeOp) && _operations.Count >= MaxTrackedOperations)
+        {
+            safeOp = "other";
+        }
 
-        var tracker = _operations.GetOrAdd(operation, _ => new OperationTracker());
+        _requestCounter.Add(1, new KeyValuePair<string, object?>("operation", safeOp), new KeyValuePair<string, object?>("success", isSuccess));
+        _latencyHistogram.Record(durationMs, new KeyValuePair<string, object?>("operation", safeOp));
+
+        var tracker = _operations.GetOrAdd(safeOp, _ => new OperationTracker());
         tracker.Record(micros, isSuccess);
+    }
+
+    public string ToPrometheusMetrics(Action<PrometheusMetricsBuilder>? enrich = null)
+    {
+        var snapshot = GetSnapshot();
+        var builder = new PrometheusMetricsBuilder()
+            .AppendStandardRuntimeMetrics(snapshot.ServiceName, snapshot.UptimeSeconds)
+            .AddCounter("nettutos_service_requests_total", "Total HTTP/RPC requests handled by the service.", snapshot.TotalRequests, ("service", snapshot.ServiceName), ("status", "total"))
+            .AddCounter("nettutos_service_requests_total", "Total HTTP/RPC requests handled by the service.", snapshot.FailedRequests, ("service", snapshot.ServiceName), ("status", "failed"))
+            .AddGauge("nettutos_service_success_rate_percent", "Percentage of non-5xx requests.", snapshot.SuccessRatePercent, ("service", snapshot.ServiceName))
+            .AddGauge("nettutos_service_avg_latency_ms", "Average request processing latency in milliseconds.", snapshot.AverageLatencyMs, ("service", snapshot.ServiceName));
+
+        foreach (var op in snapshot.Operations)
+        {
+            long succeeded = Math.Max(0, op.TotalCalls - op.FailedCalls);
+            builder.AddCounter("nettutos_service_operation_calls_total", "Total calls per normalized service operation.", succeeded, ("service", snapshot.ServiceName), ("operation", op.Operation), ("outcome", "success"));
+            builder.AddCounter("nettutos_service_operation_calls_total", "Total calls per normalized service operation.", op.FailedCalls, ("service", snapshot.ServiceName), ("operation", op.Operation), ("outcome", "failed"));
+            builder.AddGauge("nettutos_service_operation_avg_latency_ms", "Average operation latency in milliseconds.", op.AverageLatencyMs, ("service", snapshot.ServiceName), ("operation", op.Operation));
+        }
+
+        enrich?.Invoke(builder);
+        return builder.Build();
     }
 
     public ServiceTelemetrySnapshotDto GetSnapshot()

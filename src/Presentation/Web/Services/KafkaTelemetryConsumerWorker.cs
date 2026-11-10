@@ -84,18 +84,23 @@ public sealed class KafkaTelemetryConsumerWorker : BackgroundService
             _logger.LogInformation("Kafka Telemetry Consumer subscribed to topics on {Servers}", _options.BootstrapServers);
 
             DateTime lastWarn = DateTime.MinValue;
+            DateTime lastLagSample = DateTime.UtcNow;
 
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
                     var result = consumer.Consume(TimeSpan.FromMilliseconds(500));
-                    if (result == null || result.IsPartitionEOF || string.IsNullOrWhiteSpace(result.Message?.Value))
+                    if (result != null && !result.IsPartitionEOF && !string.IsNullOrWhiteSpace(result.Message?.Value))
                     {
-                        continue;
+                        ProcessMessage(result.Topic, result.Message.Value);
                     }
 
-                    ProcessMessage(result.Topic, result.Message.Value);
+                    if ((DateTime.UtcNow - lastLagSample).TotalSeconds >= 5)
+                    {
+                        lastLagSample = DateTime.UtcNow;
+                        SamplePartitionLag(consumer);
+                    }
                 }
                 catch (ConsumeException cex)
                 {
@@ -138,6 +143,42 @@ public sealed class KafkaTelemetryConsumerWorker : BackgroundService
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to start Kafka Consumer on {Servers}. App continues safely without stream consumption.", _options.BootstrapServers);
+        }
+    }
+
+    private void SamplePartitionLag(IConsumer<string, string> consumer)
+    {
+        try
+        {
+            var assignments = consumer.Assignment;
+            if (assignments == null || assignments.Count == 0) return;
+
+            var topicLags = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+            foreach (var tp in assignments)
+            {
+                try
+                {
+                    var pos = consumer.Position(tp);
+                    if (pos.Value < 0) continue;
+
+                    var watermark = consumer.QueryWatermarkOffsets(tp, TimeSpan.FromMilliseconds(200));
+                    long lag = watermark.High.Value >= 0 ? Math.Max(0, watermark.High.Value - pos.Value) : 0;
+                    topicLags[tp.Topic] = topicLags.GetValueOrDefault(tp.Topic) + lag;
+                }
+                catch
+                {
+                    // Partition offsets may not yet exist before first produce
+                }
+            }
+
+            foreach (var (topic, lag) in topicLags)
+            {
+                _analyticsStore.UpdateTopicLag(topic, lag);
+            }
+        }
+        catch
+        {
+            // Never interrupt stream loop for lag sampling
         }
     }
 

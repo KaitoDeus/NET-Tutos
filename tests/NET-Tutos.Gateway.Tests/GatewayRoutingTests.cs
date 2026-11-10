@@ -99,5 +99,24 @@ public class GatewayRoutingTests : IClassFixture<WebApplicationFactory<Program>>
         content.Should().Contain("NET-Tutos.YarpGateway.Tracing");
         content.Should().Contain("NET-Tutos.YarpGateway.Metrics");
     }
+
+    [Fact]
+    public async Task Metrics_ReturnsValidPrometheusOpenMetricsFormat()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        await client.GetAsync("/healthz");
+
+        // Act
+        var response = await client.GetAsync("/metrics");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Content.Headers.ContentType?.MediaType.Should().Be("text/plain");
+        var metrics = await response.Content.ReadAsStringAsync();
+        metrics.Should().Contain("# TYPE nettutos_service_up gauge");
+        metrics.Should().Contain("nettutos_service_up{service=\"NET-Tutos.YarpGateway\"} 1");
+        metrics.Should().Contain("nettutos_service_requests_total");
+    }
 }
 

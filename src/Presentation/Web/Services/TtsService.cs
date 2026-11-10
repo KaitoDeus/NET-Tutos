@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -21,6 +22,7 @@ public sealed class TtsService : ITtsService
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IAppCacheService? _cacheService;
+    private readonly IObservabilityService? _observability;
     private readonly ILogger<TtsService> _logger;
 
     private static readonly Regex HtmlTagRegex = new(@"<[^>]+>", RegexOptions.Compiled);
@@ -29,17 +31,20 @@ public sealed class TtsService : ITtsService
     public TtsService(
         IHttpClientFactory httpClientFactory,
         ILogger<TtsService> logger,
-        IAppCacheService? cacheService = null)
+        IAppCacheService? cacheService = null,
+        IObservabilityService? observability = null)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
         _cacheService = cacheService;
+        _observability = observability;
     }
 
     public async Task<byte[]?> SynthesizeSpeechAsync(string text, string lang, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(text)) return null;
 
+        var sw = Stopwatch.StartNew();
         string normalizedLang = lang.Equals("en", StringComparison.OrdinalIgnoreCase) || lang.StartsWith("en-", StringComparison.OrdinalIgnoreCase)
             ? "en"
             : "vi";
@@ -53,6 +58,8 @@ public sealed class TtsService : ITtsService
             var cached = await _cacheService.GetAsync<byte[]>(cacheKey, cancellationToken);
             if (cached != null && cached.Length > 0)
             {
+                sw.Stop();
+                _observability?.RecordTtsRequest(normalizedLang, cacheHit: true, isSuccess: true, sw.Elapsed.TotalMilliseconds);
                 return cached;
             }
         }
@@ -73,6 +80,8 @@ public sealed class TtsService : ITtsService
                 using var resp = await client.GetAsync(url, cancellationToken);
                 if (!resp.IsSuccessStatusCode)
                 {
+                    sw.Stop();
+                    _observability?.RecordTtsRequest(normalizedLang, cacheHit: false, isSuccess: false, sw.Elapsed.TotalMilliseconds);
                     _logger.LogWarning("TTS upstream returned HTTP {Status} for lang={Lang}", (int)resp.StatusCode, normalizedLang);
                     return null;
                 }
@@ -90,10 +99,15 @@ public sealed class TtsService : ITtsService
                 await _cacheService.SetAsync(cacheKey, audioBytes, l2Expiration: TimeSpan.FromDays(7), l1Expiration: TimeSpan.FromHours(6), cancellationToken: cancellationToken);
             }
 
-            return audioBytes.Length > 0 ? audioBytes : null;
+            sw.Stop();
+            bool ok = audioBytes.Length > 0;
+            _observability?.RecordTtsRequest(normalizedLang, cacheHit: false, isSuccess: ok, sw.Elapsed.TotalMilliseconds);
+            return ok ? audioBytes : null;
         }
         catch (Exception ex)
         {
+            sw.Stop();
+            _observability?.RecordTtsRequest(normalizedLang, cacheHit: false, isSuccess: false, sw.Elapsed.TotalMilliseconds);
             _logger.LogWarning("TTS synthesis failed cleanly ({Message}). Browser client will use fallback.", ex.Message);
             return null;
         }

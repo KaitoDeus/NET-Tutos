@@ -87,6 +87,7 @@ else
 }
 builder.Services.AddSingleton<IAppCacheService, HybridRedisCacheService>();
 builder.Services.AddSingleton<IObservabilityService, ObservabilityService>();
+builder.Services.AddSingleton<IPrometheusTelemetryExporter, PrometheusTelemetryExporter>();
 builder.Services.AddTransient<ResilientMicroserviceHandler>();
 
 // CORS configuration for Web MVC & Mobile (.NET MAUI) clients
@@ -545,8 +546,11 @@ app.Use(async (context, next) =>
     });
     await next();
     sw.Stop();
-    var obs = context.RequestServices.GetService<IObservabilityService>();
-    obs?.RecordHttpRequest(context.Request.Path, context.Response.StatusCode, sw.Elapsed.TotalMilliseconds);
+    if (!context.Request.Path.StartsWithSegments("/metrics"))
+    {
+        var obs = context.RequestServices.GetService<IObservabilityService>();
+        obs?.RecordHttpRequest(context.Request.Path, context.Response.StatusCode, sw.Elapsed.TotalMilliseconds);
+    }
 });
 
 app.UseRouting();
@@ -574,6 +578,13 @@ app.MapGet("/api/telemetry/diagnostics", async (IObservabilityService observabil
 {
     var snapshot = await observability.GetDiagnosticsAsync(ct);
     return Results.Ok(snapshot);
+});
+
+// Prometheus OpenMetrics Scrape Endpoint (v0.0.4)
+app.MapGet("/metrics", async (IPrometheusTelemetryExporter exporter, CancellationToken ct) =>
+{
+    var metricsText = await exporter.ExportMetricsAsync(ct);
+    return Results.Text(metricsText, NET_Tutos.BuildingBlocks.Common.Telemetry.PrometheusMetricsBuilder.ContentType);
 });
 
 // RAG Semantic Curriculum Search Endpoint (hashed TF-IDF vector index + cosine similarity)

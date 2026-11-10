@@ -496,3 +496,10 @@ $RECYCLE.BIN/
 # Local run scripts
 run-mobile.bat
 run-mobile.ps1
+
+
+# VS Code Extension build artifacts
+extensions/*/node_modules/
+extensions/*/out/
+extensions/*/dist/
+*.vsix

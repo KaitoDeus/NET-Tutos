@@ -93,6 +93,30 @@ public class ObservabilityAndResilienceTests
         ResilientMicroserviceHandler.ResetAllCircuits();
     }
 
+    [Fact]
+    public async Task PrometheusTelemetryExporter_FormatsValidOpenMetricsWithTtsCacheAiAndKafkaLag()
+    {
+        var obs = new ObservabilityService();
+        obs.RecordHttpRequest("/Tutorials", 200, 15.0);
+        obs.RecordTtsRequest("vi", cacheHit: true, isSuccess: true, durationMs: 2.5);
+        obs.RecordTtsRequest("vi", cacheHit: false, isSuccess: true, durationMs: 85.0);
+        obs.RecordAiRequest("chat", isFallback: false, isSuccess: true, durationMs: 320.0);
+
+        var store = new KafkaStreamAnalyticsStore();
+        store.UpdateTopicLag("nettutos.atus.ai-telemetry", 7);
+
+        var exporter = new PrometheusTelemetryExporter(obs, kafkaProducer: null, analyticsStore: store);
+        var metricsText = await exporter.ExportMetricsAsync();
+
+        metricsText.Should().Contain("# TYPE nettutos_web_http_requests_total counter");
+        metricsText.Should().Contain("nettutos_web_http_requests_total{service=\"NET-Tutos.Web.BFF\",status=\"total\"} 1");
+        metricsText.Should().Contain("nettutos_tts_cache_hit_ratio_percent 50");
+        metricsText.Should().Contain("nettutos_tts_requests_total{outcome=\"cache_hit\"} 1");
+        metricsText.Should().Contain("nettutos_ai_avg_latency_ms 320");
+        metricsText.Should().Contain("nettutos_kafka_consumer_lag_messages{topic=\"nettutos.atus.ai-telemetry\"} 7");
+        metricsText.Should().Contain("nettutos_kafka_consumer_total_lag_messages 7");
+    }
+
     private sealed class StubHttpMessageHandler : HttpMessageHandler
     {
         private readonly Func<HttpRequestMessage, HttpResponseMessage> _responder;

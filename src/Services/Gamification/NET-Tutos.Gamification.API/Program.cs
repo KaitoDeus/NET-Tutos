@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using NET_Tutos.BuildingBlocks.Common.Telemetry;
 using NET_Tutos.Gamification.API.Endpoints;
 using NET_Tutos.Gamification.API.Extensions;
 using NET_Tutos.Gamification.API.Middlewares;
@@ -8,6 +10,9 @@ using NET_Tutos.Gamification.Domain.Entities;
 using NET_Tutos.Gamification.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var serviceTelemetry = new ServiceTelemetry("NET-Tutos.Gamification.API");
+builder.Services.AddSingleton(serviceTelemetry);
 
 // Add Infrastructure & Application Services
 builder.Services.AddGamificationInfrastructure(builder.Configuration);
@@ -18,6 +23,30 @@ var app = builder.Build();
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseCors("AllowAll");
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/metrics"))
+    {
+        await next();
+        return;
+    }
+
+    var sw = Stopwatch.StartNew();
+    using var activity = serviceTelemetry.StartActivity($"Gamification {context.Request.Method}", ActivityKind.Server);
+    try
+    {
+        await next();
+        sw.Stop();
+        serviceTelemetry.RecordOperation($"{context.Request.Method} {context.Request.Path}", sw.Elapsed.TotalMilliseconds, context.Response.StatusCode < 500);
+    }
+    catch
+    {
+        sw.Stop();
+        serviceTelemetry.RecordOperation($"{context.Request.Method} {context.Request.Path}", sw.Elapsed.TotalMilliseconds, isSuccess: false);
+        throw;
+    }
+});
 
 // Auto-migrate / Ensure Database schema & tables
 using (var scope = app.Services.CreateScope())
@@ -63,8 +92,9 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Health check
+// Health check & Prometheus metrics endpoints
 app.MapGet("/healthz", () => Results.Ok(new { status = "Healthy", service = "Gamification.API", timestamp = DateTime.UtcNow }));
+app.MapGet("/metrics", (ServiceTelemetry telemetry) => Results.Text(telemetry.ToPrometheusMetrics(), PrometheusMetricsBuilder.ContentType));
 
 // Map Endpoint Modules
 app.MapStreakEndpoints();

@@ -17,6 +17,24 @@ public sealed class MicroserviceHealthMetric
     public double AverageLatencyMs { get; set; }
 }
 
+public sealed class TtsTelemetrySnapshot
+{
+    public long TotalRequests { get; set; }
+    public long CacheHits { get; set; }
+    public long CacheMisses { get; set; }
+    public long FailedRequests { get; set; }
+    public double CacheHitRatioPercent { get; set; }
+    public double AverageLatencyMs { get; set; }
+}
+
+public sealed class AiTelemetrySnapshot
+{
+    public long TotalRequests { get; set; }
+    public long FallbackRequests { get; set; }
+    public long FailedRequests { get; set; }
+    public double AverageLatencyMs { get; set; }
+}
+
 public sealed class ObservabilityDiagnosticsSnapshot
 {
     public string ServiceName { get; set; } = "NET-Tutos.Web.BFF";
@@ -29,6 +47,8 @@ public sealed class ObservabilityDiagnosticsSnapshot
     public double AverageHttpLatencyMs { get; set; }
     public List<MicroserviceHealthMetric> DownstreamMicroservices { get; set; } = [];
     public CacheTelemetrySnapshot? CacheDiagnostics { get; set; }
+    public TtsTelemetrySnapshot? TtsDiagnostics { get; set; }
+    public AiTelemetrySnapshot? AiDiagnostics { get; set; }
 }
 
 public interface IObservabilityService
@@ -36,6 +56,8 @@ public interface IObservabilityService
     Activity? StartActivity(string operationName, ActivityKind kind = ActivityKind.Internal);
     void RecordHttpRequest(string path, int statusCode, double durationMs);
     void RecordDownstreamCall(string serviceName, double durationMs, bool isSuccess, int retriesUsed, bool circuitTripped, bool isCircuitOpen);
+    void RecordTtsRequest(string lang, bool cacheHit, bool isSuccess, double durationMs);
+    void RecordAiRequest(string operation, bool isFallback, bool isSuccess, double durationMs);
     Task<ObservabilityDiagnosticsSnapshot> GetDiagnosticsAsync(CancellationToken cancellationToken = default);
 }
 
@@ -54,17 +76,36 @@ public sealed class ObservabilityService : IObservabilityService
     private readonly Meter _meter = new(MeterNamespace, "1.0.0");
     private readonly Counter<long> _httpRequestsCounter;
     private readonly Histogram<double> _httpLatencyHistogram;
+    private readonly Counter<long> _ttsRequestsCounter;
+    private readonly Histogram<double> _ttsLatencyHistogram;
+    private readonly Counter<long> _aiRequestsCounter;
+    private readonly Histogram<double> _aiLatencyHistogram;
     private readonly ConcurrentDictionary<string, DownstreamTracker> _downstreamTrackers = new(StringComparer.OrdinalIgnoreCase);
 
     private long _totalRequests;
     private long _failedRequests;
     private long _totalLatencyMicros;
 
+    private long _ttsTotalRequests;
+    private long _ttsCacheHits;
+    private long _ttsCacheMisses;
+    private long _ttsFailedRequests;
+    private long _ttsTotalLatencyMicros;
+
+    private long _aiTotalRequests;
+    private long _aiFallbackRequests;
+    private long _aiFailedRequests;
+    private long _aiTotalLatencyMicros;
+
     public ObservabilityService(IAppCacheService? cacheService = null)
     {
         _cacheService = cacheService;
         _httpRequestsCounter = _meter.CreateCounter<long>("nettutos.web.http.requests", description: "Total HTTP requests processed by Web BFF");
         _httpLatencyHistogram = _meter.CreateHistogram<double>("nettutos.web.http.duration.ms", unit: "ms", description: "HTTP request duration in milliseconds");
+        _ttsRequestsCounter = _meter.CreateCounter<long>("nettutos.tts.requests", description: "Total Neural TTS requests processed");
+        _ttsLatencyHistogram = _meter.CreateHistogram<double>("nettutos.tts.duration.ms", unit: "ms", description: "Neural TTS duration in milliseconds");
+        _aiRequestsCounter = _meter.CreateCounter<long>("nettutos.ai.requests", description: "Total Atus AI requests processed");
+        _aiLatencyHistogram = _meter.CreateHistogram<double>("nettutos.ai.duration.ms", unit: "ms", description: "Atus AI execution duration in milliseconds");
 
         // Pre-seed known downstream microservices so they always appear in observability diagnostics
         foreach (var svc in new[] { "CodeRunner", "Gamification", "AiTutor", "Catalog" })
@@ -106,6 +147,56 @@ public sealed class ObservabilityService : IObservabilityService
         tracker.Record(durationMs, isSuccess, retriesUsed, circuitTripped, isCircuitOpen);
     }
 
+    public void RecordTtsRequest(string lang, bool cacheHit, bool isSuccess, double durationMs)
+    {
+        Interlocked.Increment(ref _ttsTotalRequests);
+        if (cacheHit)
+        {
+            Interlocked.Increment(ref _ttsCacheHits);
+        }
+        else
+        {
+            Interlocked.Increment(ref _ttsCacheMisses);
+        }
+
+        if (!isSuccess)
+        {
+            Interlocked.Increment(ref _ttsFailedRequests);
+        }
+
+        long micros = (long)Math.Max(0, durationMs * 1000.0);
+        Interlocked.Add(ref _ttsTotalLatencyMicros, micros);
+
+        _ttsRequestsCounter.Add(1,
+            new KeyValuePair<string, object?>("lang", string.IsNullOrWhiteSpace(lang) ? "vi" : lang),
+            new KeyValuePair<string, object?>("cache_hit", cacheHit),
+            new KeyValuePair<string, object?>("success", isSuccess));
+        _ttsLatencyHistogram.Record(durationMs);
+    }
+
+    public void RecordAiRequest(string operation, bool isFallback, bool isSuccess, double durationMs)
+    {
+        Interlocked.Increment(ref _aiTotalRequests);
+        if (isFallback)
+        {
+            Interlocked.Increment(ref _aiFallbackRequests);
+        }
+
+        if (!isSuccess)
+        {
+            Interlocked.Increment(ref _aiFailedRequests);
+        }
+
+        long micros = (long)Math.Max(0, durationMs * 1000.0);
+        Interlocked.Add(ref _aiTotalLatencyMicros, micros);
+
+        _aiRequestsCounter.Add(1,
+            new KeyValuePair<string, object?>("operation", string.IsNullOrWhiteSpace(operation) ? "unknown" : operation),
+            new KeyValuePair<string, object?>("fallback", isFallback),
+            new KeyValuePair<string, object?>("success", isSuccess));
+        _aiLatencyHistogram.Record(durationMs);
+    }
+
     public async Task<ObservabilityDiagnosticsSnapshot> GetDiagnosticsAsync(CancellationToken cancellationToken = default)
     {
         long total = Interlocked.Read(ref _totalRequests);
@@ -114,6 +205,17 @@ public sealed class ObservabilityService : IObservabilityService
 
         double successRate = total > 0 ? Math.Round((double)(total - failed) / total * 100.0, 2) : 100.0;
         double avgLatencyMs = total > 0 ? Math.Round(micros / 1000.0 / total, 2) : 0.0;
+
+        long ttsTotal = Interlocked.Read(ref _ttsTotalRequests);
+        long ttsHits = Interlocked.Read(ref _ttsCacheHits);
+        long ttsMisses = Interlocked.Read(ref _ttsCacheMisses);
+        long ttsFailed = Interlocked.Read(ref _ttsFailedRequests);
+        long ttsMicros = Interlocked.Read(ref _ttsTotalLatencyMicros);
+
+        long aiTotal = Interlocked.Read(ref _aiTotalRequests);
+        long aiFallback = Interlocked.Read(ref _aiFallbackRequests);
+        long aiFailed = Interlocked.Read(ref _aiFailedRequests);
+        long aiMicros = Interlocked.Read(ref _aiTotalLatencyMicros);
 
         var downstream = _downstreamTrackers
             .OrderBy(k => k.Key)
@@ -135,7 +237,23 @@ public sealed class ObservabilityService : IObservabilityService
             HttpSuccessRatePercent = successRate,
             AverageHttpLatencyMs = avgLatencyMs,
             DownstreamMicroservices = downstream,
-            CacheDiagnostics = cacheStats
+            CacheDiagnostics = cacheStats,
+            TtsDiagnostics = new TtsTelemetrySnapshot
+            {
+                TotalRequests = ttsTotal,
+                CacheHits = ttsHits,
+                CacheMisses = ttsMisses,
+                FailedRequests = ttsFailed,
+                CacheHitRatioPercent = ttsTotal > 0 ? Math.Round((double)ttsHits / ttsTotal * 100.0, 2) : 100.0,
+                AverageLatencyMs = ttsTotal > 0 ? Math.Round(ttsMicros / 1000.0 / ttsTotal, 2) : 0.0
+            },
+            AiDiagnostics = new AiTelemetrySnapshot
+            {
+                TotalRequests = aiTotal,
+                FallbackRequests = aiFallback,
+                FailedRequests = aiFailed,
+                AverageLatencyMs = aiTotal > 0 ? Math.Round(aiMicros / 1000.0 / aiTotal, 2) : 0.0
+            }
         };
     }
 

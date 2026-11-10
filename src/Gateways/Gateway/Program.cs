@@ -46,6 +46,12 @@ app.UseCors("GatewayCorsPolicy");
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.Use(async (context, next) =>
 {
+    if (context.Request.Path.StartsWithSegments("/metrics"))
+    {
+        await next();
+        return;
+    }
+
     var sw = Stopwatch.StartNew();
     using var activity = gatewayTelemetry.StartActivity($"YARP {context.Request.Method}", ActivityKind.Server);
     try
@@ -95,6 +101,11 @@ app.MapGet("/api/v1/gateway/telemetry", (ServiceTelemetry telemetry) =>
     Results.Ok(ApiResponse<ServiceTelemetrySnapshotDto>.Ok(telemetry.GetSnapshot())))
 .WithName("GatewayTelemetry")
 .WithSummary("Returns OpenTelemetry ActivitySource and Meter metrics for the YARP API Gateway");
+
+app.MapGet("/metrics", (ServiceTelemetry telemetry) =>
+    Results.Text(telemetry.ToPrometheusMetrics(), PrometheusMetricsBuilder.ContentType))
+.WithName("GatewayPrometheusMetrics")
+.WithSummary("Exports Prometheus Exposition Format metrics for the YARP API Gateway");
 
 // 6. Map Reverse Proxy Routes
 app.MapReverseProxy();

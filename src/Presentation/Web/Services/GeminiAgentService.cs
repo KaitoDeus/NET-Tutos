@@ -30,6 +30,7 @@ public class GeminiAgentService : IAiTutorService
     private readonly IKafkaProducer? _kafkaProducer;
     private readonly ISemanticCurriculumSearchService? _semanticSearch;
     private readonly IHttpContextAccessor? _httpContextAccessor;
+    private readonly IObservabilityService? _observability;
 
     private readonly string? _apiKey;
     private readonly string _model;
@@ -48,7 +49,8 @@ public class GeminiAgentService : IAiTutorService
         IAppCacheService? cacheService = null,
         IKafkaProducer? kafkaProducer = null,
         ISemanticCurriculumSearchService? semanticSearch = null,
-        IHttpContextAccessor? httpContextAccessor = null)
+        IHttpContextAccessor? httpContextAccessor = null,
+        IObservabilityService? observability = null)
     {
         _httpClient = httpClientFactory.CreateClient("Gemini");
         _configuration = configuration;
@@ -62,6 +64,7 @@ public class GeminiAgentService : IAiTutorService
         _kafkaProducer = kafkaProducer;
         _semanticSearch = semanticSearch;
         _httpContextAccessor = httpContextAccessor;
+        _observability = observability;
 
         var rawKey = (new[]
         {
@@ -829,6 +832,7 @@ Nguyên tắc cốt lõi:
             }
         };
 
+        var swJson = Stopwatch.StartNew();
         foreach (var currentModel in modelsToTry)
         {
             if (cancellationToken.IsCancellationRequested) return null;
@@ -859,6 +863,8 @@ Nguyên tắc cốt lõi:
                 var rawText = parsed?["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.GetValue<string>();
                 if (!string.IsNullOrWhiteSpace(rawText))
                 {
+                    swJson.Stop();
+                    _observability?.RecordAiRequest("structured_json", isFallback: false, isSuccess: true, swJson.Elapsed.TotalMilliseconds);
                     return rawText.Trim();
                 }
             }
@@ -868,6 +874,8 @@ Nguyên tắc cốt lõi:
             }
         }
 
+        swJson.Stop();
+        _observability?.RecordAiRequest("structured_json", isFallback: true, isSuccess: false, swJson.Elapsed.TotalMilliseconds);
         return null;
     }
 
@@ -1703,6 +1711,7 @@ Trả về định dạng JSON hợp lệ:
         bool isSuccess,
         bool isFallback)
     {
+        _observability?.RecordAiRequest("chat", isFallback, isSuccess, latencyMs);
         if (_kafkaProducer == null) return;
 
         var userId = _httpContextAccessor?.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);

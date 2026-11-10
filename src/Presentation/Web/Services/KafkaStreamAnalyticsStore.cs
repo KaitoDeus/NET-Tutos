@@ -39,6 +39,8 @@ public interface IKafkaStreamAnalyticsStore
     void RecordAiTelemetry(AtusAiTelemetryEvent @event);
     void RecordCodeExecution(CodeExecutionTelemetryEvent @event);
     void RecordLearningActivity(UserLearningActivityEvent @event);
+    void UpdateTopicLag(string topic, long lagMessages);
+    Dictionary<string, long> GetTopicLags();
 
     KafkaConsumerAnalyticsSnapshot GetSnapshot();
     List<AdaptiveWeakSpotDto> GetUserWeakSpots(string? userId);
@@ -62,7 +64,15 @@ public sealed class KafkaStreamAnalyticsStore : IKafkaStreamAnalyticsStore
     private readonly ConcurrentQueue<KafkaStreamEventEntry> _recentEvents = new();
     private readonly ConcurrentDictionary<string, long> _topAiTopics = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, long> _topCompilerErrors = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, long> _topicLagMessages = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, AdaptiveSignal>> _userSignals = new(StringComparer.Ordinal);
+
+    public KafkaStreamAnalyticsStore()
+    {
+        _topicLagMessages.TryAdd(KafkaTopics.AtusAiTelemetry, 0);
+        _topicLagMessages.TryAdd(KafkaTopics.CodeExecutionTelemetry, 0);
+        _topicLagMessages.TryAdd(KafkaTopics.UserLearningActivity, 0);
+    }
 
     private static readonly (string Keyword, string DisplayTopic)[] KnownTopics =
     [
@@ -185,6 +195,17 @@ public sealed class KafkaStreamAnalyticsStore : IKafkaStreamAnalyticsStore
             @event.DurationSeconds * 1000L,
             true
         ));
+    }
+
+    public void UpdateTopicLag(string topic, long lagMessages)
+    {
+        if (string.IsNullOrWhiteSpace(topic)) return;
+        _topicLagMessages[topic] = Math.Max(0, lagMessages);
+    }
+
+    public Dictionary<string, long> GetTopicLags()
+    {
+        return _topicLagMessages.ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.OrdinalIgnoreCase);
     }
 
     public KafkaConsumerAnalyticsSnapshot GetSnapshot()

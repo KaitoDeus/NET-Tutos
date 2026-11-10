@@ -247,4 +247,55 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
         mockHtml.Should().Contain("liveCodingWhiteboardContainer");
         mockHtml.Should().Contain("submitWhiteboardReview");
     }
+
+    [Fact]
+    public async Task PrometheusMetricsAndVsCodeIdeEndpoints_WorkEndToEnd()
+    {
+        // Act - Prometheus /metrics scrape
+        var metricsResp = await _client.GetAsync("/metrics");
+        var metricsBody = await metricsResp.Content.ReadAsStringAsync();
+
+        // Act - VS Code Extension IDE Bridge endpoints
+        var statusResp = await _client.GetAsync("/api/v1/ide/status");
+        var statusBody = await statusResp.Content.ReadAsStringAsync();
+
+        var searchResp = await _client.GetAsync("/api/v1/ide/search?q=async&top=3&lang=en");
+        var searchBody = await searchResp.Content.ReadAsStringAsync();
+
+        var reviewResp = await _client.PostAsJsonAsync("/api/v1/ide/review", new
+        {
+            sourceCode = "public class Demo { public async Task<int> RunAsync() { await Task.Delay(5); return 42; } }",
+            fileName = "Demo.cs",
+            lang = "en"
+        });
+        var reviewBody = await reviewResp.Content.ReadAsStringAsync();
+
+        var execResp = await _client.PostAsJsonAsync("/api/v1/ide/execute", new
+        {
+            code = "Console.WriteLine(6 * 7);",
+            timeoutMs = 4000
+        });
+        var execBody = await execResp.Content.ReadAsStringAsync();
+
+        // Assert
+        metricsResp.EnsureSuccessStatusCode();
+        metricsBody.Should().Contain("nettutos_service_up");
+        metricsBody.Should().Contain("nettutos_web_http_requests_total");
+        metricsBody.Should().Contain("nettutos_tts_cache_hit_ratio_percent");
+        metricsBody.Should().Contain("nettutos_kafka_consumer_total_lag_messages");
+
+        statusResp.EnsureSuccessStatusCode();
+        statusBody.Should().Contain("NET-Tutos.IDE.Bridge");
+        statusBody.Should().Contain("indexedKnowledgeDocuments");
+
+        searchResp.EnsureSuccessStatusCode();
+        searchBody.Should().Contain("totalIndexedDocuments");
+
+        reviewResp.EnsureSuccessStatusCode();
+        reviewBody.Should().Contain("\"review\"");
+        reviewBody.Should().Contain("\"complexity\"");
+
+        execResp.EnsureSuccessStatusCode();
+        execBody.Should().Contain("42");
+    }
 }

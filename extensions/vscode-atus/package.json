@@ -1,0 +1,209 @@
+{
+  "name": "atus-dotnet-pair-programmer",
+  "displayName": "Atus AI — NET-Tutos .NET 10 Pair Programmer",
+  "description": "Autonomous .NET 10 Pair-Programming AI Agent (Atus) in VS Code: inline Clean Code & Big-O reviews, error diagnostics, xUnit generation, Roslyn Sandbox execution, and Multi-Source Hybrid RAG search.",
+  "version": "0.1.0",
+  "publisher": "net-tutos",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "AI",
+    "Programming Languages",
+    "Education",
+    "Testing"
+  ],
+  "keywords": [
+    "dotnet",
+    "csharp",
+    "ai",
+    "roslyn",
+    "xunit",
+    "code-review",
+    "net-tutos",
+    "atus"
+  ],
+  "activationEvents": [
+    "onLanguage:csharp",
+    "onView:atus.chatView"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "atus-sidebar",
+          "title": "Atus AI (.NET 10)",
+          "icon": "media/atus-activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "atus-sidebar": [
+        {
+          "type": "webview",
+          "id": "atus.chatView",
+          "name": "Atus Pair Programmer"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "atus.openChat",
+        "title": "Open Pair-Programming Chat",
+        "category": "Atus AI",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "atus.reviewCurrentFile",
+        "title": "Review C# Code & Big-O",
+        "category": "Atus AI",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "atus.explainSelectionOrDiagnostics",
+        "title": "Explain Error or Selected Code",
+        "category": "Atus AI",
+        "icon": "$(lightbulb)"
+      },
+      {
+        "command": "atus.generateUnitTests",
+        "title": "Generate xUnit Tests",
+        "category": "Atus AI",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "atus.runInSandbox",
+        "title": "Run C# in Roslyn Sandbox",
+        "category": "Atus AI",
+        "icon": "$(play)"
+      },
+      {
+        "command": "atus.searchKnowledge",
+        "title": "Search NET-Tutos Knowledge Base (RAG)",
+        "category": "Atus AI",
+        "icon": "$(search)"
+      },
+      {
+        "command": "atus.applyLastRefactor",
+        "title": "Apply Last Refactor to Active Editor",
+        "category": "Atus AI",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "atus.clearDiagnostics",
+        "title": "Clear Inline Review Diagnostics",
+        "category": "Atus AI",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "atus.signIn",
+        "title": "Sign In to NET-Tutos Account",
+        "category": "Atus AI",
+        "icon": "$(account)"
+      },
+      {
+        "command": "atus.signOut",
+        "title": "Sign Out",
+        "category": "Atus AI"
+      },
+      {
+        "command": "atus.checkConnection",
+        "title": "Check Server Connection Status",
+        "category": "Atus AI",
+        "icon": "$(plug)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "atus.reviewCurrentFile",
+          "when": "editorLangId == csharp",
+          "group": "navigation"
+        },
+        {
+          "command": "atus.runInSandbox",
+          "when": "editorLangId == csharp",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "atus.reviewCurrentFile",
+          "when": "editorLangId == csharp",
+          "group": "atus@1"
+        },
+        {
+          "command": "atus.explainSelectionOrDiagnostics",
+          "when": "editorLangId == csharp",
+          "group": "atus@2"
+        },
+        {
+          "command": "atus.generateUnitTests",
+          "when": "editorLangId == csharp",
+          "group": "atus@3"
+        },
+        {
+          "command": "atus.runInSandbox",
+          "when": "editorLangId == csharp",
+          "group": "atus@4"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "atus.checkConnection",
+          "when": "view == atus.chatView",
+          "group": "navigation"
+        },
+        {
+          "command": "atus.signIn",
+          "when": "view == atus.chatView",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Atus AI (NET-Tutos)",
+      "properties": {
+        "atus.serverUrl": {
+          "type": "string",
+          "default": "http://localhost:5001",
+          "description": "Base URL for NET-Tutos Web BFF or YARP Gateway (e.g. http://localhost:5001 or http://localhost:5000)."
+        },
+        "atus.language": {
+          "type": "string",
+          "enum": [
+            "vi",
+            "en"
+          ],
+          "default": "vi",
+          "description": "Preferred response language from Atus AI Agent (Vietnamese or English)."
+        },
+        "atus.autoReviewOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically run Atus review diagnostics when saving C# files."
+        },
+        "atus.requestTimeoutMs": {
+          "type": "number",
+          "default": 25000,
+          "minimum": 3000,
+          "maximum": 90000,
+          "description": "HTTP timeout in milliseconds for Atus API requests."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "tsc --noEmit",
+    "test": "npm run compile && node --test out/test/**/*.test.js"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.7.2"
+  }
+}

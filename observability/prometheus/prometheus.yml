@@ -1,0 +1,53 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+  external_labels:
+    platform: "net-tutos"
+    environment: "docker"
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: "nettutos-web"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["web:5000"]
+        labels:
+          service: "NET-Tutos.Web.BFF"
+
+  - job_name: "nettutos-gateway"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["gateway:8080"]
+        labels:
+          service: "NET-Tutos.YarpGateway"
+
+  - job_name: "nettutos-coderunner"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["coderunner:8080"]
+        labels:
+          service: "NET-Tutos.CodeRunner.API"
+
+  - job_name: "nettutos-aitutor"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["aitutor:8080"]
+        labels:
+          service: "NET-Tutos.AiTutor.API"
+
+  - job_name: "nettutos-catalog"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["catalog:8080"]
+        labels:
+          service: "NET-Tutos.Catalog.API"
+
+  - job_name: "nettutos-gamification"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["gamification:8080"]
+        labels:
+          service: "NET-Tutos.Gamification.API"

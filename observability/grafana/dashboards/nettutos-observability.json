@@ -1,0 +1,140 @@
+{
+  "uid": "nettutos-overview",
+  "title": "NET-Tutos Cloud-Native Observability (.NET 10 + Kafka + Atus AI)",
+  "tags": ["net-tutos", "dotnet10", "kafka", "atus-ai", "prometheus"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Healthy Services",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "nettutos-prometheus" },
+      "targets": [{ "expr": "sum(up{job=~\"nettutos-.*\"})", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{ "color": "red", "value": 0 }, { "color": "yellow", "value": 4 }, { "color": "green", "value": 6 }] } } }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Web HTTP Success Rate",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "nettutos-prometheus" },
+      "targets": [{ "expr": "nettutos_web_http_success_rate_percent", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "percent", "thresholds": { "steps": [{ "color": "red", "value": 0 }, { "color": "yellow", "value": 95 }, { "color": "green", "value": 99 }] } } }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Redis L1/L2 Cache Hit Ratio",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "nettutos-prometheus" },
+      "targets": [{ "expr": "nettutos_cache_hit_ratio_percent", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "percent" } }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "TTS Neural Cache Hit Ratio",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "nettutos-prometheus" },
+      "targets": [{ "expr": "nettutos_tts_cache_hit_ratio_percent", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "percent" } }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Atus AI Avg Latency",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "nettutos-prometheus" },
+      "targets": [{ "expr": "nettutos_ai_avg_latency_ms", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "ms" } }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Kafka Consumer Total Lag",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "nettutos-prometheus" },
+      "targets": [{ "expr": "nettutos_kafka_consumer_total_lag_messages", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "steps": [{ "color": "green", "value": 0 }, { "color": "yellow", "value": 50 }, { "color": "red", "value": 500 }] } } }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Service HTTP Throughput (req/s)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "nettutos-prometheus" },
+      "targets": [
+        { "expr": "rate(nettutos_web_http_requests_total{status=\"total\"}[1m])", "legendFormat": "Web BFF", "refId": "A" },
+        { "expr": "rate(nettutos_service_requests_total{status=\"total\"}[1m])", "legendFormat": "{{job}}", "refId": "B" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "reqps" } }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Web & Downstream Microservice Avg Latency (ms)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "nettutos-prometheus" },
+      "targets": [
+        { "expr": "nettutos_web_http_avg_latency_ms", "legendFormat": "Web BFF HTTP", "refId": "A" },
+        { "expr": "nettutos_downstream_avg_latency_ms", "legendFormat": "Downstream: {{target}}", "refId": "B" },
+        { "expr": "nettutos_ai_avg_latency_ms", "legendFormat": "Atus AI", "refId": "C" },
+        { "expr": "nettutos_tts_avg_latency_ms", "legendFormat": "Neural TTS", "refId": "D" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms" } }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Apache Kafka Stream Events & Consumer Lag",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "nettutos-prometheus" },
+      "targets": [
+        { "expr": "rate(nettutos_kafka_messages_produced_total[1m])", "legendFormat": "Produced /s", "refId": "A" },
+        { "expr": "rate(nettutos_kafka_consumer_events_total[1m])", "legendFormat": "Consumed: {{stream}} /s", "refId": "B" },
+        { "expr": "nettutos_kafka_consumer_lag_messages", "legendFormat": "Lag: {{topic}}", "refId": "C" }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Cache Hits (L1/L2) vs TTS Synthesis Outcomes",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "nettutos-prometheus" },
+      "targets": [
+        { "expr": "nettutos_cache_hits_total", "legendFormat": "Cache Hits ({{tier}})", "refId": "A" },
+        { "expr": "nettutos_cache_misses_total", "legendFormat": "Cache Misses", "refId": "B" },
+        { "expr": "nettutos_tts_requests_total", "legendFormat": "TTS ({{outcome}})", "refId": "C" }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": ".NET 10 CLR Managed Heap & Resident Memory",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "nettutos-prometheus" },
+      "targets": [
+        { "expr": "dotnet_gc_heap_size_bytes", "legendFormat": "GC Heap: {{job}}", "refId": "A" },
+        { "expr": "process_resident_memory_bytes", "legendFormat": "RSS: {{job}}", "refId": "B" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Atus AI Outcomes & Downstream Circuit Breakers",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "nettutos-prometheus" },
+      "targets": [
+        { "expr": "nettutos_ai_requests_total", "legendFormat": "AI ({{outcome}})", "refId": "A" },
+        { "expr": "nettutos_downstream_retries_total", "legendFormat": "Retries: {{target}}", "refId": "B" },
+        { "expr": "nettutos_downstream_circuit_open", "legendFormat": "CB Open: {{target}}", "refId": "C" }
+      ]
+    }
+  ]
+}
