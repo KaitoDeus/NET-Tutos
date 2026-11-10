@@ -61,13 +61,13 @@
                                     <span class="conv-title text-truncate small">@c.Title</span>
                                 </div>
                                 <div class="conv-actions d-flex align-items-center gap-1 flex-shrink-0">
-                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="${isEn ? 'Rename' : 'Đổi tên'}" onclick="event.stopPropagation(); renameConversationPrompt(this)">
+                                    <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="@(isEn ? "Rename" : "Đổi tên")" onclick="event.stopPropagation(); renameConversationPrompt(this)">
                                         <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
                                     </button>
                                     <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="@(c.IsPinned ? (isEn ? "Unpin" : "Bỏ ghim") : (isEn ? "Pin" : "Ghim"))" onclick="event.stopPropagation(); togglePinConversation(this)">
                                         <i class="bi @(c.IsPinned ? "bi-pin-angle-fill text-warning" : "bi-pin-angle")" style="font-size: 0.75rem;"></i>
                                     </button>
-                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon text-hover-danger" title="${isEn ? 'Delete' : 'Xóa'}" onclick="event.stopPropagation(); deleteConversationConfirm(this)">
+                                    <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon text-hover-danger" title="@(isEn ? "Delete" : "Xóa")" onclick="event.stopPropagation(); deleteConversationConfirm(this)">
                                         <i class="bi bi-trash3" style="font-size: 0.75rem;"></i>
                                     </button>
                                 </div>
@@ -127,7 +127,7 @@
                     <i class="bi bi-layout-sidebar-inset fs-5"></i>
                 </button>
                 <div class="d-flex align-items-center gap-2 overflow-hidden">
-        if (titleEl) titleEl.innerText = isEn ? 'New Chat' : 'Đoạn chat mới';
+                    <span class="fw-bold text-truncate" id="currentChatTitle">@(activeConv != null ? activeConv.Title : (isEn ? "New Chat" : "Đoạn chat mới"))</span>
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 d-none d-sm-inline-flex align-items-center gap-1" style="font-size: 0.7rem;">
                         <span class="status-dot-pulse"></span>
                         <span>Atus</span>
@@ -704,7 +704,7 @@
             const payload = {
                 message: text || (isEn ? 'Analyze this attached file' : 'Hãy phân tích nội dung tệp đính kèm này'),
                 conversationId: currentConversationId || null,
-        const userSnippet = attached ? `[${isEn ? 'Attached File' : 'Tệp đính kèm'}: ${attached.name}]` : null;
+                attachedFileName: attached ? attached.name : null,
                 attachedFileContent: attached ? attached.content : null
             };
 
@@ -904,7 +904,7 @@
                             <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="${isEn ? 'Rename' : 'Đổi tên'}" onclick="event.stopPropagation(); renameConversationPrompt(this)">
                                 <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
                             </button>
-                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="${c.isPinned ? (isEn ? 'Unpin' : 'Bá» ghim') : (isEn ? 'Pin' : 'Ghim')}" onclick="event.stopPropagation(); togglePinConversation(this)">
+                            <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon" title="${c.isPinned ? (isEn ? 'Unpin' : 'Bỏ ghim') : (isEn ? 'Pin' : 'Ghim')}" onclick="event.stopPropagation(); togglePinConversation(this)">
                                 <i class="bi ${c.isPinned ? 'bi-pin-angle-fill text-warning' : 'bi-pin-angle'}" style="font-size: 0.75rem;"></i>
                             </button>
                             <button type="button" class="btn btn-icon btn-sm p-0 text-muted hover-icon text-hover-danger" title="${isEn ? 'Delete' : 'Xóa'}" onclick="event.stopPropagation(); deleteConversationConfirm(this)">

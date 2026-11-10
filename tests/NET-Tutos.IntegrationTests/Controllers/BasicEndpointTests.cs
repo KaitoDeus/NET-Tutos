@@ -159,4 +159,20 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
         var interviewHtml = await interviewResponse.Content.ReadAsStringAsync();
         interviewHtml.Should().Contain("adaptiveLearningPanel");
     }
+
+    [Fact]
+    public async Task Get_AiTutorPage_RendersValidHeaderTitleWithoutRawJavaScriptLeak()
+    {
+        // Act
+        var response = await _client.GetAsync("/AiTutor");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var html = await response.Content.ReadAsStringAsync();
+        html.Should().Contain("id=\"currentChatTitle\"");
+        // Verify header section does not leak raw JS code before <script>
+        var headerEnd = html.IndexOf("</header>", StringComparison.OrdinalIgnoreCase);
+        headerEnd.Should().BeGreaterThan(0);
+        html[..headerEnd].Should().NotContain("if (titleEl)");
+    }
 }
