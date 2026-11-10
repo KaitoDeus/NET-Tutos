@@ -89,7 +89,7 @@ jobs:
               '',
               '### ✅ NET-Tutos Quality Gate Verification',
               '- [x] **Pure .NET 10 / C# 14 Architecture** (`YarpGateway`, `Web BFF`, `.NET MAUI`, 4-Layer DDD Microservices)',
-              '- [x] **151/151 Automated Tests** across 7 test suites (`Gateway`, `CodeRunner`, `Gamification`, `AiTutor`, `Catalog`, `UnitTests`, `IntegrationTests`)',
+              '- [x] **205/205 Automated Tests** (200 `.NET` across 7 suites + 5 VS Code Node tests)',
               '- [x] **Geo-IP (`VN` -> `vi`, Outside `VN` -> `en`) & Technical SEO** (`SeoMetadataService`, Dynamic OG SVG, `BreadcrumbList`, `FAQPage`)',
               '- [x] **Documentation & Roadmap SSOT** synchronized in `docs/10_project_roadmap_and_ai_memory.md`'
             ].join('\n');

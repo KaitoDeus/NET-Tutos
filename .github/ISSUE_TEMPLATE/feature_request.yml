@@ -1,24 +1,24 @@
-name: "✨ Đề xuất tính năng / Bài học mới (Feature Request)"
-description: "Đề xuất tính năng mới, Microservice mới hoặc chủ đề bài giảng .NET 10 / C# 14"
+name: "✨ Feature / Curriculum Request"
+description: "Propose a new feature, microservice capability, or .NET 10 / C# 14 curriculum lesson"
 title: "[Feature]: "
 labels: ["enhancement"]
 body:
   - type: dropdown
     id: area
     attributes:
-      label: "Hạng mục đề xuất"
+      label: "Proposal Category"
       options:
-        - "Học liệu & Bài giảng mới (.NET 10 / C# 14)"
+        - "New Curriculum & Tutorials (.NET 10 / C# 14)"
         - "Roslyn C# Online Sandbox / In-Lesson Code Lab"
-        - "Atus AI Tutor & Phỏng vấn giả lập"
-        - "Kiến trúc Microservices, Redis Cache & DevOps"
-        - "SEO & Đa ngôn ngữ (Geo-IP)"
+        - "Atus AI Tutor & Mock Technical Interview"
+        - "Microservices Architecture, Redis Cache & DevOps"
+        - "SEO & Localization (Geo-IP)"
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
-      label: "Chi tiết đề xuất"
-      placeholder: "Mô tả lợi ích và cách hoạt động mong muốn..."
+      label: "Proposal Details"
+      placeholder: "Describe the expected benefits, workflow, and acceptance criteria..."
     validations:
       required: true

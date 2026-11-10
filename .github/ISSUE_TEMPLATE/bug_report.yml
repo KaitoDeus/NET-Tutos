@@ -1,27 +1,28 @@
-name: "🐛 Báo lỗi hệ thống (Bug Report)"
-description: "Báo cáo lỗi trên Web BFF, Mobile .NET MAUI, YARP Gateway hoặc các Microservices"
+name: "🐛 Bug Report"
+description: "Report a bug in the Web BFF, Mobile .NET MAUI app, YARP Gateway, VS Code Extension, or Microservices"
 title: "[Bug]: "
 labels: ["bug", "triage"]
 body:
   - type: dropdown
     id: component
     attributes:
-      label: "Phân hệ / Microservice gặp lỗi"
+      label: "Affected Component / Microservice"
       options:
         - "00. YARP API Gateway (nettutos-gateway)"
         - "01. Web BFF, Geo-IP & SEO Engine (nettutos-web)"
         - "01. Mobile App (.NET MAUI 10)"
+        - "01. VS Code Extension (atus-dotnet-pair-programmer)"
         - "02. CodeRunner Roslyn Sandbox (nettutos-coderunner)"
         - "02. Gamification & Streaks (nettutos-gamification)"
         - "02. Atus AI Tutor & Mock Interview (nettutos-aitutor)"
         - "02. Catalog & Exam Certification (nettutos-catalog)"
-        - "03. Infrastructure (Redis 7 / RabbitMQ / PostgreSQL 17)"
+        - "03. Infrastructure (Redis 7 / RabbitMQ / Kafka / PostgreSQL 17 / Prometheus / Grafana)"
     validations:
       required: true
   - type: textarea
     id: description
     attributes:
-      label: "Mô tả chi tiết lỗi & các bước tái hiện"
-      placeholder: "1. Truy cập đường dẫn...\n2. Thực hiện thao tác...\n3. Kết quả thực tế vs Kết quả mong đợi..."
+      label: "Bug Description & Steps to Reproduce"
+      placeholder: "1. Navigate to...\n2. Perform action...\n3. Actual result vs. Expected result..."
     validations:
       required: true

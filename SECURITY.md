@@ -4,7 +4,7 @@
 
 | Version | .NET Target | Architecture | Supported |
 | :--- | :--- | :--- | :---: |
-| **2.6.x (Current)** | `.NET 10.0` / `C# 14` | 9-Container Microservices + YARP + Redis 7 + PostgreSQL 17 | ✅ |
+| **2.6.x (Current)** | `.NET 10.0` / `C# 14` | 12-Container Microservices + YARP + Redis 7 + RabbitMQ 3 + Kafka KRaft + Prometheus/Grafana + PostgreSQL 17 | ✅ |
 | **< 2.0** | `.NET 8.0 / 9.0` | Legacy Monolith | ❌ |
 
 ## Security Architecture Highlights
