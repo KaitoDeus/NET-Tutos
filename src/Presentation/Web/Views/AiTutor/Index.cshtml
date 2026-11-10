@@ -8,15 +8,23 @@
 
 @Html.AntiForgeryToken()
 
-<div class="aitutor-viewport d-flex overflow-hidden bg-body border-top">
+<div class="aitutor-viewport position-relative d-flex overflow-hidden bg-body border-top">
+    <!-- Mobile Sidebar Dimmed Backdrop -->
+    <div class="aitutor-sidebar-backdrop d-none d-lg-none" id="chatSidebarBackdrop" onclick="closeSidebarOnMobile()"></div>
+
     <!-- LEFT SIDEBAR: CHAT HISTORY (ChatGPT-Style) -->
     <aside class="aitutor-sidebar d-flex flex-column border-end bg-body-tertiary flex-shrink-0" id="chatSidebar">
-        <!-- Sidebar Header: New Chat Button -->
-        <div class="p-3 border-bottom">
-            <button type="button" class="btn btn-primary w-100 rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2 shadow-sm" onclick="startNewChat()">
-                <i class="bi bi-plus-lg fs-6"></i>
-                <span>@(isEn ? "New Chat" : "Đoạn chat mới")</span>
-            </button>
+        <!-- Sidebar Header: New Chat Button + Mobile Close -->
+        <div class="p-2.5 p-sm-3 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-primary flex-grow-1 rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2 shadow-sm" onclick="startNewChat()">
+                    <i class="bi bi-plus-lg fs-6"></i>
+                    <span>@(isEn ? "New Chat" : "Đoạn chat mới")</span>
+                </button>
+                <button type="button" id="closeSidebarBtn" class="btn btn-outline-secondary d-lg-none rounded-3 px-2.5 py-2 flex-shrink-0" onclick="closeSidebarOnMobile()" aria-label="@(isEn ? "Close sidebar" : "Đóng thanh bên")" title="@(isEn ? "Close sidebar" : "Đóng thanh bên")">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
             <div class="input-group input-group-sm mt-2">
                 <span class="input-group-text bg-body border-end-0 text-muted"><i class="bi bi-search"></i></span>
                 <input type="text" class="form-control bg-body border-start-0 ps-0 shadow-none" id="searchChatInput" placeholder="@(isEn ? "Search conversations..." : "Tìm đoạn chat...")" oninput="filterConversations(this.value)">
@@ -121,21 +129,21 @@
     <!-- RIGHT WORKSPACE: MAIN CHAT AREA (ChatGPT-Style) -->
     <main class="aitutor-main d-flex flex-column flex-grow-1 position-relative overflow-hidden bg-body">
         <!-- Top Navbar in Chat -->
-        <header class="aitutor-navbar d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-body z-2">
-            <div class="d-flex align-items-center gap-2 overflow-hidden">
-                <button type="button" class="btn btn-sm btn-outline-secondary border-0 p-1.5 rounded-3" id="toggleSidebarBtn" onclick="toggleSidebar()" title="@(isEn ? "Toggle sidebar" : "Ẩn/hiện thanh bên")">
+        <header class="aitutor-navbar d-flex align-items-center justify-content-between gap-2 px-2 px-sm-3 py-2 border-bottom bg-body z-2">
+            <div class="d-flex align-items-center gap-2 overflow-hidden min-w-0 flex-grow-1">
+                <button type="button" class="btn btn-sm btn-outline-secondary border-0 p-1.5 rounded-3 flex-shrink-0" id="toggleSidebarBtn" onclick="toggleSidebar()" title="@(isEn ? "Toggle sidebar" : "Ẩn/hiện thanh bên")">
                     <i class="bi bi-layout-sidebar-inset fs-5"></i>
                 </button>
-                <div class="d-flex align-items-center gap-2 overflow-hidden">
+                <div class="d-flex align-items-center gap-2 overflow-hidden min-w-0">
                     <span class="fw-bold text-truncate" id="currentChatTitle">@(activeConv != null ? activeConv.Title : (isEn ? "New Chat" : "Đoạn chat mới"))</span>
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 d-none d-sm-inline-flex align-items-center gap-1" style="font-size: 0.7rem;">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 d-none d-sm-inline-flex align-items-center gap-1 flex-shrink-0" style="font-size: 0.7rem;">
                         <span class="status-dot-pulse"></span>
                         <span>Atus</span>
                     </span>
                 </div>
             </div>
 
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
                 <a asp-controller="Interview" asp-action="Mock" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1 d-none d-lg-inline-flex align-items-center gap-1" style="font-size: 0.78rem;" title="@(isEn ? "AI Mock Technical Interview" : "Phỏng vấn kỹ thuật với Atus")">
                     <i class="bi bi-robot"></i>
                     <span>@(isEn ? "AI Mock Interview" : "Phỏng vấn thử")</span>
@@ -144,20 +152,20 @@
                     <i class="bi bi-terminal-fill"></i>
                     <span>@(isEn ? "C# Sandbox" : "C# Sandbox")</span>
                 </a>
-                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1" onclick="startNewChat()" title="@(isEn ? "New conversation" : "Tạo đoạn chat mới")" style="font-size: 0.78rem;">
-                    <i class="bi bi-plus-lg me-1"></i><span class="d-none d-sm-inline">@(isEn ? "New Chat" : "Mới")</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 d-inline-flex align-items-center justify-content-center" onclick="startNewChat()" title="@(isEn ? "New conversation" : "Tạo đoạn chat mới")" style="font-size: 0.78rem;">
+                    <i class="bi bi-plus-lg me-sm-1"></i><span class="d-none d-sm-inline">@(isEn ? "New Chat" : "Mới")</span>
                 </button>
             </div>
         </header>
 
         <!-- Messages Feed (Scrollable) -->
-        <div class="aitutor-messages-feed flex-grow-1 overflow-y-auto px-3 py-4" id="messagesContainer">
+        <div class="aitutor-messages-feed flex-grow-1 overflow-y-auto px-2 px-sm-3 py-3 py-sm-4" id="messagesContainer">
             <div class="chat-max-width mx-auto">
                 <!-- If No active conversation or no messages, show Hero Starter View -->
                 <div id="heroStarterView" class="@(activeConv != null && activeConv.Messages.Count > 0 ? "d-none" : "")">
-                    <div class="text-center py-4 my-2">
-                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center p-3 mb-3 shadow-xs" style="width: 68px; height: 68px;">
-                            <i class="bi bi-robot fs-1"></i>
+                    <div class="text-center py-2 py-sm-4 my-1 my-sm-2">
+                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center p-2.5 p-sm-3 mb-2 mb-sm-3 shadow-xs hero-atus-avatar" style="width: 60px; height: 60px;">
+                            <i class="bi bi-robot fs-2"></i>
                         </div>
                         <h4 class="fw-bold mb-2">@(isEn ? "Meet Atus — Your .NET AI Mentor" : "Gặp gỡ Atus — Trợ Lý AI Gia Sư .NET")</h4>
                         <p class="text-muted small mx-auto" style="max-width: 580px;">
@@ -168,7 +176,7 @@
                     </div>
 
                     <!-- Prompt Starter Cards -->
-                    <div class="row g-3 mb-4">
+                    <div class="row g-2 g-sm-3 mb-3 mb-sm-4">
                         <div class="col-md-6">
                             <div class="starter-card p-3 rounded-4 border bg-body-tertiary h-100 cursor-pointer hover-card shadow-xs" onclick="useStarterPrompt('Làm thế nào để tối ưu hóa truy vấn Entity Framework Core bằng AsNoTracking và AsSplitQuery?')">
                                 <div class="d-flex align-items-center gap-2 mb-1.5 text-primary">
@@ -226,12 +234,12 @@
                             {
                                 <!-- USER MESSAGE -->
                                 <div class="d-flex justify-content-end msg-row user-msg">
-                                    <div class="d-flex flex-column align-items-end" style="max-width: 85%;">
-                                        <div class="user-bubble p-3 rounded-4 bg-primary text-white shadow-xs">
+                                    <div class="d-flex flex-column align-items-end user-msg-col">
+                                        <div class="user-bubble p-2.5 p-sm-3 rounded-4 bg-primary text-white shadow-xs">
                                             <div class="message-text">@msg.Content</div>
                                             @if (!string.IsNullOrWhiteSpace(msg.CodeSnippet))
                                             {
-                                                <div class="mt-2 p-2 rounded-3 bg-dark bg-opacity-25 small font-monospace">
+                                                <div class="mt-2 p-2 rounded-3 bg-dark bg-opacity-25 small font-monospace overflow-x-auto">
                                                     <code>@msg.CodeSnippet</code>
                                                 </div>
                                             }
@@ -243,12 +251,12 @@
                             else
                             {
                                 <!-- AI MODEL MESSAGE -->
-                                <div class="d-flex gap-3 msg-row ai-msg">
-                                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                                <div class="d-flex gap-2 gap-sm-3 msg-row ai-msg">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0 ai-avatar-badge" style="width: 36px; height: 36px;">
                                         <i class="bi bi-robot fs-5"></i>
                                     </div>
-                                    <div class="d-flex flex-column flex-grow-1 overflow-hidden" style="max-width: 90%;">
-                                        <div class="ai-bubble p-3.5 rounded-4 bg-body-tertiary border shadow-xs">
+                                    <div class="d-flex flex-column flex-grow-1 overflow-hidden ai-msg-col">
+                                        <div class="ai-bubble p-3 p-sm-3.5 rounded-4 bg-body-tertiary border shadow-xs">
                                             <div class="fw-bold mb-1 text-primary small d-flex align-items-center gap-2">
                                                 <span>Atus</span>
                                                 <span class="badge bg-primary-subtle text-primary" style="font-size: 0.65rem;">AI Agent</span>
@@ -282,12 +290,12 @@
         </div>
 
         <!-- Floating Bottom Input Bar (ChatGPT-Style) -->
-        <div class="aitutor-input-area p-3 border-top bg-body z-2">
+        <div class="aitutor-input-area p-2 p-sm-3 border-top bg-body z-2">
             <div class="chat-max-width mx-auto">
                 @if (!Model.IsAuthenticated)
                 {
-                    <div class="p-3 rounded-4 bg-primary bg-opacity-10 border border-primary-subtle text-center">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div class="p-2.5 p-sm-3 rounded-4 bg-primary bg-opacity-10 border border-primary-subtle text-center">
+                        <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-2.5 gap-sm-3">
                             <div class="text-start">
                                 <div class="fw-bold text-primary small d-flex align-items-center gap-1.5">
                                     <i class="bi bi-lock-fill"></i>
@@ -299,11 +307,11 @@
                                         : "Vui lòng đăng nhập tài khoản để trò chuyện cùng Atus và lưu trữ lịch sử cuộc hội thoại của bạn.")
                                 </div>
                             </div>
-                            <div class="d-flex gap-2">
-                                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/AiTutor" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold">
+                            <div class="d-flex gap-2 w-100 w-sm-auto flex-shrink-0">
+                                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/AiTutor" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold flex-fill flex-sm-grow-0 text-nowrap">
                                     @(isEn ? "Sign In" : "Đăng nhập ngay")
                                 </a>
-                                <a asp-controller="Account" asp-action="Register" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                <a asp-controller="Account" asp-action="Register" class="btn btn-sm btn-outline-secondary rounded-pill px-3 flex-fill flex-sm-grow-0 text-nowrap">
                                     @(isEn ? "Register" : "Tạo tài khoản")
                                 </a>
                             </div>
@@ -419,21 +427,56 @@
         }
     }
 
+    // Sync dimmed backdrop visibility with mobile sidebar drawer state
+    function syncSidebarBackdrop() {
+        const sidebar = document.getElementById('chatSidebar');
+        const backdrop = document.getElementById('chatSidebarBackdrop');
+        if (!sidebar || !backdrop) return;
+        const isMobile = window.innerWidth < 992;
+        if (isMobile && !sidebar.classList.contains('collapsed')) {
+            backdrop.classList.remove('d-none');
+        } else {
+            backdrop.classList.add('d-none');
+        }
+    }
+
+    function closeSidebarOnMobile() {
+        if (window.innerWidth >= 992) return;
+        const sidebar = document.getElementById('chatSidebar');
+        if (sidebar && !sidebar.classList.contains('collapsed')) {
+            sidebar.classList.add('collapsed');
+            syncSidebarBackdrop();
+        }
+    }
+
     // Toggle Sidebar collapse
     function toggleSidebar() {
         const sidebar = document.getElementById('chatSidebar');
         if (sidebar) {
             sidebar.classList.toggle('collapsed');
-            localStorage.setItem('nettutos_chat_sidebar_collapsed', sidebar.classList.contains('collapsed'));
+            if (window.innerWidth >= 992) {
+                localStorage.setItem('nettutos_chat_sidebar_collapsed', sidebar.classList.contains('collapsed'));
+            }
+            syncSidebarBackdrop();
         }
     }
 
-    // Restore sidebar state and move modals to body to prevent stacking context clipping
+    // Restore sidebar state cleanly by viewport breakpoint and move modals to body
     document.addEventListener('DOMContentLoaded', () => {
-        if (localStorage.getItem('nettutos_chat_sidebar_collapsed') === 'true') {
-            const sidebar = document.getElementById('chatSidebar');
-            if (sidebar) sidebar.classList.add('collapsed');
+        const sidebar = document.getElementById('chatSidebar');
+        if (sidebar) {
+            if (window.innerWidth < 992) {
+                // Keep chat workspace uncluttered on initial mobile/tablet load
+                sidebar.classList.add('collapsed');
+            } else if (localStorage.getItem('nettutos_chat_sidebar_collapsed') === 'true') {
+                sidebar.classList.add('collapsed');
+            }
+            syncSidebarBackdrop();
         }
+
+        window.addEventListener('resize', () => {
+            syncSidebarBackdrop();
+        });
 
         // Relocate Bootstrap modals to body to prevent overflow:hidden clipping & backdrop issues
         const renameModal = document.getElementById('renameModal');
@@ -552,6 +595,7 @@
         }
 
         removeAttachedFile();
+        closeSidebarOnMobile();
 
         const input = document.getElementById('chatMessageInput');
         if (input) {
@@ -623,6 +667,7 @@
                 }
 
                 scrollToBottom();
+                closeSidebarOnMobile();
             }
         } catch (err) {
             // Handled silently
@@ -676,12 +721,12 @@
         const aiMsgId = 'ai-stream-msg-' + Date.now();
         const list = document.getElementById('messagesList');
         const aiHtml = `
-            <div class="d-flex gap-3 msg-row ai-msg" id="${aiMsgId}">
-                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+            <div class="d-flex gap-2 gap-sm-3 msg-row ai-msg" id="${aiMsgId}">
+                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0 ai-avatar-badge" style="width: 36px; height: 36px;">
                     <i class="bi bi-robot fs-5"></i>
                 </div>
-                <div class="d-flex flex-column flex-grow-1 overflow-hidden" style="max-width: 90%;">
-                    <div class="ai-bubble p-3.5 rounded-4 bg-body-tertiary border shadow-xs">
+                <div class="d-flex flex-column flex-grow-1 overflow-hidden ai-msg-col">
+                    <div class="ai-bubble p-3 p-sm-3.5 rounded-4 bg-body-tertiary border shadow-xs">
                         <div class="fw-bold mb-1 text-primary small d-flex align-items-center gap-2">
                             <span>Atus</span>
                             <span class="badge bg-primary-subtle text-primary" style="font-size: 0.65rem;">AI Agent</span>
@@ -1093,11 +1138,11 @@
     // Helper DOM builders
     function appendUserMessageToDOM(content, codeSnippet, timeStr) {
         const list = document.getElementById('messagesList');
-        const snippetHtml = codeSnippet ? `<div class="mt-2 p-2 rounded-3 bg-dark bg-opacity-25 small font-monospace"><code>${escapeHtml(codeSnippet)}</code></div>` : '';
+        const snippetHtml = codeSnippet ? `<div class="mt-2 p-2 rounded-3 bg-dark bg-opacity-25 small font-monospace overflow-x-auto"><code>${escapeHtml(codeSnippet)}</code></div>` : '';
         const html = `
             <div class="d-flex justify-content-end msg-row user-msg">
-                <div class="d-flex flex-column align-items-end" style="max-width: 85%;">
-                    <div class="user-bubble p-3 rounded-4 bg-primary text-white shadow-xs">
+                <div class="d-flex flex-column align-items-end user-msg-col">
+                    <div class="user-bubble p-2.5 p-sm-3 rounded-4 bg-primary text-white shadow-xs">
                         <div class="message-text">${escapeHtml(content).replace(/\n/g, '<br>')}</div>
                         ${snippetHtml}
                     </div>
@@ -1112,12 +1157,12 @@
         let formatted = formatSimpleMarkdown(markdown);
 
         const html = `
-            <div class="d-flex gap-3 msg-row ai-msg">
-                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+            <div class="d-flex gap-2 gap-sm-3 msg-row ai-msg">
+                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0 ai-avatar-badge" style="width: 36px; height: 36px;">
                     <i class="bi bi-robot fs-5"></i>
                 </div>
-                <div class="d-flex flex-column flex-grow-1 overflow-hidden" style="max-width: 90%;">
-                    <div class="ai-bubble p-3.5 rounded-4 bg-body-tertiary border shadow-xs">
+                <div class="d-flex flex-column flex-grow-1 overflow-hidden ai-msg-col">
+                    <div class="ai-bubble p-3 p-sm-3.5 rounded-4 bg-body-tertiary border shadow-xs">
                         <div class="fw-bold mb-1 text-primary small d-flex align-items-center gap-2">
                             <span>Atus</span>
                             <span class="badge bg-primary-subtle text-primary" style="font-size: 0.65rem;">AI Agent</span>
@@ -1241,7 +1286,7 @@
 </script>
 
 <style>
-    /* Lock entire page to prevent window scroll / overscroll bounce / scaling glitch */
+    /* Lock entire page using flex column sizing so header height changes never clip workspace */
     html, body {
         height: 100% !important;
         height: 100dvh !important;
@@ -1254,25 +1299,32 @@
         display: none !important;
     }
 
-    /* Reset layout main container to fill exact viewport height */
+    /* Fill exact remaining height below sticky-top header dynamically */
     main[role="main"] {
         padding-bottom: 0 !important;
         margin-bottom: 0 !important;
-        height: calc(100vh - 58px) !important;
-        height: calc(100dvh - 58px) !important;
-        max-height: calc(100dvh - 58px) !important;
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        height: auto !important;
+        max-height: none !important;
         overflow: hidden !important;
         display: flex !important;
         flex-direction: column !important;
     }
 
-    /* Full-viewport App Style */
+    /* Full-viewport App Style (position: relative keeps mobile drawer inside workspace below header) */
     .aitutor-viewport {
+        position: relative;
         height: 100% !important;
         max-height: 100% !important;
         min-height: 0 !important;
         flex: 1 1 auto;
         overflow: hidden;
+    }
+
+    .aitutor-main {
+        min-width: 0;
+        min-height: 0;
     }
 
     /* Contain overscroll on internal scrollables so mousewheel never scrolls outer window */
@@ -1285,12 +1337,19 @@
     /* Sidebar Styling */
     .aitutor-sidebar {
         width: 280px;
-        transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .aitutor-sidebar.collapsed {
         margin-left: -280px;
     }
-    @@media (max-width: 768px) {
+    .aitutor-sidebar-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(2px);
+        z-index: 1035;
+    }
+    @@media (max-width: 991.98px) {
         .aitutor-sidebar {
             position: absolute;
             top: 0;
@@ -1298,20 +1357,33 @@
             left: 0;
             max-width: 85vw;
             z-index: 1040;
-            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
-        }
-        .aitutor-sidebar:not(.collapsed) {
-            margin-left: 0;
+            margin-left: 0 !important;
+            transform: translateX(0);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.2);
         }
         .aitutor-sidebar.collapsed {
-            margin-left: -280px;
+            margin-left: 0 !important;
+            transform: translateX(-105%);
+            visibility: hidden;
+            pointer-events: none;
         }
         .conv-actions {
             opacity: 1 !important;
         }
+    }
+    @@media (max-width: 575.98px) {
+        .hero-atus-avatar {
+            width: 48px !important;
+            height: 48px !important;
+        }
+        .ai-avatar-badge {
+            width: 30px !important;
+            height: 30px !important;
+            font-size: 0.85rem;
+        }
         .aitutor-messages-feed {
-            padding-left: 0.75rem !important;
-            padding-right: 0.75rem !important;
+            padding-left: 0.65rem !important;
+            padding-right: 0.65rem !important;
         }
     }
 
@@ -1355,12 +1427,41 @@
     }
 
     /* Chat Bubbles */
+    .user-msg-col {
+        max-width: min(85%, 680px);
+        min-width: 0;
+    }
+    .ai-msg-col {
+        max-width: calc(100% - 48px);
+        min-width: 0;
+    }
+    @@media (max-width: 575.98px) {
+        .user-msg-col {
+            max-width: 92%;
+        }
+        .ai-msg-col {
+            max-width: calc(100% - 38px);
+        }
+    }
     .user-bubble {
         background: linear-gradient(135deg, #0d6efd, #0b5ed7);
         border-bottom-right-radius: 4px !important;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
     .ai-bubble {
         border-top-left-radius: 4px !important;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+    .code-toolbar-wrapper {
+        max-width: 100%;
+        overflow: hidden;
+    }
+    .code-toolbar-wrapper pre {
+        max-width: 100%;
+        overflow-x: auto;
     }
 
     /* Floating Input Card */

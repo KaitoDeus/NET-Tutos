@@ -367,5 +367,13 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
 
         var quizHtml = await quizResp.Content.ReadAsStringAsync();
         quizHtml.Should().Contain("min-w-0 flex-grow-1");
+
+        var aiResp = await _client.GetAsync("/AiTutor");
+        aiResp.EnsureSuccessStatusCode();
+        var aiHtml = await aiResp.Content.ReadAsStringAsync();
+        aiHtml.Should().Contain("aitutor-viewport position-relative");
+        aiHtml.Should().Contain("id=\"chatSidebarBackdrop\"");
+        aiHtml.Should().Contain("id=\"closeSidebarBtn\"");
+        aiHtml.Should().Contain("closeSidebarOnMobile");
     }
 }
