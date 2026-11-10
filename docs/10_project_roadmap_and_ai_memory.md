@@ -3,7 +3,7 @@
 Document Type: Master Roadmap, Phase History & AI Context Memory  
 System: **NET-Tutos** — Enterprise Distributed .NET 10 & C# 14 Learning Ecosystem  
 License: [MIT License](../LICENSE) (`Copyright (c) 2026 Khải Võ (NET-Tutos)`)  
-Current Topology: **25 Projects in `NET-Tutos.slnx` + VS Code Extension (`extensions/vscode-atus`) | 12 Docker Containers | Automated Test Suite (204 Tests: 199 .NET + 5 VS Code Node Tests)**  
+Current Topology: **25 Projects in `NET-Tutos.slnx` + VS Code Extension (`extensions/vscode-atus`) | 12 Docker Containers | Automated Test Suite (205 Tests: 200 .NET + 5 VS Code Node Tests)**  
 
 ---
 
@@ -12,7 +12,7 @@ Current Topology: **25 Projects in `NET-Tutos.slnx` + VS Code Extension (`extens
 This document serves as the persistent **AI Context Memory & Roadmap Single Source of Truth (SSOT)** for the **NET-Tutos** repository. Any AI coding agent or engineer inspecting the repository must read this file first to understand:
 1. **Standing Engineering Rules & Constraints**
 2. **Completed Roadmap History (Phase 1 – Phase 19)** and their exact files/endpoints
-3. **12-Container Distributed Topology & 204/204 Test Suite Matrix**
+3. **12-Container Distributed Topology & 205/205 Test Suite Matrix**
 4. **Upcoming Strategic Phases (Separate Mobile Roadmap + Phase 20 – Phase 22)**
 
 ---
@@ -62,7 +62,7 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 | **Phase 16** | **Apache Kafka Telemetry, Neural TTS & Adaptive Learning** | ✅ Completed | `apache/kafka` KRaft broker (`:9092/:29092`), `KafkaProducer`, `KafkaTelemetryConsumerWorker`, `KafkaStreamAnalyticsStore` (lag & topic analytics), `/Admin/Telemetry`, `TtsService` (`/api/tts/speak` cached on L1/L2 Redis for Vietnamese/English Neural TTS), `AdaptiveLearningService` & `POST /api/adaptive/challenge`. |
 | **Phase 17** | **Live Coding Whiteboard & Multi-Source Hybrid RAG** | ✅ Completed | Pair-Programming Live Coding Whiteboard inside `/Interview/Mock` (`POST /Interview/EvaluateLiveCoding` combining Roslyn execution, concurrent Atus Code Review + Big-O analysis, refactor apply, Voice TTS, and Kafka events). Upgraded `SemanticCurriculumSearchService` to index 4 sources (`Curriculum`, `Tutorial`, `CodingChallenge`, `InterviewFlashcard`) at `/api/search/knowledge`. |
 | **Phase 18** | **Prometheus + Grafana Observability Stack** | ✅ Completed | Zero-dependency `PrometheusMetricsBuilder` (`BuildingBlocks.Common`) & `PrometheusTelemetryExporter`, `/metrics` across all 6 .NET services (`Web`, `Gateway`, `CodeRunner`, `AiTutor`, `Catalog`, `Gamification`) exporting CLR/HTTP/Downstream/Redis L1-L2/TTS cache hit-rate/Atus AI latency & Kafka partition consumer lag, plus Docker `prom/prometheus` (`:9090`) & auto-provisioned `grafana/grafana` (`:3000`) dashboard `nettutos-overview`. Aligned `MassTransit.RabbitMQ` in Gamification to `8.3.7`. |
-| **Phase 19** | **VS Code Extension & IDE Bridge (`/api/v1/ide/*`)** | ✅ Completed | `IdeAssistantController.cs` exposing stateless `/api/v1/ide/{status,search,chat,review,explain-error,generate-tests,complexity,execute}` proxied by YARP Gateway & Web BFF, plus `extensions/vscode-atus/` TypeScript VS Code extension (Sidebar Webview Chat, inline C# Diagnostics, Lightbulb `CodeActionProvider`, Big-O Review + 1-click Refactor, xUnit Test Generator, Roslyn Sandbox Runner, Multi-Source RAG QuickPick). Plus Stage-by-Stage Lock/Unlock Progression (`LearningProgressService.GetStageProgressionAsync`, `/Tutorials`, `/Roadmap`, `/Account/ToggleLesson`) & tutorial card title/minutes layout fix. |
+| **Phase 19** | **VS Code Extension, IDE Bridge & Responsive UI** | ✅ Completed | `IdeAssistantController.cs` exposing stateless `/api/v1/ide/{status,search,chat,review,explain-error,generate-tests,complexity,execute}` proxied by YARP Gateway & Web BFF, plus `extensions/vscode-atus/` TypeScript VS Code extension (Sidebar Webview Chat, inline C# Diagnostics, Lightbulb `CodeActionProvider`, Big-O Review + 1-click Refactor, xUnit Test Generator, Roslyn Sandbox Runner, Multi-Source RAG QuickPick). Plus Stage-by-Stage Lock/Unlock Progression (`LearningProgressService.GetStageProgressionAsync`, `/Tutorials`, `/Roadmap`, `/Account/ToggleLesson`) and comprehensive responsive Web overhaul (single-row `< 576px` mobile header & drawer controls, `openMobileNotifications()`, `overflow-x: clip`, badge wrapping guardrails in `site.css`, `_Layout.cshtml`, `Playground`, `AiTutor`, `Interview/Mock`, `Home`, `Quiz`, `Curriculum`, `Planner`). |
 
 ---
 
@@ -85,7 +85,7 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 
 ---
 
-## 5. Automated Test Suite Breakdown (204/204 Passing)
+## 5. Automated Test Suite Breakdown (205/205 Passing)
 
 | Test Project | Path | Tests Count | Scope Covered |
 | :--- | :--- | :---: | :--- |
@@ -95,7 +95,7 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 | **`NET-Tutos.AiTutor.Tests`** | `tests/NET-Tutos.AiTutor.Tests` | 16 | `EfficiencyScore`, `InterviewRubricScore` (50/25/25), Big-O detection, compiler diagnostics, xUnit generator, mock interview. |
 | **`NET-Tutos.Catalog.Tests`** | `tests/NET-Tutos.Catalog.Tests` | 17 | `ReadingDuration`, `ExamScore`, 7-stage bilingual `GetCatalogSectionsQueryHandler`, `EstimateLearningTrackQueryHandler`, and dual-format certificate verification (`NT-CERT-*` & `NET-2026-*`). |
 | **`NET-Tutos.UnitTests`** | `tests/NET-Tutos.UnitTests` | 99 | Web services, `CurriculumService` Redis cache & BFF delegation, `HybridRedisCacheService`, `ObservabilityService`, `PrometheusTelemetryExporter`, `ResilientMicroserviceHandler`, `CodingArenaService`, multi-source `SemanticCurriculumSearchService`, `TtsService`, `KafkaStreamAnalyticsStore`, `LearningProgressService` Stage Lock/Unlock, `GeoIpService`, `SeoMetadataService`. |
-| **`NET-Tutos.IntegrationTests`** | `tests/NET-Tutos.IntegrationTests` | 34 | Full HTTP pipeline, `/metrics`, `/api/v1/ide/*` VS Code IDE Bridge, `/api/search/knowledge`, Stage Lock/Unlock (`/Tutorials`, `/bai-hoc/*`, `/Roadmap`), `/Interview/Mock` Live Coding Whiteboard, `/api/tts/speak`, `/Admin/Telemetry` RBAC, `/api/adaptive/challenge`, `/coding-arena`, OAuth 2.0 SSO, Geo-IP, SEO & Roslyn endpoints. |
+| **`NET-Tutos.IntegrationTests`** | `tests/NET-Tutos.IntegrationTests` | 35 | Full HTTP pipeline, `/metrics`, `/api/v1/ide/*` VS Code IDE Bridge, `/api/search/knowledge`, Stage Lock/Unlock (`/Tutorials`, `/bai-hoc/*`, `/Roadmap`), Responsive Design (`/css/site.css`, `/js/site.js`, mobile header & layout guardrails), `/Interview/Mock` Live Coding Whiteboard, `/api/tts/speak`, `/Admin/Telemetry` RBAC, `/api/adaptive/challenge`, `/coding-arena`, OAuth 2.0 SSO, Geo-IP, SEO & Roslyn endpoints. |
 | **`atus-dotnet-pair-programmer` (`node:test`)** | `extensions/vscode-atus/src/test` | 5 | `AtusClient` HTTP headers/auth/error handling and `reviewMapper` C# diagnostic line inference & markdown report generation. |
 
 ---

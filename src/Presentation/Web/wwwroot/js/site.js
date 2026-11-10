@@ -1259,3 +1259,37 @@ function showGenericNotificationToast(title, message, badgeType) {
         toastEl.remove();
     }, 4500);
 }
+
+/* ==========================================================================
+   Responsive Mobile Header Helper: Expand collapse drawer & show notifications
+   ========================================================================== */
+function openMobileNotifications() {
+    const collapseEl = document.getElementById('navbarContent');
+    const bellBtn = document.getElementById('btnNavNotification');
+    if (!bellBtn) return;
+
+    const showDropdown = () => {
+        try {
+            if (window.bootstrap?.Dropdown) {
+                window.bootstrap.Dropdown.getOrCreateInstance(bellBtn).show();
+            } else {
+                bellBtn.click();
+            }
+            bellBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch {
+            // Fallback when Bootstrap dropdown API is unavailable
+        }
+    };
+
+    if (collapseEl && !collapseEl.classList.contains('show')) {
+        collapseEl.addEventListener('shown.bs.collapse', showDropdown, { once: true });
+        if (window.bootstrap?.Collapse) {
+            window.bootstrap.Collapse.getOrCreateInstance(collapseEl).show();
+        } else {
+            collapseEl.classList.add('show');
+            showDropdown();
+        }
+    } else {
+        showDropdown();
+    }
+}

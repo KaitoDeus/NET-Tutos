@@ -183,13 +183,20 @@
 
         @@media (max-width: 767.98px) {
             .monaco-container {
-                height: 350px !important;
+                height: 310px !important;
+                min-height: 280px !important;
             }
             .console-terminal {
                 font-size: 0.82rem;
                 min-height: 160px !important;
                 max-height: 300px !important;
                 padding: 0.75rem;
+            }
+        }
+
+        @@media (max-width: 575.98px) {
+            .playground-ai-panel {
+                width: 100vw !important;
             }
         }
 
@@ -257,7 +264,7 @@
     <!-- Header Title & Mode Switcher -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
-            <div class="d-flex align-items-center gap-2 mb-1">
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                 <span class="badge bg-primary-subtle border border-primary-subtle rounded-pill px-3 py-1 fw-bold">
                     <i class="bi bi-terminal-fill me-1"></i> Interactive C# Runner (.NET 10)
                 </span>
@@ -343,7 +350,7 @@
                                 {
                                     <div class="d-flex align-items-center gap-1.5 min-w-0">
                                         <label class="small text-body-secondary fw-semibold text-nowrap d-none d-sm-inline" style="font-size: var(--text-xs);">@(isEn ? "Template:" : "Mẫu code:")</label>
-                                        <select id="templateSelector" class="form-select form-select-sm rounded-2 font-monospace" style="max-width: 210px; font-size: var(--text-xs);">
+                                        <select id="templateSelector" class="form-select form-select-sm rounded-2 font-monospace" style="max-width: min(100%, 210px); font-size: var(--text-xs);">
                                             @foreach (var t in Model.Templates)
                                             {
                                                 <option value="@t.Id">@t.Title</option>
@@ -359,7 +366,7 @@
                                 }
 
                                 <!-- Action Toolbar (Compact, Scalable, Zero Multiline Overflows) -->
-                                <div class="d-flex align-items-center gap-1.5 flex-nowrap ms-auto">
+                                <div class="d-flex align-items-center gap-1.5 flex-wrap justify-content-end ms-auto">
                                     <!-- AI Mentor Toggle Button -->
                                     <button type="button" id="btnOpenAiDrawer" class="btn btn-sm btn-outline-primary rounded-2 px-2.5 py-1.5 fw-semibold shadow-none d-flex align-items-center gap-1.5 text-nowrap" onclick="toggleAiPanel()" title="@(isEn ? "Open AI Code Mentor" : "Mở Trợ lý AI C#")" style="font-size: var(--text-nav);">
                                         <i class="bi bi-robot fs-6 text-primary"></i> <span class="d-none d-sm-inline">@(isEn ? "AI Mentor" : "Trợ lý AI")</span>
@@ -417,7 +424,7 @@
                                         <button type="button" id="btnEditorSettings" class="btn btn-sm btn-outline-secondary rounded-2 px-2 py-1.5 shadow-none d-flex align-items-center" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="@(isEn ? "IDE & Editor Settings" : "Tùy biến IDE & Trình soạn thảo")" style="font-size: var(--text-nav);">
                                             <i class="bi bi-gear-fill"></i>
                                         </button>
-                                        <div class="dropdown-menu dropdown-menu-end editor-settings-dropdown p-3 border shadow-lg rounded-3" style="min-width: 300px;">
+                                        <div class="dropdown-menu dropdown-menu-end editor-settings-dropdown p-3 border shadow-lg rounded-3">
                                             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                                                 <h6 class="fw-bold mb-0 text-body" style="font-size: var(--text-sm);"><i class="bi bi-sliders me-1 text-primary"></i> @(isEn ? "IDE Settings" : "Tùy biến Editor")</h6>
                                                 <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" id="btnResetEditorSettings" style="font-size: var(--text-xs);">@(isEn ? "Default" : "Mặc định")</button>

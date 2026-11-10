@@ -92,17 +92,17 @@
     <!-- Navigation Header -->
     <header class="sticky-top">
         <nav class="navbar navbar-expand-lg border-bottom shadow-sm bg-body">
-            <div class="container-fluid px-3 px-xl-4">
-                <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-decoration-none py-1 me-2 me-sm-3" asp-controller="Home" asp-action="Index">
+            <div class="container-fluid px-2.5 px-sm-3 px-xl-4">
+                <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-decoration-none py-1 me-2 me-sm-3 text-nowrap flex-shrink-0" asp-controller="Home" asp-action="Index">
                     <img src="~/images/csharp-logo.png" alt="C# Logo" width="30" height="34" class="csharp-nav-logo" />
                     <span class="brand-text fw-bold"><span class="text-dotnet">.NET</span><span class="text-body-emphasis"> Tutos</span></span>
                 </a>
 
-                <!-- Mobile Quick Actions Bar (Language Switch, Theme Switch & Toggler) -->
-                <div class="d-flex align-items-center gap-2 d-lg-none ms-auto">
-                    <!-- Mobile Language Switcher Dropdown -->
-                    <div class="dropdown lang-dropdown-container">
-                        <button class="btn btn-sm lang-switcher-btn rounded-circle p-0" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" title="@(isEn ? "Language" : "Ngôn ngữ")" style="width: 32px; height: 32px;">
+                <!-- Mobile Quick Actions Bar (Single-row header down to 320px; extra controls live in drawer on <576px) -->
+                <div class="d-flex align-items-center gap-1.5 gap-sm-2 d-lg-none ms-auto flex-nowrap flex-shrink-0 mobile-quick-actions">
+                    <!-- Mobile Language Switcher Dropdown (>= 576px bar, mirrored in drawer on < 576px) -->
+                    <div class="dropdown lang-dropdown-container d-none d-sm-inline-flex">
+                        <button class="btn btn-sm lang-switcher-btn mobile-nav-icon-btn rounded-circle p-0" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" title="@(isEn ? "Language" : "Ngôn ngữ")" style="width: 32px; height: 32px;">
                             <img src="@currentFlagPath" alt="@currentLangText" class="lang-flag-current" style="width: 22px; height: 22px;" />
                         </button>
                         <ul class="dropdown-menu shadow border-0 lang-dropdown-menu py-1.5 px-1 mt-1">
@@ -124,24 +124,24 @@
                             </li>
                         </ul>
                     </div>
-                    <button class="btn btn-sm btn-outline-secondary rounded-circle theme-btn p-1.5" type="button" onclick="document.getElementById('themeToggleBtn').click()" title="@(isEn ? "Toggle theme" : "Chuyển chế độ Sáng / Tối")">
+                    <button class="btn btn-sm btn-outline-secondary rounded-circle theme-btn mobile-nav-icon-btn p-1.5 d-none d-sm-inline-flex align-items-center justify-content-center" type="button" onclick="document.getElementById('themeToggleBtn').click()" title="@(isEn ? "Toggle theme" : "Chuyển chế độ Sáng / Tối")" style="width: 32px; height: 32px;">
                         <i class="bi bi-moon-stars-fill mobile-theme-icon"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-secondary rounded-circle p-1.5" type="button" onclick="openCommandPaletteModal()" title="@(isEn ? "Search & Commands (Ctrl+K)" : "Tìm kiếm & Bảng lệnh (Ctrl+K)")" style="width: 32px; height: 32px;">
+                    <button class="btn btn-sm btn-outline-secondary rounded-circle mobile-nav-icon-btn p-1 d-inline-flex align-items-center justify-content-center" type="button" onclick="openCommandPaletteModal()" title="@(isEn ? "Search & Commands (Ctrl+K)" : "Tìm kiếm & Bảng lệnh (Ctrl+K)")" style="width: 32px; height: 32px;">
                         <i class="bi bi-search"></i>
                     </button>
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        <button class="btn btn-sm btn-outline-warning rounded-circle p-1 d-flex align-items-center justify-content-center mobile-streak-btn"
+                        <button class="btn btn-sm btn-outline-warning rounded-circle mobile-nav-icon-btn p-1 d-none d-sm-flex align-items-center justify-content-center mobile-streak-btn"
                                 style="width: 32px; height: 32px;" type="button" data-bs-toggle="modal" data-bs-target="#streakModal" title="@(isEn ? "Daily Learning Streak" : "Chuỗi học tập hàng ngày")">
                             <i class="bi bi-fire text-danger"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary rounded-circle p-1 position-relative d-flex align-items-center justify-content-center"
-                                style="width: 32px; height: 32px;" type="button" onclick="document.getElementById('btnNavNotification')?.click()" title="@(isEn ? "Notifications" : "Thông báo")">
+                        <button class="btn btn-sm btn-outline-secondary rounded-circle mobile-nav-icon-btn p-1 position-relative d-flex align-items-center justify-content-center"
+                                style="width: 32px; height: 32px;" type="button" onclick="openMobileNotifications()" title="@(isEn ? "Notifications" : "Thông báo")">
                             <i class="bi bi-bell-fill"></i>
                             <span id="mobileNotificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.6rem;">0</span>
                         </button>
-                        <a asp-controller="Account" asp-action="Profile" class="btn btn-sm btn-outline-primary rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="@(isEn ? "Learning Dashboard" : "Góc học tập")">
+                        <a asp-controller="Account" asp-action="Profile" class="btn btn-sm btn-outline-primary rounded-circle mobile-nav-icon-btn p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="@(isEn ? "Learning Dashboard" : "Góc học tập")">
                             <i class="bi bi-person-fill"></i>
                         </a>
                     }
@@ -158,6 +158,33 @@
                 </div>
 
                 <div class="collapse navbar-collapse" id="navbarContent">
+                    <!-- Mobile Quick Controls Strip inside Drawer (< 576px) -->
+                    <div class="d-flex d-sm-none align-items-center justify-content-between flex-wrap gap-2 pb-2.5 mb-2.5 border-bottom mobile-drawer-controls">
+                        <div class="btn-group btn-group-sm" role="group" aria-label="@(isEn ? "Language switcher" : "Chọn ngôn ngữ")">
+                            <a class="btn btn-sm @(isEn ? "btn-primary" : "btn-outline-secondary") px-2.5 py-1 d-inline-flex align-items-center gap-1"
+                               asp-controller="Language" asp-action="SetLanguage" asp-route-culture="en" asp-route-returnUrl="@returnUrl">
+                                <img src="/images/flags/en.svg" alt="EN" width="16" height="16" class="rounded-circle" /> EN
+                            </a>
+                            <a class="btn btn-sm @(!isEn ? "btn-primary" : "btn-outline-secondary") px-2.5 py-1 d-inline-flex align-items-center gap-1"
+                               asp-controller="Language" asp-action="SetLanguage" asp-route-culture="vi" asp-route-returnUrl="@returnUrl">
+                                <img src="/images/flags/vn.svg" alt="VI" width="16" height="16" class="rounded-circle" /> VI
+                            </a>
+                        </div>
+                        <div class="d-flex align-items-center gap-1.5">
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1 mobile-streak-btn"
+                                        data-bs-toggle="modal" data-bs-target="#streakModal" title="@(isEn ? "Daily Learning Streak" : "Chuỗi học tập")">
+                                    <i class="bi bi-fire text-danger"></i>
+                                    <span class="small fw-semibold">Streak</span>
+                                </button>
+                            }
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5" onclick="document.getElementById('themeToggleBtn').click()">
+                                <i class="bi bi-moon-stars-fill mobile-theme-icon"></i>
+                                <span class="small">@(isEn ? "Theme" : "Giao diện")</span>
+                            </button>
+                        </div>
+                    </div>
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-2 gap-1 gap-xl-1 align-items-lg-center">
                         <!-- 1. Home -->
                         <li class="nav-item">
@@ -303,7 +330,7 @@
                                href="#" id="navPracticeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-cpu me-1 text-danger"></i> <span data-lang-key="nav_practice">@(isEn ? "Practice & Arena" : "Thực hành & Thi đấu")</span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-start border rounded-3 p-2 mt-0 nav-standard-dropdown" aria-labelledby="navPracticeDropdown" style="min-width: 300px;">
+                            <ul class="dropdown-menu dropdown-menu-start border rounded-3 p-2 mt-0 nav-standard-dropdown nav-practice-dropdown" aria-labelledby="navPracticeDropdown">
                                 <li>
                                     <a class="dropdown-item category-shortcut-card p-2 rounded-3 mb-1 @(currentController == "Playground" ? "active" : "")"
                                        asp-controller="Playground" asp-action="Index">
@@ -385,7 +412,7 @@
                                href="#" id="navCommunityDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-people-fill me-1 text-warning"></i> <span data-lang-key="nav_community">@(isEn ? "Community" : "Cộng đồng")</span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-start border rounded-3 p-2 mt-0 nav-standard-dropdown" aria-labelledby="navCommunityDropdown" style="min-width: 280px;">
+                            <ul class="dropdown-menu dropdown-menu-start border rounded-3 p-2 mt-0 nav-standard-dropdown nav-community-dropdown" aria-labelledby="navCommunityDropdown">
                                 <li>
                                     <a class="dropdown-item category-shortcut-card p-2 rounded-3 mb-1 @(currentController == "Leaderboard" ? "active" : "")"
                                        asp-controller="Leaderboard" asp-action="Index">
@@ -434,7 +461,7 @@
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <!-- Desktop Language Switcher Dropdown (Authenticated) -->
-                            <div class="dropdown lang-dropdown-container">
+                            <div class="dropdown lang-dropdown-container d-none d-lg-inline-flex">
                                 <button class="btn btn-sm lang-switcher-btn rounded-circle p-0" type="button" id="langDropdownUser" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" title="@(isEn ? "Language" : "Ngôn ngữ")">
                                     <img src="@currentFlagPath" alt="@currentLangText" class="lang-flag-current" width="28" height="28" />
                                 </button>
@@ -459,7 +486,7 @@
                             </div>
 
                             <!-- Streak Quick Badge Button -->
-                            <button id="btnNavStreak" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1.5 d-flex align-items-center gap-2 text-nowrap fw-bold shadow-none"
+                            <button id="btnNavStreak" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1.5 d-none d-lg-flex align-items-center gap-2 text-nowrap fw-bold shadow-none"
                                     type="button" data-bs-toggle="modal" data-bs-target="#streakModal" title="@(isEn ? "Daily Learning Streak" : "Chuỗi học tập hàng ngày (Streak)")">
                                 <i class="bi bi-fire text-danger fs-6 streak-fire-icon me-1"></i>
                                 <span id="navStreakCountText">0 @(isEn ? "days" : "ngày")</span>
@@ -505,7 +532,7 @@
                                         <span class="fw-semibold text-truncate" style="max-width: 140px;">@(User.Identity.Name?.Split('@')[0] ?? (isEn ? "Learner" : "Học viên"))</span>
                                     </span>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border rounded-3 p-2 mt-2 w-100 w-lg-auto" style="min-width: 260px;">
+                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border rounded-3 p-2 mt-2 w-100 w-lg-auto nav-account-dropdown">
                                     <li>
                                         <a class="dropdown-item py-2 px-3 rounded-2 d-flex align-items-center gap-2.5 text-nowrap @(currentController == "Account" && currentAction == "Profile" ? "active" : "")" asp-controller="Account" asp-action="Profile">
                                             <i class="bi bi-mortarboard text-primary fs-6"></i> <span>@(isEn ? "Learning Dashboard" : "Góc học tập")</span>
@@ -549,7 +576,7 @@
                         {
                             <div class="auth-btn-group d-flex align-items-center w-100 w-lg-auto" style="gap: 8px;">
                                 <!-- Language Switcher Dropdown (Matches Image 2) -->
-                                <div class="dropdown lang-dropdown-container">
+                                <div class="dropdown lang-dropdown-container d-none d-lg-inline-flex">
                                     <button class="btn btn-sm lang-switcher-btn rounded-circle p-0" type="button" id="langDropdownAuth" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" title="@(isEn ? "Language" : "Ngôn ngữ")">
                                         <img src="@currentFlagPath" alt="@currentLangText" class="lang-flag-current" width="28" height="28" />
                                     </button>
@@ -640,7 +667,7 @@
     <!-- Global Floating AI Tutor Shortcut Button -->
     @if (currentController != "AiTutor" && currentController != "Playground")
     {
-        <div class="floating-ai-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 1070;">
+        <div class="floating-ai-container">
             <a asp-controller="AiTutor" asp-action="Index" 
                class="btn btn-primary rounded-circle shadow-lg p-0 d-flex align-items-center justify-content-center floating-ai-btn position-relative text-decoration-none" 
                title="@(isEn ? "Atus — AI .NET Mentor - Ask anything!" : "Trợ lý AI Atus - Hỏi đáp & Sửa lỗi!")" 

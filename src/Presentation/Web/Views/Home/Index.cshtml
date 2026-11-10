@@ -42,16 +42,16 @@
         {
             <div class="row justify-content-center mb-3">
                 <div class="col-xl-10">
-                    <div class="d-flex align-items-center justify-content-between p-2.5 px-3 rounded-2 border bg-body-tertiary">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="status-indicator-dot"></span>
+                    <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 p-2.5 px-3 rounded-2 border bg-body-tertiary">
+                        <div class="d-flex flex-wrap align-items-center gap-2 min-w-0">
+                            <span class="status-indicator-dot flex-shrink-0"></span>
                             <span class="fw-semibold text-body-emphasis" style="font-size: var(--text-sm);">@(isEn ? "Welcome back" : "Xin chào"), @(User.Identity.Name?.Split('@')[0])!</span>
                             <span class="text-muted" style="font-size: var(--text-xs);">· @(Model.CompletedLessonsCount ?? 0) @(isEn ? "lessons completed" : "bài hoàn thành")</span>
                         </div>
                         @if (Model.LastAccessedTutorial != null)
                         {
                             <a asp-controller="Tutorials" asp-action="Details" asp-route-slug="@Model.LastAccessedTutorial.GetSlug(isEn)" 
-                               class="btn btn-xs btn-outline-primary rounded-1 px-2.5 py-1 fw-semibold text-truncate" style="max-width: 280px; font-size: var(--text-xs);">
+                               class="btn btn-xs btn-outline-primary rounded-1 px-2.5 py-1 fw-semibold text-truncate" style="max-width: min(100%, 280px); font-size: var(--text-xs);">
                                 <i class="bi bi-play-fill"></i> @(isEn ? "Resume:" : "Học tiếp:") @Model.LastAccessedTutorial.GetTitle(isEn)
                             </a>
                         }
@@ -160,7 +160,7 @@
                 @foreach (var act in Model.RecentActivities.Take(4))
                 {
                     var color = string.IsNullOrEmpty(act.TypeBadgeColor) ? "primary" : act.TypeBadgeColor;
-                    <div class="list-group-item d-flex align-items-center justify-content-between py-3.5 px-3 px-md-4 border-bottom last-border-0 gap-3 bg-transparent activity-item-hover">
+                    <div class="list-group-item d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between py-3 px-3 px-md-4 border-bottom last-border-0 gap-2 gap-sm-3 bg-transparent activity-item-hover">
                         <div class="d-flex align-items-center gap-3 min-w-0 flex-grow-1">
                             <div class="rounded-3 bg-@color-subtle text-@color d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; font-size: 1.15rem;">
                                 <i class="bi @act.IconClass"></i>

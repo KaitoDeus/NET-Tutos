@@ -329,4 +329,43 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
         roadmapHtml.Should().Contain("bi-unlock-fill");
         roadmapHtml.Should().Contain("bi-lock-fill");
     }
+
+    [Fact]
+    public async Task ResponsiveDesign_ServesMobileNavigationControlsAndLayoutGuardrails()
+    {
+        // Act
+        var homeResp = await _client.GetAsync("/");
+        var cssResp = await _client.GetAsync("/css/site.css");
+        var jsResp = await _client.GetAsync("/js/site.js");
+        var playgroundResp = await _client.GetAsync("/Playground");
+        var mockResp = await _client.GetAsync("/Interview/Mock");
+        var quizResp = await _client.GetAsync("/Quiz");
+
+        // Assert
+        homeResp.EnsureSuccessStatusCode();
+        var homeHtml = await homeResp.Content.ReadAsStringAsync();
+        homeHtml.Should().Contain("mobile-quick-actions");
+        homeHtml.Should().Contain("mobile-drawer-controls");
+        homeHtml.Should().Contain("nav-practice-dropdown");
+
+        cssResp.EnsureSuccessStatusCode();
+        var css = await cssResp.Content.ReadAsStringAsync();
+        css.Should().Contain("overflow-x: clip");
+        css.Should().Contain("mobile-quick-actions");
+        css.Should().Contain("responsive-btn-group");
+
+        jsResp.EnsureSuccessStatusCode();
+        var js = await jsResp.Content.ReadAsStringAsync();
+        js.Should().Contain("openMobileNotifications");
+
+        playgroundResp.EnsureSuccessStatusCode();
+        mockResp.EnsureSuccessStatusCode();
+        quizResp.EnsureSuccessStatusCode();
+
+        var mockHtml = await mockResp.Content.ReadAsStringAsync();
+        mockHtml.Should().Contain("responsive-btn-group");
+
+        var quizHtml = await quizResp.Content.ReadAsStringAsync();
+        quizHtml.Should().Contain("min-w-0 flex-grow-1");
+    }
 }

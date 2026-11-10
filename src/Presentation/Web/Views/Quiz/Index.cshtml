@@ -58,26 +58,26 @@
             {
                 <div class="col-lg-6">
                     <div class="border rounded-4 p-3 bg-body-tertiary">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h5 class="fw-bold mb-0 text-@cat.BadgeColor">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                            <h5 class="fw-bold mb-0 text-@cat.BadgeColor min-w-0">
                                 <i class="bi @cat.IconClass me-2"></i>@cat.GetTitle(isEn)
                             </h5>
-                            <span class="badge bg-@cat.BadgeColor">@LocalizationHelper.GetDifficultyName(cat.Level, isEn)</span>
+                            <span class="badge bg-@cat.BadgeColor text-nowrap flex-shrink-0">@LocalizationHelper.GetDifficultyName(cat.Level, isEn)</span>
                         </div>
                         <div class="list-group list-group-flush small">
                             @foreach (var tut in cat.Tutorials)
                             {
-                                <div class="list-group-item bg-transparent d-flex align-items-center justify-content-between px-0 py-2">
-                                    <span class="text-truncate me-2" style="max-width: 320px;">@tut.GetTitle(isEn)</span>
+                                <div class="list-group-item bg-transparent d-flex align-items-center justify-content-between gap-2 px-0 py-2">
+                                    <span class="text-truncate min-w-0 flex-grow-1">@tut.GetTitle(isEn)</span>
                                     @if (tut.QuizQuestions.Any())
                                     {
-                                        <a asp-action="Take" asp-route-tutorialId="@tut.Id" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        <a asp-action="Take" asp-route-tutorialId="@tut.Id" class="btn btn-sm btn-outline-primary rounded-pill px-3 text-nowrap flex-shrink-0">
                                             @(isEn ? $"Take ({tut.QuizQuestions.Count})" : $"Làm bài ({tut.QuizQuestions.Count})")
                                         </a>
                                     }
                                     else
                                     {
-                                        <span class="text-muted small">@(isEn ? "No questions yet" : "Chưa có câu hỏi")</span>
+                                        <span class="text-muted small text-nowrap flex-shrink-0">@(isEn ? "No questions yet" : "Chưa có câu hỏi")</span>
                                     }
                                 </div>
                             }

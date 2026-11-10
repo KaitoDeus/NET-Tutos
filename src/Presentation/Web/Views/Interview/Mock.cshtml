@@ -15,7 +15,7 @@
                     <i class="bi bi-robot fs-2"></i>
                 </div>
                 <div>
-                    <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                         <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1.5">
                             <span class="spinner-grow spinner-grow-sm text-danger" role="status" style="width: 0.55rem; height: 0.55rem;"></span>
                             @(isEn ? "AI TECHNICAL INTERVIEW" : "PHỎNG VẤN TRỰC TIẾP VỚI AI")
@@ -46,7 +46,7 @@
         <div class="border-top mt-3 pt-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <!-- Mode switcher & Voice Call Button -->
             <div class="d-flex align-items-center gap-2 flex-wrap">
-                <div class="btn-group btn-group-sm p-1 rounded-pill bg-body-tertiary border shadow-xs" role="group">
+                <div class="btn-group btn-group-sm p-1 rounded-pill bg-body-tertiary border shadow-xs responsive-btn-group" role="group">
                     <button type="button" class="btn btn-sm rounded-pill active fw-semibold px-3" id="tabModeAi" onclick="switchMode('ai')">
                         <i class="bi bi-robot me-1.5 text-primary"></i> @(isEn ? "Atus AI Interviewer" : "Chấm Điểm Với Atus Tech Lead")
                     </button>
@@ -85,7 +85,7 @@
             var q = Model.Questions[i];
             <div class="card border rounded-4 shadow-sm p-4 mb-4 bg-body mock-question-block" id="questionBlock-@i" data-question-id="@q.Id" data-question-index="@i" data-question-topic="@q.Topic" data-question-diff="@q.Difficulty">
                 <!-- Question Header -->
-                <div class="d-flex align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center flex-wrap justify-content-between gap-2 mb-3 pb-2 border-bottom">
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-primary text-white rounded-pill px-3 py-1 fw-bold">
                             @(isEn ? $"Question {i + 1}" : $"Câu hỏi {i + 1}") / @Model.Questions.Count
@@ -119,11 +119,11 @@
 
                 <!-- Candidate Answer Input Area -->
                 <div class="mb-3">
-                    <div class="d-flex align-items-center justify-content-between mb-1.5">
+                    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2 mb-2">
                         <label class="form-label small fw-semibold text-muted mb-0">
                             <i class="bi bi-chat-quote-fill text-primary me-1"></i> @(isEn ? "Your Technical Explanation (State concept, mechanism, & real-world caveats):" : "Câu trả lời của bạn (Trình bày khái niệm, cơ chế bên dưới, và ví dụ/lưu ý thực tế):")
                         </label>
-                        <div class="d-flex align-items-center gap-1.5">
+                        <div class="d-flex align-items-center flex-wrap gap-1.5">
                             <!-- AI Read Question button (TTS) -->
                             <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 small fw-semibold d-inline-flex align-items-center gap-1" id="ttsBtn-@q.Id" onclick="toggleReadQuestion(@q.Id)">
                                 <i class="bi bi-volume-up-fill" id="ttsIcon-@q.Id"></i> <span id="ttsBtnText-@q.Id">@(isEn ? "Read Question" : "Tech Lead Đọc")</span>
@@ -216,7 +216,7 @@
         <div class="card border-0 rounded-4 shadow-sm p-4 bg-body mb-4">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-3 mb-3 border-bottom">
                 <div>
-                    <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                         <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1 fw-bold small">
                             <i class="bi bi-terminal-fill me-1"></i> @(isEn ? "PAIR PROGRAMMING LIVE CODING" : "PHỎNG VẤN LẬP TRÌNH TRỰC TIẾP (WHITEBOARD)")
                         </span>
@@ -525,7 +525,7 @@
                             1.0x
                         </button>
 
-                        <div class="vr bg-secondary opacity-50 my-1"></div>
+                        <div class="vr bg-secondary opacity-50 my-1 d-none d-sm-block"></div>
 
                         <!-- Submit Current Answer -->
                         <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm" id="btnCallSubmitAnswer" onclick="submitCallAnswer()">
@@ -649,13 +649,16 @@
         }
         .call-dock {
             display: inline-flex;
+            flex-wrap: wrap;
+            justify-content: center;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            max-width: 100%;
             background: rgba(15, 23, 42, 0.88);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 8px 16px;
-            border-radius: 999px;
+            padding: 8px 14px;
+            border-radius: 1.75rem;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
         .call-dock-btn {
