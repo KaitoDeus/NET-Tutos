@@ -53,6 +53,9 @@
                     <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 text-muted" id="tabModeClassic" onclick="switchMode('classic')">
                         <i class="bi bi-pencil-square me-1.5"></i> @(isEn ? "Classic Self-Check" : "Tự Ôn Tập Nhanh")
                     </button>
+                    <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 text-muted" id="tabModeLiveCode" onclick="switchMode('livecode')">
+                        <i class="bi bi-code-square me-1.5 text-success"></i> @(isEn ? "Live Coding Whiteboard" : "Phỏng Vấn Viết Code")
+                    </button>
                 </div>
 
                 <button type="button" class="btn btn-sm btn-call-gradient text-white rounded-pill px-3.5 py-1.5 fw-bold shadow-sm d-inline-flex align-items-center gap-1.5" onclick="launchVoiceCall()">
@@ -204,6 +207,117 @@
                     <i class="bi bi-send-check-fill"></i>
                     <span>@(isEn ? "Finish & Get AI Evaluation Report" : "Hoàn Thành & Xuất Báo Cáo Năng Lực AI")</span>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pair-Programming Live Coding Whiteboard Workspace -->
+    <div id="liveCodingWhiteboardContainer" class="d-none mb-4">
+        <div class="card border-0 rounded-4 shadow-sm p-4 bg-body mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-3 mb-3 border-bottom">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1 fw-bold small">
+                            <i class="bi bi-terminal-fill me-1"></i> @(isEn ? "PAIR PROGRAMMING LIVE CODING" : "PHỎNG VẤN LẬP TRÌNH TRỰC TIẾP (WHITEBOARD)")
+                        </span>
+                        <span id="wbModelBadge" class="badge bg-info bg-opacity-10 text-info rounded-pill px-2.5 py-1 small d-none"></span>
+                    </div>
+                    <h4 class="fw-bold mb-0" id="wbChallengeTitle">@(isEn ? "Ready for Live Coding Challenge" : "Sẵn sàng thử thách Viết Code với Atus")</h4>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <select id="wbTopicSelect" class="form-select form-select-sm rounded-pill px-3" style="width: auto;">
+                        <option value="Async/Await & ThreadPool">Async/Await &amp; ThreadPool</option>
+                        <option value="LINQ & Deferred Execution">LINQ &amp; Performance</option>
+                        <option value="C# Scope CS0103">Debugging (CS0103 / CS0029)</option>
+                        <option value="Modern C# Records & Clean Code">Modern C# &amp; Clean Code</option>
+                    </select>
+                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold" id="btnLoadWbChallenge" onclick="loadWhiteboardChallenge()">
+                        <i class="bi bi-lightning-fill me-1"></i> @(isEn ? "New Coding Problem" : "Atus Giao Đề Mới")
+                    </button>
+                </div>
+            </div>
+
+            <div id="wbLoadingBox" class="text-center py-5 d-none">
+                <div class="spinner-border text-primary mb-2" role="status"></div>
+                <div class="small text-muted">@(isEn ? "Atus is preparing your technical coding task..." : "Atus đang soạn đề bài lập trình & unit sandbox...")</div>
+            </div>
+
+            <div id="wbWorkspaceArea">
+                <div class="alert alert-light border rounded-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                        <strong class="small text-primary"><i class="bi bi-file-earmark-code me-1"></i> @(isEn ? "Problem Specification" : "Đề bài từ Tech Lead"):</strong>
+                        <span class="badge bg-secondary-subtle text-secondary small" id="wbExpectedBadge"></span>
+                    </div>
+                    <p class="mb-0 small text-body" id="wbChallengeDesc">@(isEn ? "Select a topic above and click 'New Coding Problem' to start live coding." : "Chọn chuyên đề phía trên và bấm 'Atus Giao Đề Mới' để bắt đầu vòng Live Coding.")</p>
+                </div>
+
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <label class="small fw-bold text-body-emphasis mb-0"><i class="bi bi-filetype-cs text-primary me-1"></i>C# (.NET 10) Live Code Editor</label>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-xs btn-outline-warning rounded-pill px-2.5 py-0.5 small fw-semibold" onclick="toggleWbHint()">
+                            <i class="bi bi-lightbulb me-1"></i> @(isEn ? "Hint" : "Gợi ý")
+                        </button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-0.5 small fw-semibold" onclick="loadWbSolution()">
+                            <i class="bi bi-code-slash me-1"></i> @(isEn ? "Sample Answer" : "Đáp án mẫu")
+                        </button>
+                    </div>
+                </div>
+
+                <div id="wbHintAlert" class="alert alert-warning small rounded-3 py-2 mb-2 d-none"></div>
+
+                <textarea id="wbCodeEditor" class="form-control bg-dark text-light font-monospace rounded-3 p-3 mb-3 border-secondary" rows="11" style="font-size: 0.84rem; line-height: 1.55;" spellcheck="false" placeholder="// Write or edit C# top-level code here..."></textarea>
+
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <button type="button" class="btn btn-sm btn-success rounded-pill px-4 py-2 fw-bold" id="btnRunWbCode" onclick="runWhiteboardCode()">
+                        <i class="bi bi-play-fill me-1"></i> @(isEn ? "Run Code (Roslyn)" : "Chạy Thử (Roslyn Sandbox)")
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 py-2 fw-bold" id="btnSubmitWbReview" onclick="submitWhiteboardReview()">
+                        <i class="bi bi-robot me-1"></i> @(isEn ? "Submit for Atus Review & Big-O" : "Nộp Atus Chấm Clean Code & Big-O")
+                    </button>
+                </div>
+
+                <!-- Live Terminal Output -->
+                <div id="wbTerminalBox" class="rounded-3 bg-dark text-light p-3 mb-3 font-monospace small d-none">
+                    <div class="d-flex justify-content-between text-muted border-bottom border-secondary pb-1 mb-2" style="font-size: 0.72rem;">
+                        <span>Roslyn Execution Output</span>
+                        <span id="wbExecTime">0 ms</span>
+                    </div>
+                    <pre id="wbTerminalOutput" class="mb-0" style="white-space: pre-wrap;"></pre>
+                </div>
+
+                <!-- Atus Review & Complexity Evaluation Panel -->
+                <div id="wbReviewCard" class="card border-primary border-opacity-25 rounded-4 p-4 bg-body-tertiary d-none">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pb-3 mb-3 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                                <i class="bi bi-robot"></i>
+                            </span>
+                            <div>
+                                <div class="fw-bold text-primary">@(isEn ? "Atus Tech Lead Live Code Review" : "Nhận Xét Code & Độ Phức Tạp Từ Atus")</div>
+                                <div class="small text-muted" id="wbScoreMeta">Clean Code &amp; Algorithmic Assessment</div>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-primary text-white rounded-pill px-3 py-1.5 fs-6" id="wbCleanScoreBadge">0/100</span>
+                            <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-3 py-1.5 small fw-bold" id="wbTimeBigOBadge">Time: O(?)</span>
+                            <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25 rounded-pill px-3 py-1.5 small fw-bold" id="wbSpaceBigOBadge">Space: O(?)</span>
+                        </div>
+                    </div>
+
+                    <p class="small text-body mb-3" id="wbReviewSummary"></p>
+                    <div id="wbReviewPointsList" class="d-flex flex-column gap-2 mb-3"></div>
+                    <div id="wbComplexityTipBox" class="alert alert-info small rounded-3 py-2 mb-3 d-none"></div>
+
+                    <div id="wbRefactorBox" class="d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-1.5">
+                            <span class="small fw-bold text-success"><i class="bi bi-stars me-1"></i> @(isEn ? "Suggested Clean Refactor:" : "Đề xuất tối ưu chuẩn Senior:")</span>
+                            <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2.5 py-0.5 small fw-semibold" onclick="applyWhiteboardRefactor()">
+                                <i class="bi bi-clipboard-check me-1"></i> @(isEn ? "Apply to Editor" : "Áp dụng vào Editor")
+                            </button>
+                        </div>
+                        <pre id="wbRefactorCodePre" class="bg-dark text-light p-3 rounded-3 small font-monospace mb-0 overflow-x-auto"></pre>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -633,21 +747,240 @@
             currentMode = mode;
             const btnAi = document.getElementById('tabModeAi');
             const btnClassic = document.getElementById('tabModeClassic');
+            const btnLiveCode = document.getElementById('tabModeLiveCode');
+            const formBox = document.getElementById('mockInterviewFormContainer');
+            const wbBox = document.getElementById('liveCodingWhiteboardContainer');
+
+            [btnAi, btnClassic, btnLiveCode].forEach(b => {
+                if (b) b.className = 'btn btn-sm rounded-pill fw-semibold px-3 text-muted';
+            });
+
+            if (mode === 'livecode') {
+                if (btnLiveCode) btnLiveCode.className = 'btn btn-sm rounded-pill active fw-semibold px-3';
+                formBox?.classList.add('d-none');
+                wbBox?.classList.remove('d-none');
+                if (!currentWhiteboardChallenge) {
+                    loadWhiteboardChallenge();
+                }
+                return;
+            }
+
+            wbBox?.classList.add('d-none');
+            formBox?.classList.remove('d-none');
 
             if (mode === 'ai') {
-                btnAi.className = 'btn btn-sm rounded-pill active fw-semibold px-3';
-                btnClassic.className = 'btn btn-sm rounded-pill fw-semibold px-3 text-muted';
+                if (btnAi) btnAi.className = 'btn btn-sm rounded-pill active fw-semibold px-3';
                 document.querySelectorAll('.ai-mode-panel').forEach(p => p.classList.remove('d-none'));
                 document.querySelectorAll('.classic-mode-panel').forEach(p => p.classList.add('d-none'));
             } else {
-                btnClassic.className = 'btn btn-sm rounded-pill active fw-semibold px-3';
-                btnAi.className = 'btn btn-sm rounded-pill fw-semibold px-3 text-muted';
+                if (btnClassic) btnClassic.className = 'btn btn-sm rounded-pill active fw-semibold px-3';
                 document.querySelectorAll('.ai-mode-panel').forEach(p => p.classList.add('d-none'));
                 document.querySelectorAll('.classic-mode-panel').forEach(p => p.classList.remove('d-none'));
-                // Reveal all benchmark answers in classic mode
                 document.querySelectorAll('[id^="benchmarkAnswer-"]').forEach(b => b.classList.remove('d-none'));
             }
         }
+
+        // ==========================================
+        // Live Coding Pair-Programming Whiteboard Manager
+        // ==========================================
+        let currentWhiteboardChallenge = null;
+        let lastWhiteboardRefactor = '';
+
+        async function loadWhiteboardChallenge() {
+            const topic = document.getElementById('wbTopicSelect')?.value || 'Async/Await & ThreadPool';
+            const loading = document.getElementById('wbLoadingBox');
+            const workspace = document.getElementById('wbWorkspaceArea');
+            const btn = document.getElementById('btnLoadWbChallenge');
+
+            if (btn) btn.disabled = true;
+            loading?.classList.remove('d-none');
+            workspace?.classList.add('d-none');
+            document.getElementById('wbHintAlert')?.classList.add('d-none');
+            document.getElementById('wbTerminalBox')?.classList.add('d-none');
+            document.getElementById('wbReviewCard')?.classList.add('d-none');
+
+            try {
+                const resp = await fetch('/api/adaptive/challenge', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic: topic, difficulty: 'Senior' })
+                });
+                const data = await resp.json();
+                if (data && data.success) {
+                    currentWhiteboardChallenge = data;
+                    document.getElementById('wbChallengeTitle').innerText = data.title;
+                    document.getElementById('wbChallengeDesc').innerText = data.problemStatementMarkdown;
+                    document.getElementById('wbCodeEditor').value = data.starterCode || '';
+                    const badge = document.getElementById('wbModelBadge');
+                    if (badge && data.modelUsed) {
+                        badge.innerText = data.modelUsed;
+                        badge.classList.remove('d-none');
+                    }
+                    const expBadge = document.getElementById('wbExpectedBadge');
+                    if (expBadge) {
+                        expBadge.innerText = data.expectedOutput ? ((isEn ? 'Expected: ' : 'Kỳ vọng: ') + data.expectedOutput) : '';
+                    }
+                }
+            } catch (err) {
+                console.warn('Whiteboard challenge load error:', err);
+            } finally {
+                loading?.classList.add('d-none');
+                workspace?.classList.remove('d-none');
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        async function runWhiteboardCode() {
+            const code = document.getElementById('wbCodeEditor')?.value || '';
+            const btn = document.getElementById('btnRunWbCode');
+            const box = document.getElementById('wbTerminalBox');
+            const outEl = document.getElementById('wbTerminalOutput');
+            const timeEl = document.getElementById('wbExecTime');
+
+            if (!code.trim()) return;
+            if (btn) btn.disabled = true;
+            box?.classList.remove('d-none');
+            outEl.className = 'mb-0 text-warning';
+            outEl.innerText = isEn ? 'Compiling & running in Roslyn Sandbox...' : 'Đang biên dịch & chạy trên Roslyn Sandbox...';
+
+            try {
+                const resp = await fetch('/Playground/Execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code })
+                });
+                const res = await resp.json();
+                if (timeEl) timeEl.innerText = (res.executionTimeMs || 0) + ' ms';
+
+                if (res.isSuccess) {
+                    const actual = (res.output || '').trim();
+                    const expected = (currentWhiteboardChallenge?.expectedOutput || '').trim();
+                    const matched = expected && actual.includes(expected);
+                    outEl.className = 'mb-0 text-success';
+                    outEl.innerText = actual + (matched ? (isEn ? '\n\n✅ Output matches expected result!' : '\n\n✅ Kết quả chạy khớp với yêu cầu đề bài!') : '');
+                } else {
+                    outEl.className = 'mb-0 text-danger';
+                    outEl.innerText = res.error || (isEn ? 'Execution error.' : 'Lỗi biên dịch / thực thi.');
+                }
+            } catch (e) {
+                outEl.className = 'mb-0 text-danger';
+                outEl.innerText = isEn ? 'Failed connecting to Sandbox.' : 'Lỗi kết nối Sandbox.';
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        async function submitWhiteboardReview() {
+            const code = document.getElementById('wbCodeEditor')?.value || '';
+            if (!code.trim()) {
+                alert(isEn ? 'Please write your C# solution before submitting.' : 'Vui lòng viết mã nguồn C# trước khi nộp bài.');
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitWbReview');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> ${isEn ? 'Atus Reviewing...' : 'Atus đang Review & đo Big-O...'}`;
+
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                const resp = await fetch('/Interview/EvaluateLiveCoding', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({
+                        Topic: currentWhiteboardChallenge?.topic || document.getElementById('wbTopicSelect')?.value || '.NET Core',
+                        Title: currentWhiteboardChallenge?.title || 'Live Coding Whiteboard',
+                        SourceCode: code
+                    })
+                });
+
+                const data = await resp.json();
+                if (data && data.success) {
+                    const card = document.getElementById('wbReviewCard');
+                    card?.classList.remove('d-none');
+
+                    document.getElementById('wbCleanScoreBadge').innerText = `${data.combinedScore}/100`;
+                    document.getElementById('wbTimeBigOBadge').innerText = `Time: ${data.complexity?.timeComplexity || 'O(?)'}`;
+                    document.getElementById('wbSpaceBigOBadge').innerText = `Space: ${data.complexity?.spaceComplexity || 'O(?)'}`;
+                    document.getElementById('wbScoreMeta').innerText =
+                        `Clean Code: ${data.review?.score || 0}/100 • Algorithmic Efficiency: ${data.complexity?.efficiencyScore || 0}/100`;
+
+                    const summaryText = data.review?.summary || data.complexity?.summary || '';
+                    document.getElementById('wbReviewSummary').innerText = summaryText;
+
+                    const pointsEl = document.getElementById('wbReviewPointsList');
+                    if (pointsEl && data.review?.points) {
+                        pointsEl.innerHTML = data.review.points.map(pt => `
+                            <div class="border rounded-3 p-2.5 bg-body small">
+                                <div class="fw-bold text-primary mb-0.5"><i class="bi bi-check2-square me-1"></i>[${escapeHtml(pt.category)}] ${escapeHtml(pt.title)}</div>
+                                <div class="text-body-secondary">${escapeHtml(pt.description)}</div>
+                            </div>
+                        `).join('');
+                    }
+
+                    const tipBox = document.getElementById('wbComplexityTipBox');
+                    if (tipBox && data.complexity?.optimizationTip) {
+                        tipBox.innerText = '💡 Big-O Insight: ' + data.complexity.optimizationTip;
+                        tipBox.classList.remove('d-none');
+                    } else {
+                        tipBox?.classList.add('d-none');
+                    }
+
+                    const refBox = document.getElementById('wbRefactorBox');
+                    if (data.review?.refactoredCode) {
+                        lastWhiteboardRefactor = data.review.refactoredCode;
+                        document.getElementById('wbRefactorCodePre').innerText = lastWhiteboardRefactor;
+                        refBox?.classList.remove('d-none');
+                    } else {
+                        refBox?.classList.add('d-none');
+                    }
+
+                    // Speak concise verbal evaluation via Vietnamese Neural TTS
+                    if (summaryText) {
+                        const spoken = isEn
+                            ? `Your live coding combined score is ${data.combinedScore} out of 100. Time complexity is ${data.complexity?.timeComplexity || ''}. ${summaryText}`
+                            : `Điểm Live Coding của bạn đạt ${data.combinedScore} trên 100, độ phức tạp thời gian ${data.complexity?.timeComplexity || ''}. ${summaryText}`;
+                        AiVoice.speak(spoken);
+                    }
+                }
+            } catch (err) {
+                console.error('Whiteboard review error:', err);
+                alert(isEn ? 'Unable to evaluate code right now.' : 'Không thể kết nối Atus Review ngay lúc này.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+
+        function toggleWbHint() {
+            const box = document.getElementById('wbHintAlert');
+            if (!box || !currentWhiteboardChallenge) return;
+            box.innerText = currentWhiteboardChallenge.hint || '';
+            box.classList.toggle('d-none');
+        }
+
+        function loadWbSolution() {
+            if (!currentWhiteboardChallenge?.solutionCode) return;
+            document.getElementById('wbCodeEditor').value = currentWhiteboardChallenge.solutionCode;
+        }
+
+        function applyWhiteboardRefactor() {
+            if (!lastWhiteboardRefactor) return;
+            document.getElementById('wbCodeEditor').value = lastWhiteboardRefactor;
+        }
+
+        document.getElementById('wbCodeEditor')?.addEventListener('keydown', function (e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 4;
+            }
+        });
 
         function toggleBenchmarkAnswer(qId) {
             const box = document.getElementById(`benchmarkAnswer-${qId}`);

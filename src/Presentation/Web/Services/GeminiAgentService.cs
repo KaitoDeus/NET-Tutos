@@ -1784,31 +1784,17 @@ Trả về định dạng JSON hợp lệ:
 
         try
         {
-            var sb = new System.Text.StringBuilder();
-            bool hasContent = false;
-
-            // 1. Semantic Vector RAG Search over comprehensive bilingual C# curriculum
+            // Delegate to the unified 4-source Semantic Vector RAG index (Curriculum + Tutorials + Challenges + Flashcards)
             if (_semanticSearch != null)
             {
-                var semanticHits = await _semanticSearch.SearchAsync(message, isEnglish, topK: 2);
-                if (semanticHits.Hits.Count > 0)
+                var unifiedContext = await _semanticSearch.BuildUnifiedRagContextAsync(message, isEnglish, topK: 4);
+                if (!string.IsNullOrWhiteSpace(unifiedContext))
                 {
-                    hasContent = true;
-                    sb.AppendLine(isEnglish
-                        ? "\n[Relevant NET-Tutos Semantic Curriculum (Use exact markdown links if helpful)]:"
-                        : "\n[Giáo trình Chuyên sâu NET-Tutos liên quan (Hãy gắn link Markdown chính xác cho học viên)]:");
-
-                    foreach (var hit in semanticHits.Hits)
-                    {
-                        var route = isEnglish
-                            ? $"/csharp-curriculum/{hit.LessonNumber}"
-                            : $"/chuong-trinh-csharp/{hit.LessonNumber}";
-                        sb.AppendLine($"- [{hit.Title}]({route}): {hit.Summary}");
-                    }
+                    return unifiedContext;
                 }
             }
 
-            // 2. Keyword match against Tutorial DB catalog (cached in L1/L2 Redis)
+            // Lightweight DB fallback when semantic search service is not injected (e.g. isolated unit tests)
             var lowerMsg = message.ToLowerInvariant();
             var keywords = lowerMsg.Split(new[] { ' ', ',', '.', '?', '!', '\n', '\r', ':', ';' }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(w => w.Length >= 3 && !IsCommonStopWord(w))
@@ -1816,71 +1802,41 @@ Trả về định dạng JSON hợp lệ:
                 .Take(6)
                 .ToList();
 
-            if (keywords.Any())
+            if (!keywords.Any()) return null;
+
+            var tutorials = await _context.Tutorials
+                .AsNoTracking()
+                .OrderBy(t => t.OrderIndex)
+                .Select(t => new TutorialRagDto(t.Id, t.Title, t.Slug, t.Summary ?? string.Empty))
+                .ToListAsync();
+
+            var matches = tutorials
+                .Select(t =>
+                {
+                    int score = keywords.Sum(kw => (t.Title.Contains(kw, StringComparison.OrdinalIgnoreCase) ? 5 : 0)
+                                                 + (t.Slug.Contains(kw, StringComparison.OrdinalIgnoreCase) ? 3 : 0)
+                                                 + (t.Summary.Contains(kw, StringComparison.OrdinalIgnoreCase) ? 1 : 0));
+                    return new { Tutorial = t, Score = score };
+                })
+                .Where(m => m.Score >= 5)
+                .OrderByDescending(m => m.Score)
+                .Take(2)
+                .Select(m => m.Tutorial)
+                .ToList();
+
+            if (!matches.Any()) return null;
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine(isEnglish
+                ? "\n[Relevant NET-Tutos Tutorials Context (Use exact markdown [Title](/lessons/slug))]:"
+                : "\n[Bài hướng dẫn NET-Tutos liên quan (Hãy gắn link [Tên bài](/lessons/slug) nếu hữu ích)]:");
+
+            foreach (var match in matches)
             {
-                List<TutorialRagDto>? tutorials = null;
-                if (_cacheService != null)
-                {
-                    tutorials = await _cacheService.GetOrCreateAsync("curriculum:rag:tutorials:catalog", async ct =>
-                    {
-                        return await _context.Tutorials
-                            .AsNoTracking()
-                            .OrderBy(t => t.OrderIndex)
-                            .Select(t => new TutorialRagDto(t.Id, t.Title, t.Slug, t.Summary ?? string.Empty))
-                            .ToListAsync(ct);
-                    }, l2Expiration: TimeSpan.FromHours(2), l1Expiration: TimeSpan.FromMinutes(30));
-                }
-                else
-                {
-                    tutorials = await _context.Tutorials
-                        .AsNoTracking()
-                        .OrderBy(t => t.OrderIndex)
-                        .Select(t => new TutorialRagDto(t.Id, t.Title, t.Slug, t.Summary ?? string.Empty))
-                        .ToListAsync();
-                }
-
-                if (tutorials != null && tutorials.Count > 0)
-                {
-                    var matches = tutorials
-                        .Select(t =>
-                        {
-                            int score = 0;
-                            var tTitle = t.Title.ToLowerInvariant();
-                            var tSlug = t.Slug.ToLowerInvariant();
-                            var tSummary = t.Summary.ToLowerInvariant();
-
-                            foreach (var kw in keywords)
-                            {
-                                if (tTitle.Contains(kw)) score += 5;
-                                if (tSlug.Contains(kw)) score += 3;
-                                if (tSummary.Contains(kw)) score += 1;
-                            }
-                            return new { Tutorial = t, Score = score };
-                        })
-                        .Where(m => m.Score >= 5)
-                        .OrderByDescending(m => m.Score)
-                        .Take(2)
-                        .Select(m => m.Tutorial)
-                        .ToList();
-
-                    if (matches.Any())
-                    {
-                        if (!hasContent)
-                        {
-                            sb.AppendLine(isEnglish
-                                ? "\n[Relevant NET-Tutos Tutorials Context (Use exact markdown [Title](/lessons/slug))]:"
-                                : "\n[Bài hướng dẫn NET-Tutos liên quan (Hãy gắn link [Tên bài](/lessons/slug) nếu hữu ích)]:");
-                        }
-                        hasContent = true;
-                        foreach (var match in matches)
-                        {
-                            sb.AppendLine($"- [{match.Title}](/lessons/{match.Slug}): {match.Summary}");
-                        }
-                    }
-                }
+                sb.AppendLine($"- [{match.Title}](/lessons/{match.Slug}): {match.Summary}");
             }
 
-            return hasContent ? sb.ToString() : null;
+            return sb.ToString();
         }
         catch (Exception ex)
         {

@@ -583,6 +583,13 @@ app.MapGet("/api/search/semantic", async (string? q, int? top, HttpContext http,
     return Results.Ok(result);
 });
 
+// Unified Multi-Source Hybrid RAG Search Endpoint (Curriculum + Tutorials Markdown + Challenges + Flashcards)
+app.MapGet("/api/search/knowledge", async (string? q, int? top, HttpContext http, ISemanticCurriculumSearchService search, CancellationToken ct) =>
+{
+    var result = await search.SearchKnowledgeBaseAsync(q ?? string.Empty, http.IsEnglish(), top ?? 6, ct);
+    return Results.Ok(result);
+});
+
 // Personalized Adaptive Learning Recommendations powered by Kafka Telemetry + Semantic RAG
 app.MapGet("/api/adaptive/recommendations", async (HttpContext http, IAdaptiveLearningService adaptive, CancellationToken ct) =>
 {

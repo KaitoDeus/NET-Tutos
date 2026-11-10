@@ -210,6 +210,62 @@ public class InterviewController : Controller
         return Json(report);
     }
 
+    // POST: /Interview/EvaluateLiveCoding (AJAX)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EvaluateLiveCoding([FromBody] LiveCodingEvaluationRequest request)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.SourceCode))
+        {
+            return BadRequest(new { success = false, message = "Vui lòng viết mã nguồn trước khi nộp bài." });
+        }
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        bool isEn = HttpContext.IsEnglish();
+
+        var reviewTask = _aiTutorService.ReviewCodeAsync(new AiCodeReviewRequest
+        {
+            SourceCode = request.SourceCode
+        }, isEn);
+
+        var complexityTask = _aiTutorService.AnalyzeComplexityAsync(new AiComplexityRequest
+        {
+            SourceCode = request.SourceCode,
+            ChallengeTitle = request.Title
+        }, isEn);
+
+        await Task.WhenAll(reviewTask, complexityTask);
+
+        var review = await reviewTask;
+        var complexity = await complexityTask;
+        int combinedScore = (int)Math.Round((review.Score + complexity.EfficiencyScore) / 2.0);
+
+        if (_kafkaProducer != null && !string.IsNullOrEmpty(userId))
+        {
+            _kafkaProducer.ProduceFireAndForget(
+                KafkaTopics.UserLearningActivity,
+                new UserLearningActivityEvent(
+                    UserId: userId,
+                    ActivityType: "LiveCodingInterview",
+                    EntityId: request.Topic,
+                    Title: string.IsNullOrWhiteSpace(request.Title) ? request.Topic : request.Title,
+                    Metadata: new Dictionary<string, string>
+                    {
+                        ["score"] = combinedScore.ToString(),
+                        ["topic"] = request.Topic,
+                        ["bigO"] = complexity.TimeComplexity
+                    }));
+        }
+
+        return Json(new
+        {
+            success = true,
+            combinedScore,
+            review,
+            complexity
+        });
+    }
+
     // GET: /Interview/Question/{slug}
     public async Task<IActionResult> QuestionDetail(string slug)
     {

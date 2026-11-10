@@ -227,4 +227,24 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
         interviewHtml.Should().Contain("adaptiveChallengeModal");
         interviewHtml.Should().Contain("btnGenerateAdaptiveChallenge");
     }
+
+    [Fact]
+    public async Task Get_MultiSourceKnowledgeSearchAndLiveCodingWhiteboard_WorkEndToEnd()
+    {
+        // Act
+        var knowledgeResp = await _client.GetAsync("/api/search/knowledge?q=async%20await&top=5");
+        var mockResp = await _client.GetAsync("/Interview/Mock");
+
+        // Assert
+        knowledgeResp.EnsureSuccessStatusCode();
+        var knowledgeJson = await knowledgeResp.Content.ReadAsStringAsync();
+        knowledgeJson.Should().Contain("totalIndexedDocuments");
+        knowledgeJson.Should().Contain("sourceCounts");
+
+        mockResp.EnsureSuccessStatusCode();
+        var mockHtml = await mockResp.Content.ReadAsStringAsync();
+        mockHtml.Should().Contain("tabModeLiveCode");
+        mockHtml.Should().Contain("liveCodingWhiteboardContainer");
+        mockHtml.Should().Contain("submitWhiteboardReview");
+    }
 }

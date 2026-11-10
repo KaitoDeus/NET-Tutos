@@ -329,3 +329,10 @@ public class AiAdaptiveChallengeResponse
     public string ExpectedOutput { get; set; } = string.Empty;
     public string ModelUsed { get; set; } = "Atus";
 }
+
+public class LiveCodingEvaluationRequest
+{
+    public string Topic { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string SourceCode { get; set; } = string.Empty;
+}
