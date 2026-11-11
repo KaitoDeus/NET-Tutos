@@ -104,6 +104,39 @@ public class SemanticCurriculumSearchTests
 
         searchResult.Hits.Should().Contain(h => h.SourceType == "Tutorial" && h.Url == "/lessons/captive-dependency-di");
         searchResult.Hits.Should().Contain(h => h.SourceType == "Challenge" && h.Url == "/Playground?slug=captive-di-bugfix");
+        searchResult.NeuralDimensions.Should().Be(GeminiNeuralEmbeddingService.DefaultDimensions);
         ragContext.Should().Contain("Multi-Source Knowledge RAG Context");
+    }
+
+    [Fact]
+    public async Task NeuralEmbeddingAndSync_GeneratesCrossLingualVectors_AndPersistsToKnowledgeEmbeddings()
+    {
+        // Arrange
+        var embedder = new GeminiNeuralEmbeddingService();
+        var enVec = await embedder.EmbedAsync("asynchronous state machine await Task threadpool");
+        var viVec = await embedder.EmbedAsync("co che bat dong bo async await threadpool");
+        var unrelatedVec = await embedder.EmbedAsync("bubble sort binary tree sorting");
+
+        double crossLingualSim = GeminiNeuralEmbeddingService.CosineSimilarity(enVec.Vector, viVec.Vector);
+        double unrelatedSim = GeminiNeuralEmbeddingService.CosineSimilarity(enVec.Vector, unrelatedVec.Vector);
+
+        enVec.Vector.Length.Should().Be(768);
+        crossLingualSim.Should().BeGreaterThan(unrelatedSim);
+
+        using var db = MockHelpers.CreateInMemoryDbContext();
+        var searchService = new SemanticCurriculumSearchService(new CurriculumService(db), directDbContext: db, embeddingService: embedder);
+
+        // Act - first sync persists all 101 curriculum embeddings, second sync reuses ContentHash cache
+        var firstSync = await searchService.SyncKnowledgeEmbeddingsAsync();
+        var secondSync = await searchService.SyncKnowledgeEmbeddingsAsync();
+        var status = await searchService.GetEmbeddingStatusAsync();
+
+        // Assert
+        firstSync.Success.Should().BeTrue();
+        firstSync.UpdatedEmbeddings.Should().Be(101);
+        firstSync.NeuralDimensions.Should().Be(768);
+        secondSync.UpdatedEmbeddings.Should().Be(0);
+        secondSync.ReusedCachedEmbeddings.Should().Be(101);
+        status.PersistedEmbeddingsCount.Should().Be(101);
     }
 }

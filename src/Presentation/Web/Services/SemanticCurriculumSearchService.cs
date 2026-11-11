@@ -1,7 +1,10 @@
+using System.Data;
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using NET_Tutos.Data;
+using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
 
 namespace NET_Tutos.Services;
@@ -43,7 +46,33 @@ public sealed class UnifiedKnowledgeSearchResponse
     public int TotalIndexedDocuments { get; set; }
     public Dictionary<string, int> SourceCounts { get; set; } = new();
     public long ElapsedMicroseconds { get; set; }
+    public string SearchMode { get; set; } = "dense-neural-hybrid";
+    public string EmbeddingModel { get; set; } = "nettutos-neural-hash-768";
+    public int NeuralDimensions { get; set; } = GeminiNeuralEmbeddingService.DefaultDimensions;
+    public bool PgVectorEnabled { get; set; }
     public List<UnifiedKnowledgeHit> Hits { get; set; } = [];
+}
+
+public sealed class EmbeddingSyncResult
+{
+    public bool Success { get; set; }
+    public int TotalDocuments { get; set; }
+    public int UpdatedEmbeddings { get; set; }
+    public int ReusedCachedEmbeddings { get; set; }
+    public int NeuralDimensions { get; set; } = GeminiNeuralEmbeddingService.DefaultDimensions;
+    public string EmbeddingModel { get; set; } = "nettutos-neural-hash-768";
+    public bool PgVectorActive { get; set; }
+    public long ElapsedMs { get; set; }
+}
+
+public sealed class EmbeddingStatusResponse
+{
+    public int PersistedEmbeddingsCount { get; set; }
+    public int InMemoryDocumentsCount { get; set; }
+    public string EmbeddingModel { get; set; } = "nettutos-neural-hash-768";
+    public int NeuralDimensions { get; set; } = GeminiNeuralEmbeddingService.DefaultDimensions;
+    public bool PgVectorExtensionActive { get; set; }
+    public DateTime? LastSyncedAtUtc { get; set; }
 }
 
 public interface ISemanticCurriculumSearchService
@@ -53,13 +82,15 @@ public interface ISemanticCurriculumSearchService
     Task<UnifiedKnowledgeSearchResponse> SearchKnowledgeBaseAsync(string query, bool isEnglish, int topK = 5, CancellationToken cancellationToken = default);
     Task<string> BuildUnifiedRagContextAsync(string query, bool isEnglish, int topK = 4, CancellationToken cancellationToken = default);
     Task<int> GetIndexedKnowledgeCountAsync(CancellationToken cancellationToken = default);
+    Task<EmbeddingSyncResult> SyncKnowledgeEmbeddingsAsync(bool forceRebuild = false, CancellationToken cancellationToken = default);
+    Task<EmbeddingStatusResponse> GetEmbeddingStatusAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// Hybrid RAG vector knowledge base indexing both the 101-lesson C# curriculum AND all persisted
-/// database entities (Tutorials Markdown bodies, CodingChallenges, and InterviewFlashcards).
-/// Uses 4096-dimensional FNV-1a hashed TF-IDF sparse vectors, Vietnamese diacritic folding,
-/// character tri-grams, word bi-grams, and L2 cosine similarity ranking.
+/// Hybrid Neural + Lexical RAG vector knowledge base indexing both the 101-lesson C# curriculum
+/// AND persisted database entities (Tutorials Markdown, CodingChallenges, and InterviewFlashcards).
+/// Combines 768-dim Neural Embeddings (Gemini text-embedding-004 + PostgreSQL pgvector HNSW when online,
+/// or multilingual EN/VI dense fallback offline) with 4096-dim sparse TF-IDF cosine ranking.
 /// </summary>
 public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchService
 {
@@ -69,6 +100,7 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
     private readonly ICurriculumService _curriculumService;
     private readonly IServiceScopeFactory? _scopeFactory;
     private readonly AppDbContext? _directDbContext;
+    private readonly INeuralEmbeddingService _embeddingService;
     private UnifiedVectorIndex? _localUnifiedIndex;
 
     private static readonly SemaphoreSlim _buildLock = new(1, 1);
@@ -81,11 +113,13 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
     public SemanticCurriculumSearchService(
         ICurriculumService curriculumService,
         IServiceScopeFactory? scopeFactory = null,
-        AppDbContext? directDbContext = null)
+        AppDbContext? directDbContext = null,
+        INeuralEmbeddingService? embeddingService = null)
     {
         _curriculumService = curriculumService;
         _scopeFactory = scopeFactory;
         _directDbContext = directDbContext;
+        _embeddingService = embeddingService ?? new GeminiNeuralEmbeddingService();
     }
 
     public async Task<SemanticSearchResponse> SearchAsync(string query, bool isEnglish, int topK = 5, CancellationToken cancellationToken = default)
@@ -156,7 +190,9 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
             Query = query ?? string.Empty,
             Language = isEnglish ? "en" : "vi",
             TotalIndexedDocuments = unified.Documents.Count,
-            SourceCounts = unified.SourceCounts
+            SourceCounts = unified.SourceCounts,
+            EmbeddingModel = _embeddingService.ActiveModelName,
+            NeuralDimensions = _embeddingService.NeuralDimensions
         };
 
         if (string.IsNullOrWhiteSpace(query))
@@ -166,12 +202,35 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
             return response;
         }
 
-        var queryVector = VectorMath.Vectorize(Tokenize(query), unified.Idf);
+        var queryLexical = VectorMath.Vectorize(Tokenize(query), unified.Idf);
+        var queryNeural = await _embeddingService.EmbedAsync(query, cancellationToken);
         int k = Math.Clamp(topK, 1, 20);
 
+        // Try native PostgreSQL pgvector cosine <=> search when running on pgvector-enabled Postgres
+        var pgVectorScores = await TryQueryPgVectorSimilaritiesAsync(queryNeural.Vector, Math.Max(k * 4, 24), cancellationToken);
+        if (pgVectorScores.Count > 0)
+        {
+            response.PgVectorEnabled = true;
+            response.SearchMode = "pgvector-neural-hybrid";
+        }
+        else
+        {
+            response.PgVectorEnabled = false;
+            response.SearchMode = "dense-neural-hybrid";
+        }
+
         response.Hits = unified.Documents
-            .Select(doc => (doc, score: Cosine(queryVector, doc.Vector)))
-            .Where(x => x.score > 0.015)
+            .Select(doc =>
+            {
+                double lexical = Cosine(queryLexical, doc.Vector);
+                double neural = pgVectorScores.TryGetValue(doc.DocumentKey, out var pgSim)
+                    ? Math.Max(0, pgSim)
+                    : Math.Max(0, GeminiNeuralEmbeddingService.CosineSimilarity(queryNeural.Vector, doc.NeuralVector));
+
+                double hybridScore = (0.55 * neural) + (0.45 * lexical);
+                return (doc, score: hybridScore);
+            })
+            .Where(x => x.score > 0.025)
             .OrderByDescending(x => x.score)
             .Take(k)
             .Select(x => new UnifiedKnowledgeHit
@@ -211,6 +270,189 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
     {
         var unified = await EnsureUnifiedIndexAsync(cancellationToken);
         return unified.Documents.Count;
+    }
+
+    public async Task<EmbeddingSyncResult> SyncKnowledgeEmbeddingsAsync(bool forceRebuild = false, CancellationToken cancellationToken = default)
+    {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var rawDocs = await CollectUnifiedRawDocsAsync(cancellationToken);
+        var modelName = _embeddingService.ActiveModelName;
+
+        int updated = 0;
+        int reused = 0;
+        bool pgVectorActive = false;
+
+        AppDbContext? db = _directDbContext;
+        IServiceScope? scope = null;
+        if (db == null && _scopeFactory != null)
+        {
+            scope = _scopeFactory.CreateScope();
+            db = scope.ServiceProvider.GetService<AppDbContext>();
+        }
+
+        try
+        {
+            if (db != null)
+            {
+                var existingByKey = await db.KnowledgeEmbeddings
+                    .ToDictionaryAsync(e => e.DocumentKey, StringComparer.OrdinalIgnoreCase, cancellationToken);
+
+                bool isNpgsql = IsNpgsqlDatabase(db);
+                if (isNpgsql)
+                {
+                    pgVectorActive = await CheckPgVectorAvailableAsync(db, cancellationToken);
+                }
+
+                foreach (var doc in rawDocs)
+                {
+                    string docKey = BuildDocumentKey(doc);
+                    string contentHash = GeminiNeuralEmbeddingService.ComputeSha256($"{doc.TitleVi}|{doc.TitleEn}|{doc.SearchableText}");
+
+                    if (!forceRebuild
+                        && existingByKey.TryGetValue(docKey, out var existing)
+                        && string.Equals(existing.ContentHash, contentHash, StringComparison.Ordinal)
+                        && string.Equals(existing.EmbeddingModel, modelName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        reused++;
+                        continue;
+                    }
+
+                    var embResult = await _embeddingService.EmbedAsync(doc.SearchableText, cancellationToken);
+                    string vectorJson = JsonSerializer.Serialize(embResult.Vector);
+
+                    if (existingByKey.TryGetValue(docKey, out var row))
+                    {
+                        row.SourceType = doc.SourceType;
+                        row.TitleVi = doc.TitleVi;
+                        row.TitleEn = doc.TitleEn;
+                        row.SummaryVi = doc.SummaryVi;
+                        row.SummaryEn = doc.SummaryEn;
+                        row.UrlVi = doc.UrlVi;
+                        row.UrlEn = doc.UrlEn;
+                        row.ContentHash = contentHash;
+                        row.EmbeddingModel = embResult.ModelName;
+                        row.Dimensions = embResult.Vector.Length;
+                        row.VectorJson = vectorJson;
+                        row.UpdatedAtUtc = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        row = new KnowledgeEmbedding
+                        {
+                            DocumentKey = docKey,
+                            SourceType = doc.SourceType,
+                            TitleVi = doc.TitleVi,
+                            TitleEn = doc.TitleEn,
+                            SummaryVi = doc.SummaryVi,
+                            SummaryEn = doc.SummaryEn,
+                            UrlVi = doc.UrlVi,
+                            UrlEn = doc.UrlEn,
+                            ContentHash = contentHash,
+                            EmbeddingModel = embResult.ModelName,
+                            Dimensions = embResult.Vector.Length,
+                            VectorJson = vectorJson,
+                            UpdatedAtUtc = DateTime.UtcNow
+                        };
+                        db.KnowledgeEmbeddings.Add(row);
+                    }
+
+                    updated++;
+                }
+
+                await db.SaveChangesAsync(cancellationToken);
+
+                if (pgVectorActive)
+                {
+                    var rowsToVectorize = await db.KnowledgeEmbeddings
+                        .AsNoTracking()
+                        .Select(e => new { e.DocumentKey, e.VectorJson })
+                        .ToListAsync(cancellationToken);
+
+                    foreach (var r in rowsToVectorize)
+                    {
+                        var parsed = DeserializeVector(r.VectorJson);
+                        if (parsed != null)
+                        {
+                            string pgLit = GeminiNeuralEmbeddingService.ToPgVectorLiteral(parsed);
+                            await db.Database.ExecuteSqlInterpolatedAsync(
+                                $@"UPDATE ""KnowledgeEmbeddings"" SET ""EmbeddingVector"" = CAST({pgLit} AS vector) WHERE ""DocumentKey"" = {r.DocumentKey}",
+                                cancellationToken);
+                        }
+                    }
+                }
+            }
+        }
+        finally
+        {
+            scope?.Dispose();
+        }
+
+        // Refresh in-memory index after sync
+        _unifiedBuiltAtUtc = DateTime.MinValue;
+        await EnsureUnifiedIndexAsync(cancellationToken);
+
+        sw.Stop();
+        return new EmbeddingSyncResult
+        {
+            Success = true,
+            TotalDocuments = rawDocs.Count,
+            UpdatedEmbeddings = updated,
+            ReusedCachedEmbeddings = reused,
+            NeuralDimensions = _embeddingService.NeuralDimensions,
+            EmbeddingModel = modelName,
+            PgVectorActive = pgVectorActive,
+            ElapsedMs = sw.ElapsedMilliseconds
+        };
+    }
+
+    public async Task<EmbeddingStatusResponse> GetEmbeddingStatusAsync(CancellationToken cancellationToken = default)
+    {
+        int inMemoryCount = await GetIndexedKnowledgeCountAsync(cancellationToken);
+        int persistedCount = 0;
+        bool pgVectorActive = false;
+        DateTime? lastSynced = null;
+
+        AppDbContext? db = _directDbContext;
+        IServiceScope? scope = null;
+        if (db == null && _scopeFactory != null)
+        {
+            scope = _scopeFactory.CreateScope();
+            db = scope.ServiceProvider.GetService<AppDbContext>();
+        }
+
+        try
+        {
+            if (db != null)
+            {
+                persistedCount = await db.KnowledgeEmbeddings.CountAsync(cancellationToken);
+                if (persistedCount > 0)
+                {
+                    lastSynced = await db.KnowledgeEmbeddings.MaxAsync(e => (DateTime?)e.UpdatedAtUtc, cancellationToken);
+                }
+                if (IsNpgsqlDatabase(db))
+                {
+                    pgVectorActive = await CheckPgVectorAvailableAsync(db, cancellationToken);
+                }
+            }
+        }
+        catch
+        {
+            // Ignore when optional embedding table does not exist in lightweight unit test DB
+        }
+        finally
+        {
+            scope?.Dispose();
+        }
+
+        return new EmbeddingStatusResponse
+        {
+            PersistedEmbeddingsCount = persistedCount,
+            InMemoryDocumentsCount = inMemoryCount,
+            EmbeddingModel = _embeddingService.ActiveModelName,
+            NeuralDimensions = _embeddingService.NeuralDimensions,
+            PgVectorExtensionActive = pgVectorActive,
+            LastSyncedAtUtc = lastSynced
+        };
     }
 
     private async Task<VectorIndex> EnsureIndexAsync(CancellationToken cancellationToken)
@@ -256,112 +498,10 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
                 return _unifiedIndex;
             }
 
-            var rawDocs = new List<UnifiedKnowledgeRawDoc>();
+            var rawDocs = await CollectUnifiedRawDocsAsync(cancellationToken);
+            var persistedVectors = await LoadCachedVectorsFromDbAsync(cancellationToken);
+            var built = UnifiedVectorIndex.Build(rawDocs, persistedVectors);
 
-            // 1. Curriculum 101 lessons
-            var lessons = await _curriculumService.GetAllLessonsAsync();
-            foreach (var l in lessons)
-            {
-                rawDocs.Add(new UnifiedKnowledgeRawDoc(
-                    SourceType: "Curriculum",
-                    TitleVi: l.TitleVi,
-                    TitleEn: l.TitleEn,
-                    SummaryVi: l.SummaryVi,
-                    SummaryEn: l.SummaryEn,
-                    UrlVi: $"/chuong-trinh-csharp/{l.LessonNumber}",
-                    UrlEn: $"/csharp-curriculum/{l.LessonNumber}",
-                    SearchableText: string.Join(' ',
-                        l.TitleVi, l.TitleVi, l.TitleEn, l.TitleEn,
-                        string.Join(' ', l.KeyTags), string.Join(' ', l.KeyTags),
-                        l.SummaryVi, l.SummaryEn,
-                        string.Join(' ', l.LearningOutcomesVi), string.Join(' ', l.LearningOutcomesEn))
-                ));
-            }
-
-            // 2. Persistable DB Entities (Tutorials, CodingChallenges, InterviewFlashcards)
-            AppDbContext? db = _directDbContext;
-            IServiceScope? scope = null;
-            if (db == null && _scopeFactory != null)
-            {
-                scope = _scopeFactory.CreateScope();
-                db = scope.ServiceProvider.GetService<AppDbContext>();
-            }
-
-            try
-            {
-                if (db != null)
-                {
-                    var tutorials = await db.Tutorials
-                        .AsNoTracking()
-                        .OrderBy(t => t.OrderIndex)
-                        .Select(t => new { t.Title, t.Slug, t.Summary, t.ContentMarkdown })
-                        .ToListAsync(cancellationToken);
-
-                    foreach (var t in tutorials)
-                    {
-                        var bodyExcerpt = TruncateText(t.ContentMarkdown, 900);
-                        rawDocs.Add(new UnifiedKnowledgeRawDoc(
-                            SourceType: "Tutorial",
-                            TitleVi: t.Title,
-                            TitleEn: t.Title,
-                            SummaryVi: t.Summary,
-                            SummaryEn: t.Summary,
-                            UrlVi: $"/lessons/{t.Slug}",
-                            UrlEn: $"/lessons/{t.Slug}",
-                            SearchableText: $"{t.Title} {t.Title} {t.Summary} {bodyExcerpt}"
-                        ));
-                    }
-
-                    var challenges = await db.CodingChallenges
-                        .AsNoTracking()
-                        .Select(c => new { c.Title, c.Slug, c.ShortDescription, c.InstructionsMarkdown })
-                        .ToListAsync(cancellationToken);
-
-                    foreach (var c in challenges)
-                    {
-                        var excerpt = TruncateText(c.InstructionsMarkdown, 600);
-                        rawDocs.Add(new UnifiedKnowledgeRawDoc(
-                            SourceType: "Challenge",
-                            TitleVi: c.Title,
-                            TitleEn: c.Title,
-                            SummaryVi: c.ShortDescription,
-                            SummaryEn: c.ShortDescription,
-                            UrlVi: $"/Playground?slug={c.Slug}",
-                            UrlEn: $"/Playground?slug={c.Slug}",
-                            SearchableText: $"{c.Title} {c.Title} {c.ShortDescription} {excerpt}"
-                        ));
-                    }
-
-                    var flashcards = await db.InterviewFlashcards
-                        .AsNoTracking()
-                        .Select(f => new { f.Slug, f.Topic, f.QuestionVi, f.QuestionEn, f.QuickHintVi, f.QuickHintEn, f.AnswerMarkdownVi, f.AnswerMarkdownEn })
-                        .ToListAsync(cancellationToken);
-
-                    foreach (var f in flashcards)
-                    {
-                        rawDocs.Add(new UnifiedKnowledgeRawDoc(
-                            SourceType: "Flashcard",
-                            TitleVi: f.QuestionVi,
-                            TitleEn: f.QuestionEn,
-                            SummaryVi: f.QuickHintVi ?? TruncateText(f.AnswerMarkdownVi, 180),
-                            SummaryEn: f.QuickHintEn ?? TruncateText(f.AnswerMarkdownEn, 180),
-                            UrlVi: $"/Interview/QuestionDetail?slug={f.Slug}",
-                            UrlEn: $"/Interview/QuestionDetail?slug={f.Slug}",
-                            SearchableText: $"{f.Topic} {f.QuestionVi} {f.QuestionEn} {TruncateText(f.AnswerMarkdownVi, 450)} {TruncateText(f.AnswerMarkdownEn, 450)}"
-                        ));
-                    }
-                }
-            }
-            catch
-            {
-                // Keep curriculum index intact even if optional DB tables aren't initialized
-            }
-            finally
-            {
-                scope?.Dispose();
-            }
-
-            var built = UnifiedVectorIndex.Build(rawDocs);
             if (_directDbContext != null)
             {
                 _localUnifiedIndex = built;
@@ -376,6 +516,264 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
         finally
         {
             _unifiedBuildLock.Release();
+        }
+    }
+
+    private async Task<List<UnifiedKnowledgeRawDoc>> CollectUnifiedRawDocsAsync(CancellationToken cancellationToken)
+    {
+        var rawDocs = new List<UnifiedKnowledgeRawDoc>();
+
+        // 1. Curriculum 101 lessons
+        var lessons = await _curriculumService.GetAllLessonsAsync();
+        foreach (var l in lessons)
+        {
+            rawDocs.Add(new UnifiedKnowledgeRawDoc(
+                SourceType: "Curriculum",
+                TitleVi: l.TitleVi,
+                TitleEn: l.TitleEn,
+                SummaryVi: l.SummaryVi,
+                SummaryEn: l.SummaryEn,
+                UrlVi: $"/chuong-trinh-csharp/{l.LessonNumber}",
+                UrlEn: $"/csharp-curriculum/{l.LessonNumber}",
+                SearchableText: string.Join(' ',
+                    l.TitleVi, l.TitleVi, l.TitleEn, l.TitleEn,
+                    string.Join(' ', l.KeyTags), string.Join(' ', l.KeyTags),
+                    l.SummaryVi, l.SummaryEn,
+                    string.Join(' ', l.LearningOutcomesVi), string.Join(' ', l.LearningOutcomesEn))
+            ));
+        }
+
+        // 2. Persistable DB Entities (Tutorials, CodingChallenges, InterviewFlashcards)
+        AppDbContext? db = _directDbContext;
+        IServiceScope? scope = null;
+        if (db == null && _scopeFactory != null)
+        {
+            scope = _scopeFactory.CreateScope();
+            db = scope.ServiceProvider.GetService<AppDbContext>();
+        }
+
+        try
+        {
+            if (db != null)
+            {
+                var tutorials = await db.Tutorials
+                    .AsNoTracking()
+                    .OrderBy(t => t.OrderIndex)
+                    .Select(t => new { t.Title, t.Slug, t.Summary, t.ContentMarkdown })
+                    .ToListAsync(cancellationToken);
+
+                foreach (var t in tutorials)
+                {
+                    var bodyExcerpt = TruncateText(t.ContentMarkdown, 900);
+                    rawDocs.Add(new UnifiedKnowledgeRawDoc(
+                        SourceType: "Tutorial",
+                        TitleVi: t.Title,
+                        TitleEn: t.Title,
+                        SummaryVi: t.Summary,
+                        SummaryEn: t.Summary,
+                        UrlVi: $"/lessons/{t.Slug}",
+                        UrlEn: $"/lessons/{t.Slug}",
+                        SearchableText: $"{t.Title} {t.Title} {t.Summary} {bodyExcerpt}"
+                    ));
+                }
+
+                var challenges = await db.CodingChallenges
+                    .AsNoTracking()
+                    .Select(c => new { c.Title, c.Slug, c.ShortDescription, c.InstructionsMarkdown })
+                    .ToListAsync(cancellationToken);
+
+                foreach (var c in challenges)
+                {
+                    var excerpt = TruncateText(c.InstructionsMarkdown, 600);
+                    rawDocs.Add(new UnifiedKnowledgeRawDoc(
+                        SourceType: "Challenge",
+                        TitleVi: c.Title,
+                        TitleEn: c.Title,
+                        SummaryVi: c.ShortDescription,
+                        SummaryEn: c.ShortDescription,
+                        UrlVi: $"/Playground?slug={c.Slug}",
+                        UrlEn: $"/Playground?slug={c.Slug}",
+                        SearchableText: $"{c.Title} {c.Title} {c.ShortDescription} {excerpt}"
+                    ));
+                }
+
+                var flashcards = await db.InterviewFlashcards
+                    .AsNoTracking()
+                    .Select(f => new { f.Slug, f.Topic, f.QuestionVi, f.QuestionEn, f.QuickHintVi, f.QuickHintEn, f.AnswerMarkdownVi, f.AnswerMarkdownEn })
+                    .ToListAsync(cancellationToken);
+
+                foreach (var f in flashcards)
+                {
+                    rawDocs.Add(new UnifiedKnowledgeRawDoc(
+                        SourceType: "Flashcard",
+                        TitleVi: f.QuestionVi,
+                        TitleEn: f.QuestionEn,
+                        SummaryVi: f.QuickHintVi ?? TruncateText(f.AnswerMarkdownVi, 180),
+                        SummaryEn: f.QuickHintEn ?? TruncateText(f.AnswerMarkdownEn, 180),
+                        UrlVi: $"/Interview/QuestionDetail?slug={f.Slug}",
+                        UrlEn: $"/Interview/QuestionDetail?slug={f.Slug}",
+                        SearchableText: $"{f.Topic} {f.QuestionVi} {f.QuestionEn} {TruncateText(f.AnswerMarkdownVi, 450)} {TruncateText(f.AnswerMarkdownEn, 450)}"
+                    ));
+                }
+            }
+        }
+        catch
+        {
+            // Keep curriculum index intact even if optional DB tables aren't initialized
+        }
+        finally
+        {
+            scope?.Dispose();
+        }
+
+        return rawDocs;
+    }
+
+    private async Task<Dictionary<string, float[]>> LoadCachedVectorsFromDbAsync(CancellationToken cancellationToken)
+    {
+        var map = new Dictionary<string, float[]>(StringComparer.OrdinalIgnoreCase);
+
+        AppDbContext? db = _directDbContext;
+        IServiceScope? scope = null;
+        if (db == null && _scopeFactory != null)
+        {
+            scope = _scopeFactory.CreateScope();
+            db = scope.ServiceProvider.GetService<AppDbContext>();
+        }
+
+        try
+        {
+            if (db != null)
+            {
+                var rows = await db.KnowledgeEmbeddings
+                    .AsNoTracking()
+                    .Select(e => new { e.DocumentKey, e.VectorJson })
+                    .ToListAsync(cancellationToken);
+
+                foreach (var r in rows)
+                {
+                    var vec = DeserializeVector(r.VectorJson);
+                    if (vec != null) map[r.DocumentKey] = vec;
+                }
+            }
+        }
+        catch
+        {
+            // Optional table during early startup or bare unit tests
+        }
+        finally
+        {
+            scope?.Dispose();
+        }
+
+        return map;
+    }
+
+    private async Task<Dictionary<string, double>> TryQueryPgVectorSimilaritiesAsync(float[] queryVector, int limit, CancellationToken cancellationToken)
+    {
+        var map = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+        if (_scopeFactory == null && _directDbContext == null) return map;
+
+        AppDbContext? db = _directDbContext;
+        IServiceScope? scope = null;
+        if (db == null && _scopeFactory != null)
+        {
+            scope = _scopeFactory.CreateScope();
+            db = scope.ServiceProvider.GetService<AppDbContext>();
+        }
+
+        try
+        {
+            if (db == null || !IsNpgsqlDatabase(db)) return map;
+
+            var conn = db.Database.GetDbConnection();
+            if (conn.State != ConnectionState.Open)
+            {
+                await conn.OpenAsync(cancellationToken);
+            }
+
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT ""DocumentKey"", 1.0 - (""EmbeddingVector"" <=> CAST(@qvec AS vector)) AS similarity
+                FROM ""KnowledgeEmbeddings""
+                WHERE ""EmbeddingVector"" IS NOT NULL
+                ORDER BY ""EmbeddingVector"" <=> CAST(@qvec AS vector)
+                LIMIT @lim;";
+
+            var pVec = cmd.CreateParameter();
+            pVec.ParameterName = "@qvec";
+            pVec.Value = GeminiNeuralEmbeddingService.ToPgVectorLiteral(queryVector);
+            cmd.Parameters.Add(pVec);
+
+            var pLim = cmd.CreateParameter();
+            pLim.ParameterName = "@lim";
+            pLim.Value = limit;
+            cmd.Parameters.Add(pLim);
+
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                string key = reader.GetString(0);
+                double sim = reader.IsDBNull(1) ? 0 : reader.GetDouble(1);
+                map[key] = sim;
+            }
+        }
+        catch
+        {
+            // Fall back smoothly when pgvector extension isn't active or SQLite is running
+        }
+        finally
+        {
+            scope?.Dispose();
+        }
+
+        return map;
+    }
+
+    private static bool IsNpgsqlDatabase(AppDbContext db)
+    {
+        string? provider = db.Database.ProviderName;
+        return !string.IsNullOrEmpty(provider) && provider.Contains("Npgsql", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static async Task<bool> CheckPgVectorAvailableAsync(AppDbContext db, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var conn = db.Database.GetDbConnection();
+            if (conn.State != ConnectionState.Open)
+            {
+                await conn.OpenAsync(cancellationToken);
+            }
+
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM pg_extension WHERE extname = 'vector';";
+            var val = await cmd.ExecuteScalarAsync(cancellationToken);
+            return Convert.ToInt32(val, CultureInfo.InvariantCulture) > 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static string BuildDocumentKey(UnifiedKnowledgeRawDoc doc)
+    {
+        string rawKey = $"{doc.SourceType}:{doc.UrlVi}";
+        return rawKey.Length <= 160 ? rawKey : rawKey[..160];
+    }
+
+    private static float[]? DeserializeVector(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return null;
+        try
+        {
+            var arr = JsonSerializer.Deserialize<float[]>(json);
+            return arr != null && arr.Length > 0 ? arr : null;
+        }
+        catch
+        {
+            return null;
         }
     }
 
@@ -411,7 +809,6 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
             if (token.Length < 2 || StopWords.Contains(token)) continue;
             features.Add("w:" + token);
 
-            // Character tri-grams provide fuzzy matching for typos and inflections
             if (token.Length >= 4)
             {
                 string padded = $"^{token}$";
@@ -422,7 +819,6 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
             }
         }
 
-        // Word bi-grams capture short phrases such as "dependency injection" or "async await"
         for (int i = 0; i + 1 < tokens.Count; i++)
         {
             features.Add($"b:{tokens[i]}_{tokens[i + 1]}");
@@ -447,7 +843,6 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
 
     internal static int HashFeature(string feature)
     {
-        // FNV-1a 32-bit hash for stable, process-independent feature hashing
         unchecked
         {
             uint hash = 2166136261;
@@ -469,7 +864,7 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
         {
             if (large.TryGetValue(key, out var other)) dot += value * other;
         }
-        return dot; // Vectors are L2-normalized at build time
+        return dot;
     }
 
     private static readonly HashSet<string> StopWords = new(StringComparer.Ordinal)
@@ -573,6 +968,7 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
         string SearchableText);
 
     private sealed record IndexedKnowledgeDoc(
+        string DocumentKey,
         string SourceType,
         string TitleVi,
         string TitleEn,
@@ -580,7 +976,8 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
         string SummaryEn,
         string UrlVi,
         string UrlEn,
-        Dictionary<int, double> Vector);
+        Dictionary<int, double> Vector,
+        float[] NeuralVector);
 
     private sealed class UnifiedVectorIndex
     {
@@ -590,7 +987,9 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
 
         private UnifiedVectorIndex(double[] idf) => Idf = idf;
 
-        public static UnifiedVectorIndex Build(IReadOnlyList<UnifiedKnowledgeRawDoc> docs)
+        public static UnifiedVectorIndex Build(
+            IReadOnlyList<UnifiedKnowledgeRawDoc> docs,
+            Dictionary<string, float[]> persistedVectors)
         {
             var tokenized = docs.Select(d => (doc: d, features: Tokenize(d.SearchableText))).ToList();
             var idf = VectorMath.ComputeIdf(tokenized.Select(t => t.features), tokenized.Count);
@@ -598,9 +997,22 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
 
             foreach (var (doc, features) in tokenized)
             {
+                string docKey = BuildDocumentKey(doc);
+                float[] neuralVec = persistedVectors.TryGetValue(docKey, out var cached)
+                    ? cached
+                    : GeminiNeuralEmbeddingService.ComputeMultilingualDenseProjection(doc.SearchableText);
+
                 index.Documents.Add(new IndexedKnowledgeDoc(
-                    doc.SourceType, doc.TitleVi, doc.TitleEn, doc.SummaryVi, doc.SummaryEn,
-                    doc.UrlVi, doc.UrlEn, VectorMath.Vectorize(features, idf)));
+                    docKey,
+                    doc.SourceType,
+                    doc.TitleVi,
+                    doc.TitleEn,
+                    doc.SummaryVi,
+                    doc.SummaryEn,
+                    doc.UrlVi,
+                    doc.UrlEn,
+                    VectorMath.Vectorize(features, idf),
+                    neuralVec));
                 index.SourceCounts[doc.SourceType] = index.SourceCounts.GetValueOrDefault(doc.SourceType) + 1;
             }
             return index;

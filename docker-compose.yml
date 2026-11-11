@@ -1,7 +1,7 @@
 services:
-  # PostgreSQL 17 Database Service
+  # PostgreSQL 17 Database Service with pgvector Extension
   postgres:
-    image: postgres:17-alpine
+    image: pgvector/pgvector:pg17
     container_name: nettutos-postgres
     restart: unless-stopped
     environment:

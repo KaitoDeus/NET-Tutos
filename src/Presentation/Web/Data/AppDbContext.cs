@@ -39,6 +39,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ArenaRoom> ArenaRooms => Set<ArenaRoom>();
     public DbSet<ArenaPlayerRating> ArenaPlayerRatings => Set<ArenaPlayerRating>();
     public DbSet<ArenaMatchRecord> ArenaMatchRecords => Set<ArenaMatchRecord>();
+    public DbSet<KnowledgeEmbedding> KnowledgeEmbeddings => Set<KnowledgeEmbedding>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -454,6 +455,17 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                   .WithMany(r => r.Matches)
                   .HasForeignKey(m => m.ArenaRoomId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Multi-Source RAG Neural Embeddings (PostgreSQL pgvector + JSON fallback)
+        modelBuilder.Entity<KnowledgeEmbedding>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.DocumentKey).IsUnique();
+            entity.HasIndex(e => e.SourceType);
+            entity.Property(e => e.DocumentKey).IsRequired().HasMaxLength(160);
+            entity.Property(e => e.SourceType).IsRequired().HasMaxLength(40);
+            entity.Property(e => e.EmbeddingModel).IsRequired().HasMaxLength(80);
         });
     }
 }

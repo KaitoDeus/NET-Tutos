@@ -426,4 +426,28 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
         var resetJson = await resetResp.Content.ReadAsStringAsync();
         resetJson.Should().Contain("\"status\":\"Open\"");
     }
+
+    [Fact]
+    public async Task Phase21_NeuralEmbeddingsAndPgVectorHybridSearch_SyncsAndQueriesKnowledgeBase()
+    {
+        // Act
+        var syncResp = await _client.PostAsync("/api/search/embeddings/sync", content: null);
+        var statusResp = await _client.GetAsync("/api/search/embeddings/status");
+        var knowledgeResp = await _client.GetAsync("/api/search/knowledge?q=bat+dong+bo+async+await&top=5");
+
+        // Assert
+        syncResp.EnsureSuccessStatusCode();
+        var syncJson = await syncResp.Content.ReadAsStringAsync();
+        syncJson.Should().Contain("\"success\":true");
+        syncJson.Should().Contain("\"neuralDimensions\":768");
+
+        statusResp.EnsureSuccessStatusCode();
+        var statusJson = await statusResp.Content.ReadAsStringAsync();
+        statusJson.Should().Contain("\"persistedEmbeddingsCount\":");
+
+        knowledgeResp.EnsureSuccessStatusCode();
+        var searchJson = await knowledgeResp.Content.ReadAsStringAsync();
+        searchJson.Should().Contain("\"searchMode\":\"dense-neural-hybrid\"");
+        searchJson.Should().Contain("\"neuralDimensions\":768");
+    }
 }

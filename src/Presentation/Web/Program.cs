@@ -211,6 +211,7 @@ builder.Services.AddScoped<IActivityFeedService, ActivityFeedService>();
 builder.Services.AddScoped<ICapstoneProjectService, CapstoneProjectService>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddScoped<ICurriculumService, CurriculumService>();
+builder.Services.AddSingleton<INeuralEmbeddingService, GeminiNeuralEmbeddingService>();
 builder.Services.AddScoped<ISemanticCurriculumSearchService, SemanticCurriculumSearchService>();
 builder.Services.AddScoped<IStudyPlannerService, StudyPlannerService>();
 builder.Services.AddScoped<AiTutorService>();
@@ -599,6 +600,19 @@ app.MapGet("/api/search/knowledge", async (string? q, int? top, HttpContext http
 {
     var result = await search.SearchKnowledgeBaseAsync(q ?? string.Empty, http.IsEnglish(), top ?? 6, ct);
     return Results.Ok(result);
+});
+
+// Phase 21: Neural Embedding Sync & pgvector Status Endpoints
+app.MapGet("/api/search/embeddings/status", async (ISemanticCurriculumSearchService search, CancellationToken ct) =>
+{
+    var status = await search.GetEmbeddingStatusAsync(ct);
+    return Results.Ok(status);
+});
+
+app.MapPost("/api/search/embeddings/sync", async (bool? force, ISemanticCurriculumSearchService search, CancellationToken ct) =>
+{
+    var sync = await search.SyncKnowledgeEmbeddingsAsync(force ?? false, ct);
+    return Results.Ok(sync);
 });
 
 // Personalized Adaptive Learning Recommendations powered by Kafka Telemetry + Semantic RAG

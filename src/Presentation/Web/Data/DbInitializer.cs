@@ -44,6 +44,9 @@ public static class DbInitializer
         // Ensure newly added Coding Arena persistence tables exist
         await EnsureCodingArenaTablesExistAsync(context);
 
+        // Ensure newly added Multi-Source RAG Neural Embeddings table (+ pgvector extension when Postgres) exist
+        await EnsureKnowledgeEmbeddingsTableExistAsync(context);
+
         // Seed Roles
         string[] roles = { "Admin", "Student" };
         foreach (var role in roles)
@@ -2776,6 +2779,73 @@ Xây dựng một sàn đấu giá trực tuyến hoạt động thời gian th�
                 CREATE INDEX IF NOT EXISTS ""IX_ArenaMatchRecords_RoomCode"" ON ""ArenaMatchRecords"" (""RoomCode"");
                 CREATE INDEX IF NOT EXISTS ""IX_ArenaMatchRecords_SubmittedAtUtc"" ON ""ArenaMatchRecords"" (""SubmittedAtUtc"");
             ");
+        }
+    }
+
+    private static async Task EnsureKnowledgeEmbeddingsTableExistAsync(AppDbContext context)
+    {
+        var isSqlite = context.Database.IsSqlite();
+        var isSqlServer = context.Database.IsSqlServer();
+
+        if (isSqlite)
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS [KnowledgeEmbeddings] (
+                    [Id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    [DocumentKey] TEXT NOT NULL UNIQUE,
+                    [SourceType] TEXT NOT NULL,
+                    [TitleVi] TEXT NOT NULL,
+                    [TitleEn] TEXT NOT NULL,
+                    [SummaryVi] TEXT NOT NULL,
+                    [SummaryEn] TEXT NOT NULL,
+                    [UrlVi] TEXT NOT NULL,
+                    [UrlEn] TEXT NOT NULL,
+                    [ContentHash] TEXT NOT NULL,
+                    [EmbeddingModel] TEXT NOT NULL,
+                    [Dimensions] INTEGER NOT NULL DEFAULT 768,
+                    [VectorJson] TEXT NOT NULL,
+                    [UpdatedAtUtc] TEXT NOT NULL
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS [IX_KnowledgeEmbeddings_DocumentKey] ON [KnowledgeEmbeddings] ([DocumentKey]);
+                CREATE INDEX IF NOT EXISTS [IX_KnowledgeEmbeddings_SourceType] ON [KnowledgeEmbeddings] ([SourceType]);
+            ");
+        }
+        else if (!isSqlServer)
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS ""KnowledgeEmbeddings"" (
+                    ""Id"" serial NOT NULL PRIMARY KEY,
+                    ""DocumentKey"" varchar(160) NOT NULL UNIQUE,
+                    ""SourceType"" varchar(40) NOT NULL,
+                    ""TitleVi"" text NOT NULL,
+                    ""TitleEn"" text NOT NULL,
+                    ""SummaryVi"" text NOT NULL,
+                    ""SummaryEn"" text NOT NULL,
+                    ""UrlVi"" text NOT NULL,
+                    ""UrlEn"" text NOT NULL,
+                    ""ContentHash"" varchar(64) NOT NULL,
+                    ""EmbeddingModel"" varchar(80) NOT NULL,
+                    ""Dimensions"" integer NOT NULL DEFAULT 768,
+                    ""VectorJson"" text NOT NULL,
+                    ""UpdatedAtUtc"" timestamp with time zone NOT NULL
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS ""IX_KnowledgeEmbeddings_DocumentKey"" ON ""KnowledgeEmbeddings"" (""DocumentKey"");
+                CREATE INDEX IF NOT EXISTS ""IX_KnowledgeEmbeddings_SourceType"" ON ""KnowledgeEmbeddings"" (""SourceType"");
+            ");
+
+            // Enable pgvector extension & HNSW cosine vector(768) column when pgvector image is running
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync(@"
+                    CREATE EXTENSION IF NOT EXISTS vector;
+                    ALTER TABLE ""KnowledgeEmbeddings"" ADD COLUMN IF NOT EXISTS ""EmbeddingVector"" vector(768);
+                    CREATE INDEX IF NOT EXISTS ""IX_KnowledgeEmbeddings_EmbeddingVector"" ON ""KnowledgeEmbeddings"" USING hnsw (""EmbeddingVector"" vector_cosine_ops);
+                ");
+            }
+            catch
+            {
+                // Standard PostgreSQL without pgvector extension falls back cleanly to VectorJson similarity
+            }
         }
     }
 }
