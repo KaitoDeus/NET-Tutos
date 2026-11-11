@@ -15,20 +15,24 @@ public interface INeuralEmbeddingService
     int NeuralDimensions { get; }
     string ActiveModelName { get; }
     Task<NeuralEmbeddingResult> EmbedAsync(string text, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<NeuralEmbeddingResult>> EmbedBatchAsync(IReadOnlyList<string> texts, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
 /// Produces L2-normalized 768-dimensional dense neural embeddings using Google Gemini
-/// text-embedding-004 when configured, with deterministic multilingual EN/VI semantic
-/// projection fallback when offline or in self-contained CI environments.
+/// batch/single embedding APIs when configured and reachable, with automatic cooldown circuit breaker
+/// and deterministic multilingual EN/VI semantic projection fallback when offline or in CI.
 /// </summary>
 public sealed class GeminiNeuralEmbeddingService : INeuralEmbeddingService
 {
     public const int DefaultDimensions = 768;
+    public const string FallbackModelName = "nettutos-neural-hash-768";
 
     private readonly IConfiguration? _configuration;
     private readonly IHttpClientFactory? _httpClientFactory;
     private readonly ILogger<GeminiNeuralEmbeddingService>? _logger;
+    private DateTime _geminiCooldownUntilUtc = DateTime.MinValue;
+    private string? _resolvedLiveModel;
 
     private static readonly string[][] MultilingualConceptClusters =
     [
@@ -39,7 +43,7 @@ public sealed class GeminiNeuralEmbeddingService : INeuralEmbeddingService
         ["delegate", "action", "func", "predicate", "event", "lambda", "closure", "anonymous", "uy", "quyen", "su", "kien"],
         ["gc", "garbage", "collector", "heap", "stack", "boxing", "unboxing", "span", "memory", "valuetype", "referencetype", "bo", "nho", "cap", "phat"],
         ["microservice", "microservices", "yarp", "gateway", "masstransit", "rabbitmq", "kafka", "grpc", "outbox", "dlq", "polly", "resilience", "phan", "tan", "vi", "dich", "vu"],
-        ["redis", "cache", "caching", "hybrid", "distributed", "stampede", "bo", "nho", "dem", "bo", "dem"],
+        ["redis", "cache", "caching", "hybrid", "distributed", "stampede", "bo", "nho", "dem"],
         ["jwt", "oauth", "auth", "authentication", "authorization", "rbac", "csrf", "antiforgery", "security", "bao", "mat", "xac", "thuc"],
         ["aspnet", "mvc", "minimal", "api", "middleware", "kestrel", "routing", "controller", "razor", "signalr", "web"],
         ["oop", "inheritance", "polymorphism", "encapsulation", "abstraction", "interface", "record", "abstract", "ke", "thua", "da", "hinh", "dong", "goi", "truu", "tuong"],
@@ -67,13 +71,16 @@ public sealed class GeminiNeuralEmbeddingService : INeuralEmbeddingService
     private bool IsLiveGeminiEnabled =>
         (_configuration?.GetValue<bool>("Gemini:Enabled", true) ?? false)
         && !string.IsNullOrWhiteSpace(ApiKey)
-        && _httpClientFactory != null;
+        && _httpClientFactory != null
+        && DateTime.UtcNow >= _geminiCooldownUntilUtc;
 
-    private string GeminiEmbeddingModel =>
-        _configuration?["Gemini:EmbeddingModel"] ?? "text-embedding-004";
+    private string ConfiguredEmbeddingModel =>
+        _configuration?["Gemini:EmbeddingModel"] ?? "gemini-embedding-001";
 
     public string ActiveModelName =>
-        IsLiveGeminiEnabled ? $"gemini:{GeminiEmbeddingModel}" : "nettutos-neural-hash-768";
+        IsLiveGeminiEnabled
+            ? $"gemini:{_resolvedLiveModel ?? ConfiguredEmbeddingModel}"
+            : FallbackModelName;
 
     public async Task<NeuralEmbeddingResult> EmbedAsync(string text, CancellationToken cancellationToken = default)
     {
@@ -84,52 +91,194 @@ public sealed class GeminiNeuralEmbeddingService : INeuralEmbeddingService
 
         if (IsLiveGeminiEnabled)
         {
-            try
+            var candidates = GetCandidateModels();
+            foreach (var model in candidates)
             {
-                var client = _httpClientFactory!.CreateClient("Gemini");
-                var model = GeminiEmbeddingModel;
-                var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:embedContent?key={Uri.EscapeDataString(ApiKey!)}";
-                var payload = new
+                try
                 {
-                    model = $"models/{model}",
-                    content = new
-                    {
-                        parts = new[] { new { text = text.Length > 4000 ? text[..4000] : text } }
-                    },
-                    outputDimensionality = DefaultDimensions
-                };
+                    using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    cts.CancelAfter(TimeSpan.FromSeconds(6));
 
-                using var response = await client.PostAsJsonAsync(url, payload, cancellationToken);
-                if (response.IsSuccessStatusCode)
-                {
-                    using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
-                    if (doc.RootElement.TryGetProperty("embedding", out var emb)
-                        && emb.TryGetProperty("values", out var values)
-                        && values.ValueKind == JsonValueKind.Array)
+                    var client = _httpClientFactory!.CreateClient("Gemini");
+                    var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:embedContent?key={Uri.EscapeDataString(ApiKey!)}";
+                    var payload = new
                     {
-                        var vec = new float[DefaultDimensions];
-                        int idx = 0;
-                        foreach (var v in values.EnumerateArray())
+                        model = $"models/{model}",
+                        content = new { parts = new[] { new { text = text.Length > 4000 ? text[..4000] : text } } },
+                        outputDimensionality = DefaultDimensions
+                    };
+
+                    using var response = await client.PostAsJsonAsync(url, payload, cts.Token);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(cts.Token), cancellationToken: cts.Token);
+                        if (TryParseVector(doc.RootElement, out var vec))
                         {
-                            if (idx >= DefaultDimensions) break;
-                            vec[idx++] = v.GetSingle();
-                        }
-                        if (idx > 0)
-                        {
-                            NormalizeInPlace(vec);
+                            _resolvedLiveModel = model;
                             return new NeuralEmbeddingResult(vec, $"gemini:{model}", true);
                         }
                     }
+                    else
+                    {
+                        _logger?.LogDebug("Gemini embedding model {Model} returned HTTP {Code}", model, (int)response.StatusCode);
+                    }
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+                {
+                    _logger?.LogDebug("Gemini embedding call for {Model} failed: {Msg}", model, ex.Message);
                 }
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                _logger?.LogDebug("Gemini embedding unavailable ({Msg}); using multilingual dense neural fallback.", ex.Message);
-            }
+
+            // Trip short cooldown so offline/rate-limited environments skip per-item retries immediately
+            _geminiCooldownUntilUtc = DateTime.UtcNow.AddMinutes(3);
         }
 
-        var localVec = ComputeMultilingualDenseProjection(text);
-        return new NeuralEmbeddingResult(localVec, "nettutos-neural-hash-768", false);
+        return new NeuralEmbeddingResult(ComputeMultilingualDenseProjection(text), FallbackModelName, false);
+    }
+
+    public async Task<IReadOnlyList<NeuralEmbeddingResult>> EmbedBatchAsync(IReadOnlyList<string> texts, CancellationToken cancellationToken = default)
+    {
+        if (texts.Count == 0) return Array.Empty<NeuralEmbeddingResult>();
+
+        var results = new NeuralEmbeddingResult[texts.Count];
+
+        if (IsLiveGeminiEnabled)
+        {
+            var candidates = GetCandidateModels();
+            foreach (var model in candidates)
+            {
+                try
+                {
+                    const int batchSize = 80;
+                    bool allBatchesSucceeded = true;
+
+                    for (int offset = 0; offset < texts.Count; offset += batchSize)
+                    {
+                        int count = Math.Min(batchSize, texts.Count - offset);
+                        var chunk = texts.Skip(offset).Take(count).ToList();
+
+                        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                        cts.CancelAfter(TimeSpan.FromSeconds(12));
+
+                        var client = _httpClientFactory!.CreateClient("Gemini");
+                        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:batchEmbedContents?key={Uri.EscapeDataString(ApiKey!)}";
+                        var payload = new
+                        {
+                            requests = chunk.Select(t => new
+                            {
+                                model = $"models/{model}",
+                                content = new { parts = new[] { new { text = string.IsNullOrWhiteSpace(t) ? " " : (t.Length > 4000 ? t[..4000] : t) } } },
+                                outputDimensionality = DefaultDimensions
+                            }).ToArray()
+                        };
+
+                        using var response = await client.PostAsJsonAsync(url, payload, cts.Token);
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            _logger?.LogDebug("Gemini batchEmbedContents for {Model} returned HTTP {Code}", model, (int)response.StatusCode);
+                            allBatchesSucceeded = false;
+                            break;
+                        }
+
+                        using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(cts.Token), cancellationToken: cts.Token);
+                        if (!doc.RootElement.TryGetProperty("embeddings", out var embs) || embs.ValueKind != JsonValueKind.Array)
+                        {
+                            allBatchesSucceeded = false;
+                            break;
+                        }
+
+                        int i = 0;
+                        foreach (var item in embs.EnumerateArray())
+                        {
+                            if (i >= count) break;
+                            if (TryParseVectorFromValuesContainer(item, out var vec))
+                            {
+                                results[offset + i] = new NeuralEmbeddingResult(vec, $"gemini:{model}", true);
+                            }
+                            else
+                            {
+                                allBatchesSucceeded = false;
+                                break;
+                            }
+                            i++;
+                        }
+
+                        if (!allBatchesSucceeded || i != count)
+                        {
+                            allBatchesSucceeded = false;
+                            break;
+                        }
+                    }
+
+                    if (allBatchesSucceeded)
+                    {
+                        _resolvedLiveModel = model;
+                        return results;
+                    }
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+                {
+                    _logger?.LogDebug("Gemini batch embedding failed for {Model}: {Msg}", model, ex.Message);
+                }
+            }
+
+            _geminiCooldownUntilUtc = DateTime.UtcNow.AddMinutes(3);
+        }
+
+        for (int i = 0; i < texts.Count; i++)
+        {
+            results[i] = new NeuralEmbeddingResult(ComputeMultilingualDenseProjection(texts[i]), FallbackModelName, false);
+        }
+        return results;
+    }
+
+    private IEnumerable<string> GetCandidateModels()
+    {
+        if (!string.IsNullOrEmpty(_resolvedLiveModel))
+        {
+            yield return _resolvedLiveModel;
+            yield break;
+        }
+
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var m in new[] { ConfiguredEmbeddingModel, "gemini-embedding-001", "text-embedding-004" })
+        {
+            if (!string.IsNullOrWhiteSpace(m) && seen.Add(m.Trim()))
+            {
+                yield return m.Trim();
+            }
+        }
+    }
+
+    private static bool TryParseVector(JsonElement root, out float[] vec)
+    {
+        if (root.TryGetProperty("embedding", out var emb))
+        {
+            return TryParseVectorFromValuesContainer(emb, out vec);
+        }
+        vec = Array.Empty<float>();
+        return false;
+    }
+
+    private static bool TryParseVectorFromValuesContainer(JsonElement container, out float[] vec)
+    {
+        if (container.TryGetProperty("values", out var values) && values.ValueKind == JsonValueKind.Array)
+        {
+            vec = new float[DefaultDimensions];
+            int idx = 0;
+            foreach (var v in values.EnumerateArray())
+            {
+                if (idx >= DefaultDimensions) break;
+                vec[idx++] = v.GetSingle();
+            }
+            if (idx > 0)
+            {
+                NormalizeInPlace(vec);
+                return true;
+            }
+        }
+        vec = Array.Empty<float>();
+        return false;
     }
 
     public static float[] ComputeMultilingualDenseProjection(string text)
@@ -140,7 +289,6 @@ public sealed class GeminiNeuralEmbeddingService : INeuralEmbeddingService
         string normalized = FoldDiacritics(text.ToLowerInvariant());
         var words = ExtractTokens(normalized);
 
-        // 1. Reserve dims [0..127] for EN<->VI domain concept bridge features (cross-lingual recall)
         foreach (var token in words)
         {
             for (int c = 0; c < MultilingualConceptClusters.Length; c++)
@@ -157,7 +305,6 @@ public sealed class GeminiNeuralEmbeddingService : INeuralEmbeddingService
             }
         }
 
-        // 2. Project tokens, bi-grams, and tri-grams into dense signed subspace [128..767]
         const int projStart = 128;
         const int projSpan = DefaultDimensions - projStart;
 

@@ -204,10 +204,11 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
 
         var queryLexical = VectorMath.Vectorize(Tokenize(query), unified.Idf);
         var queryNeural = await _embeddingService.EmbedAsync(query, cancellationToken);
+        response.EmbeddingModel = queryNeural.ModelName;
         int k = Math.Clamp(topK, 1, 20);
 
-        // Try native PostgreSQL pgvector cosine <=> search when running on pgvector-enabled Postgres
-        var pgVectorScores = await TryQueryPgVectorSimilaritiesAsync(queryNeural.Vector, Math.Max(k * 4, 24), cancellationToken);
+        // Try native PostgreSQL pgvector cosine <=> search matching the active query embedding space
+        var pgVectorScores = await TryQueryPgVectorSimilaritiesAsync(queryNeural.Vector, queryNeural.ModelName, Math.Max(k * 4, 24), cancellationToken);
         if (pgVectorScores.Count > 0)
         {
             response.PgVectorEnabled = true;
@@ -276,7 +277,7 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var rawDocs = await CollectUnifiedRawDocsAsync(cancellationToken);
-        var modelName = _embeddingService.ActiveModelName;
+        var activeModelName = _embeddingService.ActiveModelName;
 
         int updated = 0;
         int reused = 0;
@@ -303,79 +304,93 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
                     pgVectorActive = await CheckPgVectorAvailableAsync(db, cancellationToken);
                 }
 
+                var seenKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var docsToEmbed = new List<(UnifiedKnowledgeRawDoc Doc, string Key, string Hash)>();
                 foreach (var doc in rawDocs)
                 {
                     string docKey = BuildDocumentKey(doc);
+                    if (!seenKeys.Add(docKey))
+                    {
+                        continue;
+                    }
+
                     string contentHash = GeminiNeuralEmbeddingService.ComputeSha256($"{doc.TitleVi}|{doc.TitleEn}|{doc.SearchableText}");
 
                     if (!forceRebuild
                         && existingByKey.TryGetValue(docKey, out var existing)
                         && string.Equals(existing.ContentHash, contentHash, StringComparison.Ordinal)
-                        && string.Equals(existing.EmbeddingModel, modelName, StringComparison.OrdinalIgnoreCase))
+                        && string.Equals(existing.EmbeddingModel, activeModelName, StringComparison.OrdinalIgnoreCase))
                     {
                         reused++;
                         continue;
                     }
 
-                    var embResult = await _embeddingService.EmbedAsync(doc.SearchableText, cancellationToken);
-                    string vectorJson = JsonSerializer.Serialize(embResult.Vector);
-
-                    if (existingByKey.TryGetValue(docKey, out var row))
-                    {
-                        row.SourceType = doc.SourceType;
-                        row.TitleVi = doc.TitleVi;
-                        row.TitleEn = doc.TitleEn;
-                        row.SummaryVi = doc.SummaryVi;
-                        row.SummaryEn = doc.SummaryEn;
-                        row.UrlVi = doc.UrlVi;
-                        row.UrlEn = doc.UrlEn;
-                        row.ContentHash = contentHash;
-                        row.EmbeddingModel = embResult.ModelName;
-                        row.Dimensions = embResult.Vector.Length;
-                        row.VectorJson = vectorJson;
-                        row.UpdatedAtUtc = DateTime.UtcNow;
-                    }
-                    else
-                    {
-                        row = new KnowledgeEmbedding
-                        {
-                            DocumentKey = docKey,
-                            SourceType = doc.SourceType,
-                            TitleVi = doc.TitleVi,
-                            TitleEn = doc.TitleEn,
-                            SummaryVi = doc.SummaryVi,
-                            SummaryEn = doc.SummaryEn,
-                            UrlVi = doc.UrlVi,
-                            UrlEn = doc.UrlEn,
-                            ContentHash = contentHash,
-                            EmbeddingModel = embResult.ModelName,
-                            Dimensions = embResult.Vector.Length,
-                            VectorJson = vectorJson,
-                            UpdatedAtUtc = DateTime.UtcNow
-                        };
-                        db.KnowledgeEmbeddings.Add(row);
-                    }
-
-                    updated++;
+                    docsToEmbed.Add((doc, docKey, contentHash));
                 }
 
-                await db.SaveChangesAsync(cancellationToken);
-
-                if (pgVectorActive)
+                if (docsToEmbed.Count > 0)
                 {
-                    var rowsToVectorize = await db.KnowledgeEmbeddings
-                        .AsNoTracking()
-                        .Select(e => new { e.DocumentKey, e.VectorJson })
-                        .ToListAsync(cancellationToken);
+                    var batchVectors = await _embeddingService.EmbedBatchAsync(
+                        docsToEmbed.Select(d => d.Doc.SearchableText).ToList(),
+                        cancellationToken);
 
-                    foreach (var r in rowsToVectorize)
+                    var updatedPgRows = new List<(string Key, float[] Vector)>();
+
+                    for (int i = 0; i < docsToEmbed.Count; i++)
                     {
-                        var parsed = DeserializeVector(r.VectorJson);
-                        if (parsed != null)
+                        var (doc, docKey, contentHash) = docsToEmbed[i];
+                        var embResult = batchVectors[i];
+                        activeModelName = embResult.ModelName;
+                        string vectorJson = JsonSerializer.Serialize(embResult.Vector);
+
+                        if (existingByKey.TryGetValue(docKey, out var row))
                         {
-                            string pgLit = GeminiNeuralEmbeddingService.ToPgVectorLiteral(parsed);
+                            row.SourceType = doc.SourceType;
+                            row.TitleVi = doc.TitleVi;
+                            row.TitleEn = doc.TitleEn;
+                            row.SummaryVi = doc.SummaryVi;
+                            row.SummaryEn = doc.SummaryEn;
+                            row.UrlVi = doc.UrlVi;
+                            row.UrlEn = doc.UrlEn;
+                            row.ContentHash = contentHash;
+                            row.EmbeddingModel = embResult.ModelName;
+                            row.Dimensions = embResult.Vector.Length;
+                            row.VectorJson = vectorJson;
+                            row.UpdatedAtUtc = DateTime.UtcNow;
+                        }
+                        else
+                        {
+                            db.KnowledgeEmbeddings.Add(new KnowledgeEmbedding
+                            {
+                                DocumentKey = docKey,
+                                SourceType = doc.SourceType,
+                                TitleVi = doc.TitleVi,
+                                TitleEn = doc.TitleEn,
+                                SummaryVi = doc.SummaryVi,
+                                SummaryEn = doc.SummaryEn,
+                                UrlVi = doc.UrlVi,
+                                UrlEn = doc.UrlEn,
+                                ContentHash = contentHash,
+                                EmbeddingModel = embResult.ModelName,
+                                Dimensions = embResult.Vector.Length,
+                                VectorJson = vectorJson,
+                                UpdatedAtUtc = DateTime.UtcNow
+                            });
+                        }
+
+                        updatedPgRows.Add((docKey, embResult.Vector));
+                        updated++;
+                    }
+
+                    await db.SaveChangesAsync(cancellationToken);
+
+                    if (pgVectorActive && updatedPgRows.Count > 0)
+                    {
+                        foreach (var (key, vec) in updatedPgRows)
+                        {
+                            string pgLit = GeminiNeuralEmbeddingService.ToPgVectorLiteral(vec);
                             await db.Database.ExecuteSqlInterpolatedAsync(
-                                $@"UPDATE ""KnowledgeEmbeddings"" SET ""EmbeddingVector"" = CAST({pgLit} AS vector) WHERE ""DocumentKey"" = {r.DocumentKey}",
+                                $@"UPDATE ""KnowledgeEmbeddings"" SET ""EmbeddingVector"" = CAST({pgLit} AS vector) WHERE ""DocumentKey"" = {key}",
                                 cancellationToken);
                         }
                     }
@@ -399,7 +414,7 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
             UpdatedEmbeddings = updated,
             ReusedCachedEmbeddings = reused,
             NeuralDimensions = _embeddingService.NeuralDimensions,
-            EmbeddingModel = modelName,
+            EmbeddingModel = activeModelName,
             PgVectorActive = pgVectorActive,
             ElapsedMs = sw.ElapsedMilliseconds
         };
@@ -669,7 +684,7 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
         return map;
     }
 
-    private async Task<Dictionary<string, double>> TryQueryPgVectorSimilaritiesAsync(float[] queryVector, int limit, CancellationToken cancellationToken)
+    private async Task<Dictionary<string, double>> TryQueryPgVectorSimilaritiesAsync(float[] queryVector, string modelName, int limit, CancellationToken cancellationToken)
     {
         var map = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
         if (_scopeFactory == null && _directDbContext == null) return map;
@@ -696,7 +711,7 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
             cmd.CommandText = @"
                 SELECT ""DocumentKey"", 1.0 - (""EmbeddingVector"" <=> CAST(@qvec AS vector)) AS similarity
                 FROM ""KnowledgeEmbeddings""
-                WHERE ""EmbeddingVector"" IS NOT NULL
+                WHERE ""EmbeddingVector"" IS NOT NULL AND ""EmbeddingModel"" = @mod
                 ORDER BY ""EmbeddingVector"" <=> CAST(@qvec AS vector)
                 LIMIT @lim;";
 
@@ -704,6 +719,11 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
             pVec.ParameterName = "@qvec";
             pVec.Value = GeminiNeuralEmbeddingService.ToPgVectorLiteral(queryVector);
             cmd.Parameters.Add(pVec);
+
+            var pMod = cmd.CreateParameter();
+            pMod.ParameterName = "@mod";
+            pMod.Value = modelName;
+            cmd.Parameters.Add(pMod);
 
             var pLim = cmd.CreateParameter();
             pLim.ParameterName = "@lim";
@@ -714,7 +734,7 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
             while (await reader.ReadAsync(cancellationToken))
             {
                 string key = reader.GetString(0);
-                double sim = reader.IsDBNull(1) ? 0 : reader.GetDouble(1);
+                double sim = reader.IsDBNull(1) ? 0 : Convert.ToDouble(reader.GetValue(1), CultureInfo.InvariantCulture);
                 map[key] = sim;
             }
         }
@@ -760,7 +780,9 @@ public sealed class SemanticCurriculumSearchService : ISemanticCurriculumSearchS
     private static string BuildDocumentKey(UnifiedKnowledgeRawDoc doc)
     {
         string rawKey = $"{doc.SourceType}:{doc.UrlVi}";
-        return rawKey.Length <= 160 ? rawKey : rawKey[..160];
+        if (rawKey.Length <= 160) return rawKey;
+        string hashSuffix = GeminiNeuralEmbeddingService.ComputeSha256(rawKey)[..12];
+        return $"{rawKey[..147]}_{hashSuffix}";
     }
 
     private static float[]? DeserializeVector(string json)
