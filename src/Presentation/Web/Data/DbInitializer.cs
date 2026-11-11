@@ -41,6 +41,9 @@ public static class DbInitializer
         // Ensure newly added AI Chat History tables exist
         await EnsureAiChatHistoryTablesExistAsync(context);
 
+        // Ensure newly added Coding Arena persistence tables exist
+        await EnsureCodingArenaTablesExistAsync(context);
+
         // Seed Roles
         string[] roles = { "Admin", "Student" };
         foreach (var role in roles)
@@ -2652,6 +2655,126 @@ Xây dựng một sàn đấu giá trực tuyến hoạt động thời gian th�
                     CONSTRAINT ""FK_AiChatMessages_AiConversations_ConversationId"" FOREIGN KEY (""ConversationId"") REFERENCES ""AiConversations"" (""Id"") ON DELETE CASCADE
                 );
                 CREATE INDEX IF NOT EXISTS ""IX_AiChatMessages_ConversationId"" ON ""AiChatMessages"" (""ConversationId"");
+            ");
+        }
+    }
+
+    private static async Task EnsureCodingArenaTablesExistAsync(AppDbContext context)
+    {
+        var isSqlite = context.Database.IsSqlite();
+        var isSqlServer = context.Database.IsSqlServer();
+
+        if (isSqlite)
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS [ArenaRooms] (
+                    [Id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    [RoomCode] TEXT NOT NULL UNIQUE,
+                    [TitleVi] TEXT NOT NULL,
+                    [TitleEn] TEXT NOT NULL,
+                    [DescriptionVi] TEXT NOT NULL,
+                    [DescriptionEn] TEXT NOT NULL,
+                    [Difficulty] TEXT NOT NULL,
+                    [StarterCode] TEXT NOT NULL,
+                    [ExpectedOutput] TEXT NOT NULL,
+                    [RewardXp] INTEGER NOT NULL DEFAULT 120,
+                    [TimeLimitSeconds] INTEGER NOT NULL DEFAULT 300,
+                    [Status] TEXT NOT NULL DEFAULT 'Open',
+                    [WinnerName] TEXT NULL,
+                    [StartedAtUtc] TEXT NULL,
+                    [CompletedAtUtc] TEXT NULL,
+                    [CreatedAtUtc] TEXT NOT NULL,
+                    [UpdatedAtUtc] TEXT NOT NULL
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS [IX_ArenaRooms_RoomCode] ON [ArenaRooms] ([RoomCode]);
+
+                CREATE TABLE IF NOT EXISTS [ArenaPlayerRatings] (
+                    [Id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    [PlayerName] TEXT NOT NULL UNIQUE,
+                    [EloRating] INTEGER NOT NULL DEFAULT 1200,
+                    [MatchesPlayed] INTEGER NOT NULL DEFAULT 0,
+                    [Wins] INTEGER NOT NULL DEFAULT 0,
+                    [Losses] INTEGER NOT NULL DEFAULT 0,
+                    [BestExecutionTimeMs] INTEGER NULL,
+                    [TotalXpEarned] INTEGER NOT NULL DEFAULT 0,
+                    [UpdatedAtUtc] TEXT NOT NULL
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS [IX_ArenaPlayerRatings_PlayerName] ON [ArenaPlayerRatings] ([PlayerName]);
+
+                CREATE TABLE IF NOT EXISTS [ArenaMatchRecords] (
+                    [Id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    [ArenaRoomId] INTEGER NOT NULL,
+                    [RoomCode] TEXT NOT NULL,
+                    [PlayerName] TEXT NOT NULL,
+                    [IsSuccess] INTEGER NOT NULL DEFAULT 0,
+                    [IsCorrectOutput] INTEGER NOT NULL DEFAULT 0,
+                    [IsWinner] INTEGER NOT NULL DEFAULT 0,
+                    [ExecutionTimeMs] INTEGER NOT NULL DEFAULT 0,
+                    [EloDelta] INTEGER NOT NULL DEFAULT 0,
+                    [NewEloRating] INTEGER NOT NULL DEFAULT 1200,
+                    [AwardedXp] INTEGER NOT NULL DEFAULT 0,
+                    [SubmittedAtUtc] TEXT NOT NULL,
+                    FOREIGN KEY ([ArenaRoomId]) REFERENCES [ArenaRooms] ([Id]) ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS [IX_ArenaMatchRecords_RoomCode] ON [ArenaMatchRecords] ([RoomCode]);
+                CREATE INDEX IF NOT EXISTS [IX_ArenaMatchRecords_SubmittedAtUtc] ON [ArenaMatchRecords] ([SubmittedAtUtc]);
+            ");
+        }
+        else if (!isSqlServer)
+        {
+            // PostgreSQL
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS ""ArenaRooms"" (
+                    ""Id"" serial NOT NULL PRIMARY KEY,
+                    ""RoomCode"" varchar(40) NOT NULL UNIQUE,
+                    ""TitleVi"" varchar(200) NOT NULL,
+                    ""TitleEn"" varchar(200) NOT NULL,
+                    ""DescriptionVi"" text NOT NULL,
+                    ""DescriptionEn"" text NOT NULL,
+                    ""Difficulty"" varchar(40) NOT NULL,
+                    ""StarterCode"" text NOT NULL,
+                    ""ExpectedOutput"" text NOT NULL,
+                    ""RewardXp"" integer NOT NULL DEFAULT 120,
+                    ""TimeLimitSeconds"" integer NOT NULL DEFAULT 300,
+                    ""Status"" varchar(40) NOT NULL DEFAULT 'Open',
+                    ""WinnerName"" varchar(120) NULL,
+                    ""StartedAtUtc"" timestamp with time zone NULL,
+                    ""CompletedAtUtc"" timestamp with time zone NULL,
+                    ""CreatedAtUtc"" timestamp with time zone NOT NULL,
+                    ""UpdatedAtUtc"" timestamp with time zone NOT NULL
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS ""IX_ArenaRooms_RoomCode"" ON ""ArenaRooms"" (""RoomCode"");
+
+                CREATE TABLE IF NOT EXISTS ""ArenaPlayerRatings"" (
+                    ""Id"" serial NOT NULL PRIMARY KEY,
+                    ""PlayerName"" varchar(120) NOT NULL UNIQUE,
+                    ""EloRating"" integer NOT NULL DEFAULT 1200,
+                    ""MatchesPlayed"" integer NOT NULL DEFAULT 0,
+                    ""Wins"" integer NOT NULL DEFAULT 0,
+                    ""Losses"" integer NOT NULL DEFAULT 0,
+                    ""BestExecutionTimeMs"" bigint NULL,
+                    ""TotalXpEarned"" integer NOT NULL DEFAULT 0,
+                    ""UpdatedAtUtc"" timestamp with time zone NOT NULL
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS ""IX_ArenaPlayerRatings_PlayerName"" ON ""ArenaPlayerRatings"" (""PlayerName"");
+
+                CREATE TABLE IF NOT EXISTS ""ArenaMatchRecords"" (
+                    ""Id"" bigserial NOT NULL PRIMARY KEY,
+                    ""ArenaRoomId"" integer NOT NULL,
+                    ""RoomCode"" varchar(40) NOT NULL,
+                    ""PlayerName"" varchar(120) NOT NULL,
+                    ""IsSuccess"" boolean NOT NULL DEFAULT FALSE,
+                    ""IsCorrectOutput"" boolean NOT NULL DEFAULT FALSE,
+                    ""IsWinner"" boolean NOT NULL DEFAULT FALSE,
+                    ""ExecutionTimeMs"" bigint NOT NULL DEFAULT 0,
+                    ""EloDelta"" integer NOT NULL DEFAULT 0,
+                    ""NewEloRating"" integer NOT NULL DEFAULT 1200,
+                    ""AwardedXp"" integer NOT NULL DEFAULT 0,
+                    ""SubmittedAtUtc"" timestamp with time zone NOT NULL,
+                    CONSTRAINT ""FK_ArenaMatchRecords_ArenaRooms_ArenaRoomId"" FOREIGN KEY (""ArenaRoomId"") REFERENCES ""ArenaRooms"" (""Id"") ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS ""IX_ArenaMatchRecords_RoomCode"" ON ""ArenaMatchRecords"" (""RoomCode"");
+                CREATE INDEX IF NOT EXISTS ""IX_ArenaMatchRecords_SubmittedAtUtc"" ON ""ArenaMatchRecords"" (""SubmittedAtUtc"");
             ");
         }
     }

@@ -376,4 +376,54 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
         aiHtml.Should().Contain("id=\"closeSidebarBtn\"");
         aiHtml.Should().Contain("closeSidebarOnMobile");
     }
+
+    [Fact]
+    public async Task Phase20_PersistentArenaAndLiveSignalR_ServesEndpointsLeaderboardMatchesAndReset()
+    {
+        // Act
+        var pageResp = await _client.GetAsync("/coding-arena");
+        var joinResp = await _client.PostAsJsonAsync("/api/arena/join", new
+        {
+            roomCode = "ARENA-LINQ-01",
+            playerName = "phase20Tester"
+        });
+        var submitResp = await _client.PostAsJsonAsync("/api/arena/submit", new
+        {
+            roomCode = "ARENA-LINQ-01",
+            playerName = "phase20Tester",
+            sourceCode = "Console.WriteLine(88);"
+        });
+        var leaderboardResp = await _client.GetAsync("/api/arena/leaderboard");
+        var matchesResp = await _client.GetAsync("/api/arena/matches?roomCode=ARENA-LINQ-01");
+        var resetResp = await _client.PostAsJsonAsync("/api/arena/reset", new
+        {
+            roomCode = "ARENA-LINQ-01"
+        });
+
+        // Assert
+        pageResp.EnsureSuccessStatusCode();
+        var arenaHtml = await pageResp.Content.ReadAsStringAsync();
+        arenaHtml.Should().Contain("/hubs/arena");
+        arenaHtml.Should().Contain("ArenaStateUpdated");
+        arenaHtml.Should().Contain("arenaCountdownTimer");
+        arenaHtml.Should().Contain("arenaLeaderboardBody");
+
+        joinResp.EnsureSuccessStatusCode();
+        submitResp.EnsureSuccessStatusCode();
+        var submitBody = await submitResp.Content.ReadAsStringAsync();
+        submitBody.Should().Contain("\"isCorrectOutput\":true");
+
+        leaderboardResp.EnsureSuccessStatusCode();
+        var lbJson = await leaderboardResp.Content.ReadAsStringAsync();
+        lbJson.Should().Contain("phase20Tester");
+
+        matchesResp.EnsureSuccessStatusCode();
+        var matchesJson = await matchesResp.Content.ReadAsStringAsync();
+        matchesJson.Should().Contain("ARENA-LINQ-01");
+        matchesJson.Should().Contain("phase20Tester");
+
+        resetResp.EnsureSuccessStatusCode();
+        var resetJson = await resetResp.Content.ReadAsStringAsync();
+        resetJson.Should().Contain("\"status\":\"Open\"");
+    }
 }

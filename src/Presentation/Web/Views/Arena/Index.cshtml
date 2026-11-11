@@ -4,55 +4,103 @@
     ViewData["Title"] = isEn ? "1v1 C# Coding Arena" : "Đấu Trường Thuật Toán C# 1v1";
     string selectedCode = ViewBag.SelectedRoomCode as string ?? "ARENA-LINQ-01";
     var activeRoom = Model.FirstOrDefault(r => r.RoomCode == selectedCode) ?? Model.First();
-    string defaultPlayer = User.Identity?.IsAuthenticated == true ? (User.Identity.Name ?? "DotNetWarrior") : "DotNetChallenger";
+    string defaultPlayer = User.Identity?.IsAuthenticated == true
+        ? (User.Identity.Name?.Split('@')[0] ?? "DotNetWarrior")
+        : "DotNetChallenger";
+    var leaderboard = ViewBag.ArenaLeaderboard as IReadOnlyList<NET_Tutos.Services.ArenaLeaderboardEntryViewModel>
+        ?? Array.Empty<NET_Tutos.Services.ArenaLeaderboardEntryViewModel>();
+    var recentMatches = ViewBag.RecentMatches as IReadOnlyList<NET_Tutos.Services.ArenaMatchHistoryViewModel>
+        ?? Array.Empty<NET_Tutos.Services.ArenaMatchHistoryViewModel>();
 }
 
 <div class="container py-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <!-- Top Header & Room Switcher -->
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4 gap-3">
         <div>
-            <span class="badge bg-dark text-white mb-2">
-                <i class="bi bi-broadcast me-1"></i> @(isEn ? "REAL-TIME SIGNALR ARENA" : "ĐẤU TRƯỜNG THỜI GIAN THỰC SIGNALR")
-            </span>
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <span class="badge bg-dark text-white rounded-pill px-3 py-1.5">
+                    <i class="bi bi-broadcast me-1"></i> @(isEn ? "REAL-TIME SIGNALR ARENA" : "ĐẤU TRƯỜNG THỜI GIAN THỰC SIGNALR")
+                </span>
+                <span id="arenaSignalRStatus" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1">
+                    <i class="bi bi-circle-fill me-1" style="font-size: 0.55rem;"></i> @(isEn ? "Connecting..." : "Đang kết nối...")
+                </span>
+            </div>
             <h1 class="h3 fw-bold mb-1">@(isEn ? "1v1 C# 14 Algorithmic Coding Arena" : "Đấu Trường Thuật Toán C# 14 (1v1 Live)")</h1>
-            <p class="text-muted mb-0">@(isEn ? "Compete in real-time C# coding rooms, solve algorithmic challenges with Roslyn, and climb the ELO rating ladder." : "Tranh tài giải thuật C# trực tiếp theo thời gian thực qua SignalR, chấm bài tự động với Roslyn và tích lũy điểm ELO + XP.")</p>
+            <p class="text-muted mb-0">@(isEn ? "Compete in live C# coding rooms over SignalR, validate solutions with Roslyn, and persist ELO ratings in PostgreSQL." : "Tranh tài giải thuật C# trực tiếp qua SignalR, chấm tự động bằng Roslyn và lưu xếp hạng ELO trên PostgreSQL.")</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2">
             @foreach (var room in Model)
             {
-                <a href="?room=@room.RoomCode" class="btn btn-sm @(room.RoomCode == activeRoom.RoomCode ? "btn-primary" : "btn-outline-secondary")">
-                    @room.RoomCode (@room.Difficulty)
+                <a href="?room=@room.RoomCode" class="btn btn-sm rounded-pill px-3 @(room.RoomCode == activeRoom.RoomCode ? "btn-primary fw-semibold" : "btn-outline-secondary")">
+                    @room.RoomCode <span class="opacity-75">(@room.Difficulty)</span>
                 </a>
             }
         </div>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-4 mb-4">
+        <!-- Room Details, Countdown & Live Contenders -->
         <div class="col-lg-5">
-            <div class="card border shadow-sm h-100">
-                <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3">
+            <div class="card border rounded-4 shadow-sm h-100 bg-body">
+                <div class="card-header bg-transparent d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
                     <span class="fw-bold"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> @(isEn ? activeRoom.TitleEn : activeRoom.TitleVi)</span>
-                    <span class="badge bg-success">+@activeRoom.RewardXp XP</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span id="arenaRoomStatusBadge" class="badge @(activeRoom.Status == "Completed" ? "bg-success" : activeRoom.Status == "InProgress" ? "bg-warning text-dark" : "bg-primary")">
+                            @activeRoom.Status
+                        </span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">+@activeRoom.RewardXp XP</span>
+                    </div>
                 </div>
                 <div class="card-body">
                     <p class="mb-3">@(isEn ? activeRoom.DescriptionEn : activeRoom.DescriptionVi)</p>
-                    <div class="p-2 rounded bg-light border mb-3 small font-monospace">
-                        <strong>@(isEn ? "Expected Console Output:" : "Kết quả Console kỳ vọng:")</strong> <span class="text-primary fw-bold">@activeRoom.ExpectedOutput</span>
+                    <div class="p-2.5 rounded-3 bg-body-tertiary border mb-3 small font-monospace">
+                        <strong>@(isEn ? "Expected Console Output:" : "Kết quả Console kỳ vọng:")</strong>
+                        <span class="text-primary fw-bold">@activeRoom.ExpectedOutput</span>
                     </div>
 
-                    <h6 class="fw-bold mb-2">@(isEn ? "Live Contenders in Room" : "Đấu thủ đang trong phòng") (<span id="arenaRoomCodeLabel">@activeRoom.RoomCode</span>)</h6>
-                    <div id="arenaPlayersList" class="d-flex flex-column gap-2 mb-3">
+                    <!-- Countdown & Match Action Bar -->
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 p-2.5 px-3 rounded-3 bg-body-tertiary border mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-stopwatch-fill text-danger fs-5"></i>
+                            <div>
+                                <div class="text-muted" style="font-size: 0.72rem;">@(isEn ? "Round Timer" : "Thời gian vòng đấu")</div>
+                                <div id="arenaCountdownTimer" class="fw-bold font-monospace text-danger">--:--</div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" id="btnJoinArena" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                                <i class="bi bi-person-plus-fill me-1"></i>@(isEn ? "Join Room" : "Vào phòng")
+                            </button>
+                            <button type="button" id="btnResetArena" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                <i class="bi bi-arrow-clockwise me-1"></i>@(isEn ? "Rematch" : "Đấu lại")
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Winner Spotlight -->
+                    <div id="arenaWinnerBanner" class="alert alert-success py-2 px-3 rounded-3 small mb-3 @(string.IsNullOrEmpty(activeRoom.WinnerName) ? "d-none" : "")">
+                        <i class="bi bi-trophy-fill text-warning me-1"></i>
+                        <strong>@(isEn ? "Round Winner:" : "Người thắng vòng này:")</strong>
+                        <span id="arenaWinnerName">@activeRoom.WinnerName</span>
+                    </div>
+
+                    <h6 class="fw-bold mb-2">
+                        @(isEn ? "Live Contenders in Room" : "Đấu thủ đang trong phòng")
+                        (<span id="arenaRoomCodeLabel">@activeRoom.RoomCode</span>)
+                    </h6>
+                    <div id="arenaPlayersList" class="d-flex flex-column gap-2 mb-1">
                         @if (activeRoom.Players.Count == 0)
                         {
-                            <div class="text-muted small">@(isEn ? "No contenders joined yet. Click Join or Run Solution below!" : "Chưa có đấu thủ nào. Bấm Tham gia hoặc Nộp bài bên phải!")</div>
+                            <div class="text-muted small">@(isEn ? "No contenders joined yet. Click Join Room or Execute & Submit!" : "Chưa có đấu thủ nào. Bấm Vào phòng hoặc Nộp bài bên phải!")</div>
                         }
                         else
                         {
                             @foreach (var p in activeRoom.Players)
                             {
-                                <div class="border rounded p-2">
-                                    <div class="d-flex justify-content-between small fw-semibold mb-1">
-                                        <span>@p.PlayerName (ELO: @p.EloRating)</span>
-                                        <span>@(p.HasSolved ? "SOLVED (100%)" : $"{p.ProgressPercent}%")</span>
+                                <div class="border rounded-3 p-2.5 bg-body-tertiary">
+                                    <div class="d-flex justify-content-between align-items-center small fw-semibold mb-1 gap-2">
+                                        <span class="text-truncate">@p.PlayerName <span class="text-primary">(ELO: @p.EloRating)</span></span>
+                                        <span class="text-nowrap">@(p.HasSolved ? "SOLVED (100%)" : $"{p.ProgressPercent}%")</span>
                                     </div>
                                     <div class="progress" style="height: 6px;">
                                         <div class="progress-bar @(p.HasSolved ? "bg-success" : "bg-primary")" style="width: @p.ProgressPercent%"></div>
@@ -65,21 +113,123 @@
             </div>
         </div>
 
+        <!-- Sandbox Editor -->
         <div class="col-lg-7">
-            <div class="card border shadow-sm">
-                <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="fw-bold"><i class="bi bi-code-slash me-1"></i> C# 14 Arena Sandbox</span>
-                        <input type="text" id="arenaPlayerInput" class="form-control form-control-sm" style="width: 170px;" value="@defaultPlayer" placeholder="Coder Handle" />
+            <div class="card border rounded-4 shadow-sm h-100 bg-body">
+                <div class="card-header bg-transparent d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
+                    <div class="d-flex flex-wrap align-items-center gap-2 flex-grow-1 min-w-0">
+                        <span class="fw-bold text-nowrap"><i class="bi bi-code-slash me-1"></i> C# 14 Arena Sandbox</span>
+                        <input type="text" id="arenaPlayerInput" class="form-control form-control-sm" style="max-width: min(100%, 190px);" value="@defaultPlayer" placeholder="Coder Handle" />
                     </div>
-                    <button type="button" id="btnSubmitArena" class="btn btn-primary btn-sm">
+                    <button type="button" id="btnSubmitArena" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold text-nowrap">
                         <i class="bi bi-play-fill me-1"></i> @(isEn ? "Execute & Submit" : "Chạy & Nộp Bài Đấu")
                     </button>
                 </div>
-                <div class="card-body">
-                    <textarea id="arenaCodeEditor" class="form-control font-monospace mb-3" rows="9" spellcheck="false">@activeRoom.StarterCode</textarea>
-                    <div id="arenaResultBox" class="p-3 rounded bg-dark text-light font-monospace small">
-                        @(isEn ? "// Ready. Click 'Execute & Submit' to compile and compete." : "// Sẵn sàng. Nhấn 'Chạy & Nộp Bài Đấu' để biên dịch Roslyn và so tài.")
+                <div class="card-body d-flex flex-column">
+                    <textarea id="arenaCodeEditor" class="form-control font-monospace mb-3 flex-grow-1" rows="10" spellcheck="false">@activeRoom.StarterCode</textarea>
+                    <div id="arenaResultBox" class="p-3 rounded-3 bg-dark text-light font-monospace small">
+                        @(isEn ? "// Ready. Connected to /hubs/arena for live opponent updates." : "// Sẵn sàng. Kết nối /hubs/arena để cập nhật đối thủ theo thời gian thực.")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Persistent ELO Leaderboard & Recent Match Audit History -->
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card border rounded-4 shadow-sm bg-body h-100">
+                <div class="card-header bg-transparent py-3 fw-bold">
+                    <i class="bi bi-trophy-fill text-warning me-2"></i>@(isEn ? "Persistent Arena ELO Leaderboard" : "Bảng Xếp Hạng ELO Đấu Trường")
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">#</th>
+                                    <th>@(isEn ? "Contender" : "Đấu thủ")</th>
+                                    <th>ELO</th>
+                                    <th>@(isEn ? "W / M" : "Thắng / Trận")</th>
+                                    <th class="pe-3">XP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="arenaLeaderboardBody">
+                                @if (leaderboard.Count == 0)
+                                {
+                                    <tr><td colspan="5" class="text-center text-muted py-3">@(isEn ? "No ranked matches recorded yet." : "Chưa có dữ liệu xếp hạng ELO.")</td></tr>
+                                }
+                                else
+                                {
+                                    int rank = 1;
+                                    foreach (var entry in leaderboard)
+                                    {
+                                        <tr>
+                                            <td class="ps-3 fw-bold">@(rank++)</td>
+                                            <td class="fw-semibold">@entry.PlayerName</td>
+                                            <td><span class="badge bg-primary-subtle text-primary">@entry.EloRating</span></td>
+                                            <td>@entry.Wins / @entry.MatchesPlayed</td>
+                                            <td class="pe-3 text-success fw-semibold">+@entry.TotalXpEarned</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border rounded-4 shadow-sm bg-body h-100">
+                <div class="card-header bg-transparent py-3 fw-bold">
+                    <i class="bi bi-clock-history text-info me-2"></i>@(isEn ? "Recent Match Submissions" : "Lịch Sử Trận Đấu Gần Đây")
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">@(isEn ? "Room" : "Phòng")</th>
+                                    <th>@(isEn ? "Player" : "Người chơi")</th>
+                                    <th>@(isEn ? "Result" : "Kết quả")</th>
+                                    <th>ELO</th>
+                                    <th class="pe-3">ms</th>
+                                </tr>
+                            </thead>
+                            <tbody id="arenaMatchesBody">
+                                @if (recentMatches.Count == 0)
+                                {
+                                    <tr><td colspan="5" class="text-center text-muted py-3">@(isEn ? "No submissions logged yet." : "Chưa có lượt nộp bài nào.")</td></tr>
+                                }
+                                else
+                                {
+                                    foreach (var m in recentMatches)
+                                    {
+                                        <tr>
+                                            <td class="ps-3 font-monospace">@m.RoomCode</td>
+                                            <td class="fw-semibold">@m.PlayerName</td>
+                                            <td>
+                                                @if (m.IsWinner)
+                                                {
+                                                    <span class="badge bg-success">WIN</span>
+                                                }
+                                                else if (m.IsCorrectOutput)
+                                                {
+                                                    <span class="badge bg-info text-dark">SOLVED</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger">FAIL</span>
+                                                }
+                                            </td>
+                                            <td>@(m.EloDelta >= 0 ? $"+{m.EloDelta}" : $"{m.EloDelta}") (@m.NewEloRating)</td>
+                                            <td class="pe-3">@m.ExecutionTimeMs</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -90,23 +240,253 @@
 @section Scripts {
     <script>
         (function () {
+            const isEn = @(isEn ? "true" : "false");
             const roomCode = "@activeRoom.RoomCode";
-            const btn = document.getElementById("btnSubmitArena");
+            const timeLimitSeconds = @activeRoom.TimeLimitSeconds;
+            let roomStartedAtUtc = @(activeRoom.StartedAtUtc.HasValue ? $"'{activeRoom.StartedAtUtc.Value:O}'" : "null");
+            let roomStatus = "@activeRoom.Status";
+
+            const btnSubmit = document.getElementById("btnSubmitArena");
+            const btnJoin = document.getElementById("btnJoinArena");
+            const btnReset = document.getElementById("btnResetArena");
             const editor = document.getElementById("arenaCodeEditor");
             const playerInput = document.getElementById("arenaPlayerInput");
             const resultBox = document.getElementById("arenaResultBox");
+            const playersListEl = document.getElementById("arenaPlayersList");
+            const statusBadgeEl = document.getElementById("arenaRoomStatusBadge");
+            const signalRBadgeEl = document.getElementById("arenaSignalRStatus");
+            const winnerBannerEl = document.getElementById("arenaWinnerBanner");
+            const winnerNameEl = document.getElementById("arenaWinnerName");
+            const timerEl = document.getElementById("arenaCountdownTimer");
+            const leaderboardBody = document.getElementById("arenaLeaderboardBody");
+            const matchesBody = document.getElementById("arenaMatchesBody");
 
-            if (btn) {
-                btn.addEventListener("click", async function () {
-                    btn.disabled = true;
-                    resultBox.textContent = "Compiling & evaluating C# 14 solution...";
+            let liveProgressMap = {};
+            let lastTypingBroadcastAt = 0;
+
+            function getPlayerName() {
+                return (playerInput?.value || "").trim() || "DotNetChallenger";
+            }
+
+            function escapeHtml(str) {
+                return String(str || "")
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;");
+            }
+
+            function renderRoomState(room) {
+                if (!room) return;
+                roomStatus = room.status || "Open";
+                roomStartedAtUtc = room.startedAtUtc || null;
+
+                if (statusBadgeEl) {
+                    statusBadgeEl.textContent = roomStatus;
+                    statusBadgeEl.className = "badge " + (roomStatus === "Completed" ? "bg-success" : roomStatus === "InProgress" ? "bg-warning text-dark" : "bg-primary");
+                }
+
+                if (winnerBannerEl && winnerNameEl) {
+                    if (room.winnerName) {
+                        winnerNameEl.textContent = room.winnerName;
+                        winnerBannerEl.classList.remove("d-none");
+                    } else {
+                        winnerBannerEl.classList.add("d-none");
+                    }
+                }
+
+                if (playersListEl) {
+                    const players = room.players || [];
+                    if (players.length === 0) {
+                        playersListEl.innerHTML = `<div class="text-muted small">${isEn ? "No contenders joined yet." : "Chưa có đấu thủ nào."}</div>`;
+                    } else {
+                        playersListEl.innerHTML = players.map(p => {
+                            const typingPct = liveProgressMap[p.playerName?.toLowerCase()] ?? p.progressPercent ?? 0;
+                            const pct = p.hasSolved ? 100 : Math.max(p.progressPercent || 0, typingPct);
+                            const statusText = p.hasSolved ? `SOLVED (${p.executionTimeMs || 0}ms)` : `${pct}%`;
+                            return `
+                                <div class="border rounded-3 p-2.5 bg-body-tertiary">
+                                    <div class="d-flex justify-content-between align-items-center small fw-semibold mb-1 gap-2">
+                                        <span class="text-truncate">${escapeHtml(p.playerName)} <span class="text-primary">(ELO: ${p.eloRating})</span></span>
+                                        <span class="text-nowrap">${statusText}</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar ${p.hasSolved ? "bg-success" : "bg-primary"}" style="width: ${pct}%"></div>
+                                    </div>
+                                </div>`;
+                        }).join("");
+                    }
+                }
+            }
+
+            function renderLeaderboard(entries, matches) {
+                if (leaderboardBody && Array.isArray(entries)) {
+                    leaderboardBody.innerHTML = entries.length === 0
+                        ? `<tr><td colspan="5" class="text-center text-muted py-3">${isEn ? "No ranked matches recorded yet." : "Chưa có dữ liệu xếp hạng ELO."}</td></tr>`
+                        : entries.map((e, idx) => `
+                            <tr>
+                                <td class="ps-3 fw-bold">${idx + 1}</td>
+                                <td class="fw-semibold">${escapeHtml(e.playerName)}</td>
+                                <td><span class="badge bg-primary-subtle text-primary">${e.eloRating}</span></td>
+                                <td>${e.wins} / ${e.matchesPlayed}</td>
+                                <td class="pe-3 text-success fw-semibold">+${e.totalXpEarned}</td>
+                            </tr>`).join("");
+                }
+                if (matchesBody && Array.isArray(matches)) {
+                    matchesBody.innerHTML = matches.length === 0
+                        ? `<tr><td colspan="5" class="text-center text-muted py-3">${isEn ? "No submissions logged yet." : "Chưa có lượt nộp bài nào."}</td></tr>`
+                        : matches.map(m => {
+                            const badge = m.isWinner
+                                ? '<span class="badge bg-success">WIN</span>'
+                                : (m.isCorrectOutput ? '<span class="badge bg-info text-dark">SOLVED</span>' : '<span class="badge bg-danger">FAIL</span>');
+                            const deltaStr = m.eloDelta >= 0 ? `+${m.eloDelta}` : `${m.eloDelta}`;
+                            return `
+                                <tr>
+                                    <td class="ps-3 font-monospace">${escapeHtml(m.roomCode)}</td>
+                                    <td class="fw-semibold">${escapeHtml(m.playerName)}</td>
+                                    <td>${badge}</td>
+                                    <td>${deltaStr} (${m.newEloRating})</td>
+                                    <td class="pe-3">${m.executionTimeMs}</td>
+                                </tr>`;
+                        }).join("");
+                }
+            }
+
+            function tickCountdown() {
+                if (!timerEl) return;
+                if (roomStatus === "Completed") {
+                    timerEl.textContent = "00:00";
+                    return;
+                }
+                if (!roomStartedAtUtc) {
+                    const mins = String(Math.floor(timeLimitSeconds / 60)).padStart(2, "0");
+                    const secs = String(timeLimitSeconds % 60).padStart(2, "0");
+                    timerEl.textContent = `${mins}:${secs}`;
+                    return;
+                }
+                const elapsedSec = Math.max(0, Math.floor((Date.now() - Date.parse(roomStartedAtUtc)) / 1000));
+                const remaining = Math.max(0, timeLimitSeconds - elapsedSec);
+                const mins = String(Math.floor(remaining / 60)).padStart(2, "0");
+                const secs = String(remaining % 60).padStart(2, "0");
+                timerEl.textContent = `${mins}:${secs}`;
+            }
+
+            setInterval(tickCountdown, 1000);
+            tickCountdown();
+
+            let arenaHub = null;
+            if (window.signalR) {
+                arenaHub = new signalR.HubConnectionBuilder()
+                    .withUrl("/hubs/arena")
+                    .withAutomaticReconnect()
+                    .build();
+
+                arenaHub.on("ArenaStateUpdated", (room) => {
+                    if (room && room.roomCode && room.roomCode.toUpperCase() === roomCode.toUpperCase()) {
+                        renderRoomState(room);
+                    }
+                });
+
+                arenaHub.on("PlayerProgressUpdated", (evt) => {
+                    if (!evt || !evt.playerName) return;
+                    liveProgressMap[evt.playerName.toLowerCase()] = evt.progressPercent;
+                    const bars = playersListEl?.querySelectorAll(".progress-bar");
+                    if (bars && bars.length > 0) {
+                        fetch(`/api/arena/rooms`).then(r => r.json()).then(rooms => {
+                            const current = rooms.find(x => x.roomCode.toUpperCase() === roomCode.toUpperCase());
+                            if (current) renderRoomState(current);
+                        }).catch(() => {});
+                    }
+                });
+
+                arenaHub.on("ArenaLeaderboardUpdated", (payload) => {
+                    if (payload) {
+                        renderLeaderboard(payload.leaderboard, payload.matches);
+                    }
+                });
+
+                arenaHub.onreconnecting(() => {
+                    if (signalRBadgeEl) {
+                        signalRBadgeEl.className = "badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1";
+                        signalRBadgeEl.innerHTML = `<i class="bi bi-arrow-repeat me-1"></i>${isEn ? "Reconnecting..." : "Đang kết nối lại..."}`;
+                    }
+                });
+
+                arenaHub.onreconnected(async () => {
+                    if (signalRBadgeEl) {
+                        signalRBadgeEl.className = "badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1";
+                        signalRBadgeEl.innerHTML = `<i class="bi bi-circle-fill me-1" style="font-size: 0.55rem;"></i>${isEn ? "SignalR Live" : "Kết nối trực tiếp"}`;
+                    }
+                    await arenaHub.invoke("JoinArenaRoom", roomCode, getPlayerName()).catch(() => {});
+                });
+
+                arenaHub.start().then(async () => {
+                    if (signalRBadgeEl) {
+                        signalRBadgeEl.className = "badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1";
+                        signalRBadgeEl.innerHTML = `<i class="bi bi-circle-fill me-1" style="font-size: 0.55rem;"></i>${isEn ? "SignalR Live" : "Kết nối trực tiếp"}`;
+                    }
+                    await arenaHub.invoke("JoinArenaRoom", roomCode, getPlayerName());
+                }).catch(() => {
+                    if (signalRBadgeEl) {
+                        signalRBadgeEl.textContent = isEn ? "REST Fallback" : "Chế độ HTTP";
+                    }
+                });
+            }
+
+            if (btnJoin) {
+                btnJoin.addEventListener("click", async function () {
+                    const name = getPlayerName();
+                    if (arenaHub && arenaHub.state === signalR.HubConnectionState.Connected) {
+                        await arenaHub.invoke("JoinArenaRoom", roomCode, name).catch(() => {});
+                    } else {
+                        const res = await fetch("/api/arena/join", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ roomCode, playerName: name })
+                        });
+                        if (res.ok) renderRoomState(await res.json());
+                    }
+                });
+            }
+
+            if (btnReset) {
+                btnReset.addEventListener("click", async function () {
+                    liveProgressMap = {};
+                    const res = await fetch("/api/arena/reset", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ roomCode })
+                    });
+                    if (res.ok) {
+                        renderRoomState(await res.json());
+                        resultBox.textContent = isEn ? "// Round reset. Ready for a fresh rematch!" : "// Đã làm mới vòng đấu. Sẵn sàng tranh tài!";
+                    }
+                });
+            }
+
+            if (editor) {
+                editor.addEventListener("input", function () {
+                    const now = Date.now();
+                    if (now - lastTypingBroadcastAt < 900) return;
+                    lastTypingBroadcastAt = now;
+                    const progress = Math.min(92, Math.max(15, Math.round((editor.value.length / 220) * 85)));
+                    if (arenaHub && arenaHub.state === signalR.HubConnectionState.Connected) {
+                        arenaHub.invoke("BroadcastTypingProgress", roomCode, getPlayerName(), progress).catch(() => {});
+                    }
+                });
+            }
+
+            if (btnSubmit) {
+                btnSubmit.addEventListener("click", async function () {
+                    btnSubmit.disabled = true;
+                    resultBox.textContent = isEn ? "Compiling & evaluating C# 14 solution..." : "Đang biên dịch & chấm bài C# 14...";
                     try {
                         const res = await fetch("/api/arena/submit", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
                                 roomCode: roomCode,
-                                playerName: playerInput.value || "DotNetChallenger",
+                                playerName: getPlayerName(),
                                 sourceCode: editor.value
                             })
                         });
@@ -116,10 +496,17 @@
                         } else {
                             resultBox.textContent = `[MISMATCH] Expected: ${data.expectedOutput}, Actual: ${data.actualOutput || data.errorMessage || "Error"} | ELO: ${data.newEloRating}`;
                         }
+                        const [lbRes, matchRes] = await Promise.all([
+                            fetch("/api/arena/leaderboard"),
+                            fetch("/api/arena/matches")
+                        ]);
+                        if (lbRes.ok && matchRes.ok) {
+                            renderLeaderboard(await lbRes.json(), await matchRes.json());
+                        }
                     } catch (e) {
-                        resultBox.textContent = "Submission error.";
+                        resultBox.textContent = isEn ? "Submission error." : "Lỗi kết nối khi nộp bài.";
                     } finally {
-                        btn.disabled = false;
+                        btnSubmit.disabled = false;
                     }
                 });
             }

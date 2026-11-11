@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using NET_Tutos.Models.Entities;
 
@@ -36,6 +36,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<DeveloperProfile> DeveloperProfiles => Set<DeveloperProfile>();
     public DbSet<AiConversation> AiConversations => Set<AiConversation>();
     public DbSet<AiChatMessage> AiChatMessages => Set<AiChatMessage>();
+    public DbSet<ArenaRoom> ArenaRooms => Set<ArenaRoom>();
+    public DbSet<ArenaPlayerRating> ArenaPlayerRatings => Set<ArenaPlayerRating>();
+    public DbSet<ArenaMatchRecord> ArenaMatchRecords => Set<ArenaMatchRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -416,6 +419,40 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne<AiConversation>()
                   .WithMany(c => c.Messages)
                   .HasForeignKey(m => m.ConversationId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Persistent Coding Arena Rooms, ELO Ratings & Match History configurations
+        modelBuilder.Entity<ArenaRoom>(entity =>
+        {
+            entity.HasKey(r => r.Id);
+            entity.HasIndex(r => r.RoomCode).IsUnique();
+            entity.Property(r => r.RoomCode).IsRequired().HasMaxLength(40);
+            entity.Property(r => r.TitleVi).IsRequired().HasMaxLength(200).IsUnicode(true);
+            entity.Property(r => r.TitleEn).IsRequired().HasMaxLength(200);
+            entity.Property(r => r.Difficulty).IsRequired().HasMaxLength(40);
+            entity.Property(r => r.Status).IsRequired().HasMaxLength(40);
+            entity.Property(r => r.WinnerName).HasMaxLength(120);
+        });
+
+        modelBuilder.Entity<ArenaPlayerRating>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.HasIndex(p => p.PlayerName).IsUnique();
+            entity.Property(p => p.PlayerName).IsRequired().HasMaxLength(120);
+        });
+
+        modelBuilder.Entity<ArenaMatchRecord>(entity =>
+        {
+            entity.HasKey(m => m.Id);
+            entity.HasIndex(m => m.RoomCode);
+            entity.HasIndex(m => m.PlayerName);
+            entity.HasIndex(m => m.SubmittedAtUtc);
+            entity.Property(m => m.RoomCode).IsRequired().HasMaxLength(40);
+            entity.Property(m => m.PlayerName).IsRequired().HasMaxLength(120);
+            entity.HasOne(m => m.ArenaRoom)
+                  .WithMany(r => r.Matches)
+                  .HasForeignKey(m => m.ArenaRoomId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
     }

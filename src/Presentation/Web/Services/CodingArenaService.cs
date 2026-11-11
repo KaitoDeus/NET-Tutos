@@ -1,5 +1,8 @@
 using System.Collections.Concurrent;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using NET_Tutos.Data;
+using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
 
 namespace NET_Tutos.Services;
@@ -27,7 +30,33 @@ public sealed class ArenaRoomViewModel
     public int TimeLimitSeconds { get; set; } = 300;
     public string Status { get; set; } = "Open";
     public string? WinnerName { get; set; }
+    public DateTime? StartedAtUtc { get; set; }
+    public DateTime? CompletedAtUtc { get; set; }
     public List<ArenaPlayerViewModel> Players { get; set; } = [];
+}
+
+public sealed class ArenaLeaderboardEntryViewModel
+{
+    public string PlayerName { get; set; } = string.Empty;
+    public int EloRating { get; set; } = 1200;
+    public int MatchesPlayed { get; set; }
+    public int Wins { get; set; }
+    public int Losses { get; set; }
+    public long? BestExecutionTimeMs { get; set; }
+    public int TotalXpEarned { get; set; }
+}
+
+public sealed class ArenaMatchHistoryViewModel
+{
+    public string RoomCode { get; set; } = string.Empty;
+    public string PlayerName { get; set; } = string.Empty;
+    public bool IsCorrectOutput { get; set; }
+    public bool IsWinner { get; set; }
+    public long ExecutionTimeMs { get; set; }
+    public int EloDelta { get; set; }
+    public int NewEloRating { get; set; }
+    public int AwardedXp { get; set; }
+    public DateTime SubmittedAtUtc { get; set; }
 }
 
 public sealed class ArenaSubmitRequest
@@ -58,12 +87,15 @@ public interface ICodingArenaService
     IReadOnlyList<ArenaRoomViewModel> GetActiveRooms();
     ArenaRoomViewModel? GetRoom(string roomCode);
     ArenaRoomViewModel JoinRoom(string roomCode, string playerName);
+    ArenaRoomViewModel ResetRoom(string roomCode);
+    IReadOnlyList<ArenaLeaderboardEntryViewModel> GetLeaderboard(int top = 10);
+    IReadOnlyList<ArenaMatchHistoryViewModel> GetRecentMatches(string? roomCode = null, int limit = 15);
     Task<ArenaSubmitResponse> SubmitSolutionAsync(ArenaSubmitRequest request);
 }
 
 /// <summary>
-/// Real-Time 1v1 Multiplayer Coding Arena Engine managing algorithmic battle rooms,
-/// Roslyn C# 14 execution validation, ELO rating adjustments, and XP rewards.
+/// Real-Time 1v1 Multiplayer Coding Arena Engine managing PostgreSQL-persistent battle rooms,
+/// Roslyn C# 14 execution validation, ELO rating persistence, match history, and XP rewards.
 /// </summary>
 public sealed class CodingArenaService : ICodingArenaService
 {
@@ -71,6 +103,9 @@ public sealed class CodingArenaService : ICodingArenaService
     private readonly ICodeExecutionService? _directCodeExecutionService;
     private readonly ConcurrentDictionary<string, ArenaRoomViewModel> _rooms = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, int> _playerElo = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<ArenaMatchHistoryViewModel> _inMemoryHistory = new();
+    private readonly object _hydrateLock = new();
+    private bool _dbHydrated;
 
     [ActivatorUtilitiesConstructor]
     public CodingArenaService(IServiceScopeFactory scopeFactory)
@@ -87,6 +122,7 @@ public sealed class CodingArenaService : ICodingArenaService
 
     public IReadOnlyList<ArenaRoomViewModel> GetActiveRooms()
     {
+        EnsureDbHydrated();
         return _rooms.Values
             .OrderBy(r => r.RoomCode)
             .ToList();
@@ -94,6 +130,7 @@ public sealed class CodingArenaService : ICodingArenaService
 
     public ArenaRoomViewModel? GetRoom(string roomCode)
     {
+        EnsureDbHydrated();
         if (string.IsNullOrWhiteSpace(roomCode)) return null;
         _rooms.TryGetValue(roomCode.Trim(), out var room);
         return room;
@@ -101,21 +138,11 @@ public sealed class CodingArenaService : ICodingArenaService
 
     public ArenaRoomViewModel JoinRoom(string roomCode, string playerName)
     {
-        string normalizedCode = string.IsNullOrWhiteSpace(roomCode) ? "ARENA-LINQ-01" : roomCode.Trim().ToUpperInvariant();
-        string normalizedPlayer = string.IsNullOrWhiteSpace(playerName) ? "AnonymousCoder" : playerName.Trim();
+        EnsureDbHydrated();
+        string normalizedCode = NormalizeRoomCode(roomCode);
+        string normalizedPlayer = NormalizePlayerName(playerName);
 
-        var room = _rooms.GetOrAdd(normalizedCode, code => new ArenaRoomViewModel
-        {
-            RoomCode = code,
-            TitleVi = $"Đấu trường C# #{code}",
-            TitleEn = $"C# Battle Room #{code}",
-            DescriptionVi = "Tính tổng các số chẵn từ 1 đến 10 và in kết quả ra Console.",
-            DescriptionEn = "Compute the sum of even numbers from 1 to 10 and print the result to the Console.",
-            Difficulty = "Beginner",
-            StarterCode = "int sum = Enumerable.Range(1, 10).Where(x => x % 2 == 0).Sum();\nConsole.WriteLine(sum);",
-            ExpectedOutput = "30",
-            RewardXp = 100
-        });
+        var room = GetOrCreateRoomModel(normalizedCode);
 
         lock (room)
         {
@@ -131,19 +158,147 @@ public sealed class CodingArenaService : ICodingArenaService
                     HasSolved = false
                 });
             }
+
+            if (room.StartedAtUtc == null && room.Status != "Completed")
+            {
+                room.StartedAtUtc = DateTime.UtcNow;
+            }
             if (room.Players.Count >= 2 && room.Status == "Open")
             {
                 room.Status = "InProgress";
             }
         }
 
+        PersistRoomAndPlayerSnapshot(room, normalizedPlayer, _playerElo.GetValueOrDefault(normalizedPlayer, 1200));
         return room;
+    }
+
+    public ArenaRoomViewModel ResetRoom(string roomCode)
+    {
+        EnsureDbHydrated();
+        string normalizedCode = NormalizeRoomCode(roomCode);
+        var room = GetOrCreateRoomModel(normalizedCode);
+
+        lock (room)
+        {
+            room.Status = "Open";
+            room.WinnerName = null;
+            room.StartedAtUtc = null;
+            room.CompletedAtUtc = null;
+            room.Players.Clear();
+        }
+
+        PersistRoomAndPlayerSnapshot(room, null, null);
+        return room;
+    }
+
+    public IReadOnlyList<ArenaLeaderboardEntryViewModel> GetLeaderboard(int top = 10)
+    {
+        EnsureDbHydrated();
+        int clampedTop = Math.Clamp(top, 1, 50);
+
+        if (TryWithDbContext(db =>
+        {
+            if (db.ArenaPlayerRatings.Any())
+            {
+                return db.ArenaPlayerRatings
+                    .AsNoTracking()
+                    .OrderByDescending(p => p.EloRating)
+                    .ThenByDescending(p => p.Wins)
+                    .ThenBy(p => p.BestExecutionTimeMs ?? long.MaxValue)
+                    .Take(clampedTop)
+                    .Select(p => new ArenaLeaderboardEntryViewModel
+                    {
+                        PlayerName = p.PlayerName,
+                        EloRating = p.EloRating,
+                        MatchesPlayed = p.MatchesPlayed,
+                        Wins = p.Wins,
+                        Losses = p.Losses,
+                        BestExecutionTimeMs = p.BestExecutionTimeMs,
+                        TotalXpEarned = p.TotalXpEarned
+                    })
+                    .ToList();
+            }
+            return null;
+        }, out var dbLeaderboard) && dbLeaderboard != null)
+        {
+            return dbLeaderboard;
+        }
+
+        lock (_inMemoryHistory)
+        {
+            return _playerElo
+                .Select(kvp =>
+                {
+                    var playerMatches = _inMemoryHistory.Where(m => m.PlayerName.Equals(kvp.Key, StringComparison.OrdinalIgnoreCase)).ToList();
+                    return new ArenaLeaderboardEntryViewModel
+                    {
+                        PlayerName = kvp.Key,
+                        EloRating = kvp.Value,
+                        MatchesPlayed = playerMatches.Count,
+                        Wins = playerMatches.Count(m => m.IsWinner),
+                        Losses = playerMatches.Count(m => !m.IsCorrectOutput),
+                        BestExecutionTimeMs = playerMatches.Where(m => m.IsCorrectOutput).Select(m => (long?)m.ExecutionTimeMs).Min(),
+                        TotalXpEarned = playerMatches.Sum(m => m.AwardedXp)
+                    };
+                })
+                .OrderByDescending(e => e.EloRating)
+                .ThenByDescending(e => e.Wins)
+                .Take(clampedTop)
+                .ToList();
+        }
+    }
+
+    public IReadOnlyList<ArenaMatchHistoryViewModel> GetRecentMatches(string? roomCode = null, int limit = 15)
+    {
+        EnsureDbHydrated();
+        int clampedLimit = Math.Clamp(limit, 1, 50);
+        string? normalizedCode = string.IsNullOrWhiteSpace(roomCode) ? null : roomCode.Trim().ToUpperInvariant();
+
+        if (TryWithDbContext(db =>
+        {
+            var query = db.ArenaMatchRecords.AsNoTracking();
+            if (!string.IsNullOrEmpty(normalizedCode))
+            {
+                query = query.Where(m => m.RoomCode == normalizedCode);
+            }
+            return query
+                .OrderByDescending(m => m.SubmittedAtUtc)
+                .Take(clampedLimit)
+                .Select(m => new ArenaMatchHistoryViewModel
+                {
+                    RoomCode = m.RoomCode,
+                    PlayerName = m.PlayerName,
+                    IsCorrectOutput = m.IsCorrectOutput,
+                    IsWinner = m.IsWinner,
+                    ExecutionTimeMs = m.ExecutionTimeMs,
+                    EloDelta = m.EloDelta,
+                    NewEloRating = m.NewEloRating,
+                    AwardedXp = m.AwardedXp,
+                    SubmittedAtUtc = m.SubmittedAtUtc
+                })
+                .ToList();
+        }, out var dbMatches) && dbMatches != null)
+        {
+            return dbMatches;
+        }
+
+        lock (_inMemoryHistory)
+        {
+            IEnumerable<ArenaMatchHistoryViewModel> query = _inMemoryHistory;
+            if (!string.IsNullOrEmpty(normalizedCode))
+            {
+                query = query.Where(m => m.RoomCode.Equals(normalizedCode, StringComparison.OrdinalIgnoreCase));
+            }
+            return query.OrderByDescending(m => m.SubmittedAtUtc).Take(clampedLimit).ToList();
+        }
     }
 
     public async Task<ArenaSubmitResponse> SubmitSolutionAsync(ArenaSubmitRequest request)
     {
-        string roomCode = string.IsNullOrWhiteSpace(request.RoomCode) ? "ARENA-LINQ-01" : request.RoomCode.Trim().ToUpperInvariant();
-        string playerName = string.IsNullOrWhiteSpace(request.PlayerName) ? "AnonymousCoder" : request.PlayerName.Trim();
+        EnsureDbHydrated();
+        string roomCode = NormalizeRoomCode(request.RoomCode);
+        string playerName = NormalizePlayerName(request.PlayerName);
 
         var room = JoinRoom(roomCode, playerName);
 
@@ -174,9 +329,10 @@ public sealed class CodingArenaService : ICodingArenaService
         string expected = room.ExpectedOutput.Trim();
         bool isCorrect = execResult.IsSuccess && string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase);
 
-        int eloDelta = 0;
+        int eloDelta;
         int awardedXp = 0;
         int newElo;
+        bool isWinner = false;
 
         lock (room)
         {
@@ -191,6 +347,8 @@ public sealed class CodingArenaService : ICodingArenaService
                 {
                     room.WinnerName = playerName;
                     room.Status = "Completed";
+                    room.CompletedAtUtc = DateTime.UtcNow;
+                    isWinner = true;
                     eloDelta = 25;
                     awardedXp = room.RewardXp;
                 }
@@ -210,6 +368,30 @@ public sealed class CodingArenaService : ICodingArenaService
             player.EloRating = newElo;
         }
 
+        var historyRecord = new ArenaMatchHistoryViewModel
+        {
+            RoomCode = room.RoomCode,
+            PlayerName = playerName,
+            IsCorrectOutput = isCorrect,
+            IsWinner = isWinner,
+            ExecutionTimeMs = execResult.ExecutionTimeMs,
+            EloDelta = eloDelta,
+            NewEloRating = newElo,
+            AwardedXp = awardedXp,
+            SubmittedAtUtc = DateTime.UtcNow
+        };
+
+        lock (_inMemoryHistory)
+        {
+            _inMemoryHistory.Add(historyRecord);
+            if (_inMemoryHistory.Count > 200)
+            {
+                _inMemoryHistory.RemoveAt(0);
+            }
+        }
+
+        PersistSubmissionResult(room, historyRecord, execResult.IsSuccess);
+
         return new ArenaSubmitResponse
         {
             IsSuccess = execResult.IsSuccess,
@@ -225,6 +407,259 @@ public sealed class CodingArenaService : ICodingArenaService
             NewEloRating = newElo,
             WinnerName = room.WinnerName
         };
+    }
+
+    private ArenaRoomViewModel GetOrCreateRoomModel(string normalizedCode)
+    {
+        return _rooms.GetOrAdd(normalizedCode, code => new ArenaRoomViewModel
+        {
+            RoomCode = code,
+            TitleVi = $"Đấu trường C# #{code}",
+            TitleEn = $"C# Battle Room #{code}",
+            DescriptionVi = "Tính tổng các số chẵn từ 1 đến 10 và in kết quả ra Console.",
+            DescriptionEn = "Compute the sum of even numbers from 1 to 10 and print the result to the Console.",
+            Difficulty = "Beginner",
+            StarterCode = "int sum = Enumerable.Range(1, 10).Where(x => x % 2 == 0).Sum();\nConsole.WriteLine(sum);",
+            ExpectedOutput = "30",
+            RewardXp = 100
+        });
+    }
+
+    private static string NormalizeRoomCode(string? roomCode)
+        => string.IsNullOrWhiteSpace(roomCode) ? "ARENA-LINQ-01" : roomCode.Trim().ToUpperInvariant();
+
+    private static string NormalizePlayerName(string? playerName)
+        => string.IsNullOrWhiteSpace(playerName) ? "AnonymousCoder" : playerName.Trim();
+
+    private void EnsureDbHydrated()
+    {
+        if (_dbHydrated || _scopeFactory == null) return;
+
+        lock (_hydrateLock)
+        {
+            if (_dbHydrated) return;
+
+            TryWithDbContext<bool>(db =>
+            {
+                // Hydrate persisted player ELO scores
+                foreach (var rating in db.ArenaPlayerRatings.AsNoTracking().ToList())
+                {
+                    _playerElo[rating.PlayerName] = rating.EloRating;
+                }
+
+                // Hydrate persisted room states or seed default rooms into DB
+                var dbRooms = db.ArenaRooms.ToList();
+                var existingCodes = dbRooms.Select(r => r.RoomCode).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                bool addedRooms = false;
+                foreach (var seed in _rooms.Values)
+                {
+                    if (!existingCodes.Contains(seed.RoomCode))
+                    {
+                        db.ArenaRooms.Add(new ArenaRoom
+                        {
+                            RoomCode = seed.RoomCode,
+                            TitleVi = seed.TitleVi,
+                            TitleEn = seed.TitleEn,
+                            DescriptionVi = seed.DescriptionVi,
+                            DescriptionEn = seed.DescriptionEn,
+                            Difficulty = seed.Difficulty,
+                            StarterCode = seed.StarterCode,
+                            ExpectedOutput = seed.ExpectedOutput,
+                            RewardXp = seed.RewardXp,
+                            TimeLimitSeconds = seed.TimeLimitSeconds,
+                            Status = seed.Status,
+                            WinnerName = seed.WinnerName,
+                            StartedAtUtc = seed.StartedAtUtc,
+                            CompletedAtUtc = seed.CompletedAtUtc,
+                            CreatedAtUtc = DateTime.UtcNow,
+                            UpdatedAtUtc = DateTime.UtcNow
+                        });
+                        addedRooms = true;
+                    }
+                }
+
+                if (addedRooms)
+                {
+                    db.SaveChanges();
+                    dbRooms = db.ArenaRooms.AsNoTracking().ToList();
+                }
+
+                foreach (var persisted in dbRooms)
+                {
+                    if (_rooms.TryGetValue(persisted.RoomCode, out var memRoom))
+                    {
+                        memRoom.Status = persisted.Status;
+                        memRoom.WinnerName = persisted.WinnerName;
+                        memRoom.StartedAtUtc = persisted.StartedAtUtc;
+                        memRoom.CompletedAtUtc = persisted.CompletedAtUtc;
+                    }
+                    else
+                    {
+                        _rooms[persisted.RoomCode] = new ArenaRoomViewModel
+                        {
+                            RoomCode = persisted.RoomCode,
+                            TitleVi = persisted.TitleVi,
+                            TitleEn = persisted.TitleEn,
+                            DescriptionVi = persisted.DescriptionVi,
+                            DescriptionEn = persisted.DescriptionEn,
+                            Difficulty = persisted.Difficulty,
+                            StarterCode = persisted.StarterCode,
+                            ExpectedOutput = persisted.ExpectedOutput,
+                            RewardXp = persisted.RewardXp,
+                            TimeLimitSeconds = persisted.TimeLimitSeconds,
+                            Status = persisted.Status,
+                            WinnerName = persisted.WinnerName,
+                            StartedAtUtc = persisted.StartedAtUtc,
+                            CompletedAtUtc = persisted.CompletedAtUtc
+                        };
+                    }
+                }
+
+                return true;
+            }, out _);
+
+            _dbHydrated = true;
+        }
+    }
+
+    private void PersistRoomAndPlayerSnapshot(ArenaRoomViewModel room, string? playerName, int? currentElo)
+    {
+        TryWithDbContext<bool>(db =>
+        {
+            var dbRoom = EnsureDbRoomRow(db, room);
+            dbRoom.Status = room.Status;
+            dbRoom.WinnerName = room.WinnerName;
+            dbRoom.StartedAtUtc = room.StartedAtUtc;
+            dbRoom.CompletedAtUtc = room.CompletedAtUtc;
+            dbRoom.UpdatedAtUtc = DateTime.UtcNow;
+
+            if (!string.IsNullOrWhiteSpace(playerName) && currentElo.HasValue)
+            {
+                var dbPlayer = db.ArenaPlayerRatings.FirstOrDefault(p => p.PlayerName == playerName);
+                if (dbPlayer == null)
+                {
+                    db.ArenaPlayerRatings.Add(new ArenaPlayerRating
+                    {
+                        PlayerName = playerName,
+                        EloRating = currentElo.Value,
+                        UpdatedAtUtc = DateTime.UtcNow
+                    });
+                }
+            }
+
+            db.SaveChanges();
+            return true;
+        }, out _);
+    }
+
+    private void PersistSubmissionResult(ArenaRoomViewModel room, ArenaMatchHistoryViewModel match, bool isExecSuccess)
+    {
+        TryWithDbContext<bool>(db =>
+        {
+            var dbRoom = EnsureDbRoomRow(db, room);
+            dbRoom.Status = room.Status;
+            dbRoom.WinnerName = room.WinnerName;
+            dbRoom.StartedAtUtc = room.StartedAtUtc;
+            dbRoom.CompletedAtUtc = room.CompletedAtUtc;
+            dbRoom.UpdatedAtUtc = DateTime.UtcNow;
+
+            var dbPlayer = db.ArenaPlayerRatings.FirstOrDefault(p => p.PlayerName == match.PlayerName);
+            if (dbPlayer == null)
+            {
+                dbPlayer = new ArenaPlayerRating
+                {
+                    PlayerName = match.PlayerName,
+                    EloRating = match.NewEloRating,
+                    MatchesPlayed = 1,
+                    Wins = match.IsWinner ? 1 : 0,
+                    Losses = !match.IsCorrectOutput ? 1 : 0,
+                    BestExecutionTimeMs = match.IsCorrectOutput ? match.ExecutionTimeMs : null,
+                    TotalXpEarned = match.AwardedXp,
+                    UpdatedAtUtc = DateTime.UtcNow
+                };
+                db.ArenaPlayerRatings.Add(dbPlayer);
+            }
+            else
+            {
+                dbPlayer.EloRating = match.NewEloRating;
+                dbPlayer.MatchesPlayed += 1;
+                if (match.IsWinner) dbPlayer.Wins += 1;
+                if (!match.IsCorrectOutput) dbPlayer.Losses += 1;
+                if (match.IsCorrectOutput && (dbPlayer.BestExecutionTimeMs == null || match.ExecutionTimeMs < dbPlayer.BestExecutionTimeMs.Value))
+                {
+                    dbPlayer.BestExecutionTimeMs = match.ExecutionTimeMs;
+                }
+                dbPlayer.TotalXpEarned += match.AwardedXp;
+                dbPlayer.UpdatedAtUtc = DateTime.UtcNow;
+            }
+
+            db.ArenaMatchRecords.Add(new ArenaMatchRecord
+            {
+                ArenaRoom = dbRoom,
+                RoomCode = match.RoomCode,
+                PlayerName = match.PlayerName,
+                IsSuccess = isExecSuccess,
+                IsCorrectOutput = match.IsCorrectOutput,
+                IsWinner = match.IsWinner,
+                ExecutionTimeMs = match.ExecutionTimeMs,
+                EloDelta = match.EloDelta,
+                NewEloRating = match.NewEloRating,
+                AwardedXp = match.AwardedXp,
+                SubmittedAtUtc = match.SubmittedAtUtc
+            });
+
+            db.SaveChanges();
+            return true;
+        }, out _);
+    }
+
+    private static ArenaRoom EnsureDbRoomRow(AppDbContext db, ArenaRoomViewModel room)
+    {
+        var existing = db.ArenaRooms.FirstOrDefault(r => r.RoomCode == room.RoomCode);
+        if (existing != null) return existing;
+
+        var created = new ArenaRoom
+        {
+            RoomCode = room.RoomCode,
+            TitleVi = room.TitleVi,
+            TitleEn = room.TitleEn,
+            DescriptionVi = room.DescriptionVi,
+            DescriptionEn = room.DescriptionEn,
+            Difficulty = room.Difficulty,
+            StarterCode = room.StarterCode,
+            ExpectedOutput = room.ExpectedOutput,
+            RewardXp = room.RewardXp,
+            TimeLimitSeconds = room.TimeLimitSeconds,
+            Status = room.Status,
+            WinnerName = room.WinnerName,
+            StartedAtUtc = room.StartedAtUtc,
+            CompletedAtUtc = room.CompletedAtUtc,
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
+        };
+        db.ArenaRooms.Add(created);
+        return created;
+    }
+
+    private bool TryWithDbContext<TResult>(Func<AppDbContext, TResult?> operation, out TResult? result)
+    {
+        result = default;
+        if (_scopeFactory == null) return false;
+
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetService<AppDbContext>();
+            if (db == null) return false;
+
+            result = operation(db);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private void SeedDefaultRooms()
