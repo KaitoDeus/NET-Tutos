@@ -45,4 +45,7 @@
     <Project Path="tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj" />
     <Project Path="tests/NET-Tutos.Gateway.Tests/NET-Tutos.Gateway.Tests.csproj" />
   </Folder>
+  <Folder Name="/05. Orchestration (.NET Aspire)/">
+    <Project Path="src/Orchestration/NET-Tutos.AppHost/NET-Tutos.AppHost.csproj" />
+  </Folder>
 </Solution>

@@ -22,6 +22,12 @@ public static class KafkaServiceCollectionExtensions
                 section.Bind(options);
             }
 
+            var aspireKafka = configuration.GetConnectionString("kafka");
+            if (!string.IsNullOrWhiteSpace(aspireKafka))
+            {
+                options.BootstrapServers = aspireKafka.Trim();
+            }
+
             var envServers = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS");
             if (!string.IsNullOrWhiteSpace(envServers))
             {

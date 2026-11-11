@@ -81,7 +81,7 @@ services:
 # Backing infrastructure (single-replica StatefulSets; use managed cloud services in production if available)
 postgres:
   enabled: true
-  image: postgres:17-alpine
+  image: pgvector/pgvector:pg17
   database: nettutos_db
   user: postgres
   storage: 10Gi

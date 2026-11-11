@@ -72,6 +72,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 builder.Services.AddMemoryCache();
 var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection")
+    ?? builder.Configuration.GetConnectionString("redis")
     ?? Environment.GetEnvironmentVariable("REDIS_CONNECTION");
 if (!string.IsNullOrWhiteSpace(redisConnectionString))
 {
@@ -232,6 +233,7 @@ builder.Services.AddScoped<IAdaptiveLearningService, AdaptiveLearningService>();
 // Determine Database Provider
 var configuredProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "PostgreSql";
 var postgreSqlConnection = builder.Configuration.GetConnectionString("PostgreSqlConnection")
+    ?? builder.Configuration.GetConnectionString("nettutos-db")
     ?? builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Host=localhost;Port=5432;Database=nettutos_db;Username=postgres;Password=postgres;Include Error Detail=true";
 var sqlServerConnection = builder.Configuration.GetConnectionString("SqlServerConnection") 

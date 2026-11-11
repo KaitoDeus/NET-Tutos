@@ -118,5 +118,32 @@ public class GatewayRoutingTests : IClassFixture<WebApplicationFactory<Program>>
         metrics.Should().Contain("nettutos_service_up{service=\"NET-Tutos.YarpGateway\"} 1");
         metrics.Should().Contain("nettutos_service_requests_total");
     }
+
+    [Fact]
+    public void Phase22_AspireAppHostAndHelmDeploymentSpecs_AreConfiguredProperly()
+    {
+        // Locate repository root dynamically from test output directory
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir != null && !File.Exists(Path.Combine(dir.FullName, "NET-Tutos.slnx")))
+        {
+            dir = dir.Parent;
+        }
+        dir.Should().NotBeNull("repository root containing NET-Tutos.slnx must exist");
+
+        string root = dir!.FullName;
+        string appHostCsproj = File.ReadAllText(Path.Combine(root, "src", "Orchestration", "NET-Tutos.AppHost", "NET-Tutos.AppHost.csproj"));
+        string appHostProgram = File.ReadAllText(Path.Combine(root, "src", "Orchestration", "NET-Tutos.AppHost", "Program.cs"));
+        string helmValues = File.ReadAllText(Path.Combine(root, "deploy", "helm", "nettutos", "values.yaml"));
+        string helmWorkflow = File.ReadAllText(Path.Combine(root, ".github", "workflows", "helm-deploy.yml"));
+
+        appHostCsproj.Should().Contain("Aspire.AppHost.Sdk");
+        appHostProgram.Should().Contain("AddPostgres(\"postgres\")");
+        appHostProgram.Should().Contain("pgvector/pgvector");
+        appHostProgram.Should().Contain("NET_Tutos_YarpGateway");
+
+        helmValues.Should().Contain("pgvector/pgvector:pg17");
+        helmWorkflow.Should().Contain("helm lint deploy/helm/nettutos");
+        helmWorkflow.Should().Contain("helm upgrade --install nettutos");
+    }
 }
 

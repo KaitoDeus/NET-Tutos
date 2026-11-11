@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.6.5" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>net-tutos-apphost-2026</UserSecretsId>
+    <NoWarn>$(NoWarn);ASPIRE010</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.6.5" />
+    <PackageReference Include="Aspire.Hosting.Kafka" Version="13.6.5" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.6.5" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="13.6.5" />
+    <PackageReference Include="Aspire.Hosting.Redis" Version="13.6.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Gateways\Gateway\NET-Tutos.YarpGateway.csproj" />
+    <ProjectReference Include="..\..\Presentation\Web\web.csproj" />
+    <ProjectReference Include="..\..\Services\AiTutor\NET-Tutos.AiTutor.API\NET-Tutos.AiTutor.API.csproj" />
+    <ProjectReference Include="..\..\Services\Catalog\NET-Tutos.Catalog.API\NET-Tutos.Catalog.API.csproj" />
+    <ProjectReference Include="..\..\Services\CodeRunner\NET-Tutos.CodeRunner.API\NET-Tutos.CodeRunner.API.csproj" />
+    <ProjectReference Include="..\..\Services\Gamification\NET-Tutos.Gamification.API\NET-Tutos.Gamification.API.csproj" />
+  </ItemGroup>
+
+</Project>

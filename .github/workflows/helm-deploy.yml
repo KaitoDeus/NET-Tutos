@@ -1,0 +1,102 @@
+name: Helm Lint, Template Validate & Staging Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'deploy/helm/**'
+      - '.github/workflows/helm-deploy.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'deploy/helm/**'
+      - '.github/workflows/helm-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  helm-validate:
+    name: Helm Lint & Manifest Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Install Helm CLI
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.16.4'
+
+      - name: Lint Helm Chart (Strict)
+        run: helm lint deploy/helm/nettutos --strict
+
+      - name: Render Kubernetes Manifests
+        run: |
+          mkdir -p ./helm-artifacts
+          helm template nettutos deploy/helm/nettutos \
+            --namespace nettutos-staging \
+            --set image.tag=${{ github.sha }} \
+            > ./helm-artifacts/rendered-manifests.yaml
+          grep -q "kind: Deployment" ./helm-artifacts/rendered-manifests.yaml
+          grep -q "pgvector/pgvector:pg17" ./helm-artifacts/rendered-manifests.yaml
+          grep -q "nettutos-gateway" ./helm-artifacts/rendered-manifests.yaml
+
+      - name: Upload Rendered Kubernetes Manifests
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-rendered-manifests
+          path: ./helm-artifacts/rendered-manifests.yaml
+          retention-days: 14
+
+  deploy-staging:
+    name: Deploy NET-Tutos Chart to Staging Cluster
+    needs: helm-validate
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Check Staging Kubeconfig Secret
+        id: kube_check
+        run: |
+          if [ -n "${{ secrets.KUBE_CONFIG_STAGING }}" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "Notice: KUBE_CONFIG_STAGING secret not set; skipping live cluster rollout after Helm validation."
+          fi
+
+      - name: Install Helm CLI
+        if: steps.kube_check.outputs.configured == 'true'
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.16.4'
+
+      - name: Configure Kubeconfig
+        if: steps.kube_check.outputs.configured == 'true'
+        run: |
+          mkdir -p "$HOME/.kube"
+          printf '%s' "${{ secrets.KUBE_CONFIG_STAGING }}" > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+
+      - name: Helm Upgrade / Install (Atomic Rollout)
+        if: steps.kube_check.outputs.configured == 'true'
+        run: |
+          helm upgrade --install nettutos deploy/helm/nettutos \
+            --namespace nettutos-staging \
+            --create-namespace \
+            --atomic \
+            --timeout 5m \
+            --set image.tag=${GITHUB_SHA::7}
