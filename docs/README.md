@@ -95,7 +95,7 @@ d:\NET-Tutos\docs\
    - Automated test matrix across Streak, Gamification, Exam, Roslyn Sandbox, AI Tutor, Observability/Prometheus, Multi-Source RAG, Live Coding Whiteboard, IDE Bridge, and HTTP endpoints.
    - Comprehensive Exceptions and Error Handling matrix with system mitigation and user recovery strategies.
    - GitHub Actions CI workflow pipeline configuration (`.github/workflows/ci.yml`) and code coverage quality gates.
-   - Local developer CLI execution guide (205 automated tests: 200 `.NET` + 5 `node:test`).
+   - Local developer CLI execution guide (210 automated tests: 205 `.NET` + 5 `node:test`).
 
 9. [**09. Microservices Architecture & Strangler Fig Migration**](file:///d:/NET-Tutos/docs/09_microservices_architecture_and_migration.md)
    - Distributed system transformation, bounded contexts, and architectural drivers.
@@ -103,10 +103,10 @@ d:\NET-Tutos\docs\
    - Dedicated `CodeRunner.API`, `Gamification.API`, `AiTutor.API`, and `Catalog.API` microservices with `/metrics` and `/healthz`.
    - Resilient delegation and graceful in-process fallback pattern (`ResilientMicroserviceHandler`).
    - 12-container Docker Compose orchestration including Apache Kafka KRaft, Prometheus (`:9090`), and Grafana (`:3000`).
-   - 205/205 automated test execution across 7 `.NET` test projects plus the VS Code Extension test suite.
+   - 210/210 automated test execution across 7 `.NET` test projects plus the VS Code Extension test suite.
 
 10. [**10. Master Project Roadmap & AI Context Memory**](file:///d:/NET-Tutos/docs/10_project_roadmap_and_ai_memory.md)
-   - Persistent AI Context Memory and Single Source of Truth (SSOT) for all 19 completed phases (Phase 1 through Phase 19): Hybrid L1/L2 Redis 7 Caching, Catalog Microservice, OpenTelemetry Tracing & HTTP Resilience, Real-Time 1v1 SignalR Coding Arena, Apache Kafka Streams & Neural TTS, Live Coding Whiteboard, Multi-Source Hybrid RAG, Prometheus + Grafana Observability Stack, and the VS Code Atus Pair-Programmer Extension.
+   - Persistent AI Context Memory and Single Source of Truth (SSOT) for all 22 completed phases (Phase 1 through Phase 22): Hybrid L1/L2 Redis 7 Caching, Catalog Microservice, OpenTelemetry Tracing & HTTP Resilience, Persistent SignalR Coding Arena, Apache Kafka Streams & Neural TTS, Live Coding Whiteboard, Hybrid Neural Embeddings with PostgreSQL `pgvector`, Prometheus + Grafana Observability Stack, VS Code Atus Extension, `.NET Aspire` AppHost & CI Helm Deployment.
    - Standing engineering rules (Pure .NET 10 / C# 14, Auto-Commit workflow, English-Only Code Comments, Zero Secret/Demo Leakage, Geo-IP Region Detection `VN` -> `vi` / Outside `VN` -> `en`, Continuous SEO, and Dedicated Mobile Roadmap separation).
 
 11. [**DESIGN. Design System & Anti-AI-Slop Constitution**](file:///d:/NET-Tutos/docs/DESIGN.md)
@@ -126,7 +126,7 @@ d:\NET-Tutos\docs\
 | **Senior Technical Hiring Readiness** | `MOD-INT` | `InterviewController.cs`, `AiTutorService.cs`, `Mock.cshtml` | 3-dimension rubric evaluation, Speech-to-Text, radar reports |
 | **Continuous Cross-Platform Study** | `MOD-MOB` | `MobileAuthController.cs`, `ApiService.cs` (.NET MAUI), `LoginPage.xaml` | JWT Bearer verification, device storage, progress sync |
 | **Learner Engagement & Retention** | `MOD-GAM` | `StreakService.cs`, `LeaderboardService.cs`, `NET-Tutos.Gamification.API` | Daily check-in tests, Level formula calculation, Gamification microservice tests |
-| **Microservice High-Compute Isolation** | `MOD-ARCH` | `NET-Tutos.CodeRunner.API`, `NET-Tutos.Gamification.API`, `NET-Tutos.AiTutor.API`, `NET-Tutos.Catalog.API`, `NET-Tutos.YarpGateway` | 200 `.NET` + 5 VS Code tests (205/205), 12-container Docker topology, CI pipeline |
+| **Microservice High-Compute Isolation** | `MOD-ARCH` | `NET-Tutos.CodeRunner.API`, `NET-Tutos.Gamification.API`, `NET-Tutos.AiTutor.API`, `NET-Tutos.Catalog.API`, `NET-Tutos.YarpGateway`, `NET-Tutos.AppHost` | 205 `.NET` + 5 VS Code tests (210/210), 12-container Docker topology, `.NET Aspire`, CI Helm deploy |
 | **Geo-IP Localization & Technical SEO** | `MOD-SEO` | `GeoIpService.cs`, `SeoMetadataService.cs`, `SeoController.cs` | VN -> `vi` / INTL -> `en`, Dynamic OG SVG, `BreadcrumbList`, `FAQPage`, IndexNow |
 | **Hybrid L1/L2 Redis 7 Caching & TTS** | `MOD-CACHE` | `HybridRedisCacheService.cs`, `TtsService.cs` (`/api/tts/speak`), `CodeExecutionService.cs`, `CurriculumService.cs` | L1 Memory + L2 Redis 7, Stampede Semaphore Lock, 30s Circuit Breaker, Neural TTS cache hit metrics |
 | **Live OAuth 2.0 SSO Authentication** | `MOD-AUTH` | `Program.cs`, `AccountController.cs`, `Login.cshtml`, `Register.cshtml`, `Profile.cshtml` | Live GitHub (`/signin-github`) & Google (`/signin-google`) OAuth 2.0 SSO |

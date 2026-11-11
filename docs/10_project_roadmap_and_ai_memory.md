@@ -3,7 +3,7 @@
 Document Type: Master Roadmap, Phase History & AI Context Memory  
 System: **NET-Tutos** — Enterprise Distributed .NET 10 & C# 14 Learning Ecosystem  
 License: [MIT License](../LICENSE) (`Copyright (c) 2026 Khải Võ (NET-Tutos)`)  
-Current Topology: **25 Projects in `NET-Tutos.slnx` + VS Code Extension (`extensions/vscode-atus`) | 12 Docker Containers | Automated Test Suite (205 Tests: 200 .NET + 5 VS Code Node Tests)**  
+Current Topology: **26 Projects in `NET-Tutos.slnx` + VS Code Extension (`extensions/vscode-atus`) | 12 Docker Containers (`pgvector/pgvector:pg17`) + `.NET Aspire` AppHost | Automated Test Suite (210 Tests: 205 .NET + 5 VS Code Node Tests)**  
 
 ---
 
@@ -11,9 +11,9 @@ Current Topology: **25 Projects in `NET-Tutos.slnx` + VS Code Extension (`extens
 
 This document serves as the persistent **AI Context Memory & Roadmap Single Source of Truth (SSOT)** for the **NET-Tutos** repository. Any AI coding agent or engineer inspecting the repository must read this file first to understand:
 1. **Standing Engineering Rules & Constraints**
-2. **Completed Roadmap History (Phase 1 – Phase 19)** and their exact files/endpoints
-3. **12-Container Distributed Topology & 205/205 Test Suite Matrix**
-4. **Upcoming Strategic Phases (Separate Mobile Roadmap + Phase 20 – Phase 22)**
+2. **Completed Roadmap History (Phase 1 – Phase 22)** and their exact files/endpoints
+3. **12-Container Distributed Topology, `.NET Aspire` Orchestration & 210/210 Test Suite Matrix**
+4. **Separate Dedicated Mobile Roadmap (`.NET MAUI 10`) & Future Enterprise Scaling Items**
 
 ---
 
@@ -62,11 +62,14 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 | **Phase 16** | **Apache Kafka Telemetry, Neural TTS & Adaptive Learning** | ✅ Completed | `apache/kafka` KRaft broker (`:9092/:29092`), `KafkaProducer`, `KafkaTelemetryConsumerWorker`, `KafkaStreamAnalyticsStore` (lag & topic analytics), `/Admin/Telemetry`, `TtsService` (`/api/tts/speak` cached on L1/L2 Redis for Vietnamese/English Neural TTS), `AdaptiveLearningService` & `POST /api/adaptive/challenge`. |
 | **Phase 17** | **Live Coding Whiteboard & Multi-Source Hybrid RAG** | ✅ Completed | Pair-Programming Live Coding Whiteboard inside `/Interview/Mock` (`POST /Interview/EvaluateLiveCoding` combining Roslyn execution, concurrent Atus Code Review + Big-O analysis, refactor apply, Voice TTS, and Kafka events). Upgraded `SemanticCurriculumSearchService` to index 4 sources (`Curriculum`, `Tutorial`, `CodingChallenge`, `InterviewFlashcard`) at `/api/search/knowledge`. |
 | **Phase 18** | **Prometheus + Grafana Observability Stack** | ✅ Completed | Zero-dependency `PrometheusMetricsBuilder` (`BuildingBlocks.Common`) & `PrometheusTelemetryExporter`, `/metrics` across all 6 .NET services (`Web`, `Gateway`, `CodeRunner`, `AiTutor`, `Catalog`, `Gamification`) exporting CLR/HTTP/Downstream/Redis L1-L2/TTS cache hit-rate/Atus AI latency & Kafka partition consumer lag, plus Docker `prom/prometheus` (`:9090`) & auto-provisioned `grafana/grafana` (`:3000`) dashboard `nettutos-overview`. Aligned `MassTransit.RabbitMQ` in Gamification to `8.3.7`. |
-| **Phase 19** | **VS Code Extension, IDE Bridge & Responsive UI** | ✅ Completed | `IdeAssistantController.cs` exposing stateless `/api/v1/ide/{status,search,chat,review,explain-error,generate-tests,complexity,execute}` proxied by YARP Gateway & Web BFF, plus `extensions/vscode-atus/` TypeScript VS Code extension (Sidebar Webview Chat, inline C# Diagnostics, Lightbulb `CodeActionProvider`, Big-O Review + 1-click Refactor, xUnit Test Generator, Roslyn Sandbox Runner, Multi-Source RAG QuickPick). Plus Stage-by-Stage Lock/Unlock Progression (`LearningProgressService.GetStageProgressionAsync`, `/Tutorials`, `/Roadmap`, `/Account/ToggleLesson`) and comprehensive responsive Web overhaul (single-row `< 576px` mobile header & drawer controls, `openMobileNotifications()`, `overflow-x: clip`, badge wrapping guardrails in `site.css`, `_Layout.cshtml`, `Playground`, `AiTutor`, `Interview/Mock`, `Home`, `Quiz`, `Curriculum`, `Planner`). |
+| **Phase 19** | **VS Code Extension, IDE Bridge & Responsive UI** | ✅ Completed | `IdeAssistantController.cs` exposing stateless `/api/v1/ide/{status,search,chat,review,explain-error,generate-tests,complexity,execute}` proxied by YARP Gateway & Web BFF, plus `extensions/vscode-atus/` TypeScript VS Code extension (Sidebar Webview Chat, inline C# Diagnostics, Lightbulb `CodeActionProvider`, Big-O Review + 1-click Refactor, xUnit Test Generator, Roslyn Sandbox Runner, Multi-Source RAG QuickPick). Plus Stage-by-Stage Lock/Unlock Progression (`LearningProgressService.GetStageProgressionAsync`, `/Tutorials`, `/Roadmap`, `/Account/ToggleLesson`) and comprehensive responsive Web overhaul (single-row mobile navbar, drawer containment in `AiTutor/Index.cshtml`, `overflow-x: clip`, badge wrapping guardrails in `site.css`, `_Layout.cshtml`, `Playground`, `Interview/Mock`, `Home`, `Quiz`, `Curriculum`, `Planner`). |
+| **Phase 20** | **Persistent Arena & Live SignalR UI** | ✅ Completed | Persistent PostgreSQL/SQLite tables (`ArenaRoom`, `ArenaPlayerRating`, `ArenaMatchRecord` in `ArenaEntities.cs` & `DbInitializer.EnsureCodingArenaTablesExistAsync`), ELO leaderboard & match history APIs (`/api/arena/leaderboard`, `/api/arena/matches`, `/api/arena/reset`), `CodingArenaHub` live room/reset/progress signals, and real-time SignalR UI (`Views/Arena/Index.cshtml`) with countdown timer, opponent progress bars, rematch button & ELO tables. |
+| **Phase 21** | **Hybrid Neural Embeddings (`pgvector`)** | ✅ Completed | Upgraded PostgreSQL container image to `pgvector/pgvector:pg17` (Docker Compose & Helm chart), added `KnowledgeEmbedding` entity + HNSW `vector(768)` column + `CREATE EXTENSION IF NOT EXISTS vector`, implemented `GeminiNeuralEmbeddingService` (`text-embedding-004` + deterministic 768-dim multilingual EN/VI dense projection fallback), fused neural + sparse TF-IDF hybrid search in `SemanticCurriculumSearchService` with `<=>` cosine distance queries, and added `/api/search/embeddings/status` & `POST /api/search/embeddings/sync`. |
+| **Phase 22** | **`.NET Aspire` AppHost & CI Helm Deployment** | ✅ Completed | Added `src/Orchestration/NET-Tutos.AppHost` (`Aspire.AppHost.Sdk` 13.6.5) orchestrating PostgreSQL `pgvector`, Redis 7, RabbitMQ 3, Kafka, YARP Gateway, Web BFF, and all 4 DDD microservices with service discovery connection fallbacks. Added `.github/workflows/helm-deploy.yml` (`helm lint --strict`, `helm template` verification, atomic staging `helm upgrade --install`), updated `.github/workflows/ci.yml` to build `AppHost` and run `Catalog.Tests`. |
 
 ---
 
-## 4. 12-Container Docker Compose Topology
+## 4. 12-Container Docker Compose Topology (`& .NET Aspire AppHost`)
 
 | Container Name | Service Role | Host Port | Internal URL |
 | :--- | :--- | :---: | :--- |
@@ -81,35 +84,30 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 | **`nettutos-redis`** | Redis 7 Alpine L2 Distributed Cache (`allkeys-lru` + AOF) | `localhost:6379` | `redis:6379` |
 | **`nettutos-rabbitmq`** | RabbitMQ 3 Message Broker & Management UI | `http://localhost:15672` | `amqp://rabbitmq:5672` |
 | **`nettutos-kafka`** | Apache Kafka KRaft Broker (AI, CodeRunner & Learning Streams) | `localhost:29092` | `kafka:9092` |
-| **`nettutos-postgres`** | PostgreSQL 17 Alpine (`nettutos_db` & `nettutos_gamification_db`) | `localhost:5432` | `postgres:5432` |
+| **`nettutos-postgres`** | PostgreSQL 17 `pgvector` (`nettutos_db` & `nettutos_gamification_db`) | `localhost:5432` | `postgres:5432` |
 
 ---
 
-## 5. Automated Test Suite Breakdown (205/205 Passing)
+## 5. Automated Test Suite Breakdown (210/210 Passing)
 
 | Test Project | Path | Tests Count | Scope Covered |
 | :--- | :--- | :---: | :--- |
-| **`NET-Tutos.Gateway.Tests`** | `tests/NET-Tutos.Gateway.Tests` | 6 | YARP reverse proxy config, `/healthz`, `/metrics`, `/api/v1/gateway/status`, `/api/v1/gateway/telemetry`, `X-Correlation-ID` propagation. |
+| **`NET-Tutos.Gateway.Tests`** | `tests/NET-Tutos.Gateway.Tests` | 7 | YARP reverse proxy config, `/healthz`, `/metrics`, `/api/v1/gateway/status`, `/api/v1/gateway/telemetry`, `X-Correlation-ID` propagation, `.NET Aspire` AppHost & Helm chart specs. |
 | **`NET-Tutos.CodeRunner.Tests`** | `tests/NET-Tutos.CodeRunner.Tests` | 11 | Roslyn C# compilation, security guard blocking (`System.Diagnostics.Process`, `System.IO.File`), test case judge. |
 | **`NET-Tutos.Gamification.Tests`** | `tests/NET-Tutos.Gamification.Tests` | 16 | Domain value objects (`XpValue`, `StreakCount`), streak check-in rules, MassTransit event consumers. |
 | **`NET-Tutos.AiTutor.Tests`** | `tests/NET-Tutos.AiTutor.Tests` | 16 | `EfficiencyScore`, `InterviewRubricScore` (50/25/25), Big-O detection, compiler diagnostics, xUnit generator, mock interview. |
 | **`NET-Tutos.Catalog.Tests`** | `tests/NET-Tutos.Catalog.Tests` | 17 | `ReadingDuration`, `ExamScore`, 7-stage bilingual `GetCatalogSectionsQueryHandler`, `EstimateLearningTrackQueryHandler`, and dual-format certificate verification (`NT-CERT-*` & `NET-2026-*`). |
-| **`NET-Tutos.UnitTests`** | `tests/NET-Tutos.UnitTests` | 99 | Web services, `CurriculumService` Redis cache & BFF delegation, `HybridRedisCacheService`, `ObservabilityService`, `PrometheusTelemetryExporter`, `ResilientMicroserviceHandler`, `CodingArenaService`, multi-source `SemanticCurriculumSearchService`, `TtsService`, `KafkaStreamAnalyticsStore`, `LearningProgressService` Stage Lock/Unlock, `GeoIpService`, `SeoMetadataService`. |
-| **`NET-Tutos.IntegrationTests`** | `tests/NET-Tutos.IntegrationTests` | 35 | Full HTTP pipeline, `/metrics`, `/api/v1/ide/*` VS Code IDE Bridge, `/api/search/knowledge`, Stage Lock/Unlock (`/Tutorials`, `/bai-hoc/*`, `/Roadmap`), Responsive Design (`/css/site.css`, `/js/site.js`, mobile header & layout guardrails), `/Interview/Mock` Live Coding Whiteboard, `/api/tts/speak`, `/Admin/Telemetry` RBAC, `/api/adaptive/challenge`, `/coding-arena`, OAuth 2.0 SSO, Geo-IP, SEO & Roslyn endpoints. |
+| **`NET-Tutos.UnitTests`** | `tests/NET-Tutos.UnitTests` | 101 | Web services, `CurriculumService` Redis cache & BFF delegation, `HybridRedisCacheService`, `ObservabilityService`, `PrometheusTelemetryExporter`, `ResilientMicroserviceHandler`, `CodingArenaService` persistence/reset, `GeminiNeuralEmbeddingService` & `SemanticCurriculumSearchService`, `TtsService`, `KafkaStreamAnalyticsStore`, `LearningProgressService` Stage Lock/Unlock, `GeoIpService`, `SeoMetadataService`. |
+| **`NET-Tutos.IntegrationTests`** | `tests/NET-Tutos.IntegrationTests` | 37 | Full HTTP pipeline, `/metrics`, `/api/v1/ide/*` VS Code IDE Bridge, `/api/search/knowledge`, `/api/search/embeddings/*`, Persistent Arena + SignalR UI (`/coding-arena`, `/api/arena/*`), Stage Lock/Unlock (`/Tutorials`, `/bai-hoc/*`, `/Roadmap`), Responsive Design (`/AiTutor`, `/css/site.css`, `/js/site.js`), `/Interview/Mock` Live Coding Whiteboard, `/api/tts/speak`, `/Admin/Telemetry` RBAC, `/api/adaptive/challenge`, OAuth 2.0 SSO, Geo-IP, SEO & Roslyn endpoints. |
 | **`atus-dotnet-pair-programmer` (`node:test`)** | `extensions/vscode-atus/src/test` | 5 | `AtusClient` HTTP headers/auth/error handling and `reviewMapper` C# diagnostic line inference & markdown report generation. |
 
 ---
 
-## 6. Upcoming Strategic Roadmap Phases (Backlog)
+## 6. Upcoming Strategic Roadmap (Separate Mobile & Enterprise Scaling)
 
 ### Separate Dedicated Roadmap: `.NET MAUI 10 Mobile` (`src/Presentation/Mobile`)
 - Expand `.NET MAUI 10` Mobile Client into an independent mobile roadmap featuring mobile Atus streaming chat, offline flashcard spaced repetition, and native Vietnamese/English Speech-to-Text + Neural TTS voice training.
 
-### Phase 20: Persistent Arena & Live Arena UI
-- Persist arena rooms, matches, and ELO history in PostgreSQL; connect `Views/Arena/Index.cshtml` to `/hubs/arena` via the SignalR JS client for live opponent progress bars and countdown timers.
-
-### Phase 21: Neural Embeddings with `pgvector`
-- Upgrade hashed TF-IDF vectors with Gemini neural embeddings stored in PostgreSQL `pgvector` for semantic recall across multilingual queries.
-
-### Phase 22: `.NET Aspire` AppHost & CI Helm Deployment
-- Add a `.NET Aspire` AppHost for local orchestration and a GitHub Actions workflow that runs `helm lint` and deploys the chart to a staging cluster.
+### Future Enterprise Scaling Items
+- **Distributed OTLP Collector Export**: Connect `.NET Aspire` / `ServiceTelemetry` OpenTelemetry traces & histograms directly to Grafana Tempo / OTLP collectors for cross-service trace correlation beyond local Prometheus scraping.
+- **Multi-Region Read Replicas & Edge CDN Caching**: Scale PostgreSQL `pgvector` HNSW read replicas and push curriculum static bundles behind Cloudflare edge workers.

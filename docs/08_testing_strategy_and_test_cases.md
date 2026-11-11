@@ -5,7 +5,7 @@ System: .NET Tutos - Comprehensive .NET Learning & Assessment Platform
 Scope: Unit Testing, Integration Testing, Sandboxed Execution, CI/CD Automated Quality Gates  
 Target Framework: .NET 10 (`net10.0`), C# 14 & Node.js 22 / TypeScript 5.7 (VS Code Extension)  
 Tooling: xUnit 2.9, FluentAssertions 7.2, Moq 4.20, Coverlet 6.0, Microsoft.AspNetCore.Mvc.Testing 10.0, `node:test`  
-Status: Verified & Integrated in Automated CI Pipeline (**205/205 Tests Passing**)  
+Status: Verified & Integrated in Automated CI Pipeline (**210/210 Tests Passing**)  
 
 ---
 
@@ -187,20 +187,20 @@ flowchart LR
 
 ## 5. Local Developer Execution Guide
 
-Developers can execute and debug the full **205-test** automated verification suite locally using standard .NET CLI and npm commands.
+Developers can execute and debug the full **210-test** automated verification suite locally using standard .NET CLI and npm commands.
 
 ### Run Web Unit & Integration Tests:
 ```powershell
-# Web BFF unit tests (99 tests)
+# Web BFF unit tests (101 tests)
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj --verbosity normal
 
-# HTTP Integration Pipeline tests (/metrics, /api/v1/ide/*, /api/search/knowledge, Stage Lock, Responsive UI, Whiteboard, TTS, OAuth, SEO) (35 tests)
+# HTTP Integration Pipeline tests (/metrics, /api/v1/ide/*, /api/search/knowledge, /api/search/embeddings/*, Persistent Arena, Stage Lock, Responsive UI, Whiteboard, TTS, OAuth, SEO) (37 tests)
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj --verbosity normal
 ```
 
 ### Run Gateway & Microservice Tests:
 ```powershell
-# YARP API Gateway tests (6 tests)
+# YARP API Gateway & Aspire/Helm validation tests (7 tests)
 dotnet test tests/NET-Tutos.Gateway.Tests/NET-Tutos.Gateway.Tests.csproj
 
 # CodeRunner microservice tests (11 tests)

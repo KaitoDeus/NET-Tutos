@@ -83,7 +83,7 @@ jobs:
               ...(docsAndCi.length ? ['### 📚 Documentation & CI/CD Automation', ...docsAndCi, ''] : []),
               ...(others.length ? ['### 🔧 Other Changes', ...others, ''] : []),
               '---',
-              `**Quality Gate:** \`205/205 Automated Tests Passing\` • **License:** [MIT License](https://github.com/${owner}/${repo}/blob/main/LICENSE)`
+              `**Quality Gate:** \`210/210 Automated Tests Passing\` • **License:** [MIT License](https://github.com/${owner}/${repo}/blob/main/LICENSE)`
             ].join('\n');
 
             const { data: release } = await github.rest.repos.createRelease({
