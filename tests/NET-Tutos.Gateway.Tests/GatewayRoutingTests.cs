@@ -270,6 +270,23 @@ public class GatewayRoutingTests : IClassFixture<WebApplicationFactory<Program>>
         helmMicro.Should().Contain("ConnectionStrings__RedisConnection");
     }
 
+    [Fact]
+    public void Phase26_HelmCertManagerAndTlsSpec_AreConfigured()
+    {
+        var root = LocateRepositoryRoot();
+        string helmValues = File.ReadAllText(Path.Combine(root, "deploy", "helm", "nettutos", "values.yaml"));
+        string helmInfra = File.ReadAllText(Path.Combine(root, "deploy", "helm", "nettutos", "templates", "infrastructure.yaml"));
+        string helmCertManager = File.ReadAllText(Path.Combine(root, "deploy", "helm", "nettutos", "templates", "cert-manager.yaml"));
+
+        helmValues.Should().Contain("clusterIssuer:");
+        helmValues.Should().Contain("sslRedirect: true");
+        helmValues.Should().Contain("createClusterIssuer: false");
+        helmInfra.Should().Contain("cert-manager.io/cluster-issuer:");
+        helmInfra.Should().Contain("nginx.ingress.kubernetes.io/ssl-redirect:");
+        helmCertManager.Should().Contain("kind: ClusterIssuer");
+        helmCertManager.Should().Contain("cert-manager.io/v1");
+    }
+
     private static string LocateRepositoryRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

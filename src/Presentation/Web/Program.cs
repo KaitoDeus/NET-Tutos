@@ -209,6 +209,7 @@ builder.Services.AddHttpClient("Tts", client =>
 });
 builder.Services.AddScoped<ITtsService, TtsService>();
 builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
+builder.Services.AddSingleton<ISqlPlaygroundService, SqlPlaygroundService>();
 builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddScoped<IDiscussionService, DiscussionService>();
 builder.Services.AddScoped<IStreakService, StreakService>();
@@ -774,6 +775,42 @@ app.MapControllerRoute(
     name: "arena-en",
     pattern: "coding-arena",
     defaults: new { controller = "Arena", action = "Index" });
+
+// Interactive Read-Only SQL Playground routes and Minimal APIs
+app.MapControllerRoute(
+    name: "sql-playground-vi",
+    pattern: "thuc-hanh-sql",
+    defaults: new { controller = "Playground", action = "Sql" });
+
+app.MapControllerRoute(
+    name: "sql-playground-en",
+    pattern: "sql-playground",
+    defaults: new { controller = "Playground", action = "Sql" });
+
+app.MapGet("/api/sql/schema", (ISqlPlaygroundService sqlPlayground) =>
+    Results.Ok(sqlPlayground.GetSchemaOverview()));
+
+app.MapGet("/api/sql/challenges", (ISqlPlaygroundService sqlPlayground) =>
+    Results.Ok(sqlPlayground.GetChallenges()));
+
+app.MapPost("/api/sql/execute", async (
+    SqlExecutionRequest? request,
+    HttpContext http,
+    ISqlPlaygroundService sqlPlayground,
+    CancellationToken ct) =>
+{
+    if (request == null || string.IsNullOrWhiteSpace(request.Query))
+    {
+        return Results.BadRequest(new SqlExecutionResultDto
+        {
+            IsSuccess = false,
+            Error = http.IsEnglish() ? "SQL query cannot be empty." : "Câu truy vấn SQL không được để trống."
+        });
+    }
+
+    var result = await sqlPlayground.ExecuteQueryAsync(request.Query, request.ChallengeId, http.IsEnglish(), ct);
+    return Results.Ok(result);
+});
 
 // Friendly certificate verify route: /verify-certificate/{code}
 app.MapControllerRoute(

@@ -129,3 +129,10 @@ ingress:
   tls:
     enabled: false
     secretName: nettutos-tls
+    clusterIssuer: ""
+    sslRedirect: true
+    hstsEnabled: true
+    certManager:
+      createClusterIssuer: false
+      acmeServer: https://acme-v02.api.letsencrypt.org/directory
+      email: ops@nettutos.local

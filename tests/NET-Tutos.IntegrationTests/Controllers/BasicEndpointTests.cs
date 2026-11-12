@@ -481,4 +481,43 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
         json.Should().Contain("\"registeredActivitySources\":");
         json.Should().Contain("\"registeredMeters\":");
     }
+
+    [Fact]
+    public async Task Phase26_SqlPlaygroundAndApiEndpoints_ReturnExpectedSchemaAndResults()
+    {
+        var enPage = await _client.GetAsync("/sql-playground");
+        enPage.EnsureSuccessStatusCode();
+        var enHtml = await enPage.Content.ReadAsStringAsync();
+        enHtml.Should().Contain("sqlEditor");
+        enHtml.Should().Contain("Students");
+
+        var viPage = await _client.GetAsync("/thuc-hanh-sql");
+        viPage.EnsureSuccessStatusCode();
+
+        var schemaRes = await _client.GetAsync("/api/sql/schema");
+        schemaRes.EnsureSuccessStatusCode();
+        (await schemaRes.Content.ReadAsStringAsync()).Should().Contain("Enrollments");
+
+        var challengesRes = await _client.GetAsync("/api/sql/challenges");
+        challengesRes.EnsureSuccessStatusCode();
+        (await challengesRes.Content.ReadAsStringAsync()).Should().Contain("top-xp-students");
+
+        var validPayload = new StringContent(
+            "{\"query\":\"SELECT FullName, Country, XpPoints FROM Students ORDER BY XpPoints DESC LIMIT 3\",\"challengeId\":1}",
+            System.Text.Encoding.UTF8,
+            "application/json");
+        var execRes = await _client.PostAsync("/api/sql/execute", validPayload);
+        execRes.EnsureSuccessStatusCode();
+        var execJson = await execRes.Content.ReadAsStringAsync();
+        execJson.Should().Contain("\"isSuccess\":true");
+        execJson.Should().Contain("\"challengePassed\":true");
+
+        var unsafePayload = new StringContent(
+            "{\"query\":\"DROP TABLE Students\"}",
+            System.Text.Encoding.UTF8,
+            "application/json");
+        var unsafeRes = await _client.PostAsync("/api/sql/execute", unsafePayload);
+        unsafeRes.EnsureSuccessStatusCode();
+        (await unsafeRes.Content.ReadAsStringAsync()).Should().Contain("\"isSuccess\":false");
+    }
 }

@@ -1,0 +1,244 @@
+@using NET_Tutos.Services
+@{
+    bool isEn = Context.IsEnglish();
+    ViewData["Title"] = isEn ? "Interactive SQL Query Playground" : "Thực hành Truy vấn SQL Tương tác";
+    var schemaTables = ViewBag.SchemaTables as IReadOnlyList<SqlTableSchemaDto> ?? Array.Empty<SqlTableSchemaDto>();
+    var challenges = ViewBag.SqlChallenges as IReadOnlyList<SqlChallengeDto> ?? Array.Empty<SqlChallengeDto>();
+}
+
+<div class="container-fluid px-3 px-lg-4 py-4" style="max-width: 1680px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-2 mb-2">
+                <i class="bi bi-database-check me-1"></i>
+                @(isEn ? "Read-Only In-Memory SQLite Sandbox" : "SQLite In-Memory Sandbox Chỉ Đọc")
+            </span>
+            <h1 class="h2 fw-bold mb-1">
+                @(isEn ? "Interactive SQL Playground" : "Sân chơi Thực hành SQL Tương tác")
+            </h1>
+            <p class="text-body-secondary mb-0">
+                @(isEn
+                    ? "Practice SELECT, JOIN, GROUP BY, HAVING, and WITH CTE queries safely against live academy tables."
+                    : "Thực hành truy vấn SELECT, JOIN, GROUP BY, HAVING và WITH CTE an toàn trên dữ liệu học viện mô phỏng.")
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="Playground" asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3">
+                <i class="bi bi-terminal me-1"></i> @(isEn ? "C# Code Sandbox" : "C# Sandbox")
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Sidebar: Relational Schema & Curated Challenges -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-transparent border-bottom py-3">
+                    <h2 class="h6 fw-bold mb-0">
+                        <i class="bi bi-diagram-3 me-2 text-primary"></i>
+                        @(isEn ? "Relational Schema Explorer" : "Cấu trúc Bảng dữ liệu")
+                    </h2>
+                </div>
+                <div class="card-body p-3">
+                    @foreach (var table in schemaTables)
+                    {
+                        <div class="border rounded-3 p-2 mb-2 bg-body-tertiary">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span class="fw-semibold text-primary font-monospace small">@table.TableName</span>
+                                <button type="button"
+                                        class="btn btn-link btn-sm p-0 text-decoration-none sql-sample-btn"
+                                        data-sql="SELECT * FROM @table.TableName LIMIT 10;">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>@(isEn ? "Preview" : "Xem")
+                                </button>
+                            </div>
+                            <div class="small text-body-secondary font-monospace" style="font-size: 0.78rem;">
+                                @string.Join(" · ", table.Columns)
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-transparent border-bottom py-3">
+                    <h2 class="h6 fw-bold mb-0">
+                        <i class="bi bi-trophy me-2 text-warning"></i>
+                        @(isEn ? "SQL Practice Challenges" : "Thử thách SQL Thực chiến")
+                    </h2>
+                </div>
+                <div class="list-group list-group-flush rounded-bottom-4">
+                    @foreach (var ch in challenges)
+                    {
+                        <button type="button"
+                                class="list-group-item list-group-item-action p-3 sql-challenge-btn"
+                                data-challenge-id="@ch.Id"
+                                data-starter-sql="@ch.StarterQuery">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-semibold small">#@ch.Id · @(isEn ? ch.TitleEn : ch.TitleVi)</span>
+                                <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill">@ch.Difficulty</span>
+                            </div>
+                            <p class="small text-body-secondary mb-1">@(isEn ? ch.PromptEn : ch.PromptVi)</p>
+                            <div class="small text-info-emphasis">
+                                <i class="bi bi-lightbulb me-1"></i>@(isEn ? ch.HintEn : ch.HintVi)
+                            </div>
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Workbench: SQL Editor & Result Grid -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-transparent border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold"><i class="bi bi-code-slash me-1 text-success"></i> @(isEn ? "SQL Query Editor" : "Trình soạn thảo SQL")</span>
+                        <span id="activeChallengeBadge" class="badge bg-primary-subtle text-primary rounded-pill d-none"></span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" id="clearSqlChallengeBtn" class="btn btn-sm btn-outline-secondary rounded-pill d-none">
+                            @(isEn ? "Free Query Mode" : "Chế độ Tự do")
+                        </button>
+                        <button type="button" id="runSqlBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-semibold">
+                            <i class="bi bi-play-fill me-1"></i> @(isEn ? "Run SQL (Ctrl+Enter)" : "Chạy SQL (Ctrl+Enter)")
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-3">
+                    <textarea id="sqlEditor"
+                              class="form-control font-monospace bg-body-tertiary border-0 rounded-3 p-3"
+                              rows="8"
+                              spellcheck="false">SELECT s.FullName, s.Country, s.XpPoints, COUNT(sub.Id) AS Submissions
+FROM Students s
+LEFT JOIN Submissions sub ON sub.StudentId = s.Id
+GROUP BY s.Id, s.FullName, s.Country, s.XpPoints
+ORDER BY s.XpPoints DESC;</textarea>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-transparent border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold"><i class="bi bi-table me-2 text-info"></i> @(isEn ? "Query Results" : "Kết quả Truy vấn")</span>
+                    <span id="sqlStats" class="small text-body-secondary font-monospace"></span>
+                </div>
+                <div class="card-body p-3">
+                    <div id="sqlVerdictAlert" class="alert d-none mb-3" role="alert"></div>
+                    <div id="sqlResultContainer" class="table-responsive">
+                        <p class="text-body-secondary small mb-0">
+                            @(isEn ? "Click \"Run SQL\" or select a challenge on the left to inspect query output." : "Nhấn \"Chạy SQL\" hoặc chọn một thử thách bên trái để xem kết quả truy vấn.")
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const editor = document.getElementById('sqlEditor');
+            const runBtn = document.getElementById('runSqlBtn');
+            const clearBtn = document.getElementById('clearSqlChallengeBtn');
+            const badge = document.getElementById('activeChallengeBadge');
+            const stats = document.getElementById('sqlStats');
+            const verdict = document.getElementById('sqlVerdictAlert');
+            const resultBox = document.getElementById('sqlResultContainer');
+            let activeChallengeId = null;
+
+            function setChallenge(id, starterSql) {
+                activeChallengeId = id;
+                if (starterSql) {
+                    editor.value = starterSql;
+                }
+                if (id) {
+                    badge.textContent = `Challenge #${id}`;
+                    badge.classList.remove('d-none');
+                    clearBtn.classList.remove('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                    clearBtn.classList.add('d-none');
+                }
+            }
+
+            document.querySelectorAll('.sql-sample-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setChallenge(null, btn.getAttribute('data-sql'));
+                    executeSql();
+                });
+            });
+
+            document.querySelectorAll('.sql-challenge-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = parseInt(btn.getAttribute('data-challenge-id'), 10);
+                    const sql = btn.getAttribute('data-starter-sql');
+                    setChallenge(id, sql);
+                });
+            });
+
+            clearBtn.addEventListener('click', () => setChallenge(null, null));
+
+            editor.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    executeSql();
+                }
+            });
+
+            runBtn.addEventListener('click', executeSql);
+
+            async function executeSql() {
+                runBtn.disabled = true;
+                verdict.classList.add('d-none');
+                stats.textContent = '...';
+
+                try {
+                    const response = await fetch('/api/sql/execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query: editor.value, challengeId: activeChallengeId })
+                    });
+                    const data = await response.json();
+
+                    if (!data.isSuccess) {
+                        stats.textContent = `${data.executionTimeMs || 0} ms`;
+                        resultBox.innerHTML = `<div class="alert alert-danger mb-0">${escapeHtml(data.error || 'SQL execution failed')}</div>`;
+                        return;
+                    }
+
+                    stats.textContent = `${data.rowCount} rows · ${data.executionTimeMs} ms`;
+                    if (data.challengeMessage) {
+                        verdict.className = `alert mb-3 ${data.challengePassed ? 'alert-success' : 'alert-warning'}`;
+                        verdict.textContent = data.challengeMessage;
+                    }
+
+                    if (!data.columns || data.columns.length === 0) {
+                        resultBox.innerHTML = '<p class="text-body-secondary small mb-0">0 columns returned.</p>';
+                        return;
+                    }
+
+                    const headers = data.columns.map(c => `<th>${escapeHtml(c)}</th>`).join('');
+                    const bodyRows = data.rows.map(row =>
+                        `<tr>${row.map(cell => `<td class="font-monospace small">${escapeHtml(cell)}</td>`).join('')}</tr>`
+                    ).join('');
+
+                    resultBox.innerHTML = `
+                        <table class="table table-sm table-striped table-hover align-middle mb-0">
+                            <thead class="table-dark"><tr>${headers}</tr></thead>
+                            <tbody>${bodyRows}</tbody>
+                        </table>`;
+                } catch (err) {
+                    resultBox.innerHTML = `<div class="alert alert-danger mb-0">${escapeHtml(err.message)}</div>`;
+                } finally {
+                    runBtn.disabled = false;
+                }
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = String(text ?? '');
+                return div.innerHTML;
+            }
+        })();
+    </script>
+}

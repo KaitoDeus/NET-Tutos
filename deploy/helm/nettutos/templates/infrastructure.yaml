@@ -169,6 +169,17 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+    {{- if .Values.ingress.tls.enabled }}
+    nginx.ingress.kubernetes.io/ssl-redirect: {{ .Values.ingress.tls.sslRedirect | quote }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: {{ .Values.ingress.tls.sslRedirect | quote }}
+    {{- if .Values.ingress.tls.hstsEnabled }}
+    nginx.ingress.kubernetes.io/hsts: "true"
+    {{- end }}
+    {{- if .Values.ingress.tls.clusterIssuer }}
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.tls.clusterIssuer | quote }}
+    {{- end }}
+    {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- if .Values.ingress.tls.enabled }}

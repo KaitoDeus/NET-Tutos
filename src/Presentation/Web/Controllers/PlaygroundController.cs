@@ -17,6 +17,7 @@ public class PlaygroundController : Controller
     private readonly IStreakService _streakService;
     private readonly INotificationService _notificationService;
     private readonly IActivityFeedService _activityFeedService;
+    private readonly ISqlPlaygroundService _sqlPlaygroundService;
 
     public PlaygroundController(
         AppDbContext context,
@@ -24,7 +25,8 @@ public class PlaygroundController : Controller
         UserManager<ApplicationUser> userManager,
         IStreakService streakService,
         INotificationService notificationService,
-        IActivityFeedService activityFeedService)
+        IActivityFeedService activityFeedService,
+        ISqlPlaygroundService? sqlPlaygroundService = null)
     {
         _context = context;
         _executionService = executionService;
@@ -32,6 +34,15 @@ public class PlaygroundController : Controller
         _streakService = streakService;
         _notificationService = notificationService;
         _activityFeedService = activityFeedService;
+        _sqlPlaygroundService = sqlPlaygroundService ?? new SqlPlaygroundService();
+    }
+
+    // GET: /Playground/Sql, /sql-playground, or /thuc-hanh-sql
+    public IActionResult Sql()
+    {
+        ViewBag.SchemaTables = _sqlPlaygroundService.GetSchemaOverview();
+        ViewBag.SqlChallenges = _sqlPlaygroundService.GetChallenges();
+        return View();
     }
 
     // GET: /Playground or /Playground/Challenge/{slug?}

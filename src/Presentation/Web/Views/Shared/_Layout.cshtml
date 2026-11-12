@@ -344,6 +344,18 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a class="dropdown-item category-shortcut-card p-2 rounded-3 mb-1 @(currentController == "Playground" && ViewContext.RouteData.Values["action"]?.ToString() == "Sql" ? "active" : "")"
+                                       asp-controller="Playground" asp-action="Sql">
+                                        <div class="category-icon-box bg-info-subtle text-info">
+                                            <i class="bi bi-database-check"></i>
+                                        </div>
+                                        <div class="category-content-box">
+                                            <span class="category-text-title">@(isEn ? "Interactive SQL Playground" : "Thực hành SQL Tương tác")</span>
+                                            <span class="category-text-desc">@(isEn ? "Read-only SQLite relational challenges" : "Truy vấn SQLite sandbox & thử thách")</span>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
                                     <a class="dropdown-item category-shortcut-card p-2 rounded-3 mb-1 @(currentController == "Quiz" ? "active" : "")"
                                        asp-controller="Quiz" asp-action="Index">
                                         <div class="category-icon-box bg-success-subtle text-success">
