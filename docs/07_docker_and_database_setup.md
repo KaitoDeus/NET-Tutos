@@ -22,7 +22,7 @@ graph TD
         Browser["Web Browser (http://localhost:5000 or :5001)"]
     end
 
-    subgraph DockerCompose ["Docker Compose Environment (12 Containers)"]
+    subgraph DockerCompose ["Docker Compose Environment (13 Containers)"]
         Gateway["nettutos-gateway (YARP Port 5000)"]
         WebApp["nettutos-web (Port 5001 -> 5000)"]
         CodeRunner["nettutos-coderunner (Port 5002 -> 8080)"]
@@ -33,6 +33,7 @@ graph TD
         RabbitMQ["nettutos-rabbitmq (Port 5672 / 15672)"]
         Kafka["nettutos-kafka (Port 9092 / 29092)"]
         Prometheus["nettutos-prometheus (Port 9090)"]
+        Tempo["nettutos-tempo (OTLP gRPC 4317 / HTTP 3200)"]
         Grafana["nettutos-grafana (Port 3000)"]
         PostgresDB[("nettutos-postgres (Port 5432)\nnettutos_db & nettutos_gamification_db")]
     end
@@ -61,12 +62,12 @@ graph TD
 
 ## 2. Service Specifications in `docker-compose.yml`
 
-The deployment environment orchestrates 12 integrated containers defined in [`docker-compose.yml`](file:///d:/NET-Tutos/docker-compose.yml):
+The deployment environment orchestrates 13 integrated containers defined in [`docker-compose.yml`](file:///d:/NET-Tutos/docker-compose.yml) (plus Helm/Kubernetes chart parity in [`deploy/helm/nettutos`](file:///d:/NET-Tutos/deploy/helm/nettutos)):
 
 | Service Name | Image / Build Target | Port Mapping (Host:Container) | Role & Operational Configuration |
 | :--- | :--- | :--- | :--- |
-| **`postgres`** | `postgres:17-alpine` | `5432:5432` | Core relational persistence (`nettutos_db` & `nettutos_gamification_db`) backed by `postgres_data`. Built-in `pg_isready` healthcheck. |
-| **`redis`** | `redis:7-alpine` | `6379:6379` | L2 Distributed Cache for Roslyn SHA-256 outputs, Neural TTS audio, Catalog & SEO sitemap (`redis_data` volume). |
+| **`postgres`** | `pgvector/pgvector:pg17` | `5432:5432` | Core relational & HNSW vector persistence (`nettutos_db` & `nettutos_gamification_db`) backed by `postgres_data`. Built-in `pg_isready` healthcheck. |
+| **`redis`** | `redis:7-alpine` | `6379:6379` | L2 Cache, DataProtection keys, SignalR backplane & distributed Gateway quotas (`redis_data` volume). |
 | **`rabbitmq`** | `rabbitmq:3-management-alpine` | `5672:5672`<br/>`15672:15672` | AMQP Message Broker for MassTransit integration events & Web Management UI. |
 | **`kafka`** | `apache/kafka:latest` | `9092:9092`<br/>`29092:29092` | KRaft event streaming broker (AI telemetry, CodeRunner executions, user learning activities). |
 | **`coderunner`** | `build: src/Services/CodeRunner/NET-Tutos.CodeRunner.API/Dockerfile` | `5002:8080` | Dedicated Roslyn C# 14 sandbox execution microservice exposing `/metrics` & `/healthz`. |
@@ -76,7 +77,8 @@ The deployment environment orchestrates 12 integrated containers defined in [`do
 | **`web`** | `build: src/Presentation/Web/Dockerfile` | `5001:5000` | ASP.NET Core 10 MVC Web BFF, OAuth 2.0 SSO, Hybrid RAG, Neural TTS, IDE Bridge (`/api/v1/ide/*`) & `/metrics`. |
 | **`gateway`** | `build: src/Gateways/Gateway/Dockerfile` | `5000:8080` | Microsoft YARP API Gateway & Reverse Proxy (Rate Limiting, `X-Correlation-ID` & `/metrics`). |
 | **`prometheus`** | `prom/prometheus:latest` | `9090:9090` | Scrapes `/metrics` across `web`, `gateway`, 4 microservices & `prometheus` every `5s` (`prometheus_data` volume). |
-| **`grafana`** | `grafana/grafana:latest` | `3000:3000` | Pre-provisioned Prometheus datasource & 12-panel dashboard `nettutos-overview` (`grafana_data` volume). |
+| **`tempo`** | `grafana/tempo:latest` | `3200:3200`<br/>`4317:4317` | Distributed OTLP trace receiver (`gRPC :4317`, HTTP `:4318`) synced into Grafana (`tempo_data` volume). |
+| **`grafana`** | `grafana/grafana:latest` | `3000:3000` | Pre-provisioned Prometheus + Tempo datasources & 12-panel dashboard `nettutos-overview` (`grafana_data` volume). |
 
 ---
 

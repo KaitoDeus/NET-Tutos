@@ -10,11 +10,11 @@
 [![VS Code Extension](https://img.shields.io/badge/VS_Code-Atus_Pair_Programmer-007ACC?logo=visualstudiocode&logoColor=white)](extensions/vscode-atus)
 [![.NET MAUI](https://img.shields.io/badge/.NET_MAUI-Separate_Mobile_Roadmap-512BD4?logo=dotnet)](src/Presentation/Mobile)
 [![.NET Aspire](https://img.shields.io/badge/.NET_Aspire-13.6.5-512BD4?logo=dotnet)](src/Orchestration/NET-Tutos.AppHost)
-[![Tests](https://img.shields.io/badge/Tests-210%2F210_Passing-10B981)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-241%2F241_Passing-10B981)](tests/)
 [![Cache](https://img.shields.io/badge/Cache-Hybrid_L1_%2B_Redis_7-DC382D?logo=redis&logoColor=white)](docker-compose.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**NET-Tutos** is an enterprise-grade, distributed educational ecosystem and Learning Management System (LMS) engineered on **.NET 10** and **C# 14**. Built using **Microservices Architecture**, **4-Layer Clean Architecture (DDD + CQRS)**, and the **Strangler Fig Pattern**, the platform unites a **Microsoft YARP API Gateway**, an **ASP.NET Core 10 MVC** web application (BFF) with **Geo-IP Region Language Detection (`VN` -> `vi`, Outside `VN` -> `en`)**, **Automated Technical SEO & Dynamic OG SVG Engine**, **Hybrid L1/L2 Redis 7 Distributed Caching**, **Apache Kafka KRaft Real-Time Event Streaming**, **Prometheus + Grafana Cloud-Native Observability**, a **VS Code Extension (`Atus .NET Pair Programmer`)**, **Multi-Source Hybrid RAG (175+ documents)**, **Live Coding Whiteboard & Neural TTS**, isolated **CodeRunner**, **Gamification**, **AiTutor (Atus)**, and **Catalog & Assessment** microservices, **MassTransit + RabbitMQ**, and **PostgreSQL 17** persistence with automatic zero-downtime fallback. (The `.NET MAUI 10` Mobile client follows its own dedicated mobile roadmap.)
+**NET-Tutos** is an enterprise-grade, distributed educational ecosystem and Learning Management System (LMS) engineered on **.NET 10** and **C# 14**. Built using **Microservices Architecture**, **4-Layer Clean Architecture (DDD + CQRS)**, and the **Strangler Fig Pattern**, the platform unites a **Microsoft YARP API Gateway** (distributed Redis sliding-window rate limiting + sticky affinity), an **ASP.NET Core 10 MVC** web application (BFF) with **Redis DataProtection & SignalR Backplane**, **Geo-IP Region Language Detection (`VN` -> `vi`, Outside `VN` -> `en`)**, **Automated Technical SEO & Dynamic OG SVG Engine**, **Hybrid L1/L2 Redis 7 Distributed Caching**, **Apache Kafka KRaft Real-Time Event Streaming**, **Prometheus + Grafana Tempo OTLP Distributed Tracing & Observability**, a **VS Code Extension (`Atus .NET Pair Programmer`)**, **Interactive Read-Only SQL Playground**, **Multi-Source Hybrid RAG (`pgvector` HNSW + TF-IDF)**, **Live Coding Whiteboard & Neural TTS**, isolated **CodeRunner**, **Gamification**, **AiTutor (Atus)**, and **Catalog & Assessment** microservices, **MassTransit + RabbitMQ**, and **PostgreSQL 17 `pgvector`** persistence orchestrated across Docker Compose, `.NET Aspire`, and Kubernetes Helm (Cert-Manager TLS). (The `.NET MAUI 10` Mobile client follows its own dedicated mobile roadmap.)
 
 ---
 
@@ -38,7 +38,7 @@
   - [Option B: Run Standalone Web App with Automatic Resilient Fallback](#option-b-run-standalone-web-app-with-automatic-resilient-fallback)
   - [Option C: Run the .NET MAUI Mobile Application (Separate Mobile Roadmap)](#option-c-run-the-net-maui-mobile-application-separate-mobile-roadmap)
   - [Option D: Run the VS Code Extension (Atus .NET Pair Programmer)](#option-d-run-the-vs-code-extension-atus-net-pair-programmer)
-- [8. Automated Testing & CI Quality Gates (210/210 Passing)](#8-automated-testing--ci-quality-gates-210210-passing)
+- [8. Automated Testing & CI Quality Gates (241/241 Passing)](#8-automated-testing--ci-quality-gates-241241-passing)
 - [9. Enterprise Documentation Suite (`docs/`)](#9-enterprise-documentation-suite-docs)
 - [10. License](#10-license)
 
@@ -105,24 +105,24 @@ The repository is organized into 5 explicit architectural folders inside `NET-Tu
 
 ```text
 d:\NET-Tutos\
-├── NET-Tutos.slnx                              # .NET 10 XML Solution (25 Projects across 5 Layers)
-├── docker-compose.yml                          # 12-Container Orchestration (+ Kafka, Prometheus, Grafana)
-├── observability/                              # Prometheus scrape config & pre-provisioned Grafana dashboards
+├── NET-Tutos.slnx                              # .NET 10 XML Solution (26 Projects across 5 Layers)
+├── docker-compose.yml                          # 13-Container Orchestration (+ Kafka, Tempo, Prometheus, Grafana)
+├── observability/                              # Prometheus, Grafana Tempo (OTLP) & pre-provisioned Grafana dashboards
 ├── extensions/vscode-atus/                     # TypeScript VS Code Extension ("Atus .NET Pair Programmer")
-├── deploy/helm/nettutos/                       # Kubernetes Helm Chart
+├── deploy/helm/nettutos/                       # Kubernetes Helm Chart (13-service parity & Cert-Manager TLS)
 ├── README.md                                   # Microservices & Platform Documentation
 ├── docs/                                       # Single Source of Truth (SSOT) Architecture & BRD/NFR Specifications
 │
 ├── src/
 │   ├── Gateways/                               # [00. Gateways Layer]
-│   │   └── Gateway/                            # Microsoft YARP API Gateway, Rate Limiter, CorrelationId & /metrics
+│   │   └── Gateway/                            # Microsoft YARP API Gateway, Distributed Rate Limiter, OTLP, CorrelationId & /metrics
 │   │
 │   ├── Presentation/                           # [01. Presentation Layer]
-│   │   ├── Web/                                # ASP.NET Core 10 MVC, BFF, SignalR, Hybrid RAG, Neural TTS & IDE APIs
+│   │   ├── Web/                                # ASP.NET Core 10 MVC, BFF, Redis Scale-Out, SQL Playground, SignalR, Hybrid RAG, Neural TTS & IDE APIs
 │   │   └── Mobile/                             # Cross-Platform .NET MAUI 10 Native Client (Separate Roadmap)
 │   │
 │   ├── Services/                               # [02. Services Layer — 4-Layer Clean Architecture Microservices]
-│   │   ├── CodeRunner/                         # Isolated Roslyn C# 14 Compilation & Online Judge Microservice
+│   │   ├── CodeRunner/                         # Isolated Roslyn C# 14 Compilation, Guardrails & Online Judge Microservice
 │   │   ├── Gamification/                       # Event-Driven Streaks, XP, Badges & Leaderboard Microservice
 │   │   ├── AiTutor/                            # Algorithmic Big-O, Diagnostics, xUnit Gen & Mock Interview Microservice
 │   │   └── Catalog/                            # Curriculum, Learning Tracks & Certification Microservice
@@ -131,10 +131,10 @@ d:\NET-Tutos\
 │   │   └── NET-Tutos.AppHost/                  # Unified local orchestrator (Postgres pgvector, Redis, RabbitMQ, Kafka, 6 .NET services)
 │   │
 │   └── Infrastructure/                         # [03. Infrastructure Layer — Shared BuildingBlocks]
-│       ├── Common/                             # ApiResponse<T>, Result<T>, ServiceTelemetry & PrometheusMetricsBuilder
+│       ├── Common/                             # ApiResponse<T>, Result<T>, OpenTelemetry OTLP, PrometheusMetricsBuilder & SandboxGuardrails
 │       └── EventBus/                           # Integration events (RabbitMQ/MassTransit) & Apache Kafka streams
 │
-└── tests/                                      # [04. Tests Layer — 205 .NET Tests + 5 VS Code Node Tests = 210]
+└── tests/                                      # [04. Tests Layer — 236 .NET Tests + 5 VS Code Node Tests = 241]
     ├── NET-Tutos.Gateway.Tests/                # YARP Gateway routing, status, /metrics & X-Correlation-ID tests
     ├── NET-Tutos.CodeRunner.Tests/             # Roslyn sandbox, AST security blacklist & timeout tests
     ├── NET-Tutos.Gamification.Tests/           # Streak domain rules, XP ledger & MassTransit consumer tests
@@ -337,15 +337,15 @@ Learners can sign in or register directly via **GitHub OAuth 2.0** (`/signin-git
 
 ---
 
-## 8. Automated Testing & CI Quality Gates (210/210 Passing)
+## 8. Automated Testing & CI Quality Gates (241/241 Passing)
 
-Every microservice, gateway route, `.NET Aspire` AppHost & Helm deployment manifest, domain value object, hybrid Redis cache, Geo-IP detector, SEO engine, OAuth 2.0 SSO flow, Prometheus OpenMetrics exporter, Kafka analytics store, Neural TTS proxy, Persistent PostgreSQL SignalR coding arena, Hybrid `pgvector` Neural RAG engine, Stage-by-Stage Lock progression, Responsive Web Design, IDE Bridge API, and VS Code extension client is verified by **210 automated tests** (**205 `.NET` tests across 7 projects + 5 VS Code Node tests**, enforced via [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and [`.github/workflows/helm-deploy.yml`](.github/workflows/helm-deploy.yml)):
+Every microservice, gateway route, distributed rate-limit partition, `.NET Aspire` AppHost & Kubernetes Cert-Manager Helm deployment manifest, OpenTelemetry OTLP exporter, Redis scale-out backplane, domain value object, hybrid Redis cache, SQL Playground sandbox, Geo-IP detector, SEO engine, OAuth 2.0 SSO flow, Prometheus OpenMetrics exporter, Kafka analytics store, Neural TTS proxy, Persistent PostgreSQL SignalR coding arena, Hybrid `pgvector` Neural RAG engine, Stage-by-Stage Lock progression, Responsive Web Design, IDE Bridge API, and VS Code extension client is verified by **241 automated tests** (**236 `.NET` tests across 7 projects + 5 VS Code Node tests**, enforced via [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and [`.github/workflows/helm-deploy.yml`](.github/workflows/helm-deploy.yml)):
 
 ```powershell
-# 1. YARP API Gateway routing, topology, telemetry, /metrics, X-Correlation-ID & Aspire/Helm specs (7 tests)
+# 1. YARP API Gateway routing, distributed rate limiting, OTLP/Tempo, /metrics, X-Correlation-ID & Aspire/Helm specs (11 tests)
 dotnet test tests/NET-Tutos.Gateway.Tests/NET-Tutos.Gateway.Tests.csproj
 
-# 2. CodeRunner microservice domain rules & Roslyn sandbox tests (11 tests)
+# 2. CodeRunner microservice domain rules, Roslyn sandbox & guardrail tests (13 tests)
 dotnet test tests/NET-Tutos.CodeRunner.Tests/NET-Tutos.CodeRunner.Tests.csproj
 
 # 3. Gamification microservice domain, streak & MassTransit consumer tests (16 tests)
@@ -357,10 +357,10 @@ dotnet test tests/NET-Tutos.AiTutor.Tests/NET-Tutos.AiTutor.Tests.csproj
 # 5. Catalog & Assessment microservice domain, 7-stage curriculum & certification tests (17 tests)
 dotnet test tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj
 
-# 6. Web BFF unit tests (Cache, Geo-IP, SEO, Observability, Prometheus Exporter, Stage Lock, Persistent Arena, Neural pgvector RAG, TTS, Kafka) (101 tests)
+# 6. Web BFF unit tests (Redis Scale-Out, OTLP Collector, Sandbox Guardrails, SQL Playground, Cache, Geo-IP, SEO, Observability, RAG, TTS, Kafka) (123 tests)
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
 
-# 7. End-to-End HTTP integration pipeline (/metrics, /api/v1/ide/*, /api/search/knowledge, /api/search/embeddings/*, Persistent Arena, Stage Lock, Responsive UI, Whiteboard, TTS, OAuth, SEO) (37 tests)
+# 7. End-to-End HTTP integration pipeline (/api/scaleout/diagnostics, /api/telemetry/otlp, /sql-playground, /api/sql/*, /metrics, /api/v1/ide/*, /api/search/*, Arena, Stage Lock, Responsive UI, Whiteboard, TTS, OAuth, SEO) (40 tests)
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
 
 # 8. VS Code Extension TypeScript client & C# review diagnostic mapper tests (5 tests)
