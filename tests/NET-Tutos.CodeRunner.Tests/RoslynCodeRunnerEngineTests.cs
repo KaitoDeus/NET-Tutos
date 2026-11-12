@@ -87,4 +87,29 @@ public class Solution
         result.IsTimeout.Should().BeTrue();
         result.Error.Should().ContainAny("vượt quá giới hạn", "quá thời gian", "timeout");
     }
+
+    [Fact]
+    public async Task Phase25_ExecuteAsync_OutputFlood_TruncatesWithinSafeMemoryBounds()
+    {
+        var code = "for (int i = 0; i < 400; i++) Console.WriteLine(new string('A', 100));";
+
+        var result = await _engine.ExecuteAsync(code, timeoutMs: 4000);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Output.Should().Contain("Output truncated at");
+        result.Output.Length.Should().BeLessThan(17_000);
+    }
+
+    [Fact]
+    public async Task Phase25_ExecuteAsync_ExpandedSecurityKeywordsAndOversizedCode_AreRejected()
+    {
+        var envAttempt = await _engine.ExecuteAsync("Console.WriteLine(Environment.GetEnvironmentVariable(\"POSTGRES_PASSWORD\"));");
+        envAttempt.IsSuccess.Should().BeFalse();
+        envAttempt.Error.Should().Contain("Environment.GetEnvironmentVariable");
+
+        var tooLarge = new string(' ', 33_000) + "Console.WriteLine(1);";
+        var sizeAttempt = await _engine.ExecuteAsync(tooLarge);
+        sizeAttempt.IsSuccess.Should().BeFalse();
+        sizeAttempt.Error.Should().Contain("kích thước");
+    }
 }

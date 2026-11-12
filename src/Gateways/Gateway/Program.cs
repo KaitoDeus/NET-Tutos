@@ -1,9 +1,8 @@
 using System.Diagnostics;
-using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.RateLimiting;
 using NET_Tutos.BuildingBlocks.Common.Models;
 using NET_Tutos.BuildingBlocks.Common.Telemetry;
 using NET_Tutos.YarpGateway.Middlewares;
+using NET_Tutos.YarpGateway.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,19 +14,8 @@ builder.Services.AddNetTutosOpenTelemetry(builder.Configuration, "NET-Tutos.Yarp
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
-// 2. Add Rate Limiting for Sandbox Execution
-builder.Services.AddRateLimiter(options =>
-{
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-
-    options.AddFixedWindowLimiter("runner-policy", opt =>
-    {
-        opt.PermitLimit = 60; // Max 60 script executions per minute
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 5;
-    });
-});
+// 2. Add Distributed Partitioned Rate Limiting (Redis-backed with in-memory sliding-window fallback)
+builder.Services.AddNetTutosDistributedRateLimiting(builder.Configuration, builder.Environment);
 
 // 3. Add Unified CORS Policy
 builder.Services.AddCors(options =>
@@ -68,6 +56,8 @@ app.Use(async (context, next) =>
         throw;
     }
 });
+app.UseRouting();
+app.UseNetTutosDistributedQuotaHeaders();
 app.UseRateLimiter();
 
 // 5. Gateway Health Endpoints
@@ -107,6 +97,11 @@ app.MapGet("/api/v1/gateway/otlp", (OtlpCollectorDiagnosticsDto otlp) =>
     Results.Ok(ApiResponse<OtlpCollectorDiagnosticsDto>.Ok(otlp)))
 .WithName("GatewayOtlpDiagnostics")
 .WithSummary("Returns OTLP collector export status for the YARP API Gateway");
+
+app.MapGet("/api/v1/gateway/ratelimits", (DistributedRateLimitStatusDto rateLimits) =>
+    Results.Ok(ApiResponse<DistributedRateLimitStatusDto>.Ok(rateLimits)))
+.WithName("GatewayRateLimits")
+.WithSummary("Returns active distributed rate limiting policies and limits");
 
 app.MapGet("/metrics", (ServiceTelemetry telemetry) =>
     Results.Text(telemetry.ToPrometheusMetrics(), PrometheusMetricsBuilder.ContentType))

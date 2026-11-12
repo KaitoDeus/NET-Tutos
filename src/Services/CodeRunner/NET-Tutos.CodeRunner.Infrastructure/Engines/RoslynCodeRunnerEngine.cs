@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
+using NET_Tutos.BuildingBlocks.Common.Sandbox;
 using NET_Tutos.CodeRunner.Application.Contracts;
 using NET_Tutos.CodeRunner.Application.Services;
 using NET_Tutos.CodeRunner.Domain.Rules;
@@ -53,10 +54,12 @@ public class RoslynCodeRunnerEngine : ICodeRunnerEngine
             };
         }
 
+        int safeTimeoutMs = SandboxGuardrails.ClampTimeoutMs(timeoutMs);
+
         var stopwatch = Stopwatch.StartNew();
         var originalOut = Console.Out;
         var originalError = Console.Error;
-        using var stringWriter = new StringWriter();
+        using var stringWriter = new BoundedStringWriter(SandboxGuardrails.MaxOutputCharacters);
         bool lockAcquired = false;
 
         try
@@ -80,7 +83,7 @@ public class RoslynCodeRunnerEngine : ICodeRunnerEngine
                 };
             }
 
-            using var executionCts = new CancellationTokenSource(timeoutMs);
+            using var executionCts = new CancellationTokenSource(safeTimeoutMs);
 
             Console.SetOut(stringWriter);
             Console.SetError(stringWriter);
@@ -110,7 +113,7 @@ public class RoslynCodeRunnerEngine : ICodeRunnerEngine
             }
 
             var runTask = script.RunAsync(cancellationToken: executionCts.Token);
-            var timeoutTask = Task.Delay(timeoutMs);
+            var timeoutTask = Task.Delay(safeTimeoutMs);
             var completedTask = await Task.WhenAny(runTask, timeoutTask);
 
             if (completedTask == timeoutTask)
@@ -121,7 +124,7 @@ public class RoslynCodeRunnerEngine : ICodeRunnerEngine
                 {
                     IsSuccess = false,
                     IsTimeout = true,
-                    Error = $"Thời gian chạy vượt quá giới hạn an toàn ({timeoutMs / 1000.0:F1}s). Vui lòng kiểm tra lại vòng lặp hoặc thuật toán.",
+                    Error = $"Thời gian chạy vượt quá giới hạn an toàn ({safeTimeoutMs / 1000.0:F1}s). Vui lòng kiểm tra lại vòng lặp hoặc thuật toán.",
                     Output = stringWriter.ToString(),
                     ExecutionTimeMs = stopwatch.ElapsedMilliseconds
                 };
@@ -150,7 +153,7 @@ public class RoslynCodeRunnerEngine : ICodeRunnerEngine
             {
                 IsSuccess = false,
                 IsTimeout = true,
-                Error = $"Thời gian chạy vượt quá giới hạn an toàn ({timeoutMs / 1000}s). Vui lòng kiểm tra lại vòng lặp hoặc thuật toán.",
+                Error = $"Thời gian chạy vượt quá giới hạn an toàn ({safeTimeoutMs / 1000.0:F1}s). Vui lòng kiểm tra lại vòng lặp hoặc thuật toán.",
                 Output = stringWriter.ToString(),
                 ExecutionTimeMs = stopwatch.ElapsedMilliseconds
             };
@@ -250,14 +253,8 @@ public class RoslynCodeRunnerEngine : ICodeRunnerEngine
         return response;
     }
 
-    private static string ValidateSecurity(string code)
-    {
-        if (ExecutionConstraints.ContainsForbiddenKeyword(code, out var matchedKeyword))
-        {
-            return $"Từ chối thực thi: Mã nguồn chứa từ khóa bị cấm vì lý do an toàn bảo mật ('{matchedKeyword}').";
-        }
-        return string.Empty;
-    }
+    private static string ValidateSecurity(string code) =>
+        SandboxGuardrails.ValidateSecurityAndLimits(code);
 
     private static string BuildTestHarness(string userCode, string inputParameters)
     {

@@ -37,6 +37,8 @@ spec:
               value: "nettutos-{{ $name }}"
             {{- end }}
             {{- if eq $name "gateway" }}
+            - name: ConnectionStrings__RedisConnection
+              value: "nettutos-redis:6379,abortConnect=false"
             # Override YARP cluster destinations from appsettings.json to Kubernetes service DNS names
             - { name: ReverseProxy__Clusters__web-cluster__Destinations__destination1__Address, value: "http://nettutos-web:5000" }
             - { name: ReverseProxy__Clusters__coderunner-cluster__Destinations__destination1__Address, value: "http://nettutos-coderunner:8080" }

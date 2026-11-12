@@ -193,10 +193,12 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__RedisConnection=redis:6379,abortConnect=false,connectTimeout=1500,syncTimeout=1000
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
     ports:
       - "5000:8080"
     depends_on:
+      - redis
       - web
       - coderunner
       - gamification

@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
+using NET_Tutos.BuildingBlocks.Common.Sandbox;
 using NET_Tutos.BuildingBlocks.EventBus.Events;
 using NET_Tutos.BuildingBlocks.EventBus.Kafka;
 using NET_Tutos.Models.Entities;
@@ -60,19 +61,6 @@ public class CodeExecutionService : ICodeExecutionService
             typeof(List<>).Assembly,
             typeof(System.Text.Json.JsonSerializer).Assembly
         );
-
-    private static readonly string[] _forbiddenKeywords =
-    {
-        "System.Diagnostics.Process",
-        "Process.Start",
-        "System.IO.File",
-        "System.IO.Directory",
-        "System.IO.FileStream",
-        "System.Environment.Exit",
-        "System.Net.Sockets",
-        "System.Reflection.Emit",
-        "Assembly.Load"
-    };
 
     public async Task<CodeExecutionResponse> ExecuteAsync(string code, int timeoutMs = 4000)
     {
@@ -133,12 +121,14 @@ public class CodeExecutionService : ICodeExecutionService
             };
         }
 
+        int safeTimeoutMs = SandboxGuardrails.ClampTimeoutMs(timeoutMs);
+
         // Microservices Delegation: If remote CodeRunner service is configured, delegate execution
         if (_httpClient != null && !string.IsNullOrEmpty(_remoteServiceUrl))
         {
             try
             {
-                var payload = new { Code = code, TimeoutMs = timeoutMs };
+                var payload = new { Code = code, TimeoutMs = safeTimeoutMs };
                 var response = await _httpClient.PostAsJsonAsync("/api/v1/runner/execute", payload);
                 if (response.IsSuccessStatusCode)
                 {
@@ -171,7 +161,7 @@ public class CodeExecutionService : ICodeExecutionService
         var stopwatch = Stopwatch.StartNew();
         var originalOut = Console.Out;
         var originalError = Console.Error;
-        using var stringWriter = new StringWriter();
+        using var stringWriter = new BoundedStringWriter(SandboxGuardrails.MaxOutputCharacters);
         bool lockAcquired = false;
 
         try
@@ -196,7 +186,7 @@ public class CodeExecutionService : ICodeExecutionService
                 };
             }
 
-            using var executionCts = new CancellationTokenSource(timeoutMs);
+            using var executionCts = new CancellationTokenSource(safeTimeoutMs);
 
             Console.SetOut(stringWriter);
             Console.SetError(stringWriter);
@@ -226,7 +216,7 @@ public class CodeExecutionService : ICodeExecutionService
             }
 
             var runTask = script.RunAsync(cancellationToken: executionCts.Token);
-            var timeoutTask = Task.Delay(timeoutMs);
+            var timeoutTask = Task.Delay(safeTimeoutMs);
             var completedTask = await Task.WhenAny(runTask, timeoutTask);
 
             if (completedTask == timeoutTask)
@@ -237,7 +227,7 @@ public class CodeExecutionService : ICodeExecutionService
                 {
                     IsSuccess = false,
                     IsTimeout = true,
-                    Error = $"Thời gian chạy vượt quá giới hạn an toàn ({timeoutMs / 1000.0:F1}s). Vui lòng kiểm tra lại vòng lặp hoặc thuật toán.",
+                    Error = $"Thời gian chạy vượt quá giới hạn an toàn ({safeTimeoutMs / 1000.0:F1}s). Vui lòng kiểm tra lại vòng lặp hoặc thuật toán.",
                     Output = stringWriter.ToString(),
                     ExecutionTimeMs = stopwatch.ElapsedMilliseconds
                 };
@@ -271,7 +261,7 @@ public class CodeExecutionService : ICodeExecutionService
             {
                 IsSuccess = false,
                 IsTimeout = true,
-                Error = $"Thời gian chạy vượt quá giới hạn an toàn ({timeoutMs / 1000}s). Vui lòng kiểm tra lại vòng lặp hoặc thuật toán.",
+                Error = $"Thời gian chạy vượt quá giới hạn an toàn ({safeTimeoutMs / 1000.0:F1}s). Vui lòng kiểm tra lại vòng lặp hoặc thuật toán.",
                 Output = stringWriter.ToString(),
                 ExecutionTimeMs = stopwatch.ElapsedMilliseconds
             };
@@ -451,17 +441,8 @@ public class CodeExecutionService : ICodeExecutionService
         return true;
     }
 
-    private static string ValidateSecurity(string code)
-    {
-        foreach (var keyword in _forbiddenKeywords)
-        {
-            if (code.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-            {
-                return $"Từ chối thực thi: Mã nguồn chứa từ khóa bị cấm vì lý do an toàn bảo mật ('{keyword}').";
-            }
-        }
-        return string.Empty;
-    }
+    private static string ValidateSecurity(string code) =>
+        SandboxGuardrails.ValidateSecurityAndLimits(code);
 
     private static string BuildTestHarness(string userCode, string inputParameters)
     {

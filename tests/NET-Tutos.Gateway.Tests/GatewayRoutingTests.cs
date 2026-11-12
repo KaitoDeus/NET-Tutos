@@ -215,6 +215,61 @@ public class GatewayRoutingTests : IClassFixture<WebApplicationFactory<Program>>
         helmWorkflow.Should().Contain("nettutos-tempo");
     }
 
+    [Fact]
+    public async Task Phase25_DistributedRateLimitsAndPerClientPartitioning_EnforceQuotas()
+    {
+        var baseClient = _factory.CreateClient();
+        var statusResponse = await baseClient.GetAsync("/api/v1/gateway/ratelimits");
+        statusResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var statusBody = await statusResponse.Content.ReadAsStringAsync();
+        statusBody.Should().Contain("InMemorySlidingWindow");
+        statusBody.Should().Contain("runner-policy");
+        statusBody.Should().Contain("aitutor-policy");
+        statusBody.Should().Contain("ClientIpOrIdentity");
+
+        using var quotaFactory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseSetting("RateLimiting:AiTutorPermitLimitPerMinute", "2");
+            builder.UseSetting("RateLimiting:QueueLimit", "0");
+            builder.UseSetting("RateLimiting:WindowSeconds", "60");
+        });
+        var client = quotaFactory.CreateClient();
+
+        // First two requests for client-alpha consume the permit budget (upstream proxy returns 502 because no backend listens in unit host)
+        for (int i = 0; i < 2; i++)
+        {
+            using var req = new HttpRequestMessage(HttpMethod.Get, "/api/v1/aitutor/ping");
+            req.Headers.Add("X-Client-Id", "client-alpha");
+            var res = await client.SendAsync(req);
+            res.StatusCode.Should().NotBe(HttpStatusCode.TooManyRequests);
+            res.Headers.Should().ContainKey("X-RateLimit-Policy");
+        }
+
+        // Third request for client-alpha triggers partitioned 429 TooManyRequests with Retry-After
+        using var throttledReq = new HttpRequestMessage(HttpMethod.Get, "/api/v1/aitutor/ping");
+        throttledReq.Headers.Add("X-Client-Id", "client-alpha");
+        var throttledRes = await client.SendAsync(throttledReq);
+        throttledRes.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+        throttledRes.Headers.Should().ContainKey("Retry-After");
+        var throttledBody = await throttledRes.Content.ReadAsStringAsync();
+        throttledBody.Should().Contain("Rate limit exceeded");
+
+        // Independent partition client-beta remains unthrottled
+        using var isolatedReq = new HttpRequestMessage(HttpMethod.Get, "/api/v1/aitutor/ping");
+        isolatedReq.Headers.Add("X-Client-Id", "client-beta");
+        var isolatedRes = await client.SendAsync(isolatedReq);
+        isolatedRes.StatusCode.Should().NotBe(HttpStatusCode.TooManyRequests);
+
+        var root = LocateRepositoryRoot();
+        string compose = File.ReadAllText(Path.Combine(root, "docker-compose.yml"));
+        string helmMicro = File.ReadAllText(Path.Combine(root, "deploy", "helm", "nettutos", "templates", "microservices.yaml"));
+        string gatewaySettings = File.ReadAllText(Path.Combine(root, "src", "Gateways", "Gateway", "appsettings.json"));
+
+        gatewaySettings.Should().Contain("\"aitutor-policy\"");
+        compose.Should().Contain("ConnectionStrings__RedisConnection=redis:6379");
+        helmMicro.Should().Contain("ConnectionStrings__RedisConnection");
+    }
+
     private static string LocateRepositoryRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
