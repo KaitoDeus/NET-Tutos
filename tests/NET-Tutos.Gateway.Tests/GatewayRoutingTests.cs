@@ -145,5 +145,43 @@ public class GatewayRoutingTests : IClassFixture<WebApplicationFactory<Program>>
         helmWorkflow.Should().Contain("helm lint deploy/helm/nettutos");
         helmWorkflow.Should().Contain("helm upgrade --install nettutos");
     }
+
+    [Fact]
+    public void Phase23_HelmProductionParityAndYarpAffinity_AreConfiguredProperly()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir != null && !File.Exists(Path.Combine(dir.FullName, "NET-Tutos.slnx")))
+        {
+            dir = dir.Parent;
+        }
+        dir.Should().NotBeNull("repository root containing NET-Tutos.slnx must exist");
+
+        string root = dir!.FullName;
+        string gatewaySettings = File.ReadAllText(Path.Combine(root, "src", "Gateways", "Gateway", "appsettings.json"));
+        string helmValues = File.ReadAllText(Path.Combine(root, "deploy", "helm", "nettutos", "values.yaml"));
+        string helmInfra = File.ReadAllText(Path.Combine(root, "deploy", "helm", "nettutos", "templates", "infrastructure.yaml"));
+        string helmObs = File.ReadAllText(Path.Combine(root, "deploy", "helm", "nettutos", "templates", "observability.yaml"));
+        string helmMicro = File.ReadAllText(Path.Combine(root, "deploy", "helm", "nettutos", "templates", "microservices.yaml"));
+        string helmWorkflow = File.ReadAllText(Path.Combine(root, ".github", "workflows", "helm-deploy.yml"));
+
+        gatewaySettings.Should().Contain("\"SessionAffinity\"");
+        gatewaySettings.Should().Contain(".YARP.WebAffinity");
+
+        helmValues.Should().Contain("serviceType: ClusterIP");
+        helmValues.Should().Contain("gamificationDatabase: nettutos_gamification_db");
+        helmValues.Should().Contain("kafka:");
+        helmValues.Should().Contain("prometheus:");
+        helmValues.Should().Contain("grafana:");
+
+        helmInfra.Should().Contain("nettutos-postgres-init");
+        helmInfra.Should().Contain("nettutos-kafka");
+        helmObs.Should().Contain("nettutos-prometheus");
+        helmObs.Should().Contain("nettutos-grafana");
+        helmMicro.Should().Contain("Kafka__Enabled");
+        helmMicro.Should().Contain("serviceType");
+
+        helmWorkflow.Should().Contain("image.tag=${{ github.sha }}");
+        helmWorkflow.Should().NotContain("${GITHUB_SHA::7}");
+    }
 }
 

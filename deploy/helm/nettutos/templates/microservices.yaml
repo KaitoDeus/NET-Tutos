@@ -48,6 +48,12 @@ spec:
               value: "Host=nettutos-postgres;Port=5432;Database={{ $root.Values.postgres.database }};Username={{ $root.Values.postgres.user }};Password=$(POSTGRES_PASSWORD)"
             - name: ConnectionStrings__RedisConnection
               value: "nettutos-redis:6379,abortConnect=false"
+            - name: Kafka__Enabled
+              value: {{ $root.Values.kafka.enabled | quote }}
+            {{- if $root.Values.kafka.enabled }}
+            - name: Kafka__BootstrapServers
+              value: "nettutos-kafka:9092"
+            {{- end }}
             - name: DATAPROTECTION_KEYS_PATH
               value: /app/.keys
             - name: Services__CodeRunner__Url
@@ -69,7 +75,7 @@ spec:
               valueFrom:
                 secretKeyRef: { name: {{ $root.Values.existingSecret }}, key: POSTGRES_PASSWORD, optional: true }
             - name: ConnectionStrings__PostgreSqlConnection
-              value: "Host=nettutos-postgres;Port=5432;Database=nettutos_gamification_db;Username={{ $root.Values.postgres.user }};Password=$(POSTGRES_PASSWORD)"
+              value: "Host=nettutos-postgres;Port=5432;Database={{ $root.Values.postgres.gamificationDatabase }};Username={{ $root.Values.postgres.user }};Password=$(POSTGRES_PASSWORD)"
             - name: RabbitMQ__Host
               value: nettutos-rabbitmq
             - name: UseInMemoryBus
@@ -97,6 +103,7 @@ metadata:
   labels:
     {{- include "nettutos.labels" $root | nindent 4 }}
 spec:
+  type: {{ $svc.serviceType | default "ClusterIP" }}
   selector:
     app.kubernetes.io/name: nettutos-{{ $name }}
   ports:

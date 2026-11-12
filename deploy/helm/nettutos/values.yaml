@@ -1,7 +1,7 @@
 # Global image registry settings (images published by .github/workflows/docker-ghcr.yml)
 image:
   registry: ghcr.io
-  repository: khaivo/net-tutos
+  repository: kaitodeus/net-tutos
   tag: latest
   pullPolicy: IfNotPresent
 
@@ -19,6 +19,7 @@ services:
   gateway:
     enabled: true
     imageName: gateway
+    serviceType: ClusterIP
     port: 8080
     replicas: 2
     environment: Production
@@ -83,6 +84,7 @@ postgres:
   enabled: true
   image: pgvector/pgvector:pg17
   database: nettutos_db
+  gamificationDatabase: nettutos_gamification_db
   user: postgres
   storage: 10Gi
 redis:
@@ -92,6 +94,27 @@ redis:
 rabbitmq:
   enabled: true
   image: rabbitmq:3-management-alpine
+kafka:
+  enabled: true
+  image: apache/kafka:latest
+  resources:
+    requests: { cpu: 150m, memory: 384Mi }
+    limits: { cpu: "1", memory: 768Mi }
+
+# Observability stack (Prometheus OpenMetrics + Grafana Dashboards)
+prometheus:
+  enabled: true
+  image: prom/prometheus:latest
+  retention: 15d
+  resources:
+    requests: { cpu: 100m, memory: 192Mi }
+    limits: { cpu: 500m, memory: 512Mi }
+grafana:
+  enabled: true
+  image: grafana/grafana:latest
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits: { cpu: 500m, memory: 384Mi }
 
 ingress:
   enabled: true

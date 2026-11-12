@@ -69,7 +69,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddSignalR();
 builder.Services.AddMemoryCache();
 var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection")
     ?? builder.Configuration.GetConnectionString("redis")
@@ -86,6 +85,12 @@ else
 {
     builder.Services.AddDistributedMemoryCache();
 }
+var keysFolder = Environment.GetEnvironmentVariable("DATAPROTECTION_KEYS_PATH")
+    ?? Path.Combine(builder.Environment.ContentRootPath, ".keys");
+builder.Services.AddNetTutosRedisScaleOut(
+    redisConnectionString,
+    builder.Environment.IsEnvironment("Testing"),
+    keysFolder);
 builder.Services.AddSingleton<IAppCacheService, HybridRedisCacheService>();
 builder.Services.AddSingleton<IObservabilityService, ObservabilityService>();
 builder.Services.AddSingleton<IPrometheusTelemetryExporter, PrometheusTelemetryExporter>();
@@ -160,13 +165,7 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     };
 });
 
-// Persist DataProtection keys so container restarts/rebuilds do not invalidate Antiforgery or Auth cookies
-var keysFolder = Environment.GetEnvironmentVariable("DATAPROTECTION_KEYS_PATH")
-    ?? Path.Combine(builder.Environment.ContentRootPath, ".keys");
-Directory.CreateDirectory(keysFolder);
-builder.Services.AddDataProtection()
-    .SetApplicationName("NET-Tutos")
-    .PersistKeysToFileSystem(new DirectoryInfo(keysFolder));
+// DataProtection key ring & Redis scale-out configured via AddNetTutosRedisScaleOut above.
 
 // Antiforgery Configuration for AJAX & Fetch requests
 builder.Services.AddAntiforgery(options =>
@@ -581,6 +580,12 @@ app.MapGet("/api/telemetry/diagnostics", async (IObservabilityService observabil
 {
     var snapshot = await observability.GetDiagnosticsAsync(ct);
     return Results.Ok(snapshot);
+});
+
+// Multi-Replica Redis Scale-Out Diagnostics Endpoint (DataProtection + SignalR Backplane)
+app.MapGet("/api/scaleout/diagnostics", (ScaleOutTopologyStatus scaleOut) =>
+{
+    return Results.Ok(scaleOut);
 });
 
 // Prometheus OpenMetrics Scrape Endpoint (v0.0.4)

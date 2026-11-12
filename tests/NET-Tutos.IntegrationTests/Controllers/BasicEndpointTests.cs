@@ -450,4 +450,19 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
         searchJson.Should().Contain("\"searchMode\":\"dense-neural-hybrid\"");
         searchJson.Should().Contain("\"neuralDimensions\":768");
     }
+
+    [Fact]
+    public async Task Phase23_ScaleOutDiagnostics_ReturnsTopologyStatus()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/scaleout/diagnostics");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync();
+        json.Should().Contain("\"dataProtectionMode\":");
+        json.Should().Contain("\"signalRBackplane\":");
+        json.Should().Contain("nettutos:dataprotection-keys");
+        json.Should().Contain("nettutos:signalr:");
+    }
 }

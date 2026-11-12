@@ -49,6 +49,11 @@ jobs:
           grep -q "kind: Deployment" ./helm-artifacts/rendered-manifests.yaml
           grep -q "pgvector/pgvector:pg17" ./helm-artifacts/rendered-manifests.yaml
           grep -q "nettutos-gateway" ./helm-artifacts/rendered-manifests.yaml
+          grep -q "nettutos_gamification_db" ./helm-artifacts/rendered-manifests.yaml
+          grep -q "nettutos-kafka" ./helm-artifacts/rendered-manifests.yaml
+          grep -q "nettutos-prometheus" ./helm-artifacts/rendered-manifests.yaml
+          grep -q "nettutos-grafana" ./helm-artifacts/rendered-manifests.yaml
+          grep -q "Kafka__Enabled" ./helm-artifacts/rendered-manifests.yaml
 
       - name: Upload Rendered Kubernetes Manifests
         uses: actions/upload-artifact@v4
@@ -94,9 +99,11 @@ jobs:
       - name: Helm Upgrade / Install (Atomic Rollout)
         if: steps.kube_check.outputs.configured == 'true'
         run: |
+          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           helm upgrade --install nettutos deploy/helm/nettutos \
             --namespace nettutos-staging \
             --create-namespace \
             --atomic \
             --timeout 5m \
-            --set image.tag=${GITHUB_SHA::7}
+            --set image.repository=${OWNER_LC}/net-tutos \
+            --set image.tag=${{ github.sha }}
