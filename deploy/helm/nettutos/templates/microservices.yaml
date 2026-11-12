@@ -30,6 +30,12 @@ spec:
               value: {{ $svc.environment | quote }}
             - name: ASPNETCORE_URLS
               value: "http://+:{{ $svc.port }}"
+            {{- if and $root.Values.tempo $root.Values.tempo.enabled }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://nettutos-tempo:4317"
+            - name: OTEL_SERVICE_NAME
+              value: "nettutos-{{ $name }}"
+            {{- end }}
             {{- if eq $name "gateway" }}
             # Override YARP cluster destinations from appsettings.json to Kubernetes service DNS names
             - { name: ReverseProxy__Clusters__web-cluster__Destinations__destination1__Address, value: "http://nettutos-web:5000" }

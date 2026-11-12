@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var serviceTelemetry = new ServiceTelemetry("NET-Tutos.CodeRunner.API");
 builder.Services.AddSingleton(serviceTelemetry);
+builder.Services.AddNetTutosOpenTelemetry(builder.Configuration, "NET-Tutos.CodeRunner.API", serviceTelemetry);
 
 // Add Services
 builder.Services.AddCodeRunnerServices();

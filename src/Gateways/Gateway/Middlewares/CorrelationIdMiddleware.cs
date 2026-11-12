@@ -22,6 +22,7 @@ public class CorrelationIdMiddleware
         }
 
         context.Response.Headers[CorrelationIdHeaderName] = correlationId;
+        System.Diagnostics.Activity.Current?.SetTag("correlation.id", correlationId.ToString());
 
         using (_logger.BeginScope(new Dictionary<string, object>
         {

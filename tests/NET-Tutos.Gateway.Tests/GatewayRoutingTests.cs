@@ -183,5 +183,47 @@ public class GatewayRoutingTests : IClassFixture<WebApplicationFactory<Program>>
         helmWorkflow.Should().Contain("image.tag=${{ github.sha }}");
         helmWorkflow.Should().NotContain("${GITHUB_SHA::7}");
     }
+
+    [Fact]
+    public async Task Phase24_GatewayOtlpEndpointAndTempoSpecs_AreConfigured()
+    {
+        var client = _factory.CreateClient();
+        var response = await client.GetAsync("/api/v1/gateway/otlp");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadAsStringAsync();
+        body.Should().Contain("NET-Tutos.YarpGateway");
+        body.Should().Contain("NET-Tutos.YarpGateway.Tracing");
+        body.Should().Contain("NET-Tutos.YarpGateway.Metrics");
+
+        var root = LocateRepositoryRoot();
+        string tempoConfig = File.ReadAllText(Path.Combine(root, "observability", "tempo", "tempo.yml"));
+        string grafanaSources = File.ReadAllText(Path.Combine(root, "observability", "grafana", "provisioning", "datasources", "prometheus.yml"));
+        string compose = File.ReadAllText(Path.Combine(root, "docker-compose.yml"));
+        string helmValues = File.ReadAllText(Path.Combine(root, "deploy", "helm", "nettutos", "values.yaml"));
+        string helmObs = File.ReadAllText(Path.Combine(root, "deploy", "helm", "nettutos", "templates", "observability.yaml"));
+        string helmMicro = File.ReadAllText(Path.Combine(root, "deploy", "helm", "nettutos", "templates", "microservices.yaml"));
+        string helmWorkflow = File.ReadAllText(Path.Combine(root, ".github", "workflows", "helm-deploy.yml"));
+
+        tempoConfig.Should().Contain("otlp:");
+        grafanaSources.Should().Contain("nettutos-tempo");
+        compose.Should().Contain("grafana/tempo:");
+        compose.Should().Contain("OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317");
+        helmValues.Should().Contain("tempo:");
+        helmObs.Should().Contain("nettutos-tempo");
+        helmMicro.Should().Contain("OTEL_EXPORTER_OTLP_ENDPOINT");
+        helmWorkflow.Should().Contain("nettutos-tempo");
+    }
+
+    private static string LocateRepositoryRoot()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir != null && !File.Exists(Path.Combine(dir.FullName, "NET-Tutos.slnx")))
+        {
+            dir = dir.Parent;
+        }
+        dir.Should().NotBeNull("repository root containing NET-Tutos.slnx must exist");
+        return dir!.FullName;
+    }
 }
 

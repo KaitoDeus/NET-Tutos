@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var serviceTelemetry = new ServiceTelemetry("NET-Tutos.Catalog.API");
 builder.Services.AddSingleton(serviceTelemetry);
+builder.Services.AddNetTutosOpenTelemetry(builder.Configuration, "NET-Tutos.Catalog.API", serviceTelemetry);
 
 builder.Services.AddSingleton<ICatalogEngine, CatalogAssessmentEngine>();
 builder.Services.AddScoped<GetCatalogOverviewQueryHandler>();

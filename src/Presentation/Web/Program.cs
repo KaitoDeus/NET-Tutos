@@ -12,6 +12,7 @@ using NET_Tutos.Models;
 using NET_Tutos.Models.Entities;
 using NET_Tutos.Models.ViewModels;
 using NET_Tutos.Services;
+using NET_Tutos.BuildingBlocks.Common.Telemetry;
 using NET_Tutos.BuildingBlocks.EventBus.Extensions;
 using NET_Tutos.BuildingBlocks.EventBus.Kafka;
 using Npgsql;
@@ -94,6 +95,11 @@ builder.Services.AddNetTutosRedisScaleOut(
 builder.Services.AddSingleton<IAppCacheService, HybridRedisCacheService>();
 builder.Services.AddSingleton<IObservabilityService, ObservabilityService>();
 builder.Services.AddSingleton<IPrometheusTelemetryExporter, PrometheusTelemetryExporter>();
+builder.Services.AddNetTutosOpenTelemetry(
+    builder.Configuration,
+    "NET-Tutos.Web.BFF",
+    [ObservabilityService.SourceName],
+    [ObservabilityService.MeterNamespace]);
 builder.Services.AddTransient<ResilientMicroserviceHandler>();
 
 // CORS configuration for Web MVC & Mobile (.NET MAUI) clients
@@ -580,6 +586,11 @@ app.MapGet("/api/telemetry/diagnostics", async (IObservabilityService observabil
 {
     var snapshot = await observability.GetDiagnosticsAsync(ct);
     return Results.Ok(snapshot);
+});
+
+app.MapGet("/api/telemetry/otlp", (NET_Tutos.BuildingBlocks.Common.Telemetry.OtlpCollectorDiagnosticsDto otlp) =>
+{
+    return Results.Ok(otlp);
 });
 
 // Multi-Replica Redis Scale-Out Diagnostics Endpoint (DataProtection + SignalR Backplane)

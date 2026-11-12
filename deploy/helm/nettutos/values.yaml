@@ -115,6 +115,12 @@ grafana:
   resources:
     requests: { cpu: 100m, memory: 128Mi }
     limits: { cpu: 500m, memory: 384Mi }
+tempo:
+  enabled: true
+  image: grafana/tempo:latest
+  resources:
+    requests: { cpu: 100m, memory: 192Mi }
+    limits: { cpu: 500m, memory: 512Mi }
 
 ingress:
   enabled: true

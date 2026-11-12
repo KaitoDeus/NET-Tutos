@@ -465,4 +465,20 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
         json.Should().Contain("nettutos:dataprotection-keys");
         json.Should().Contain("nettutos:signalr:");
     }
+
+    [Fact]
+    public async Task Phase24_OtlpCollectorDiagnostics_ReturnsTelemetryExportStatus()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/telemetry/otlp");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync();
+        json.Should().Contain("\"serviceName\":\"NET-Tutos.Web.BFF\"");
+        json.Should().Contain("\"otlpEnabled\":");
+        json.Should().Contain("\"protocol\":");
+        json.Should().Contain("\"registeredActivitySources\":");
+        json.Should().Contain("\"registeredMeters\":");
+    }
 }

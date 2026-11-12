@@ -53,6 +53,7 @@ jobs:
           grep -q "nettutos-kafka" ./helm-artifacts/rendered-manifests.yaml
           grep -q "nettutos-prometheus" ./helm-artifacts/rendered-manifests.yaml
           grep -q "nettutos-grafana" ./helm-artifacts/rendered-manifests.yaml
+          grep -q "nettutos-tempo" ./helm-artifacts/rendered-manifests.yaml
           grep -q "Kafka__Enabled" ./helm-artifacts/rendered-manifests.yaml
 
       - name: Upload Rendered Kubernetes Manifests

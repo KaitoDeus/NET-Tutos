@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var gatewayTelemetry = new ServiceTelemetry("NET-Tutos.YarpGateway");
 builder.Services.AddSingleton(gatewayTelemetry);
+builder.Services.AddNetTutosOpenTelemetry(builder.Configuration, "NET-Tutos.YarpGateway", gatewayTelemetry);
 
 // 1. Add YARP Reverse Proxy
 builder.Services.AddReverseProxy()
@@ -101,6 +102,11 @@ app.MapGet("/api/v1/gateway/telemetry", (ServiceTelemetry telemetry) =>
     Results.Ok(ApiResponse<ServiceTelemetrySnapshotDto>.Ok(telemetry.GetSnapshot())))
 .WithName("GatewayTelemetry")
 .WithSummary("Returns OpenTelemetry ActivitySource and Meter metrics for the YARP API Gateway");
+
+app.MapGet("/api/v1/gateway/otlp", (OtlpCollectorDiagnosticsDto otlp) =>
+    Results.Ok(ApiResponse<OtlpCollectorDiagnosticsDto>.Ok(otlp)))
+.WithName("GatewayOtlpDiagnostics")
+.WithSummary("Returns OTLP collector export status for the YARP API Gateway");
 
 app.MapGet("/metrics", (ServiceTelemetry telemetry) =>
     Results.Text(telemetry.ToPrometheusMetrics(), PrometheusMetricsBuilder.ContentType))

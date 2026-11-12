@@ -13,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var serviceTelemetry = new ServiceTelemetry("NET-Tutos.Gamification.API");
 builder.Services.AddSingleton(serviceTelemetry);
+builder.Services.AddNetTutosOpenTelemetry(builder.Configuration, "NET-Tutos.Gamification.API", serviceTelemetry);
 
 // Add Infrastructure & Application Services
 builder.Services.AddGamificationInfrastructure(builder.Configuration);
