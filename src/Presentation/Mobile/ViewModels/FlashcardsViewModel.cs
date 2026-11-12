@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using NET_Tutos.Mobile.Core.Services;
 using NET_Tutos.Mobile.Models;
 using NET_Tutos.Mobile.Services;
 
@@ -9,6 +10,7 @@ namespace NET_Tutos.Mobile.ViewModels;
 public partial class FlashcardsViewModel : BaseViewModel
 {
     private readonly IApiService _apiService;
+    private readonly IAudioPlaybackService _audioPlayback;
 
     [ObservableProperty]
     private ObservableCollection<FlashcardTopicItem> topics = new();
@@ -30,6 +32,15 @@ public partial class FlashcardsViewModel : BaseViewModel
     private string? selectedTopic;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DueFilterButtonText))]
+    private bool dueOnly;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPendingSync))]
+    [NotifyPropertyChangedFor(nameof(SyncButtonText))]
+    private int pendingSyncCount;
+
+    [ObservableProperty]
     private string statusMessage = string.Empty;
 
     [ObservableProperty]
@@ -40,6 +51,10 @@ public partial class FlashcardsViewModel : BaseViewModel
 
     [ObservableProperty]
     private bool isEmpty;
+
+    public bool HasPendingSync => PendingSyncCount > 0;
+    public string DueFilterButtonText => DueOnly ? "Chỉ thẻ đến hạn: BẬT" : "Chỉ thẻ đến hạn: TẮT";
+    public string SyncButtonText => $"Đồng bộ ({PendingSyncCount})";
 
     public string ProgressText => Cards.Count > 0 
         ? $"Thẻ {CurrentIndex + 1} / {Cards.Count}" 
@@ -52,9 +67,10 @@ public partial class FlashcardsViewModel : BaseViewModel
     public bool CanGoPrevious => CurrentIndex > 0;
     public bool CanGoNext => CurrentIndex < Cards.Count - 1;
 
-    public FlashcardsViewModel(IApiService apiService)
+    public FlashcardsViewModel(IApiService apiService, IAudioPlaybackService audioPlayback)
     {
         _apiService = apiService;
+        _audioPlayback = audioPlayback;
         Title = "Thẻ Ôn Tập Phỏng Vấn";
     }
 
@@ -88,12 +104,23 @@ public partial class FlashcardsViewModel : BaseViewModel
                 Topics.Add(t);
             }
 
-            // 2. Load Cards
-            var cardList = await _apiService.GetFlashcardsAsync(SelectedTopic);
+            // 2. Load Cards (falls back cleanly to offline cached deck)
+            var cardList = await _apiService.GetFlashcardsAsync(SelectedTopic, dueOnly: DueOnly);
             Cards.Clear();
             foreach (var c in cardList)
             {
                 Cards.Add(c);
+            }
+
+            PendingSyncCount = await _apiService.GetPendingOfflineReviewCountAsync();
+            if (PendingSyncCount > 0 && _apiService.IsAuthenticated)
+            {
+                var syncResult = await _apiService.SyncOfflineReviewsAsync();
+                PendingSyncCount = syncResult.RemainingCount;
+                if (syncResult.IsSuccess && syncResult.SyncedCount > 0)
+                {
+                    ShowStatus(syncResult.Message);
+                }
             }
 
             HasCards = Cards.Count > 0;
@@ -137,7 +164,7 @@ public partial class FlashcardsViewModel : BaseViewModel
         try
         {
             IsBusy = true;
-            var cardList = await _apiService.GetFlashcardsAsync(SelectedTopic);
+            var cardList = await _apiService.GetFlashcardsAsync(SelectedTopic, dueOnly: DueOnly);
             Cards.Clear();
             foreach (var c in cardList)
             {
@@ -229,11 +256,16 @@ public partial class FlashcardsViewModel : BaseViewModel
         try
         {
             var result = await _apiService.ReviewFlashcardAsync(card.Id, rating);
+            PendingSyncCount = await _apiService.GetPendingOfflineReviewCountAsync();
             if (result.IsSuccess)
             {
                 card.BoxLevel = result.NewBoxLevel;
                 card.IsMastered = result.IsMastered;
-                ShowStatus($"+{result.XpEarned} XP! Đã ghi nhận vào {card.BoxLevelText}");
+                card.NextReviewDate = result.NextReviewDate;
+                card.IsDue = false;
+                ShowStatus(result.QueuedOffline
+                    ? result.Message
+                    : $"+{result.XpEarned} XP! Đã ghi nhận vào {card.BoxLevelText}");
             }
         }
         catch
@@ -250,8 +282,39 @@ public partial class FlashcardsViewModel : BaseViewModel
     }
 
     [RelayCommand]
+    public async Task ToggleDueOnlyAsync()
+    {
+        DueOnly = !DueOnly;
+        await LoadCardsForSelectedTopicAsync();
+    }
+
+    [RelayCommand]
+    public async Task SyncOfflineReviewsAsync()
+    {
+        var syncResult = await _apiService.SyncOfflineReviewsAsync();
+        PendingSyncCount = syncResult.RemainingCount;
+        ShowStatus(syncResult.Message);
+        if (syncResult.IsSuccess && syncResult.SyncedCount > 0)
+        {
+            await LoadCardsForSelectedTopicAsync();
+        }
+    }
+
+    [RelayCommand]
+    public async Task SpeakCurrentCardAsync()
+    {
+        if (CurrentCard == null) return;
+        var text = CurrentCard.IsAnswerRevealed
+            ? $"{CurrentCard.AnswerMarkdownVi} {CurrentCard.InterviewTipVi}"
+            : CurrentCard.QuestionVi;
+
+        await _audioPlayback.SpeakAsync(text, "vi-VN");
+    }
+
+    [RelayCommand]
     public async Task GoBackAsync()
     {
+        await _audioPlayback.StopSpeakingAsync();
         await Shell.Current.GoToAsync("..");
     }
 

@@ -5,7 +5,7 @@ System: .NET Tutos - Comprehensive .NET Learning & Assessment Platform
 Scope: Unit Testing, Integration Testing, Sandboxed Execution, CI/CD Automated Quality Gates  
 Target Framework: .NET 10 (`net10.0`), C# 14 & Node.js 22 / TypeScript 5.7 (VS Code Extension)  
 Tooling: xUnit 2.9, FluentAssertions 7.2, Moq 4.20, Coverlet 6.0, Microsoft.AspNetCore.Mvc.Testing 10.0, `node:test`  
-Status: Verified & Integrated in Automated CI Pipeline (**241/241 Tests Passing**)  
+Status: Verified & Integrated in Automated CI Pipeline (**254/254 Tests Passing**)  
 
 ---
 
@@ -187,15 +187,18 @@ flowchart LR
 
 ## 5. Local Developer Execution Guide
 
-Developers can execute and debug the full **241-test** automated verification suite locally using standard .NET CLI and npm commands.
+Developers can execute and debug the full **254-test** automated verification suite locally using standard .NET CLI and npm commands.
 
 ### Run Web Unit & Integration Tests:
 ```powershell
 # Web BFF unit tests (123 tests)
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj --verbosity normal
 
-# HTTP Integration Pipeline tests (/metrics, /api/scaleout/diagnostics, /api/telemetry/otlp, /sql-playground, /api/sql/*, /api/v1/ide/*, /api/search/knowledge, /api/search/embeddings/*, Persistent Arena, Stage Lock, Responsive UI, Whiteboard, TTS, OAuth, SEO) (40 tests)
+# HTTP Integration Pipeline tests (/metrics, /api/scaleout/diagnostics, /api/telemetry/otlp, /sql-playground, /api/sql/*, /api/v1/ide/*, /api/search/knowledge, /api/search/embeddings/*, /api/mobile/atus/*, /api/mobile/flashcards/review/batch, Persistent Arena, Stage Lock, Responsive UI, Whiteboard, TTS, OAuth, SEO) (41 tests)
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj --verbosity normal
+
+# Mobile Core & Offline Sync Unit tests (Leitner scheduler, offline store batch sync, Atus SSE parser, voice rubric & Neural TTS cache) (12 tests)
+dotnet test tests/NET-Tutos.Mobile.Tests/NET-Tutos.Mobile.Tests.csproj --verbosity normal
 ```
 
 ### Run Gateway & Microservice Tests:

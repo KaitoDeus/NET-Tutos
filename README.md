@@ -8,9 +8,9 @@
 [![Database](https://img.shields.io/badge/PostgreSQL-17_Alpine-336791?logo=postgresql&logoColor=white)](docker-compose.yml)
 [![Observability](https://img.shields.io/badge/Observability-Prometheus_%2B_Grafana-E6522C?logo=prometheus&logoColor=white)](observability/)
 [![VS Code Extension](https://img.shields.io/badge/VS_Code-Atus_Pair_Programmer-007ACC?logo=visualstudiocode&logoColor=white)](extensions/vscode-atus)
-[![.NET MAUI](https://img.shields.io/badge/.NET_MAUI-Separate_Mobile_Roadmap-512BD4?logo=dotnet)](src/Presentation/Mobile)
+[![.NET MAUI](https://img.shields.io/badge/.NET_MAUI-10.0_Phase_27-512BD4?logo=dotnet)](src/Presentation/Mobile)
 [![.NET Aspire](https://img.shields.io/badge/.NET_Aspire-13.6.5-512BD4?logo=dotnet)](src/Orchestration/NET-Tutos.AppHost)
-[![Tests](https://img.shields.io/badge/Tests-241%2F241_Passing-10B981)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-254%2F254_Passing-10B981)](tests/)
 [![Cache](https://img.shields.io/badge/Cache-Hybrid_L1_%2B_Redis_7-DC382D?logo=redis&logoColor=white)](docker-compose.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -36,9 +36,9 @@
 - [7. Getting Started](#7-getting-started)
   - [Option A: Run Full Microservices & Observability Ecosystem via Docker Compose (Recommended)](#option-a-run-full-microservices--observability-ecosystem-via-docker-compose-recommended)
   - [Option B: Run Standalone Web App with Automatic Resilient Fallback](#option-b-run-standalone-web-app-with-automatic-resilient-fallback)
-  - [Option C: Run the .NET MAUI Mobile Application (Separate Mobile Roadmap)](#option-c-run-the-net-maui-mobile-application-separate-mobile-roadmap)
+  - [Option C: Run the .NET MAUI 10 Mobile Application & Shared Core (Phase 27)](#option-c-run-the-net-maui-10-mobile-application--shared-core-phase-27)
   - [Option D: Run the VS Code Extension (Atus .NET Pair Programmer)](#option-d-run-the-vs-code-extension-atus-net-pair-programmer)
-- [8. Automated Testing & CI Quality Gates (241/241 Passing)](#8-automated-testing--ci-quality-gates-241241-passing)
+- [8. Automated Testing & CI Quality Gates (254/254 Passing)](#8-automated-testing--ci-quality-gates-254254-passing)
 - [9. Enterprise Documentation Suite (`docs/`)](#9-enterprise-documentation-suite-docs)
 - [10. License](#10-license)
 
@@ -105,7 +105,7 @@ The repository is organized into 5 explicit architectural folders inside `NET-Tu
 
 ```text
 d:\NET-Tutos\
-├── NET-Tutos.slnx                              # .NET 10 XML Solution (26 Projects across 5 Layers)
+├── NET-Tutos.slnx                              # .NET 10 XML Solution (28 Projects across 5 Layers)
 ├── docker-compose.yml                          # 13-Container Orchestration (+ Kafka, Tempo, Prometheus, Grafana)
 ├── observability/                              # Prometheus, Grafana Tempo (OTLP) & pre-provisioned Grafana dashboards
 ├── extensions/vscode-atus/                     # TypeScript VS Code Extension ("Atus .NET Pair Programmer")
@@ -119,7 +119,8 @@ d:\NET-Tutos\
 │   │
 │   ├── Presentation/                           # [01. Presentation Layer]
 │   │   ├── Web/                                # ASP.NET Core 10 MVC, BFF, Redis Scale-Out, SQL Playground, SignalR, Hybrid RAG, Neural TTS & IDE APIs
-│   │   └── Mobile/                             # Cross-Platform .NET MAUI 10 Native Client (Separate Roadmap)
+│   │   ├── NET-Tutos.Mobile.Core/              # Shared pure net10.0 Mobile Core (Leitner scheduler, offline store, Atus SSE parser, Voice rubric & TTS cache)
+│   │   └── Mobile/                             # Cross-Platform .NET MAUI 10 Native Client (AtusChatPage, VoiceTrainingPage, FlashcardsPage)
 │   │
 │   ├── Services/                               # [02. Services Layer — 4-Layer Clean Architecture Microservices]
 │   │   ├── CodeRunner/                         # Isolated Roslyn C# 14 Compilation, Guardrails & Online Judge Microservice
@@ -134,14 +135,15 @@ d:\NET-Tutos\
 │       ├── Common/                             # ApiResponse<T>, Result<T>, OpenTelemetry OTLP, PrometheusMetricsBuilder & SandboxGuardrails
 │       └── EventBus/                           # Integration events (RabbitMQ/MassTransit) & Apache Kafka streams
 │
-└── tests/                                      # [04. Tests Layer — 236 .NET Tests + 5 VS Code Node Tests = 241]
+└── tests/                                      # [04. Tests Layer — 249 .NET Tests + 5 VS Code Node Tests = 254]
     ├── NET-Tutos.Gateway.Tests/                # YARP Gateway routing, status, /metrics & X-Correlation-ID tests
     ├── NET-Tutos.CodeRunner.Tests/             # Roslyn sandbox, AST security blacklist & timeout tests
     ├── NET-Tutos.Gamification.Tests/           # Streak domain rules, XP ledger & MassTransit consumer tests
     ├── NET-Tutos.AiTutor.Tests/                # Big-O complexity rules, 3D rubric value objects & AI engine tests
     ├── NET-Tutos.Catalog.Tests/                # 7-stage curriculum, learning track estimation & certificate tests
     ├── NET-Tutos.UnitTests/                    # Web BFF, Prometheus Exporter, Multi-Source RAG, TTS, Kafka, Stage Lock & Arena tests
-    └── NET-Tutos.IntegrationTests/             # End-to-end HTTP pipeline, /metrics, /api/v1/ide/*, Stage Lock & Whiteboard tests
+    ├── NET-Tutos.Mobile.Tests/                 # Leitner spaced repetition, offline batch sync queue, Atus SSE parser, voice rubric & TTS cache tests
+    └── NET-Tutos.IntegrationTests/             # End-to-end HTTP pipeline, /metrics, /api/v1/ide/*, /api/mobile/atus/*, Stage Lock & Whiteboard tests
 ```
 
 ---
@@ -230,7 +232,10 @@ d:\NET-Tutos\
 | **AiTutor.API** | `/api/v1/aitutor/interview/report` | `POST` | Synthesizes a 5-dimension interview readiness report & study plan |
 | **Mobile API (BFF)** | `/api/mobile/auth/login` | `POST` | Authenticates mobile user and issues stateless JWT Bearer token |
 | **Mobile API (BFF)** | `/api/mobile/tutorials` | `GET` | Returns paginated lessons, categories, roadmaps, and completion states |
-| **Mobile API (BFF)** | `/api/mobile/flashcards` | `GET` | Retrieves spaced-repetition technical interview flashcards |
+| **Mobile API (BFF)** | `/api/mobile/flashcards` | `GET` | Retrieves spaced-repetition technical interview flashcards (`?dueOnly=true` filter) |
+| **Mobile API (BFF)** | `/api/mobile/flashcards/review/batch` | `POST` | Idempotently syncs queued offline Leitner flashcard reviews |
+| **Mobile API (BFF)** | `/api/mobile/atus/chat/stream` | `POST` | Streams bilingual Atus AI Tutor responses over Server-Sent Events (`text/event-stream`) |
+| **Mobile API (BFF)** | `/api/mobile/atus/voice-evaluate` | `POST` | Evaluates spoken interview transcripts against 3-dimension rubric with TTS `SpokenSummary` |
 
 ---
 
@@ -305,9 +310,9 @@ Then open **`http://localhost:5001`** (or **`http://localhost:5262`**) and explo
 
 ---
 
-### Option C: Run the .NET MAUI Mobile Application (Separate Mobile Roadmap)
+### Option C: Run the `.NET MAUI 10` Mobile Application & Shared Core (Phase 27)
 
-> **Note:** Active `.NET MAUI 10` mobile expansion is tracked on its own dedicated roadmap. See [`src/Presentation/Mobile`](src/Presentation/Mobile) and requires Android Java SDK configured locally.
+> **Note:** Shared pure `net10.0` mobile logic lives in [`src/Presentation/NET-Tutos.Mobile.Core`](src/Presentation/NET-Tutos.Mobile.Core) and is verified by `12/12` automated unit tests across platforms without an Android SDK. The [`src/Presentation/Mobile`](src/Presentation/Mobile) `.NET MAUI 10` app adds `AtusChatPage` (SSE streaming), `VoiceTrainingPage` (VI/EN STT + Neural TTS), and offline Leitner flashcard sync; compiling native Android binaries (`net10.0-android`) requires a local Android Java SDK (`XA5300`).
 
 1. Ensure the backend is running on port `5000` (Android emulators connect to host `localhost:5000` via `10.0.2.2:5000`).
 2. Build and deploy the `.NET MAUI` Android client:
@@ -337,9 +342,9 @@ Learners can sign in or register directly via **GitHub OAuth 2.0** (`/signin-git
 
 ---
 
-## 8. Automated Testing & CI Quality Gates (241/241 Passing)
+## 8. Automated Testing & CI Quality Gates (254/254 Passing)
 
-Every microservice, gateway route, distributed rate-limit partition, `.NET Aspire` AppHost & Kubernetes Cert-Manager Helm deployment manifest, OpenTelemetry OTLP exporter, Redis scale-out backplane, domain value object, hybrid Redis cache, SQL Playground sandbox, Geo-IP detector, SEO engine, OAuth 2.0 SSO flow, Prometheus OpenMetrics exporter, Kafka analytics store, Neural TTS proxy, Persistent PostgreSQL SignalR coding arena, Hybrid `pgvector` Neural RAG engine, Stage-by-Stage Lock progression, Responsive Web Design, IDE Bridge API, and VS Code extension client is verified by **241 automated tests** (**236 `.NET` tests across 7 projects + 5 VS Code Node tests**, enforced via [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and [`.github/workflows/helm-deploy.yml`](.github/workflows/helm-deploy.yml)):
+Every microservice, gateway route, distributed rate-limit partition, `.NET Aspire` AppHost & Kubernetes Cert-Manager Helm deployment manifest, OpenTelemetry OTLP exporter, Redis scale-out backplane, domain value object, hybrid Redis cache, SQL Playground sandbox, Geo-IP detector, SEO engine, OAuth 2.0 SSO flow, Prometheus OpenMetrics exporter, Kafka analytics store, Neural TTS proxy, Persistent PostgreSQL SignalR coding arena, Hybrid `pgvector` Neural RAG engine, Stage-by-Stage Lock progression, Responsive Web Design, IDE Bridge API, `.NET MAUI 10` Mobile Core (`AtusSseStreamParser`, `OfflineFlashcardStore`, `VoiceTrainingEvaluator`, `NeuralTtsCacheService`), and VS Code extension client is verified by **254 automated tests** (**249 `.NET` tests across 8 projects + 5 VS Code Node tests**, enforced via [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and [`.github/workflows/helm-deploy.yml`](.github/workflows/helm-deploy.yml)):
 
 ```powershell
 # 1. YARP API Gateway routing, distributed rate limiting, OTLP/Tempo, /metrics, X-Correlation-ID & Aspire/Helm specs (11 tests)
@@ -360,10 +365,13 @@ dotnet test tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj
 # 6. Web BFF unit tests (Redis Scale-Out, OTLP Collector, Sandbox Guardrails, SQL Playground, Cache, Geo-IP, SEO, Observability, RAG, TTS, Kafka) (123 tests)
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
 
-# 7. End-to-End HTTP integration pipeline (/api/scaleout/diagnostics, /api/telemetry/otlp, /sql-playground, /api/sql/*, /metrics, /api/v1/ide/*, /api/search/*, Arena, Stage Lock, Responsive UI, Whiteboard, TTS, OAuth, SEO) (40 tests)
+# 7. End-to-End HTTP integration pipeline (/api/scaleout/diagnostics, /api/telemetry/otlp, /sql-playground, /api/sql/*, /metrics, /api/v1/ide/*, /api/mobile/atus/*, /api/mobile/flashcards/review/batch, /api/search/*, Arena, Stage Lock, Responsive UI, Whiteboard, TTS, OAuth, SEO) (41 tests)
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
 
-# 8. VS Code Extension TypeScript client & C# review diagnostic mapper tests (5 tests)
+# 8. Mobile Core & Offline Sync unit tests (Leitner scheduler, offline store batch sync, Atus SSE parser, voice rubric & Neural TTS cache) (12 tests)
+dotnet test tests/NET-Tutos.Mobile.Tests/NET-Tutos.Mobile.Tests.csproj
+
+# 9. VS Code Extension TypeScript client & C# review diagnostic mapper tests (5 tests)
 npm --prefix extensions/vscode-atus test
 ```
 
@@ -389,6 +397,6 @@ Detailed architectural blueprints, sequence diagrams, ERDs, and requirements spe
 
 ## 10. License
 
-**NET-Tutos** (`NET-Tutos.slnx` — 25 `.NET` Projects + `extensions/vscode-atus` across YARP Gateway, ASP.NET Core 10 MVC BFF, .NET MAUI 10 Mobile, `CodeRunner`, `Gamification`, `AiTutor`, `Catalog` Microservices, and Shared BuildingBlocks) is licensed under the **MIT License**.
+**NET-Tutos** (`NET-Tutos.slnx` — 28 `.NET` Projects + `extensions/vscode-atus` across YARP Gateway, ASP.NET Core 10 MVC BFF, `NET-Tutos.Mobile.Core` + `.NET MAUI 10` Mobile, `CodeRunner`, `Gamification`, `AiTutor`, `Catalog` Microservices, and Shared BuildingBlocks) is licensed under the **MIT License**.
 
 **Copyright © 2026 Khải Võ & NET-Tutos Engineering.** All rights reserved under the terms of the [MIT License](LICENSE).

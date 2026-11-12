@@ -309,6 +309,17 @@ public partial class FlashcardItem : ObservableObject
     [ObservableProperty]
     private int reviewCount;
 
+    public DateTime? NextReviewDate { get; set; }
+
+    [ObservableProperty]
+    private bool isDue = true;
+
+    public string DueStatusText => IsDue
+        ? "Đến hạn ôn"
+        : NextReviewDate.HasValue
+            ? $"Ôn lại: {NextReviewDate.Value.ToLocalTime():dd/MM}"
+            : "Đã lên lịch";
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsQuestionSide))]
     private bool isAnswerRevealed;
@@ -422,4 +433,31 @@ public class FlashcardReviewResult
     public int TotalXp { get; set; }
     public int StreakDays { get; set; }
     public bool IsMastered { get; set; }
+    public DateTime? NextReviewDate { get; set; }
+    public bool QueuedOffline { get; set; }
+}
+
+public class AtusChatMessageItem : ObservableObject
+{
+    public string Role { get; set; } = "user";
+    public bool IsUser => string.Equals(Role, "user", StringComparison.OrdinalIgnoreCase);
+    public bool IsAssistant => !IsUser;
+
+    private string content = string.Empty;
+    public string Content
+    {
+        get => content;
+        set => SetProperty(ref content, value);
+    }
+
+    private bool isStreaming;
+    public bool IsStreaming
+    {
+        get => isStreaming;
+        set => SetProperty(ref isStreaming, value);
+    }
+
+    public string RoleLabel => IsUser ? "Bạn" : "Atus AI";
+    public Color BubbleBgColor => IsUser ? Color.FromArgb("#4F46E5") : Color.FromArgb("#1E293B");
+    public Color BubbleTextColor => Colors.White;
 }

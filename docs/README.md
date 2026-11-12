@@ -3,7 +3,7 @@
 Document Type: Master Index & Architecture Specification Suite  
 Author: Senior Business Analyst / Enterprise Solution Specialist  
 System: .NET Tutos - Comprehensive .NET Learning & Assessment Platform  
-Scope: Web Application (ASP.NET Core 10), Microservices & YARP Gateway, Kafka & Prometheus/Grafana Observability, VS Code Extension, AI Tutor Engine, Roslyn Sandbox, Mobile Client (.NET MAUI 10 — Separate Roadmap)  
+Scope: Web Application (ASP.NET Core 10), Microservices & YARP Gateway, Kafka & Prometheus/Grafana Observability, VS Code Extension, AI Tutor Engine, Roslyn Sandbox, Mobile Client (.NET MAUI 10 + Shared Mobile.Core — Phase 27 Implemented)  
 Version: Release 3.0  
 Status: Verified & Approved for Production (13 Docker Containers | PostgreSQL 17 `pgvector`, Redis 7, RabbitMQ 3, Kafka, Prometheus, Grafana & Tempo)  
 
@@ -60,7 +60,7 @@ d:\NET-Tutos\docs\
      - **MOD-AI:** Algorithmic Big-O analysis ($O(1) \dots O(2^N)$), test failure diagnostics, automated xUnit generation.
      - **MOD-INT:** AI Tech Lead interview simulation, 3-dimensional scoring, speech recognition, competency radar report.
      - **MOD-GAM:** Daily streak tracking, XP points and leveling formula, Hall of Fame leaderboard, SignalR discussions.
-     - **MOD-MOB:** .NET MAUI cross-platform client, lesson reading, progress sync, light/dark themes, custom API host configuration.
+     - **MOD-MOB:** .NET MAUI 10 client + `NET-Tutos.Mobile.Core`: Atus AI SSE streaming chat, offline 5-box Leitner spaced repetition with batch sync outbox, bilingual `vi-VN`/`en-US` Speech-to-Text + Neural TTS voice training.
      - **MOD-ADM:** Administrative management and cohort oversight.
 
 4. [**04. Non-Functional Requirements Document (NFR)**](file:///d:/NET-Tutos/docs/04_non_functional_requirements.md)
@@ -95,7 +95,7 @@ d:\NET-Tutos\docs\
    - Automated test matrix across Streak, Gamification, Exam, Roslyn Sandbox, AI Tutor, Observability/Prometheus, Multi-Source RAG, Live Coding Whiteboard, IDE Bridge, and HTTP endpoints.
    - Comprehensive Exceptions and Error Handling matrix with system mitigation and user recovery strategies.
    - GitHub Actions CI workflow pipeline configuration (`.github/workflows/ci.yml`) and code coverage quality gates.
-   - Local developer CLI execution guide (241 automated tests: 236 `.NET` + 5 `node:test`).
+   - Local developer CLI execution guide (254 automated tests: 249 `.NET` + 5 `node:test`).
 
 9. [**09. Microservices Architecture & Strangler Fig Migration**](file:///d:/NET-Tutos/docs/09_microservices_architecture_and_migration.md)
    - Distributed system transformation, bounded contexts, and architectural drivers.
@@ -103,11 +103,11 @@ d:\NET-Tutos\docs\
    - Dedicated `CodeRunner.API`, `Gamification.API`, `AiTutor.API`, and `Catalog.API` microservices with `/metrics`, OTLP export, and `/healthz`.
    - Resilient delegation and graceful in-process fallback pattern (`ResilientMicroserviceHandler`).
    - 13-container Docker Compose orchestration including Apache Kafka KRaft, Prometheus (`:9090`), Grafana Tempo (`:3200/:4317`), and Grafana (`:3000`).
-   - 241/241 automated test execution across 7 `.NET` test projects plus the VS Code Extension test suite.
+   - 254/254 automated test execution across 8 `.NET` test projects plus the VS Code Extension test suite.
 
 10. [**10. Master Project Roadmap & AI Context Memory**](file:///d:/NET-Tutos/docs/10_project_roadmap_and_ai_memory.md)
-   - Persistent AI Context Memory and Single Source of Truth (SSOT) for all 26 completed phases (Phase 1 through Phase 26): Hybrid L1/L2 Redis 7 Caching, Catalog Microservice, OpenTelemetry OTLP & Grafana Tempo Tracing, Distributed Redis Gateway Rate Limiting & Sandbox Guardrails, Persistent SignalR Coding Arena, Apache Kafka Streams & Neural TTS, Live Coding Whiteboard, Hybrid Neural Embeddings with PostgreSQL `pgvector`, Interactive SQL Playground, `.NET Aspire` AppHost, and Production Cert-Manager TLS Helm Chart.
-   - Standing engineering rules (Pure .NET 10 / C# 14, Auto-Commit workflow, English-Only Code Comments, Zero Secret/Demo Leakage, Geo-IP Region Detection `VN` -> `vi` / Outside `VN` -> `en`, Continuous SEO, and Dedicated Mobile Roadmap separation).
+   - Persistent AI Context Memory and Single Source of Truth (SSOT) for all 27 completed phases (Phase 1 through Phase 27): Hybrid L1/L2 Redis 7 Caching, Catalog Microservice, OpenTelemetry OTLP & Grafana Tempo Tracing, Distributed Redis Gateway Rate Limiting & Sandbox Guardrails, Persistent SignalR Coding Arena, Apache Kafka Streams & Neural TTS, Live Coding Whiteboard, Hybrid Neural Embeddings with PostgreSQL `pgvector`, Interactive SQL Playground, `.NET Aspire` AppHost, Production Cert-Manager TLS Helm Chart, and `.NET MAUI 10` Mobile Client + `NET-Tutos.Mobile.Core` (Atus SSE streaming, offline Leitner flashcard batch sync, and bilingual STT + Neural TTS voice training).
+   - Standing engineering rules (Pure .NET 10 / C# 14, Auto-Commit workflow, English-Only Code Comments, Zero Secret/Demo Leakage, Geo-IP Region Detection `VN` -> `vi` / Outside `VN` -> `en`, Continuous SEO, and clean Modular Mobile architecture).
 
 11. [**DESIGN. Design System & Anti-AI-Slop Constitution**](file:///d:/NET-Tutos/docs/DESIGN.md)
    - Developer Tool standard inspired by Linear, Raycast, Stripe, and GitHub Primer.
@@ -124,9 +124,9 @@ d:\NET-Tutos\docs\
 | **Zero-Friction In-Browser Coding & SQL** | `MOD-PLAY` | `PlaygroundController.cs`, `CodeExecutionService.cs`, `SqlPlaygroundService.cs`, `CodeRunner.API`, `Index.cshtml`, `Sql.cshtml` | Microservice sandbox tests, Roslyn Scripting isolation, bounded output, SQLite read-only SQL challenges |
 | **Contextual AI Engineering Feedback** | `MOD-AI` | `AiTutorController.cs`, `AiTutorService.cs`, `AiTutorViewModels.cs` | Big-O analysis, failure diagnostics, dynamic xUnit test generation |
 | **Senior Technical Hiring Readiness** | `MOD-INT` | `InterviewController.cs`, `AiTutorService.cs`, `Mock.cshtml` | 3-dimension rubric evaluation, Speech-to-Text, radar reports |
-| **Continuous Cross-Platform Study** | `MOD-MOB` | `MobileAuthController.cs`, `ApiService.cs` (.NET MAUI), `LoginPage.xaml` | JWT Bearer verification, device storage, progress sync |
+| **Continuous Cross-Platform Study** | `MOD-MOB` | `MobileAuthController.cs`, `MobileAiTutorController.cs`, `MobileFlashcardsController.cs`, `NET-Tutos.Mobile.Core`, `ApiService.cs` (.NET MAUI), `AtusChatPage.xaml`, `VoiceTrainingPage.xaml` | JWT Bearer verification, SSE Atus streaming, VI/EN STT + Neural TTS Voice Training, Leitner offline batch sync (`12/12 Mobile.Tests` + Integration tests) |
 | **Learner Engagement & Retention** | `MOD-GAM` | `StreakService.cs`, `LeaderboardService.cs`, `NET-Tutos.Gamification.API` | Daily check-in tests, Level formula calculation, Gamification microservice tests |
-| **Microservice High-Compute Isolation** | `MOD-ARCH` | `NET-Tutos.CodeRunner.API`, `NET-Tutos.Gamification.API`, `NET-Tutos.AiTutor.API`, `NET-Tutos.Catalog.API`, `NET-Tutos.YarpGateway`, `NET-Tutos.AppHost` | 236 `.NET` + 5 VS Code tests (241/241), 13-container Docker topology, `.NET Aspire`, Kubernetes Cert-Manager TLS Helm chart |
+| **Microservice High-Compute Isolation** | `MOD-ARCH` | `NET-Tutos.CodeRunner.API`, `NET-Tutos.Gamification.API`, `NET-Tutos.AiTutor.API`, `NET-Tutos.Catalog.API`, `NET-Tutos.YarpGateway`, `NET-Tutos.AppHost` | 249 `.NET` + 5 VS Code tests (254/254), 13-container Docker topology, `.NET Aspire`, Kubernetes Cert-Manager TLS Helm chart |
 | **Geo-IP Localization & Technical SEO** | `MOD-SEO` | `GeoIpService.cs`, `SeoMetadataService.cs`, `SeoController.cs` | VN -> `vi` / INTL -> `en`, Dynamic OG SVG, `BreadcrumbList`, `FAQPage`, IndexNow |
 | **Hybrid L1/L2 Redis 7 Caching & TTS** | `MOD-CACHE` | `HybridRedisCacheService.cs`, `TtsService.cs` (`/api/tts/speak`), `CodeExecutionService.cs`, `CurriculumService.cs` | L1 Memory + L2 Redis 7, Stampede Semaphore Lock, 30s Circuit Breaker, Neural TTS cache hit metrics |
 | **Live OAuth 2.0 SSO Authentication** | `MOD-AUTH` | `Program.cs`, `AccountController.cs`, `Login.cshtml`, `Register.cshtml`, `Profile.cshtml` | Live GitHub (`/signin-github`) & Google (`/signin-google`) OAuth 2.0 SSO |

@@ -3,7 +3,7 @@
 Document Type: Master Roadmap, Phase History & AI Context Memory  
 System: **NET-Tutos** — Enterprise Distributed .NET 10 & C# 14 Learning Ecosystem  
 License: [MIT License](../LICENSE) (`Copyright (c) 2026 Khải Võ (NET-Tutos)`)  
-Current Topology: **26 Projects in `NET-Tutos.slnx` + VS Code Extension (`extensions/vscode-atus`) | 13 Docker Containers (`pgvector/pgvector:pg17` & Grafana Tempo) + `.NET Aspire` AppHost & Kubernetes Helm | Automated Test Suite (241 Tests: 236 .NET + 5 VS Code Node Tests)**  
+Current Topology: **28 Projects in `NET-Tutos.slnx` + VS Code Extension (`extensions/vscode-atus`) | 13 Docker Containers (`pgvector/pgvector:pg17` & Grafana Tempo) + `.NET Aspire` AppHost & Kubernetes Helm | Automated Test Suite (254 Tests: 249 .NET + 5 VS Code Node Tests)**  
 
 ---
 
@@ -11,9 +11,9 @@ Current Topology: **26 Projects in `NET-Tutos.slnx` + VS Code Extension (`extens
 
 This document serves as the persistent **AI Context Memory & Roadmap Single Source of Truth (SSOT)** for the **NET-Tutos** repository. Any AI coding agent or engineer inspecting the repository must read this file first to understand:
 1. **Standing Engineering Rules & Constraints**
-2. **Completed Roadmap History (Phase 1 – Phase 26)** and their exact files/endpoints
-3. **13-Container Distributed Topology, `.NET Aspire` Orchestration, Kubernetes Helm & 241/241 Test Suite Matrix**
-4. **Separate Dedicated Mobile Roadmap (`.NET MAUI 10`) & Future Enterprise Scaling Items**
+2. **Completed Roadmap History (Phase 1 – Phase 27)** and their exact files/endpoints
+3. **13-Container Distributed Topology, `.NET Aspire` Orchestration, Kubernetes Helm & 254/254 Test Suite Matrix**
+4. **`.NET MAUI 10` Mobile Core (Phase 27 Delivered), Release Packaging & Future Enterprise Scaling Items**
 
 ---
 
@@ -70,6 +70,7 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 | **Phase 24** | **Distributed OpenTelemetry OTLP & Grafana Tempo** | ✅ Completed | `OpenTelemetryCollectorExtensions.cs` (`OpenTelemetry.* 1.21.0`) wired across YARP Gateway, Web BFF, and all 4 microservices exporting W3C traces & metrics over gRPC/http-protobuf to Grafana Tempo (`observability/tempo/tempo.yml`), auto-provisioned `nettutos-tempo` Grafana datasource, `correlation.id` span tags, and `/api/telemetry/otlp` + `/api/v1/gateway/otlp` diagnostics. |
 | **Phase 25** | **Distributed Gateway Quotas & Sandbox Hardening** | ✅ Completed | `DistributedQuotaLimiterExtensions.cs` enforcing Redis-backed / partitioned sliding-window client quotas (`runner-policy`, `aitutor-policy`, `Retry-After` + `X-RateLimit-*` headers, `/api/v1/gateway/ratelimits`) plus shared `SandboxGuardrails` & `BoundedStringWriter` (`32 KB` / `500 lines` / `16 KB` stdout cap, clamped timeouts, expanded blacklist) across `CodeRunner` and `Web`. |
 | **Phase 26** | **Interactive SQL Playground & Cert-Manager TLS Helm** | ✅ Completed | `SqlPlaygroundService.cs` & `Views/Playground/Sql.cshtml` (`/sql-playground`, `/thuc-hanh-sql`, `/api/sql/{schema,challenges,execute}`) providing read-only ephemeral in-memory SQLite relational queries and 5 bilingual SQL challenges, plus production Helm `cert-manager.yaml` (`ClusterIssuer`), HSTS, and NGINX SSL redirect annotations. |
+| **Phase 27** | **`.NET MAUI 10` Mobile Atus Streaming, Offline Leitner & Voice Training** | ✅ Completed | Added Web BFF `/api/mobile/atus/*` (SSE `chat/stream`, `chat`, `conversations`, `voice-evaluate`) & `/api/mobile/flashcards?dueOnly=true` + `/review/batch` idempotent sync; fixed `AppDbContext.cs` `AiChatMessage.Conversation` shadow FK; created pure `net10.0` `NET-Tutos.Mobile.Core` (Leitner engine, offline JSON store, SSE parser, voice rubric & Neural TTS cache) + `NET-Tutos.Mobile.Tests` (`12/12`); upgraded `src/Presentation/Mobile` (`AtusChatPage`, `VoiceTrainingPage`, enhanced `FlashcardsPage`/`HomePage`, Android `SpeechRecognizer` + `MediaPlayer` + `RECORD_AUDIO`). Note: Android native APK compilation requires local Android Java SDK (`XA5300`). |
 
 ---
 
@@ -93,7 +94,7 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 
 ---
 
-## 5. Automated Test Suite Breakdown (241/241 Passing)
+## 5. Automated Test Suite Breakdown (254/254 Passing)
 
 | Test Project | Path | Tests Count | Scope Covered |
 | :--- | :--- | :---: | :--- |
@@ -103,15 +104,17 @@ This document serves as the persistent **AI Context Memory & Roadmap Single Sour
 | **`NET-Tutos.AiTutor.Tests`** | `tests/NET-Tutos.AiTutor.Tests` | 16 | `EfficiencyScore`, `InterviewRubricScore` (50/25/25), Big-O detection, compiler diagnostics, xUnit generator, mock interview. |
 | **`NET-Tutos.Catalog.Tests`** | `tests/NET-Tutos.Catalog.Tests` | 17 | `ReadingDuration`, `ExamScore`, 7-stage bilingual `GetCatalogSectionsQueryHandler`, `EstimateLearningTrackQueryHandler`, and dual-format certificate verification (`NT-CERT-*` & `NET-2026-*`). |
 | **`NET-Tutos.UnitTests`** | `tests/NET-Tutos.UnitTests` | 123 | Web services, `RedisScaleOutExtensions`, `OpenTelemetryCollectorExtensions`, `SandboxGuardrails` & `BoundedStringWriter`, `SqlPlaygroundService`, `HybridRedisCacheService`, `ObservabilityService`, `PrometheusTelemetryExporter`, `ResilientMicroserviceHandler`, `CodingArenaService`, `GeminiNeuralEmbeddingService`, `SemanticCurriculumSearchService`, `TtsService`, `KafkaStreamAnalyticsStore`, `LearningProgressService`, `GeoIpService`, `SeoMetadataService`. |
-| **`NET-Tutos.IntegrationTests`** | `tests/NET-Tutos.IntegrationTests` | 40 | Full HTTP pipeline, `/api/scaleout/diagnostics`, `/api/telemetry/otlp`, `/sql-playground`, `/thuc-hanh-sql`, `/api/sql/*`, `/metrics`, `/api/v1/ide/*`, `/api/search/knowledge`, `/api/search/embeddings/*`, Persistent Arena + SignalR UI, Stage Lock/Unlock, Responsive Design, `/Interview/Mock` Live Coding Whiteboard, `/api/tts/speak`, `/Admin/Telemetry` RBAC, `/api/adaptive/challenge`, OAuth 2.0 SSO, Geo-IP, SEO & Roslyn endpoints. |
+| **`NET-Tutos.IntegrationTests`** | `tests/NET-Tutos.IntegrationTests` | 41 | Full HTTP pipeline, `/api/scaleout/diagnostics`, `/api/telemetry/otlp`, `/sql-playground`, `/thuc-hanh-sql`, `/api/sql/*`, `/metrics`, `/api/v1/ide/*`, `/api/search/knowledge`, `/api/search/embeddings/*`, `/api/mobile/atus/*`, `/api/mobile/flashcards/review/batch`, Persistent Arena + SignalR UI, Stage Lock/Unlock, Responsive Design, `/Interview/Mock` Live Coding Whiteboard, `/api/tts/speak`, `/Admin/Telemetry` RBAC, `/api/adaptive/challenge`, OAuth 2.0 SSO, Geo-IP, SEO & Roslyn endpoints. |
+| **`NET-Tutos.Mobile.Tests`** | `tests/NET-Tutos.Mobile.Tests` | 12 | `LeitnerSpacedRepetitionEngine`, `OfflineFlashcardStore` queue deduplication/batch sync, `AtusSseStreamParser`, `VoiceTrainingEvaluator`, and `NeuralTtsCacheService`. |
 | **`atus-dotnet-pair-programmer` (`node:test`)** | `extensions/vscode-atus/src/test` | 5 | `AtusClient` HTTP headers/auth/error handling and `reviewMapper` C# diagnostic line inference & markdown report generation. |
 
 ---
 
-## 6. Upcoming Strategic Roadmap (Separate Mobile & Enterprise Scaling)
+## 6. Upcoming Strategic Roadmap (Mobile Release Packaging & Enterprise Scaling)
 
-### Separate Dedicated Roadmap: `.NET MAUI 10 Mobile` (`src/Presentation/Mobile`)
-- Expand `.NET MAUI 10` Mobile Client into an independent mobile roadmap featuring mobile Atus streaming chat, offline flashcard spaced repetition, and native Vietnamese/English Speech-to-Text + Neural TTS voice training.
+### `.NET MAUI 10` Mobile (`src/Presentation/Mobile` & `NET-Tutos.Mobile.Core`) — Phase 27 Core Delivered
+- ✅ Implemented in Phase 27: Web BFF `/api/mobile/atus/*` SSE streaming & voice rubric endpoints, idempotent `/api/mobile/flashcards/review/batch` Leitner offline sync, pure `net10.0` `NET-Tutos.Mobile.Core` + `NET-Tutos.Mobile.Tests` (`12/12`), and MAUI UI pages (`AtusChatPage`, `VoiceTrainingPage`, enhanced `FlashcardsPage`).
+- 🔜 Native Release Packaging: Configure Android Java SDK (`XA5300`) & signing keystore in dedicated mobile release workflow for `.aab`/`.apk` and iOS/MacCatalyst builds.
 
 ### Future Enterprise Scaling Items
 - **Multi-Region Read Replicas & Edge CDN Caching**: Scale PostgreSQL `pgvector` HNSW read replicas and push curriculum static bundles behind Cloudflare edge workers.

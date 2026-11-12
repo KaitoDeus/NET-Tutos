@@ -520,4 +520,105 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
         unsafeRes.EnsureSuccessStatusCode();
         (await unsafeRes.Content.ReadAsStringAsync()).Should().Contain("\"isSuccess\":false");
     }
+
+    [Fact]
+    public async Task Phase27_MobileAtusStreamingVoiceAndOfflineSync_WorkEndToEnd()
+    {
+        // 1. Mobile Atus AI capability discovery
+        var statusRes = await _client.GetAsync("/api/mobile/atus/status");
+        statusRes.EnsureSuccessStatusCode();
+        var statusJson = await statusRes.Content.ReadAsStringAsync();
+        statusJson.Should().Contain("\"mobileStreaming\":true");
+        statusJson.Should().Contain("\"ttsEndpoint\":\"/api/tts/speak\"");
+
+        // 2. Guest SSE streaming chat
+        var streamReq = new HttpRequestMessage(HttpMethod.Post, "/api/mobile/atus/chat/stream")
+        {
+            Content = new StringContent(
+                "{\"message\":\"Giai thich async/await trong C#\",\"language\":\"vi\"}",
+                System.Text.Encoding.UTF8,
+                "application/json")
+        };
+        var streamRes = await _client.SendAsync(streamReq);
+        streamRes.EnsureSuccessStatusCode();
+        streamRes.Content.Headers.ContentType?.MediaType.Should().Be("text/event-stream");
+        var sseText = await streamRes.Content.ReadAsStringAsync();
+        sseText.Should().Contain("\"type\":\"init\"");
+        sseText.Should().Contain("\"type\":\"chunk\"");
+        sseText.Should().Contain("\"type\":\"done\"");
+
+        // 3. Bilingual voice rubric evaluation
+        var evalPayload = new StringContent(
+            "{\"flashcardId\":0,\"question\":\"Explain async/await\",\"transcript\":\"async/await is non-blocking using a compiler-generated State Machine and CancellationToken prevents deadlocks.\",\"topic\":\"AsyncConcurrency\",\"language\":\"en\"}",
+            System.Text.Encoding.UTF8,
+            "application/json");
+        var evalRes = await _client.PostAsync("/api/mobile/atus/voice-evaluate", evalPayload);
+        evalRes.EnsureSuccessStatusCode();
+        var evalJson = await evalRes.Content.ReadAsStringAsync();
+        evalJson.Should().Contain("\"isSuccess\":true");
+        evalJson.Should().Contain("\"spokenSummary\":");
+
+        // 4. Unauthenticated batch offline review sync is rejected cleanly
+        var unauthSync = await _client.PostAsync(
+            "/api/mobile/flashcards/review/batch",
+            new StringContent("{\"reviews\":[{\"flashcardId\":1,\"rating\":3}]}", System.Text.Encoding.UTF8, "application/json"));
+        unauthSync.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+
+        // 5. Register mobile test user, stream/save chat history, and flush batch offline reviews
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var regRes = await _client.PostAsJsonAsync("/api/mobile/auth/register", new
+        {
+            username = $"mobuser_{suffix}",
+            email = $"mob_{suffix}@example.com",
+            password = "Password123!",
+            fullName = "Mobile Phase27 Tester"
+        });
+        regRes.EnsureSuccessStatusCode();
+        using var regDoc = System.Text.Json.JsonDocument.Parse(await regRes.Content.ReadAsStringAsync());
+        var token = regDoc.RootElement.GetProperty("token").GetString();
+        token.Should().NotBeNullOrWhiteSpace();
+
+        using var authClient = _factory.CreateClient();
+        authClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var authChatRes = await authClient.PostAsJsonAsync("/api/mobile/atus/chat", new
+        {
+            message = "What is LINQ deferred execution?",
+            language = "en"
+        });
+        var authChatJson = await authChatRes.Content.ReadAsStringAsync();
+        authChatRes.StatusCode.Should().Be(HttpStatusCode.OK, because: authChatJson);
+        authChatJson.Should().Contain("\"success\":true");
+
+        var convListRes = await authClient.GetAsync("/api/mobile/atus/conversations?lang=en");
+        convListRes.EnsureSuccessStatusCode();
+        (await convListRes.Content.ReadAsStringAsync()).Should().Contain("LINQ");
+
+        var dueCardsRes = await authClient.GetAsync("/api/mobile/flashcards?dueOnly=true");
+        dueCardsRes.EnsureSuccessStatusCode();
+        var dueCardsJson = await dueCardsRes.Content.ReadAsStringAsync();
+        dueCardsJson.Should().Contain("\"isDue\":true");
+
+        using var cardsDoc = System.Text.Json.JsonDocument.Parse(dueCardsJson);
+        if (cardsDoc.RootElement.GetArrayLength() > 0)
+        {
+            int firstCardId = cardsDoc.RootElement[0].GetProperty("id").GetInt32();
+            var dupReviewId = $"rev-{suffix}-1";
+            var batchRes = await authClient.PostAsJsonAsync("/api/mobile/flashcards/review/batch", new
+            {
+                language = "en",
+                reviews = new[]
+                {
+                    new { clientReviewId = dupReviewId, flashcardId = firstCardId, rating = 3 },
+                    new { clientReviewId = dupReviewId, flashcardId = firstCardId, rating = 4 }
+                }
+            });
+            batchRes.EnsureSuccessStatusCode();
+            var batchJson = await batchRes.Content.ReadAsStringAsync();
+            batchJson.Should().Contain("\"isSuccess\":true");
+            batchJson.Should().Contain("\"processedCount\":1");
+            batchJson.Should().Contain("\"duplicateSkippedCount\":1");
+        }
+    }
 }

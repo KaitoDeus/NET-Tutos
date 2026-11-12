@@ -16,12 +16,12 @@ The **.NET Tutos** ecosystem is architected as an N-tier layered system integrat
 graph TB
     subgraph ClientLayer ["1. Client Presentation Layer"]
         WebBrowser["Web Application Client<br/>(Bootstrap 5, Monaco Editor, Vanilla JS, SignalR Client, PWA)"]
-        MobileClient["Mobile Application Client<br/>(.NET MAUI 10 Multi-targeting: Android / iOS / Windows)"]
+        MobileClient["Mobile Application Client<br/>(.NET MAUI 10 + NET-Tutos.Mobile.Core<br/>Atus SSE Streaming, Offline Leitner & STT/TTS)"]
     end
 
     subgraph GatewayAndApi ["2. Controller & API Layer (ASP.NET Core 10)"]
         WebControllers["Web MVC Controllers<br/>(Tutorials, Playground, Interview, Leaderboard, Admin)"]
-        MobileApiControllers["RESTful Mobile APIs<br/>(/api/mobile/auth, /api/mobile/tutorials)"]
+        MobileApiControllers["RESTful & SSE Mobile APIs<br/>(/api/mobile/auth, /tutorials, /flashcards, /atus/*)"]
         SignalRHubs["Real-Time SignalR Hubs<br/>(DiscussionHub, NotificationHub)"]
     end
 
@@ -172,7 +172,7 @@ sequenceDiagram
     autonumber
     actor Learner as Learner
     participant Mobile as Mobile App (.NET MAUI)
-    participant MobileApi as MobileAuthController / MobileTutorialsController
+    participant MobileApi as MobileAuthController / MobileFlashcardsController / MobileAiTutorController
     participant DB as Unified Database (AppDbContext)
     participant Web as Web Application (ASP.NET Core)
 

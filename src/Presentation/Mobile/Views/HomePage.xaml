@@ -230,6 +230,51 @@
                     </Grid>
                 </Border>
 
+                <!-- AI Streaming & Voice Training Quick Launch Grid -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 18"
+                            Stroke="{AppThemeBinding Light=#BAE6FD, Dark=#0284C7}"
+                            StrokeThickness="1.2"
+                            BackgroundColor="{AppThemeBinding Light=#F0F9FF, Dark=#0C4A6E}"
+                            Padding="14">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenAtusChatCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Atus AI Streaming"
+                                   TextColor="{AppThemeBinding Light=#0369A1, Dark=#38BDF8}"
+                                   FontSize="13.5"
+                                   FontAttributes="Bold" />
+                            <Label Text="Chat SSE thời gian thực &amp; giải đáp C#/.NET 10"
+                                   TextColor="{AppThemeBinding Light=#475569, Dark=#BAE6FD}"
+                                   FontSize="11"
+                                   LineHeight="1.25" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Grid.Column="1"
+                            StrokeShape="RoundRectangle 18"
+                            Stroke="{AppThemeBinding Light=#A7F3D0, Dark=#059669}"
+                            StrokeThickness="1.2"
+                            BackgroundColor="{AppThemeBinding Light=#ECFDF5, Dark=#064E3B}"
+                            Padding="14">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenVoiceTrainingCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Luyện Nói Voice AI"
+                                   TextColor="{AppThemeBinding Light=#047857, Dark=#34D399}"
+                                   FontSize="13.5"
+                                   FontAttributes="Bold" />
+                            <Label Text="Speech-to-Text &amp; Neural TTS song ngữ VI/EN"
+                                   TextColor="{AppThemeBinding Light=#475569, Dark=#A7F3D0}"
+                                   FontSize="11"
+                                   LineHeight="1.25" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
                 <!-- Featured Categories Section -->
                 <VerticalStackLayout Spacing="14">
                     <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">

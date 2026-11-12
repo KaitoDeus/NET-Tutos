@@ -122,6 +122,18 @@ erDiagram
   }
   ```
 
+#### `GET /api/mobile/flashcards?topic=&difficulty=&limit=50&dueOnly=false`
+- **Description:** Retrieves spaced-repetition flashcards with `boxLevel`, `isMastered`, `nextReviewDate`, and `isDue` flags for offline caching.
+
+#### `POST /api/mobile/flashcards/review/batch`
+- **Description:** Idempotently synchronizes queued offline 5-box Leitner flashcard reviews back to the server.
+- **Headers:** `Authorization: Bearer <token>`
+- **Request Body:** `{ "language": "vi", "reviews": [{ "clientReviewId": "abc123", "flashcardId": 12, "rating": 3 }] }`
+- **Response (200 OK):** `{ "isSuccess": true, "processedCount": 1, "duplicateSkippedCount": 0, "totalXpEarned": 5, "totalXp": 470, "streakDays": 7 }`
+
+#### `POST /api/mobile/atus/chat/stream` & `POST /api/mobile/atus/voice-evaluate`
+- **Description:** Streams real-time Atus AI responses over Server-Sent Events (`text/event-stream` emitting `init`, `chunk`, `done`) and evaluates bilingual (`vi` / `en`) Speech-to-Text interview transcripts with a TTS-ready `spokenSummary` paired with `/api/tts/speak`.
+
 ---
 
 ### Group 3: AI Mentor & Algorithmic Analysis (`/AiTutor`)

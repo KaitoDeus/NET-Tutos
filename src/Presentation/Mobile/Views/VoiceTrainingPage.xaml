@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:NET_Tutos.Mobile.ViewModels"
+             x:Class="NET_Tutos.Mobile.Views.VoiceTrainingPage"
+             x:DataType="vm:VoiceTrainingViewModel"
+             Title="{Binding Title}"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#0B1120}">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16,18,16,18" RowSpacing="12">
+
+        <!-- ROW 0: Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" VerticalOptions="Center">
+            <Button Grid.Column="0"
+                    Text="←"
+                    Command="{Binding GoBackCommand}"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
+                    BorderColor="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                    BorderWidth="1"
+                    TextColor="{AppThemeBinding Light=#4338CA, Dark=#A5B4FC}"
+                    FontSize="15"
+                    FontAttributes="Bold"
+                    CornerRadius="12"
+                    WidthRequest="42"
+                    HeightRequest="38" />
+
+            <Label Grid.Column="1"
+                   Text="Luyện Nói Phỏng Vấn"
+                   TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                   FontSize="16"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+
+            <Button Grid.Column="2"
+                    Text="Đổi câu →"
+                    Command="{Binding NextQuestionCommand}"
+                    BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
+                    BorderColor="#6366F1"
+                    BorderWidth="1"
+                    TextColor="#818CF8"
+                    FontSize="11"
+                    FontAttributes="Bold"
+                    CornerRadius="10"
+                    HeightRequest="36"
+                    Padding="10,0" />
+        </Grid>
+
+        <!-- ROW 1: Scrollable Interview Drill Surface -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="12">
+
+                <!-- Language Switch & Status -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                    <Button Grid.Column="0"
+                            Text="{Binding LanguageButtonText}"
+                            Command="{Binding ToggleLanguageCommand}"
+                            BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E293B}"
+                            BorderColor="#6366F1"
+                            BorderWidth="1"
+                            TextColor="{AppThemeBinding Light=#4338CA, Dark=#A5B4FC}"
+                            FontSize="11"
+                            FontAttributes="Bold"
+                            CornerRadius="12"
+                            HeightRequest="38" />
+
+                    <Button Grid.Column="1"
+                            Text="Nghe câu hỏi (TTS)"
+                            Command="{Binding SpeakQuestionCommand}"
+                            BackgroundColor="#4F46E5"
+                            TextColor="White"
+                            FontSize="11"
+                            FontAttributes="Bold"
+                            CornerRadius="12"
+                            HeightRequest="38" />
+                </Grid>
+
+                <!-- Question Prompt Card -->
+                <Border StrokeShape="RoundRectangle 18"
+                        Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#0F172A}"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="{Binding TopicBadgeText}"
+                               TextColor="#38BDF8"
+                               FontSize="11"
+                               FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentQuestionText}"
+                               TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               LineHeight="1.35" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Status Banner -->
+                <Border StrokeShape="RoundRectangle 10"
+                        Stroke="#059669"
+                        BackgroundColor="#064E3B"
+                        Padding="12,8">
+                    <Label Text="{Binding StatusMessage}"
+                           TextColor="#A7F3D0"
+                           FontSize="11.5"
+                           FontAttributes="Bold" />
+                </Border>
+
+                <!-- Mic Recording Control -->
+                <Button Text="{Binding RecordButtonText}"
+                        Command="{Binding ToggleRecordingCommand}"
+                        BackgroundColor="#DC2626"
+                        TextColor="White"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        CornerRadius="14"
+                        HeightRequest="46" />
+
+                <!-- Editable Speech-to-Text Transcript -->
+                <Border StrokeShape="RoundRectangle 16"
+                        Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
+                        Padding="12">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Bản ghi câu trả lời (Speech-to-Text hoặc nhập chỉnh sửa):"
+                               TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}"
+                               FontSize="11"
+                               FontAttributes="Bold" />
+                        <Editor Text="{Binding Transcript}"
+                                Placeholder="Ví dụ: async/await giúp non-blocking bằng cách compiler tạo State Machine..."
+                                PlaceholderColor="{AppThemeBinding Light=#94A3B8, Dark=#475569}"
+                                TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                                AutoSize="TextChanges"
+                                MinimumHeightRequest="90"
+                                FontSize="13.5" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- AI Evaluation Card -->
+                <Border IsVisible="{Binding HasEvaluation}"
+                        StrokeShape="RoundRectangle 18"
+                        Stroke="#6366F1"
+                        BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="8">
+                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                            <Label Grid.Column="0"
+                                   Text="{Binding Evaluation.PerformanceRating}"
+                                   TextColor="{AppThemeBinding Light=#312E81, Dark=#C7D2FE}"
+                                   FontSize="14"
+                                   FontAttributes="Bold" />
+                            <Border Grid.Column="1"
+                                    StrokeShape="RoundRectangle 10"
+                                    BackgroundColor="#4F46E5"
+                                    Padding="10,4">
+                                <Label Text="{Binding Evaluation.OverallScore, StringFormat='{0}/100'}"
+                                       TextColor="White"
+                                       FontSize="13"
+                                       FontAttributes="Bold" />
+                            </Border>
+                        </Grid>
+
+                        <Label Text="{Binding Evaluation.Feedback}"
+                               TextColor="{AppThemeBinding Light=#1E293B, Dark=#E2E8F0}"
+                               FontSize="13"
+                               LineHeight="1.35" />
+
+                        <Label Text="{Binding Evaluation.FollowUpQuestion, StringFormat='Câu hỏi tiếp theo: {0}'}"
+                               TextColor="{AppThemeBinding Light=#4338CA, Dark=#FDE68A}"
+                               FontSize="12"
+                               FontAttributes="Italic" />
+
+                        <Button Text="Nghe nhận xét (Neural TTS)"
+                                Command="{Binding SpeakFeedbackCommand}"
+                                BackgroundColor="#059669"
+                                TextColor="White"
+                                FontSize="12"
+                                FontAttributes="Bold"
+                                CornerRadius="10"
+                                HeightRequest="38" />
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- ROW 2: Bottom Submit Action -->
+        <Button Grid.Row="2"
+                Text="Chấm điểm câu trả lời (Atus AI)"
+                Command="{Binding EvaluateAnswerCommand}"
+                BackgroundColor="#4F46E5"
+                TextColor="White"
+                FontSize="13"
+                FontAttributes="Bold"
+                CornerRadius="14"
+                HeightRequest="46" />
+    </Grid>
+</ContentPage>

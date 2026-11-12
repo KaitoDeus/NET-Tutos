@@ -75,11 +75,52 @@
             </HorizontalStackLayout>
         </ScrollView>
 
-        <!-- ROW 2: Progress Bar & Status Toast -->
+        <!-- ROW 2: Progress Bar, Offline Filter/Sync Bar & Status Toast -->
         <VerticalStackLayout Grid.Row="2" Spacing="6">
             <ProgressBar Progress="{Binding ProgressFraction}"
                          ProgressColor="#6366F1"
                          HeightRequest="4" />
+
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                <Button Grid.Column="0"
+                        Text="{Binding DueFilterButtonText}"
+                        Command="{Binding ToggleDueOnlyCommand}"
+                        BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
+                        BorderColor="#6366F1"
+                        BorderWidth="1"
+                        TextColor="{AppThemeBinding Light=#4338CA, Dark=#A5B4FC}"
+                        FontSize="10"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        HeightRequest="30"
+                        Padding="10,0" />
+
+                <Button Grid.Column="1"
+                        Text="Nghe TTS"
+                        Command="{Binding SpeakCurrentCardCommand}"
+                        BackgroundColor="{AppThemeBinding Light=#ECFDF5, Dark=#064E3B}"
+                        BorderColor="#059669"
+                        BorderWidth="1"
+                        TextColor="{AppThemeBinding Light=#047857, Dark=#6EE7B7}"
+                        FontSize="10"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        HeightRequest="30"
+                        Padding="10,0"
+                        HorizontalOptions="Start" />
+
+                <Button Grid.Column="2"
+                        Text="{Binding SyncButtonText}"
+                        Command="{Binding SyncOfflineReviewsCommand}"
+                        IsVisible="{Binding HasPendingSync}"
+                        BackgroundColor="#D97706"
+                        TextColor="White"
+                        FontSize="10"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        HeightRequest="30"
+                        Padding="10,0" />
+            </Grid>
 
             <!-- Notification Toast Message -->
             <Border IsVisible="{Binding HasStatusMessage}"

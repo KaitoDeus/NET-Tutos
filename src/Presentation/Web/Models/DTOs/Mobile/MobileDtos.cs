@@ -152,6 +152,8 @@ public class MobileFlashcardDto
     public int BoxLevel { get; set; } = 1;
     public bool IsMastered { get; set; }
     public int ReviewCount { get; set; }
+    public DateTime? NextReviewDate { get; set; }
+    public bool IsDue { get; set; } = true;
 }
 
 public class MobileFlashcardTopicDto
@@ -179,5 +181,82 @@ public class MobileFlashcardReviewResponse
     public int TotalXp { get; set; }
     public int StreakDays { get; set; }
     public bool IsMastered { get; set; }
+    public DateTime? NextReviewDate { get; set; }
+}
+
+public class MobileOfflineReviewItem
+{
+    public string? ClientReviewId { get; set; }
+    public int FlashcardId { get; set; }
+    public int Rating { get; set; } // 1: Again, 2: Hard, 3: Good, 4: Mastered
+    public DateTime? ReviewedAtUtc { get; set; }
+}
+
+public class MobileBatchFlashcardReviewRequest
+{
+    public List<MobileOfflineReviewItem> Reviews { get; set; } = new();
+    public string? Language { get; set; } = "vi";
+}
+
+public class MobileBatchFlashcardReviewItemResult
+{
+    public string? ClientReviewId { get; set; }
+    public int FlashcardId { get; set; }
+    public bool IsSuccess { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public int NewBoxLevel { get; set; }
+    public int XpEarned { get; set; }
+    public bool IsMastered { get; set; }
+    public DateTime? NextReviewDate { get; set; }
+}
+
+public class MobileBatchFlashcardReviewResponse
+{
+    public bool IsSuccess { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public int ProcessedCount { get; set; }
+    public int DuplicateSkippedCount { get; set; }
+    public int TotalXpEarned { get; set; }
+    public int TotalXp { get; set; }
+    public int StreakDays { get; set; }
+    public List<MobileBatchFlashcardReviewItemResult> Results { get; set; } = new();
+}
+#endregion
+
+#region Mobile Atus AI & Voice DTOs
+public class MobileAtusChatRequest
+{
+    public Guid? ConversationId { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public string? Language { get; set; } = "vi";
+    public string? CodeContext { get; set; }
+    public string? CurrentPage { get; set; } = "mobile";
+}
+
+public class MobileVoiceEvaluateRequest
+{
+    public int FlashcardId { get; set; }
+    public string Question { get; set; } = string.Empty;
+    public string Transcript { get; set; } = string.Empty;
+    public string? Topic { get; set; }
+    public string? Difficulty { get; set; }
+    public string? Language { get; set; } = "vi";
+}
+
+public class MobileVoiceEvaluateResponse
+{
+    public bool IsSuccess { get; set; } = true;
+    public int FlashcardId { get; set; }
+    public int OverallScore { get; set; }
+    public int TechnicalAccuracyScore { get; set; }
+    public int ClarityStructureScore { get; set; }
+    public int DepthPracticalScore { get; set; }
+    public string PerformanceRating { get; set; } = string.Empty;
+    public string Feedback { get; set; } = string.Empty;
+    public List<string> Strengths { get; set; } = new();
+    public List<string> MissingPoints { get; set; } = new();
+    public string FollowUpQuestion { get; set; } = string.Empty;
+    public string ModelAnswerSample { get; set; } = string.Empty;
+    public string SpokenSummary { get; set; } = string.Empty;
 }
 #endregion

@@ -417,7 +417,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(m => m.Content).IsRequired().IsUnicode(true);
             entity.Property(m => m.CodeSnippet).IsUnicode(true);
             entity.Property(m => m.ModelUsed).HasMaxLength(50);
-            entity.HasOne<AiConversation>()
+            entity.HasOne(m => m.Conversation)
                   .WithMany(c => c.Messages)
                   .HasForeignKey(m => m.ConversationId)
                   .OnDelete(DeleteBehavior.Cascade);

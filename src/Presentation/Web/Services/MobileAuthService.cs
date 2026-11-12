@@ -88,3 +88,23 @@ public class MobileAuthService : IMobileAuthService
         }
     }
 }
+
+/// <summary>
+/// Shared extension helpers for extracting Mobile Bearer tokens on API controllers.
+/// </summary>
+public static class MobileAuthHeaderExtensions
+{
+    public static string? GetBearerUserId(this IMobileAuthService mobileAuthService, HttpRequest request)
+    {
+        var authHeader = request.Headers["Authorization"].FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(authHeader) ||
+            !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var token = authHeader["Bearer ".Length..].Trim();
+        var (isValid, userId) = mobileAuthService.ValidateToken(token);
+        return isValid ? userId : null;
+    }
+}

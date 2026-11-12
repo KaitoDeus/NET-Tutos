@@ -108,4 +108,16 @@ public partial class HomeViewModel : BaseViewModel
     {
         await Shell.Current.GoToAsync("flashcards");
     }
+
+    [RelayCommand]
+    public async Task OpenAtusChatAsync()
+    {
+        await Shell.Current.GoToAsync("atuschat");
+    }
+
+    [RelayCommand]
+    public async Task OpenVoiceTrainingAsync()
+    {
+        await Shell.Current.GoToAsync("voicetraining");
+    }
 }

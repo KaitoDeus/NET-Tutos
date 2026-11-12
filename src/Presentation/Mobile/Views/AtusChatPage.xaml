@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:NET_Tutos.Mobile.ViewModels"
+             xmlns:models="clr-namespace:NET_Tutos.Mobile.Models"
+             x:Class="NET_Tutos.Mobile.Views.AtusChatPage"
+             x:DataType="vm:AtusChatViewModel"
+             Title="{Binding Title}"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#0B1120}">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" Padding="14,16,14,16" RowSpacing="10">
+
+        <!-- ROW 0: Top Bar -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8" VerticalOptions="Center">
+            <Button Grid.Column="0"
+                    Text="←"
+                    Command="{Binding GoBackCommand}"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
+                    BorderColor="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                    BorderWidth="1"
+                    TextColor="{AppThemeBinding Light=#4338CA, Dark=#A5B4FC}"
+                    FontSize="15"
+                    FontAttributes="Bold"
+                    CornerRadius="12"
+                    WidthRequest="42"
+                    HeightRequest="38" />
+
+            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                <Label Text="{Binding ConversationTitle}"
+                       TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                       FontSize="15"
+                       FontAttributes="Bold"
+                       LineBreakMode="TailTruncation" />
+                <Label Text="{Binding StatusBanner}"
+                       TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}"
+                       FontSize="10"
+                       LineBreakMode="TailTruncation" />
+            </VerticalStackLayout>
+
+            <Button Grid.Column="2"
+                    Text="{Binding LanguageToggleText}"
+                    Command="{Binding ToggleLanguageCommand}"
+                    BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
+                    BorderColor="#6366F1"
+                    BorderWidth="1"
+                    TextColor="#818CF8"
+                    FontSize="11"
+                    FontAttributes="Bold"
+                    CornerRadius="10"
+                    HeightRequest="36"
+                    Padding="10,0" />
+
+            <Button Grid.Column="3"
+                    Text="Mới"
+                    Command="{Binding StartNewConversationCommand}"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
+                    BorderColor="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                    BorderWidth="1"
+                    TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}"
+                    FontSize="11"
+                    FontAttributes="Bold"
+                    CornerRadius="10"
+                    HeightRequest="36"
+                    Padding="10,0" />
+        </Grid>
+
+        <!-- ROW 1: Quick Prompts + Neural TTS Bar -->
+        <ScrollView Grid.Row="1" Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+            <HorizontalStackLayout Spacing="8">
+                <Button Text="Giải thích async/await"
+                        Command="{Binding SendQuickPromptCommand}"
+                        CommandParameter="Giải thích cơ chế async/await và State Machine trong C#"
+                        BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
+                        TextColor="{AppThemeBinding Light=#4338CA, Dark=#A5B4FC}"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        CornerRadius="14"
+                        HeightRequest="32"
+                        Padding="12,0" />
+
+                <Button Text="Tối ưu EF Core LINQ"
+                        Command="{Binding SendQuickPromptCommand}"
+                        CommandParameter="Cách dùng AsNoTracking và tránh lỗi N+1 trong EF Core"
+                        BackgroundColor="{AppThemeBinding Light=#ECFDF5, Dark=#064E3B}"
+                        TextColor="{AppThemeBinding Light=#047857, Dark=#6EE7B7}"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        CornerRadius="14"
+                        HeightRequest="32"
+                        Padding="12,0" />
+
+                <Button Text="Đọc AI (Neural TTS)"
+                        Command="{Binding SpeakLatestReplyCommand}"
+                        BackgroundColor="{AppThemeBinding Light=#FEF3C7, Dark=#451A03}"
+                        TextColor="{AppThemeBinding Light=#B45309, Dark=#FCD34D}"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        CornerRadius="14"
+                        HeightRequest="32"
+                        Padding="12,0" />
+            </HorizontalStackLayout>
+        </ScrollView>
+
+        <!-- ROW 2: Streaming Chat Bubbles -->
+        <CollectionView Grid.Row="2"
+                        ItemsSource="{Binding Messages}"
+                        ItemsUpdatingScrollMode="KeepLastItemInView">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:AtusChatMessageItem">
+                    <VerticalStackLayout Padding="0,5" Spacing="4">
+                        <Border StrokeShape="RoundRectangle 16"
+                                BackgroundColor="{Binding BubbleBgColor}"
+                                Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                                StrokeThickness="1"
+                                Padding="14,10">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="{Binding RoleLabel}"
+                                       TextColor="#93C5FD"
+                                       FontSize="10"
+                                       FontAttributes="Bold" />
+                                <Label Text="{Binding Content}"
+                                       TextColor="{Binding BubbleTextColor}"
+                                       FontSize="13.5"
+                                       LineHeight="1.4" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- ROW 3: Streaming Stop Action -->
+        <Button Grid.Row="3"
+                Text="Dừng streaming phản hồi"
+                Command="{Binding CancelStreamingCommand}"
+                IsVisible="{Binding IsStreaming}"
+                BackgroundColor="#7F1D1D"
+                TextColor="#FCA5A5"
+                FontSize="11"
+                FontAttributes="Bold"
+                CornerRadius="10"
+                HeightRequest="32" />
+
+        <!-- ROW 4: Prompt Composer -->
+        <Grid Grid.Row="4" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <Border Grid.Column="0"
+                    StrokeShape="RoundRectangle 14"
+                    Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
+                    Padding="12,4">
+                <Entry Placeholder="Hỏi Atus AI về C# 14, EF Core, Docker..."
+                       PlaceholderColor="{AppThemeBinding Light=#94A3B8, Dark=#64748B}"
+                       Text="{Binding DraftMessage}"
+                       TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}"
+                       ReturnType="Send"
+                       ReturnCommand="{Binding SendMessageCommand}" />
+            </Border>
+
+            <Button Grid.Column="1"
+                    Text="Gửi"
+                    Command="{Binding SendMessageCommand}"
+                    IsEnabled="{Binding IsNotStreaming}"
+                    BackgroundColor="#4F46E5"
+                    TextColor="White"
+                    FontSize="13"
+                    FontAttributes="Bold"
+                    CornerRadius="14"
+                    HeightRequest="46"
+                    Padding="18,0" />
+        </Grid>
+    </Grid>
+</ContentPage>

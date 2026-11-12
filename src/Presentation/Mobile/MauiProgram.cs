@@ -25,6 +25,12 @@ public static class MauiProgram
 		// Services
 		builder.Services.AddSingleton<IApiService, ApiService>();
 		builder.Services.AddSingleton<IThemeService, ThemeService>();
+		builder.Services.AddSingleton<Core.Services.IAudioPlaybackService, Services.MauiAudioPlaybackService>();
+#if ANDROID
+		builder.Services.AddSingleton<Core.Services.ISpeechToTextService, Services.AndroidSpeechToTextService>();
+#else
+		builder.Services.AddSingleton<Core.Services.ISpeechToTextService, Services.FallbackSpeechToTextService>();
+#endif
 
 		// ViewModels
 		builder.Services.AddTransient<HomeViewModel>();
@@ -34,6 +40,8 @@ public static class MauiProgram
 		builder.Services.AddTransient<LoginViewModel>();
 		builder.Services.AddTransient<SettingsViewModel>();
 		builder.Services.AddTransient<FlashcardsViewModel>();
+		builder.Services.AddTransient<AtusChatViewModel>();
+		builder.Services.AddTransient<VoiceTrainingViewModel>();
 
 		// Views
 		builder.Services.AddTransient<HomePage>();
@@ -43,6 +51,8 @@ public static class MauiProgram
 		builder.Services.AddTransient<LoginPage>();
 		builder.Services.AddTransient<SettingsPage>();
 		builder.Services.AddTransient<FlashcardsPage>();
+		builder.Services.AddTransient<AtusChatPage>();
+		builder.Services.AddTransient<VoiceTrainingPage>();
 
 		return builder.Build();
 	}

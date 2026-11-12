@@ -42,6 +42,7 @@ jobs:
         dotnet restore src/Services/Catalog/NET-Tutos.Catalog.Infrastructure/NET-Tutos.Catalog.Infrastructure.csproj
         dotnet restore src/Services/Catalog/NET-Tutos.Catalog.API/NET-Tutos.Catalog.API.csproj
         dotnet restore src/Presentation/Web/web.csproj
+        dotnet restore src/Presentation/NET-Tutos.Mobile.Core/NET-Tutos.Mobile.Core.csproj
         dotnet restore src/Orchestration/NET-Tutos.AppHost/NET-Tutos.AppHost.csproj
         dotnet restore tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
         dotnet restore tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
@@ -50,6 +51,7 @@ jobs:
         dotnet restore tests/NET-Tutos.AiTutor.Tests/NET-Tutos.AiTutor.Tests.csproj
         dotnet restore tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj
         dotnet restore tests/NET-Tutos.Gateway.Tests/NET-Tutos.Gateway.Tests.csproj
+        dotnet restore tests/NET-Tutos.Mobile.Tests/NET-Tutos.Mobile.Tests.csproj
 
     - name: Build Projects
       run: |
@@ -73,6 +75,7 @@ jobs:
         dotnet build src/Services/Catalog/NET-Tutos.Catalog.Infrastructure/NET-Tutos.Catalog.Infrastructure.csproj --configuration Release --no-restore
         dotnet build src/Services/Catalog/NET-Tutos.Catalog.API/NET-Tutos.Catalog.API.csproj --configuration Release --no-restore
         dotnet build src/Presentation/Web/web.csproj --configuration Release --no-restore
+        dotnet build src/Presentation/NET-Tutos.Mobile.Core/NET-Tutos.Mobile.Core.csproj --configuration Release --no-restore
         dotnet build src/Orchestration/NET-Tutos.AppHost/NET-Tutos.AppHost.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj --configuration Release --no-restore
@@ -81,6 +84,7 @@ jobs:
         dotnet build tests/NET-Tutos.AiTutor.Tests/NET-Tutos.AiTutor.Tests.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj --configuration Release --no-restore
         dotnet build tests/NET-Tutos.Gateway.Tests/NET-Tutos.Gateway.Tests.csproj --configuration Release --no-restore
+        dotnet build tests/NET-Tutos.Mobile.Tests/NET-Tutos.Mobile.Tests.csproj --configuration Release --no-restore
 
     - name: Run API Gateway Tests
       run: |
@@ -126,6 +130,15 @@ jobs:
           --verbosity normal \
           --collect:"XPlat Code Coverage" \
           --results-directory ./TestResults/CatalogTests
+
+    - name: Run Mobile Core & Offline Sync Tests
+      run: |
+        dotnet test tests/NET-Tutos.Mobile.Tests/NET-Tutos.Mobile.Tests.csproj \
+          --configuration Release \
+          --no-build \
+          --verbosity normal \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./TestResults/MobileTests
 
     - name: Run Unit Tests with Code Coverage
       run: |

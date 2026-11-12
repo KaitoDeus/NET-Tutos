@@ -31,20 +31,15 @@ public class MobileFlashcardsController : ControllerBase
 
     private string? GetCurrentUserId()
     {
-        var authHeader = Request.Headers["Authorization"].FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            return null;
-
-        var token = authHeader.Substring("Bearer ".Length).Trim();
-        var (isValid, userId) = _mobileAuthService.ValidateToken(token);
-        return isValid ? userId : null;
+        return _mobileAuthService.GetBearerUserId(Request);
     }
 
     [HttpGet]
     public async Task<IActionResult> GetFlashcards(
         [FromQuery] string? topic,
         [FromQuery] string? difficulty,
-        [FromQuery] int limit = 50)
+        [FromQuery] int limit = 50,
+        [FromQuery] bool dueOnly = false)
     {
         var query = _context.InterviewFlashcards.AsNoTracking().AsQueryable();
 
@@ -63,19 +58,21 @@ public class MobileFlashcardsController : ControllerBase
         if (!string.IsNullOrEmpty(userId))
         {
             progressMap = await _context.UserFlashcardProgresses
+                .AsNoTracking()
                 .Where(p => p.UserId == userId)
                 .ToDictionaryAsync(p => p.FlashcardId);
         }
 
-        var cards = await query
+        var utcNow = DateTime.UtcNow;
+        var allMatching = await query
             .OrderBy(f => f.Topic)
             .ThenBy(f => f.OrderIndex)
-            .Take(limit)
             .ToListAsync();
 
-        var result = cards.Select(c =>
+        var mapped = allMatching.Select(c =>
         {
             progressMap.TryGetValue(c.Id, out var p);
+            bool isDue = p == null || p.NextReviewDate <= utcNow;
             return new MobileFlashcardDto
             {
                 Id = c.Id,
@@ -92,11 +89,19 @@ public class MobileFlashcardsController : ControllerBase
                 OrderIndex = c.OrderIndex,
                 BoxLevel = p?.BoxLevel ?? 1,
                 IsMastered = p?.IsMastered ?? false,
-                ReviewCount = p?.ReviewCount ?? 0
+                ReviewCount = p?.ReviewCount ?? 0,
+                NextReviewDate = p?.NextReviewDate,
+                IsDue = isDue
             };
-        }).ToList();
+        });
 
-        return Ok(result);
+        if (dueOnly)
+        {
+            mapped = mapped.Where(c => c.IsDue);
+        }
+
+        var clampedLimit = Math.Clamp(limit, 1, 200);
+        return Ok(mapped.Take(clampedLimit).ToList());
     }
 
     [HttpGet("topics")]
@@ -168,7 +173,88 @@ public class MobileFlashcardsController : ControllerBase
             XpEarned = reviewResult.XpEarned,
             TotalXp = user?.ExperiencePoints ?? 0,
             StreakDays = user?.CurrentStreak ?? 0,
-            IsMastered = reviewResult.IsMastered
+            IsMastered = reviewResult.IsMastered,
+            NextReviewDate = DateTime.UtcNow.AddDays(Math.Max(1, reviewResult.NextReviewDays))
+        });
+    }
+
+    /// <summary>
+    /// Batch synchronizes offline spaced-repetition flashcard reviews queued by mobile clients.
+    /// </summary>
+    [HttpPost("review/batch")]
+    public async Task<IActionResult> ReviewFlashcardsBatch([FromBody] MobileBatchFlashcardReviewRequest request)
+    {
+        var userId = GetCurrentUserId();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized(new MobileBatchFlashcardReviewResponse
+            {
+                IsSuccess = false,
+                Message = "Vui lòng đăng nhập để đồng bộ lịch sử ôn tập offline."
+            });
+        }
+
+        if (request?.Reviews == null || request.Reviews.Count == 0)
+        {
+            return BadRequest(new MobileBatchFlashcardReviewResponse
+            {
+                IsSuccess = false,
+                Message = "Danh sách thẻ cần đồng bộ không được để trống."
+            });
+        }
+
+        bool isEn = string.Equals(request.Language, "en", StringComparison.OrdinalIgnoreCase);
+        var seenClientIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var itemResults = new List<MobileBatchFlashcardReviewItemResult>();
+        int duplicateSkipped = 0;
+        int totalXpEarned = 0;
+
+        foreach (var item in request.Reviews.Take(200))
+        {
+            if (!string.IsNullOrWhiteSpace(item.ClientReviewId) && !seenClientIds.Add(item.ClientReviewId))
+            {
+                duplicateSkipped++;
+                continue;
+            }
+
+            var rating = (FlashcardRating)Math.Clamp(item.Rating, 1, 4);
+            var reviewResult = await _flashcardService.RecordReviewAsync(userId, item.FlashcardId, rating, isEn);
+
+            if (reviewResult.Success)
+            {
+                totalXpEarned += reviewResult.XpEarned;
+            }
+
+            itemResults.Add(new MobileBatchFlashcardReviewItemResult
+            {
+                ClientReviewId = item.ClientReviewId,
+                FlashcardId = item.FlashcardId,
+                IsSuccess = reviewResult.Success,
+                Message = reviewResult.Message,
+                NewBoxLevel = reviewResult.NewBoxLevel,
+                XpEarned = reviewResult.XpEarned,
+                IsMastered = reviewResult.IsMastered,
+                NextReviewDate = reviewResult.Success
+                    ? DateTime.UtcNow.AddDays(Math.Max(1, reviewResult.NextReviewDays))
+                    : null
+            });
+        }
+
+        var user = await _userManager.FindByIdAsync(userId);
+        int processedCount = itemResults.Count(r => r.IsSuccess);
+
+        return Ok(new MobileBatchFlashcardReviewResponse
+        {
+            IsSuccess = processedCount > 0,
+            Message = isEn
+                ? $"Synced {processedCount} offline flashcard review(s), +{totalXpEarned} XP."
+                : $"Đã đồng bộ {processedCount} lượt ôn thẻ offline (+{totalXpEarned} XP).",
+            ProcessedCount = processedCount,
+            DuplicateSkippedCount = duplicateSkipped,
+            TotalXpEarned = totalXpEarned,
+            TotalXp = user?.ExperiencePoints ?? 0,
+            StreakDays = user?.CurrentStreak ?? 0,
+            Results = itemResults
         });
     }
 
