@@ -134,6 +134,22 @@ erDiagram
 #### `POST /api/mobile/atus/chat/stream` & `POST /api/mobile/atus/voice-evaluate`
 - **Description:** Streams real-time Atus AI responses over Server-Sent Events (`text/event-stream` emitting `init`, `chunk`, `done`) and evaluates bilingual (`vi` / `en`) Speech-to-Text interview transcripts with a TTS-ready `spokenSummary` paired with `/api/tts/speak`.
 
+#### `GET /Admin/FreezeOverview` & `GET /Admin/DownloadSnapshot` (Phase 28)
+- **Description:** Administrator turnkey portal and direct stream download for frozen database snapshot (`dotnet_tutorials_freeze.db`).
+
+#### `GET /api/admin/system/health-matrix` (Phase 28)
+- **Description:** Anonymous ping probe inspecting latency and availability across internal microservices (`CodeRunner`, `Gamification`, `AiTutor`, `Catalog`, and `YARP Gateway`).
+- **Response (200 OK):**
+  ```json
+  {
+    "success": true,
+    "timestamp": "2026-11-14T01:25:00Z",
+    "services": [
+      { "name": "CodeRunner Microservice", "url": "http://localhost:5002/healthz", "isUp": true, "statusCode": 200, "latencyMs": 4 }
+    ]
+  }
+  ```
+
 ---
 
 ### Group 3: AI Mentor & Algorithmic Analysis (`/AiTutor`)

@@ -503,3 +503,5 @@ extensions/*/node_modules/
 extensions/*/out/
 extensions/*/dist/
 *.vsix
+*.apk
+*.aab

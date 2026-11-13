@@ -10,7 +10,7 @@
 [![VS Code Extension](https://img.shields.io/badge/VS_Code-Atus_Pair_Programmer-007ACC?logo=visualstudiocode&logoColor=white)](extensions/vscode-atus)
 [![.NET MAUI](https://img.shields.io/badge/.NET_MAUI-10.0_Phase_27-512BD4?logo=dotnet)](src/Presentation/Mobile)
 [![.NET Aspire](https://img.shields.io/badge/.NET_Aspire-13.6.5-512BD4?logo=dotnet)](src/Orchestration/NET-Tutos.AppHost)
-[![Tests](https://img.shields.io/badge/Tests-254%2F254_Passing-10B981)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-255%2F255_Passing-10B981)](tests/)
 [![Cache](https://img.shields.io/badge/Cache-Hybrid_L1_%2B_Redis_7-DC382D?logo=redis&logoColor=white)](docker-compose.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -38,9 +38,10 @@
   - [Option B: Run Standalone Web App with Automatic Resilient Fallback](#option-b-run-standalone-web-app-with-automatic-resilient-fallback)
   - [Option C: Run the .NET MAUI 10 Mobile Application & Shared Core (Phase 27)](#option-c-run-the-net-maui-10-mobile-application--shared-core-phase-27)
   - [Option D: Run the VS Code Extension (Atus .NET Pair Programmer)](#option-d-run-the-vs-code-extension-atus-net-pair-programmer)
-- [8. Automated Testing & CI Quality Gates (254/254 Passing)](#8-automated-testing--ci-quality-gates-254254-passing)
-- [9. Enterprise Documentation Suite (`docs/`)](#9-enterprise-documentation-suite-docs)
-- [10. License](#10-license)
+- [8. Automated Testing & CI Quality Gates (255/255 Passing)](#8-automated-testing--ci-quality-gates-255255-passing)
+- [9. Master Project Freeze, Turnkey Control Kit & Handover (Phase 28)](#9-master-project-freeze-turnkey-control-kit--handover-phase-28)
+- [10. Enterprise Documentation Suite (`docs/`)](#10-enterprise-documentation-suite-docs)
+- [11. License](#11-license)
 
 ---
 
@@ -135,7 +136,7 @@ d:\NET-Tutos\
 │       ├── Common/                             # ApiResponse<T>, Result<T>, OpenTelemetry OTLP, PrometheusMetricsBuilder & SandboxGuardrails
 │       └── EventBus/                           # Integration events (RabbitMQ/MassTransit) & Apache Kafka streams
 │
-└── tests/                                      # [04. Tests Layer — 249 .NET Tests + 5 VS Code Node Tests = 254]
+└── tests/                                      # [04. Tests Layer — 250 .NET Tests + 5 VS Code Node Tests = 255]
     ├── NET-Tutos.Gateway.Tests/                # YARP Gateway routing, status, /metrics & X-Correlation-ID tests
     ├── NET-Tutos.CodeRunner.Tests/             # Roslyn sandbox, AST security blacklist & timeout tests
     ├── NET-Tutos.Gamification.Tests/           # Streak domain rules, XP ledger & MassTransit consumer tests
@@ -236,6 +237,9 @@ d:\NET-Tutos\
 | **Mobile API (BFF)** | `/api/mobile/flashcards/review/batch` | `POST` | Idempotently syncs queued offline Leitner flashcard reviews |
 | **Mobile API (BFF)** | `/api/mobile/atus/chat/stream` | `POST` | Streams bilingual Atus AI Tutor responses over Server-Sent Events (`text/event-stream`) |
 | **Mobile API (BFF)** | `/api/mobile/atus/voice-evaluate` | `POST` | Evaluates spoken interview transcripts against 3-dimension rubric with TTS `SpokenSummary` |
+| **System Admin** | `/Admin/FreezeOverview` | `GET` | Turnkey system freeze & handover dashboard with topology and artifact status |
+| **System Admin** | `/Admin/DownloadSnapshot` | `GET` | Direct stream download of frozen database snapshot (`dotnet_tutorials_freeze.db`) |
+| **System Health** | `/api/admin/system/health-matrix` | `GET` | Live latency & availability ping matrix across internal microservices & Gateway |
 
 ---
 
@@ -342,9 +346,9 @@ Learners can sign in or register directly via **GitHub OAuth 2.0** (`/signin-git
 
 ---
 
-## 8. Automated Testing & CI Quality Gates (254/254 Passing)
+## 8. Automated Testing & CI Quality Gates (255/255 Passing)
 
-Every microservice, gateway route, distributed rate-limit partition, `.NET Aspire` AppHost & Kubernetes Cert-Manager Helm deployment manifest, OpenTelemetry OTLP exporter, Redis scale-out backplane, domain value object, hybrid Redis cache, SQL Playground sandbox, Geo-IP detector, SEO engine, OAuth 2.0 SSO flow, Prometheus OpenMetrics exporter, Kafka analytics store, Neural TTS proxy, Persistent PostgreSQL SignalR coding arena, Hybrid `pgvector` Neural RAG engine, Stage-by-Stage Lock progression, Responsive Web Design, IDE Bridge API, `.NET MAUI 10` Mobile Core (`AtusSseStreamParser`, `OfflineFlashcardStore`, `VoiceTrainingEvaluator`, `NeuralTtsCacheService`), and VS Code extension client is verified by **254 automated tests** (**249 `.NET` tests across 8 projects + 5 VS Code Node tests**, enforced via [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and [`.github/workflows/helm-deploy.yml`](.github/workflows/helm-deploy.yml)):
+Every microservice, gateway route, distributed rate-limit partition, `.NET Aspire` AppHost & Kubernetes Cert-Manager Helm deployment manifest, OpenTelemetry OTLP exporter, Redis scale-out backplane, domain value object, hybrid Redis cache, SQL Playground sandbox, Geo-IP detector, SEO engine, OAuth 2.0 SSO flow, Prometheus OpenMetrics exporter, Kafka analytics store, Neural TTS proxy, Persistent PostgreSQL SignalR coding arena, Hybrid `pgvector` Neural RAG engine, Stage-by-Stage Lock progression, Responsive Web Design, IDE Bridge API, `.NET MAUI 10` Mobile Core (`AtusSseStreamParser`, `OfflineFlashcardStore`, `VoiceTrainingEvaluator`, `NeuralTtsCacheService`), Phase 28 Freeze & Health Matrix endpoints, and VS Code extension client is verified by **255 automated tests** (**250 `.NET` tests across 8 projects + 5 VS Code Node tests**, enforced via [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and [`.github/workflows/helm-deploy.yml`](.github/workflows/helm-deploy.yml)):
 
 ```powershell
 # 1. YARP API Gateway routing, distributed rate limiting, OTLP/Tempo, /metrics, X-Correlation-ID & Aspire/Helm specs (11 tests)
@@ -365,7 +369,7 @@ dotnet test tests/NET-Tutos.Catalog.Tests/NET-Tutos.Catalog.Tests.csproj
 # 6. Web BFF unit tests (Redis Scale-Out, OTLP Collector, Sandbox Guardrails, SQL Playground, Cache, Geo-IP, SEO, Observability, RAG, TTS, Kafka) (123 tests)
 dotnet test tests/NET-Tutos.UnitTests/NET-Tutos.UnitTests.csproj
 
-# 7. End-to-End HTTP integration pipeline (/api/scaleout/diagnostics, /api/telemetry/otlp, /sql-playground, /api/sql/*, /metrics, /api/v1/ide/*, /api/mobile/atus/*, /api/mobile/flashcards/review/batch, /api/search/*, Arena, Stage Lock, Responsive UI, Whiteboard, TTS, OAuth, SEO) (41 tests)
+# 7. End-to-End HTTP integration pipeline (/api/scaleout/diagnostics, /api/telemetry/otlp, /sql-playground, /api/sql/*, /metrics, /api/v1/ide/*, /api/mobile/atus/*, /api/mobile/flashcards/review/batch, /Admin/FreezeOverview, /api/admin/system/health-matrix, /api/search/*, Arena, Stage Lock, Responsive UI, Whiteboard, TTS, OAuth, SEO) (42 tests)
 dotnet test tests/NET-Tutos.IntegrationTests/NET-Tutos.IntegrationTests.csproj
 
 # 8. Mobile Core & Offline Sync unit tests (Leitner scheduler, offline store batch sync, Atus SSE parser, voice rubric & Neural TTS cache) (12 tests)
@@ -377,7 +381,38 @@ npm --prefix extensions/vscode-atus test
 
 ---
 
-## 9. Enterprise Documentation Suite (`docs/`)
+## 9. Master Project Freeze, Turnkey Control Kit & Handover (Phase 28)
+
+The project has reached its permanent cold-storage freeze milestone. The entire platform can be managed, verified, and revived with a single universal PowerShell CLI or inspected via the Handover Playbook:
+
+```powershell
+# Check platform status, ports, and release artifacts
+./scripts/nettutos.ps1 status
+
+# 1-Click fast start (Web BFF + SQLite on port 5262)
+./scripts/nettutos.ps1 up local
+
+# 1-Click start on Docker Compose (13 containers)
+./scripts/nettutos.ps1 up docker
+
+# 1-Click Android Emulator & .NET MAUI 10 mobile app launch
+./scripts/nettutos.ps1 mobile
+
+# Run complete 255-test verification suite
+./scripts/nettutos.ps1 test
+
+# Package release artifacts (Android APK, VS Code VSIX, Helm chart) into dist/
+./scripts/nettutos.ps1 pack
+
+# Create database snapshot into data/snapshots/
+./scripts/nettutos.ps1 backup
+```
+
+For complete architectural decisions, credentials, database restore instructions, and the future resumption roadmap, refer to the [**99. Project Freeze & Resumption Playbook**](docs/99_project_freeze_and_resumption_playbook.md).
+
+---
+
+## 10. Enterprise Documentation Suite (`docs/`)
 
 Detailed architectural blueprints, sequence diagrams, ERDs, and requirements specifications are maintained in [`docs/`](docs/README.md):
 

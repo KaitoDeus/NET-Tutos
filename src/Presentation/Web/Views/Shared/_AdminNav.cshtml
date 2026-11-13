@@ -66,6 +66,12 @@
                     <i class="bi bi-folder-check me-1"></i> @(isEn ? "Review Capstone Projects" : "Duyệt Đồ án Thực chiến")
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link rounded-pill px-3 py-1.5 fw-semibold @(currentController == "Admin" && currentAction == "FreezeOverview" ? "active" : "text-body")"
+                   asp-controller="Admin" asp-action="FreezeOverview">
+                    <i class="bi bi-snow me-1 text-info"></i> @(isEn ? "System Freeze & Handover" : "Đóng Băng & Bàn Giao")
+                </a>
+            </li>
         </ul>
     </div>
 </div>

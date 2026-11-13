@@ -621,4 +621,26 @@ public class BasicEndpointTests : IClassFixture<CustomWebApplicationFactory>
             batchJson.Should().Contain("\"duplicateSkippedCount\":1");
         }
     }
+
+    [Fact]
+    public async Task Phase28_SystemFreezeAndHealthMatrix_WorkEndToEnd()
+    {
+        // Arrange
+        var noRedirectClient = _factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
+
+        // Act - Admin security boundary
+        var freezeResp = await noRedirectClient.GetAsync("/Admin/FreezeOverview");
+        freezeResp.StatusCode.Should().BeOneOf(HttpStatusCode.Redirect, HttpStatusCode.Unauthorized);
+
+        // Act - Anonymous health-matrix API
+        var healthResp = await _client.GetAsync("/api/admin/system/health-matrix");
+        healthResp.EnsureSuccessStatusCode();
+        var healthJson = await healthResp.Content.ReadAsStringAsync();
+        healthJson.Should().Contain("\"services\":");
+        healthJson.Should().Contain("CodeRunner Microservice");
+        healthJson.Should().Contain("YARP Gateway");
+    }
 }

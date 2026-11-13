@@ -60,6 +60,33 @@ public class TutorialEditViewModel
     public IEnumerable<Category> AvailableCategories { get; set; } = new List<Category>();
 }
 
+public class SystemFreezeOverviewViewModel
+{
+    public string ArchitectureVersion { get; set; } = ".NET 10.0 / C# 14 (Phase 28 Master Freeze)";
+    public string DotnetVersion { get; set; } = Environment.Version.ToString();
+    public string OsDescription { get; set; } = System.Runtime.InteropServices.RuntimeInformation.OSDescription;
+    public string DatabaseProvider { get; set; } = "PostgreSQL / SQLite Resilient Fallback";
+    public int TotalProjects { get; set; } = 28;
+    public int TotalAutomatedTests { get; set; } = 254;
+    public int TotalTutorials { get; set; }
+    public int TotalCategories { get; set; }
+    public int TotalQuizQuestions { get; set; }
+    public int TotalCodingChallenges { get; set; }
+    public int TotalFlashcards { get; set; }
+    public int TotalUsers { get; set; }
+    public List<ArtifactInfo> ReleaseArtifacts { get; set; } = new();
+    public DateTime FreezeDate { get; set; } = DateTime.UtcNow;
+}
+
+public class ArtifactInfo
+{
+    public string Name { get; set; } = string.Empty;
+    public string RelativePath { get; set; } = string.Empty;
+    public string SizeDisplay { get; set; } = string.Empty;
+    public string TargetPlatform { get; set; } = string.Empty;
+    public bool Exists { get; set; }
+}
+
 public class QuizQuestionEditViewModel
 {
     public int Id { get; set; }

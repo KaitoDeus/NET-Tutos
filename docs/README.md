@@ -31,7 +31,8 @@ d:\NET-Tutos\docs\
 ├── 07_docker_and_database_setup.md     # PostgreSQL 17, Npgsql EF Core 10 & Docker Compose Architecture
 ├── 08_testing_strategy_and_test_cases.md # Automated Testing Strategy, Test Matrix & Exception Specs
 ├── 09_microservices_architecture_and_migration.md # Microservices Architecture, Service Decomposition & Strangler Fig Migration
-├── 10_project_roadmap_and_ai_memory.md # Master Roadmap, Phase 1–11 History & AI Context Memory (SSOT)
+├── 10_project_roadmap_and_ai_memory.md # Master Roadmap, Phase 1–28 History & AI Context Memory (SSOT)
+├── 99_project_freeze_and_resumption_playbook.md # Master Project Freeze, Turnkey Control Kit & Resumption Playbook
 └── DESIGN.md                           # Frontend Design System & Anti-AI-Slop Quality Constitution
 ```
 
@@ -95,7 +96,7 @@ d:\NET-Tutos\docs\
    - Automated test matrix across Streak, Gamification, Exam, Roslyn Sandbox, AI Tutor, Observability/Prometheus, Multi-Source RAG, Live Coding Whiteboard, IDE Bridge, and HTTP endpoints.
    - Comprehensive Exceptions and Error Handling matrix with system mitigation and user recovery strategies.
    - GitHub Actions CI workflow pipeline configuration (`.github/workflows/ci.yml`) and code coverage quality gates.
-   - Local developer CLI execution guide (254 automated tests: 249 `.NET` + 5 `node:test`).
+   - Local developer CLI execution guide (255 automated tests: 250 `.NET` + 5 `node:test`).
 
 9. [**09. Microservices Architecture & Strangler Fig Migration**](file:///d:/NET-Tutos/docs/09_microservices_architecture_and_migration.md)
    - Distributed system transformation, bounded contexts, and architectural drivers.
@@ -103,13 +104,17 @@ d:\NET-Tutos\docs\
    - Dedicated `CodeRunner.API`, `Gamification.API`, `AiTutor.API`, and `Catalog.API` microservices with `/metrics`, OTLP export, and `/healthz`.
    - Resilient delegation and graceful in-process fallback pattern (`ResilientMicroserviceHandler`).
    - 13-container Docker Compose orchestration including Apache Kafka KRaft, Prometheus (`:9090`), Grafana Tempo (`:3200/:4317`), and Grafana (`:3000`).
-   - 254/254 automated test execution across 8 `.NET` test projects plus the VS Code Extension test suite.
+   - 255/255 automated test execution across 8 `.NET` test projects plus the VS Code Extension test suite.
 
 10. [**10. Master Project Roadmap & AI Context Memory**](file:///d:/NET-Tutos/docs/10_project_roadmap_and_ai_memory.md)
-   - Persistent AI Context Memory and Single Source of Truth (SSOT) for all 27 completed phases (Phase 1 through Phase 27): Hybrid L1/L2 Redis 7 Caching, Catalog Microservice, OpenTelemetry OTLP & Grafana Tempo Tracing, Distributed Redis Gateway Rate Limiting & Sandbox Guardrails, Persistent SignalR Coding Arena, Apache Kafka Streams & Neural TTS, Live Coding Whiteboard, Hybrid Neural Embeddings with PostgreSQL `pgvector`, Interactive SQL Playground, `.NET Aspire` AppHost, Production Cert-Manager TLS Helm Chart, and `.NET MAUI 10` Mobile Client + `NET-Tutos.Mobile.Core` (Atus SSE streaming, offline Leitner flashcard batch sync, and bilingual STT + Neural TTS voice training).
-   - Standing engineering rules (Pure .NET 10 / C# 14, Auto-Commit workflow, English-Only Code Comments, Zero Secret/Demo Leakage, Geo-IP Region Detection `VN` -> `vi` / Outside `VN` -> `en`, Continuous SEO, and clean Modular Mobile architecture).
+   - Persistent AI Context Memory and Single Source of Truth (SSOT) for all 28 completed phases (Phase 1 through Phase 28): Hybrid L1/L2 Redis 7 Caching, Catalog Microservice, OpenTelemetry OTLP & Grafana Tempo Tracing, Distributed Redis Gateway Rate Limiting & Sandbox Guardrails, Persistent SignalR Coding Arena, Apache Kafka Streams & Neural TTS, Live Coding Whiteboard, Hybrid Neural Embeddings with PostgreSQL `pgvector`, Interactive SQL Playground, `.NET Aspire` AppHost, Production Cert-Manager TLS Helm Chart, `.NET MAUI 10` Mobile Client + `NET-Tutos.Mobile.Core`, and Master Project Freeze, Standalone Release Packaging (`dist/`) & Turnkey Handover Playbook.
+   - Standing engineering rules (Pure .NET 10 / C# 14, Auto-Commit workflow, English-Only Code Comments, Zero Secret/Demo Leakage, Geo-IP Region Detection `VN` -> `vi` / Outside `VN` -> `en`, Continuous SEO, and Clean Freeze Discipline).
 
-11. [**DESIGN. Design System & Anti-AI-Slop Constitution**](file:///d:/NET-Tutos/docs/DESIGN.md)
+11. [**99. Project Freeze & Resumption Playbook**](file:///d:/NET-Tutos/docs/99_project_freeze_and_resumption_playbook.md)
+   - Comprehensive turnkey guide to resume the project in 3 minutes after any period of cold storage.
+   - Component port matrix, database snapshot restoration, standalone release artifacts catalog (`dist/`), and universal control CLI (`./scripts/nettutos.ps1`).
+
+12. [**DESIGN. Design System & Anti-AI-Slop Constitution**](file:///d:/NET-Tutos/docs/DESIGN.md)
    - Developer Tool standard inspired by Linear, Raycast, Stripe, and GitHub Primer.
    - Anti-Slop banned patterns (no neon gradients, no cartoonish hover transforms, no card nesting).
    - Grounded Zinc/Slate neutral palettes, disciplined 6px–8px radii, and 1px hairline borders.

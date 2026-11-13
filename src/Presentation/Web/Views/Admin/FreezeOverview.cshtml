@@ -1,0 +1,223 @@
+@model NET_Tutos.Models.ViewModels.SystemFreezeOverviewViewModel
+@{
+    ViewData["Title"] = Context.IsEnglish() ? "System Freeze & Turnkey Handover (Phase 28)" : "Đóng Băng Hệ Thống & Bàn Giao Tự Động (Phase 28)";
+    bool isEn = Context.IsEnglish();
+}
+
+<div class="container-xl py-4">
+    <!-- Admin Subnav -->
+    @await Html.PartialAsync("_AdminNav")
+
+    <!-- Banner -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-gradient p-4 text-white" style="background: linear-gradient(135deg, #18181b 0%, #27272a 100%);">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-3 py-1.5 rounded-pill fw-semibold">
+                        <i class="bi bi-snow me-1"></i> @(isEn ? "Phase 28: Master Project Freeze" : "Giai Đoạn 28: Đóng Băng & Bàn Giao Hoàn Chỉnh")
+                    </span>
+                    <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-1.5 rounded-pill fw-semibold">
+                        <i class="bi bi-shield-check me-1"></i> @(isEn ? "254/254 Tests Passing" : "254/254 Kiểm Thử Thành Công")
+                    </span>
+                </div>
+                <h3 class="fw-bold mb-1">@(isEn ? "Turnkey System Freeze & Handover Portal" : "Cổng Bàn Giao & Đóng Băng Hệ Thống Turnkey")</h3>
+                <p class="text-secondary mb-0 small">
+                    @(isEn
+                        ? "The entire platform is sealed with all 28 projects, 4 microservices, K8s Helm, MAUI 10 mobile, and DB snapshots ready for instant resumption."
+                        : "Toàn bộ nền tảng đã được niêm phong với 28 project, 4 microservice, Helm K8s, mobile MAUI 10 và bản snapshot CSDL sẵn sàng mở lại bất kỳ lúc nào.")
+                </p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a asp-action="DownloadSnapshot" class="btn btn-primary rounded-pill px-3 py-2 fw-semibold">
+                    <i class="bi bi-download me-1"></i> @(isEn ? "Download DB Snapshot (.db)" : "Tải Snapshot CSDL (.db)")
+                </a>
+                <button type="button" id="btnPingServices" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold">
+                    <i class="bi bi-activity me-1"></i> @(isEn ? "Ping Microservices" : "Kiểm Tra Microservices")
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Grid -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-body h-100">
+                <span class="text-body-secondary small fw-semibold">@(isEn ? "Total Projects (.NET slnx)" : "Tổng Dự Án (.NET slnx)")</span>
+                <div class="d-flex align-items-baseline gap-2 mt-2">
+                    <h2 class="fw-bold mb-0 text-primary">@Model.TotalProjects</h2>
+                    <span class="text-body-secondary small">5 Layers</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-body h-100">
+                <span class="text-body-secondary small fw-semibold">@(isEn ? "Automated Quality Gates" : "Kiểm Thử Tự Động (CI)")</span>
+                <div class="d-flex align-items-baseline gap-2 mt-2">
+                    <h2 class="fw-bold mb-0 text-success">@Model.TotalAutomatedTests</h2>
+                    <span class="text-body-secondary small">/ @Model.TotalAutomatedTests Pass</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-body h-100">
+                <span class="text-body-secondary small fw-semibold">@(isEn ? "Tutorials & Flashcards" : "Bài Học & Thẻ Ôn Tập")</span>
+                <div class="d-flex align-items-baseline gap-2 mt-2">
+                    <h2 class="fw-bold mb-0 text-info">@Model.TotalTutorials</h2>
+                    <span class="text-body-secondary small">+ @Model.TotalFlashcards thẻ</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-body h-100">
+                <span class="text-body-secondary small fw-semibold">@(isEn ? "Seed Users / Roles" : "Người Dùng Mẫu & Quyền")</span>
+                <div class="d-flex align-items-baseline gap-2 mt-2">
+                    <h2 class="fw-bold mb-0 text-warning">@Model.TotalUsers</h2>
+                    <span class="text-body-secondary small">tài khoản</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Artifacts & Microservice Health -->
+    <div class="row g-4 mb-4">
+        <!-- Standalone Artifacts -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-box-seam me-2 text-primary"></i>@(isEn ? "Standalone Release Artifacts" : "Thành Phẩm Đóng Gói Độc Lập")
+                    </h5>
+                    <span class="badge bg-secondary-subtle text-secondary px-2.5 py-1 rounded-pill small">Thư mục dist/</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>@(isEn ? "Artifact" : "Gói phát hành")</th>
+                                <th>@(isEn ? "Platform" : "Nền tảng")</th>
+                                <th>@(isEn ? "Size" : "Kích thước")</th>
+                                <th>@(isEn ? "Status" : "Trạng thái")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var art in Model.ReleaseArtifacts)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">@art.Name</div>
+                                        <code class="small text-body-secondary">@art.RelativePath</code>
+                                    </td>
+                                    <td class="small">@art.TargetPlatform</td>
+                                    <td><span class="badge bg-light text-dark border">@art.SizeDisplay</span></td>
+                                    <td>
+                                        @if (art.Exists)
+                                        {
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Sẵn sàng
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill">
+                                                <i class="bi bi-dash-circle me-1"></i> Chưa tạo
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Microservice Matrix -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-cpu me-2 text-success"></i>@(isEn ? "Microservice Health & Latency" : "Trạng Thái & Độ Trễ Microservices")
+                    </h5>
+                    <span id="healthTimestamp" class="small text-body-secondary">Chưa kiểm tra</span>
+                </div>
+                <div id="serviceList" class="d-flex flex-column gap-2">
+                    <div class="p-3 rounded-3 bg-light text-body-secondary text-center small">
+                        Nhấp nút <strong>"Kiểm Tra Microservices"</strong> ở góc trên để đo độ trễ các dịch vụ nội bộ.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Start CLI Cheatsheet -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-body">
+        <h5 class="fw-bold mb-3">
+            <i class="bi bi-terminal-fill me-2 text-dark"></i>@(isEn ? "Universal Control CLI (scripts/nettutos.ps1)" : "Bộ Điều Khiển Trung Tâm (scripts/nettutos.ps1)")
+        </h5>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="p-3 rounded-3 border bg-body-tertiary h-100">
+                    <div class="fw-bold text-primary mb-1">Khởi động nền tảng</div>
+                    <code class="d-block p-2 bg-dark text-light rounded mb-2 small">./scripts/nettutos.ps1 up</code>
+                    <p class="small text-body-secondary mb-0">Tự động khởi động Web BFF trên cổng 5262 hoặc Docker/K8s.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 rounded-3 border bg-body-tertiary h-100">
+                    <div class="fw-bold text-success mb-1">Chạy Mobile App</div>
+                    <code class="d-block p-2 bg-dark text-light rounded mb-2 small">./scripts/nettutos.ps1 mobile</code>
+                    <p class="small text-body-secondary mb-0">Tự động mở máy ảo Android và deploy app MAUI 10.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 rounded-3 border bg-body-tertiary h-100">
+                    <div class="fw-bold text-info mb-1">Kiểm thử toàn diện</div>
+                    <code class="d-block p-2 bg-dark text-light rounded mb-2 small">./scripts/nettutos.ps1 test</code>
+                    <p class="small text-body-secondary mb-0">Chạy toàn bộ 254 test kiểm thử tự động, lint Helm và Compose.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.getElementById('btnPingServices')?.addEventListener('click', async function () {
+        const btn = this;
+        const list = document.getElementById('serviceList');
+        const ts = document.getElementById('healthTimestamp');
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang đo...';
+        
+        try {
+            const res = await fetch('/api/admin/system/health-matrix');
+            const data = await res.json();
+            
+            ts.textContent = new Date(data.timestamp).toLocaleTimeString();
+            list.innerHTML = '';
+            
+            data.services.forEach(s => {
+                const badgeClass = s.isUp ? 'bg-success-subtle text-success border-success-subtle' : 'bg-secondary-subtle text-body-secondary border-secondary-subtle';
+                const statusText = s.isUp ? `Hoạt động (${s.latencyMs} ms)` : 'Ngoại tuyến (Offline)';
+                
+                const item = document.createElement('div');
+                item.className = 'd-flex align-items-center justify-content-between p-2.5 rounded-3 border bg-body';
+                item.innerHTML = `
+                    <div>
+                        <div class="fw-semibold small">${s.name}</div>
+                        <code class="text-body-secondary" style="font-size: 0.75rem;">${s.url}</code>
+                    </div>
+                    <span class="badge border rounded-pill px-2.5 py-1 ${badgeClass}">${statusText}</span>
+                `;
+                list.appendChild(item);
+            });
+        } catch (e) {
+            list.innerHTML = `<div class="p-3 rounded-3 bg-danger-subtle text-danger small">Lỗi kiểm tra: ${e.message}</div>`;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-activity me-1"></i> Kiểm Tra Microservices';
+        }
+    });
+</script>
+}
