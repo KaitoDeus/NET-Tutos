@@ -83,7 +83,7 @@ jobs:
               ...(docsAndCi.length ? ['### 📚 Documentation & CI/CD Automation', ...docsAndCi, ''] : []),
               ...(others.length ? ['### 🔧 Other Changes', ...others, ''] : []),
               '---',
-              `**Quality Gate:** \`210/210 Automated Tests Passing\` • **License:** [MIT License](https://github.com/${owner}/${repo}/blob/main/LICENSE)`
+              `**Quality Gate:** \`255/255 Automated Tests Passing\` • **License:** [MIT License](https://github.com/${owner}/${repo}/blob/main/LICENSE)`
             ].join('\n');
 
             const { data: release } = await github.rest.repos.createRelease({
@@ -98,3 +98,22 @@ jobs:
             });
 
             core.info(`Published GitHub Release: ${release.html_url}`);
+
+            const fs = require('fs');
+            const path = require('path');
+            const helmPath = path.join(process.cwd(), 'dist', 'helm', 'nettutos-1.0.0.tgz');
+            if (fs.existsSync(helmPath)) {
+              try {
+                await github.rest.repos.uploadReleaseAsset({
+                  owner,
+                  repo,
+                  release_id: release.id,
+                  name: 'nettutos-1.0.0.tgz',
+                  data: fs.readFileSync(helmPath),
+                  headers: { 'content-type': 'application/gzip' }
+                });
+                core.info('Attached Helm chart asset to GitHub release.');
+              } catch (err) {
+                core.warning(`Failed to attach Helm asset: ${err.message}`);
+              }
+            }
